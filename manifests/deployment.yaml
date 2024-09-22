@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kapetanios
+  namespace: default
+  labels:
+    name: kapetanios
+spec:
+  selector:
+    matchLabels:
+      app: kapetanios
+  template:
+    metadata:
+      labels:
+        app: kapetanios
+    spec:
+      containers:
+# TO-DO:
+        - image: quay.io/klovercloud/kapetanios:latest
+          imagePullPolicy: Always
+          name: kapetanios
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+      schedulerName: default-scheduler
+      serviceAccountName: kapetanios
