@@ -6,6 +6,7 @@ require (
 	k8s.io/api v0.28.14
 	k8s.io/apimachinery v0.28.14
 	k8s.io/client-go v0.28.14
+	k8s.io/kubeadm v0.28.14
 )
 
 require (
