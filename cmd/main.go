@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	orchestrator "github.com/shishir9159/kapetanios/internal/orchestrator"
+	"github.com/shishir9159/kapetanios/internal/orchestrator"
 	"log"
 )
 
@@ -14,10 +14,10 @@ func main() {
 		log.Fatalf("Error creating Kubernetes client: %v", err)
 	}
 
-	agent := orchestrator.NewAgent(client)
+	renewalAgentManager := orchestrator.NewAgent(client)
 
 	nodeRole := "worker"
-	pod, err := creator.CreateTempPod(context.Background(), nodeRole)
+	pod, err := renewalAgentManager.CreateTempPod(context.Background(), nodeRole)
 	if err != nil {
 		log.Fatalf("Error creating temporary pod: %v", err)
 	}
