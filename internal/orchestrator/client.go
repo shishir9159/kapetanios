@@ -1,4 +1,4 @@
-package k8s_certs_renewal
+package orchestrator
 
 import (
 	"k8s.io/client-go/kubernetes"
@@ -7,27 +7,27 @@ import (
 )
 
 type Client struct {
-	clientset *kubernetes.Clientset
+	clientSet *kubernetes.Clientset
 }
 
 func NewClient() (*Client, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		kubeconfig := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		kubeConfig := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
+		config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	clientset, err := kubernetes.NewForConfig(config)
+	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{clientset: clientset}, nil
+	return &Client{clientSet: clientSet}, nil
 }
 
 func (c *Client) Clientset() *kubernetes.Clientset {
-	return c.clientset
+	return c.clientSet
 }

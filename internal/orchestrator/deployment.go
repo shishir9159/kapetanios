@@ -9,10 +9,10 @@ import (
 )
 
 type Agent struct {
-	client *k8s.Client
+	client *Client
 }
 
-func NewAgent(client *k8s.Client) *Agent {
+func NewAgent(client *Client) *Agent {
 	return &Agent{client: client}
 }
 

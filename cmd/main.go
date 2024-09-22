@@ -3,19 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/shishir9159/temp-pod-creator/pkg/k8s"
-	"github.com/shishir9159/temp-pod-creator/pkg/pod"
+	orchestrator "github.com/shishir9159/kapetanios/internal/orchestrator"
 	"log"
 )
 
 func main() {
 
-	client, err := k8s.NewClient()
+	client, err := orchestrator.NewClient()
 	if err != nil {
 		log.Fatalf("Error creating Kubernetes client: %v", err)
 	}
 
-	agent := pod.NewAgent(client)
+	agent := orchestrator.NewAgent(client)
 
 	nodeRole := "worker"
 	pod, err := creator.CreateTempPod(context.Background(), nodeRole)
