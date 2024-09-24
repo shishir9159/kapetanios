@@ -16,31 +16,6 @@ func NewAgent(client *Client) *Agent {
 	return &Agent{client: client}
 }
 
-//apiVersion: v1
-//kind: Pod
-//metadata:
-//  name: service-control-pod
-//spec:
-//  nodeName: shihab-node-1
-//  containers:
-//  - name: privileged-container
-//    image: quay.io/klovercloud/systemctl-permit:v0.4
-//    securityContext:
-//      privileged: true
-//    command:
-//    - "/bin/bash"
-//    - "-c"
-//    - "chroot /host systemctl status etcd"
-//    - "echo 'command executed'"
-//    - "sleep 10m"
-//    volumeMounts:
-//    - mountPath: /host
-//      name: host
-//  volumes:
-//  - name: host
-//    hostPath:
-//      path: /
-
 func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod, error) {
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -49,8 +24,30 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 		Spec: corev1.PodSpec{
 			HostPID:     true,
 			HostNetwork: true,
+			//Affinity: &corev1.Affinity{
+			//	NodeAffinity: &corev1.NodeAffinity{
+			//		RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+			//			NodeSelectorTerms: []corev1.NodeSelectorTerm{
+			//				{
+			//					MatchExpressions: []corev1.NodeSelectorRequirement{
+			//						{
+			//							Key:      "assigned-node-role.kubernetes.io",
+			//							Operator: corev1.NodeSelectorOpIn,
+			//							Values:   []string{nodeRole},
+			//						},
+			//					},
+			//				},
+			//			},
+			//		},
+			//	},
+			//	PodAntiAffinity: &corev1.PodAntiAffinity{
+			//		RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+			//
+			//		},
+			//	},
+			//},
 			NodeSelector: map[string]string{
-				"node-role.kubernetes.io/" + nodeRole: "",
+				"assigned-node-role.kubernetes.io": nodeRole,
 			},
 			Containers: []corev1.Container{
 				{
@@ -61,7 +58,7 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 						"chroot /host systemctl status etcd",
 						"sleep 10m",
 					},
-					Image: "busybox",
+					Image: "quay.io/klovercloud/systemctl-permit:v0.4",
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: &[]bool{true}[0],
 					},

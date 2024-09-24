@@ -16,7 +16,7 @@ func main() {
 
 	renewalAgentManager := orchestration.NewAgent(client)
 
-	nodeRole := "worker"
+	nodeRole := "etcd"
 	pod, err := renewalAgentManager.CreateTempPod(context.Background(), nodeRole)
 	if err != nil {
 		log.Fatalf("Error creating temporary pod: %v", err)
