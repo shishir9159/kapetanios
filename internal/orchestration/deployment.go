@@ -70,7 +70,6 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 						"/bin/bash",
 						"-c",
 						"chroot /host systemctl status etcd",
-						"sleep 10m",
 					},
 					Image: "quay.io/klovercloud/systemctl-permit:v0.4",
 					SecurityContext: &corev1.SecurityContext{
