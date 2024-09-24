@@ -19,16 +19,6 @@ spec:
         - image: quay.io/klovercloud/kapetanios:latest
           imagePullPolicy: Always
           name: kapetanios
-          livenessProbe:
-            failureThreshold: 5
-            httpGet:
-              path: /health
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 5
       terminationGracePeriodSeconds: 60
       schedulerName: default-scheduler
       serviceAccountName: kapetanios
