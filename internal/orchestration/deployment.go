@@ -20,10 +20,11 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("temp-pod-%s-", nodeRole),
+			Labels: map[string]string{
+				"app": "etcd",
+			},
 		},
 		Spec: corev1.PodSpec{
-			HostPID:     true,
-			HostNetwork: true,
 			Affinity: &corev1.Affinity{
 				NodeAffinity: &corev1.NodeAffinity{
 					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
@@ -60,6 +61,8 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 			//NodeSelector: map[string]string{
 			//	"assigned-node-role.kubernetes.io": nodeRole,
 			//},
+			HostPID:     true,
+			HostNetwork: true,
 			Containers: []corev1.Container{
 				{
 					Name: "temp-container",
