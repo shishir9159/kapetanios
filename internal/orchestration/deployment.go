@@ -24,31 +24,42 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 		Spec: corev1.PodSpec{
 			HostPID:     true,
 			HostNetwork: true,
-			//Affinity: &corev1.Affinity{
-			//	NodeAffinity: &corev1.NodeAffinity{
-			//		RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-			//			NodeSelectorTerms: []corev1.NodeSelectorTerm{
-			//				{
-			//					MatchExpressions: []corev1.NodeSelectorRequirement{
-			//						{
-			//							Key:      "assigned-node-role.kubernetes.io",
-			//							Operator: corev1.NodeSelectorOpIn,
-			//							Values:   []string{nodeRole},
-			//						},
-			//					},
-			//				},
-			//			},
-			//		},
-			//	},
-			//	PodAntiAffinity: &corev1.PodAntiAffinity{
-			//		RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
-			//
-			//		},
-			//	},
-			//},
-			NodeSelector: map[string]string{
-				"assigned-node-role.kubernetes.io": nodeRole,
+			Affinity: &corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+						NodeSelectorTerms: []corev1.NodeSelectorTerm{
+							{
+								MatchExpressions: []corev1.NodeSelectorRequirement{
+									{
+										Key:      "assigned-node-role.kubernetes.io",
+										Operator: corev1.NodeSelectorOpIn,
+										Values:   []string{nodeRole},
+									},
+								},
+							},
+						},
+					},
+				},
+				PodAntiAffinity: &corev1.PodAntiAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+						{
+							LabelSelector: &metav1.LabelSelector{
+								MatchExpressions: []metav1.LabelSelectorRequirement{
+									{
+										Key:      "assigned-node-role.kubernetes.io",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{nodeRole},
+									},
+								},
+							},
+							TopologyKey: "kubernetes.io/hostname",
+						},
+					},
+				},
 			},
+			//NodeSelector: map[string]string{
+			//	"assigned-node-role.kubernetes.io": nodeRole,
+			//},
 			Containers: []corev1.Container{
 				{
 					Name: "temp-container",

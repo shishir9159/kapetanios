@@ -1,11 +1,9 @@
-FROM golang:1.23-bookworm as builder
+FROM golang:1.23-bookworm AS builder
 WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
 COPY . ./
-
-# Build the binary.
 RUN go build ./cmd/main.go
 
 FROM debian:bookworm-slim
