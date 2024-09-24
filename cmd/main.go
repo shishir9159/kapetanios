@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
-	"os"
 )
 
 func main() {
@@ -25,6 +24,4 @@ func main() {
 	defer func() {
 		fmt.Printf("Temporary pod created: %s\n", pod.Name)
 	}()
-
-	os.Exit(0)
 }
