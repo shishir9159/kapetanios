@@ -3,18 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/shishir9159/kapetanios/internal/orchestrator"
+	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"log"
 )
 
 func main() {
 
-	client, err := orchestrator.NewClient()
+	client, err := orchestration.NewClient()
 	if err != nil {
 		log.Fatalf("Error creating Kubernetes client: %v", err)
 	}
 
-	renewalAgentManager := orchestrator.NewAgent(client)
+	renewalAgentManager := orchestration.NewAgent(client)
 
 	nodeRole := "worker"
 	pod, err := renewalAgentManager.CreateTempPod(context.Background(), nodeRole)
