@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"log"
-	"os"
+	"time"
 )
 
 func main() {
@@ -25,5 +25,5 @@ func main() {
 
 	fmt.Printf("Temporary pod created: %s\n", pod.Name)
 
-	os.Exit(1)
+	time.Sleep(100000)
 }
