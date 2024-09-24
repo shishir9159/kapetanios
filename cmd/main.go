@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
-	"log"
 	"os"
 )
 
@@ -12,7 +11,7 @@ func main() {
 
 	client, err := orchestration.NewClient()
 	if err != nil {
-		log.Fatalf("Error creating Kubernetes client: %v", err)
+		fmt.Println("Error creating Kubernetes client: %v", err)
 	}
 
 	renewalAgentManager := orchestration.NewAgent(client)
@@ -20,10 +19,12 @@ func main() {
 	nodeRole := "etcd"
 	pod, err := renewalAgentManager.CreateTempPod(context.Background(), nodeRole)
 	if err != nil {
-		log.Fatalf("Error creating temporary pod: %v", err)
+		fmt.Println("Error creating temporary pod: %v", err)
 	}
 
-	fmt.Printf("Temporary pod created: %s\n", pod.Name)
+	defer func() {
+		fmt.Printf("Temporary pod created: %s\n", pod.Name)
+	}()
 
 	os.Exit(0)
 }
