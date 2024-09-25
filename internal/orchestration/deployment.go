@@ -71,7 +71,8 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 						"-c",
 						"chroot /host systemctl status etcd",
 					},
-					Image: "quay.io/klovercloud/systemctl-permit:v0.4",
+					//Image: "quay.io/klovercloud/systemctl-permit:v0.4",
+					Image: "ubuntu",
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: &[]bool{true}[0],
 					},
