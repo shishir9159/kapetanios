@@ -1,25 +1,25 @@
 package orchestration
 
 import (
-	"context"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Agent struct {
+type Minions struct {
 	client *Client
 }
 
-func NewAgent(client *Client) *Agent {
-	return &Agent{client: client}
+func NewMinions(client *Client) *Minions {
+	return &Minions{client: client}
 }
 
-func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod, error) {
-	pod := &corev1.Pod{
+func (c *Minions) MinionBlueprint(image string, nodeRole string) *corev1.Pod {
+
+	blueprint := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: fmt.Sprintf("temp-pod-%s-", nodeRole),
+			GenerateName: fmt.Sprintf("minions-for-%s-", nodeRole),
 			Labels: map[string]string{
 				"app": "etcd",
 			},
@@ -65,14 +65,13 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 			HostNetwork: true,
 			Containers: []corev1.Container{
 				{
-					Name: "temp-container",
+					Name: "certs-renewal",
 					Command: []string{
 						"/bin/bash",
 						"-c",
 						"chroot /host systemctl status etcd",
 					},
-					//Image: "quay.io/klovercloud/systemctl-permit:v0.4",
-					Image: "ubuntu",
+					Image: image,
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: &[]bool{true}[0],
 					},
@@ -98,10 +97,5 @@ func (c *Agent) CreateTempPod(ctx context.Context, nodeRole string) (*corev1.Pod
 		},
 	}
 
-	createdPod, err := c.client.Clientset().CoreV1().Pods("default").Create(ctx, pod, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return createdPod, nil
+	return blueprint
 }
