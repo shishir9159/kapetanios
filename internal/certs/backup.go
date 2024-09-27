@@ -2,11 +2,15 @@ package certs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"syscall"
 )
 
 func getCertificatesDir() string {
@@ -52,35 +56,6 @@ func getKubeConfigFiles() []string {
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
 // the same, then return success. Otherise, attempt to create a hard link
 // between the two files. If that fail, copy the file contents from src to dst.
-func CopyFile(src, dst string) (err error) {
-	sfi, err := os.Stat(src)
-	if err != nil {
-		return
-	}
-	if !sfi.Mode().IsRegular() {
-		// cannot copy non-regular files (e.g., directories,
-		// symlinks, devices, etc.)
-		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
-	}
-	dfi, err := os.Stat(dst)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return
-		}
-	} else {
-		if !(dfi.Mode().IsRegular()) {
-			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
-		}
-		if os.SameFile(sfi, dfi) {
-			return
-		}
-	}
-	if err = os.Link(src, dst); err == nil {
-		return
-	}
-	err = copyFileContents(src, dst)
-	return
-}
 
 // copyFileContents copies the contents of the file named src to the file named
 // by dst. The file will be created if it does not already exist. If the
@@ -109,22 +84,95 @@ func copyFileContents(src, dst string) (err error) {
 	return
 }
 
-func main() {
+func getBackupDir(backupCount int) string {
 
+	baseDir := "/opt/klovercloud"
+	//backupDirPattern := "cert-backup-*"
+	backupDirPattern := "certs-backup-"
+	err := syscall.Chroot("/host")
+	if err != nil {
+		return ""
+	}
+
+	//files, err := ioutil.ReadDir("testFolder")
+	//	sfi, err := os.Stat(src)
+	//	if err != nil {
+	//		return
+	//	}
+	//	if !sfi.Mode().IsRegular() {
+	//		// cannot copy non-regular files (e.g., directories,
+	//		// symlinks, devices, etc.)
+	//		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
+	//	}
+	//	dfi, err := os.Stat(dst)
+	//	if err != nil {
+	//		if !os.IsNotExist(err) {
+	//			return
+	//		}
+	//	} else {
+	//		if !(dfi.Mode().IsRegular()) {
+	//			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
+	//		}
+	//		if os.SameFile(sfi, dfi) {
+	//			return
+	//		}
+	//	}
+
+	if _, err = os.Stat(baseDir); err == nil {
+		// path/to/whatever exists
+
+	} else if errors.Is(err, os.ErrNotExist) {
+		err = os.Mkdir(baseDir, 600)
+
+	}
+
+	// TO-DO: handle possible permission errors
+	if err != nil {
+		return ""
+	}
+
+	// check if it works with folder
+	oldBackupFiles, err := filepath.Glob(filepath.Join(baseDir, backupDirPattern))
+	if err != nil {
+		// non match
+	}
+
+	// to-do: apply the old logic
+	if len(oldBackupFiles) > backupCount {
+		err = os.Mkdir("/opt/klovercloud/certs-backup-1", 600)
+		return "/opt/klovercloud/certs-backup-1"
+	}
+
+	return "/opt/klovercloud/certs-backup-1"
 }
 
 func BackupCertificatesKubeconfigs() {
 
-	backupDir := "/opt/klovercloud"
+	backupDir := getBackupDir(3)
 	certsDir := getCertificatesDir()
 	kubeConfigs := getKubeConfigFiles()
 
-	fmt.Printf("Copying %s to %s\n", os.Args[1], os.Args[2])
-	err := CopyFile(os.Args[1], os.Args[2])
+	err := syscall.Chroot("/host")
 	if err != nil {
-		fmt.Printf("CopyFile failed %q\n", err)
-	} else {
-		fmt.Printf("CopyFile succeeded\n")
+
 	}
 
+	cmd := exec.Command("systemctl status etcd")
+	err = cmd.Run()
+	if err != nil {
+
+	}
+
+	println(backupDir, certsDir, kubeConfigs)
+
+	//for _, certFileName := range certificateList {
+	//
+	//	// add arguments
+	//	cmd := exec.Command("cp")
+	//	err = cmd.Run()
+	//	if err != nil {
+	//	}
+	//}
+	//for _, kubeConfigFile := range kubeConfigs {
+	//}
 }
