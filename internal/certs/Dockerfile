@@ -4,7 +4,7 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 COPY . ./
-RUN go build ./main.go
+RUN go build -C ./internal/certs/ -o main
 
 FROM ubuntu:latest
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
