@@ -2,6 +2,7 @@ package main
 
 func main() {
 
+	Cert("default")
 	//client, err := orchestration.NewClient()
 	//if err != nil {
 	//	fmt.Println("Error creating Kubernetes client: %v", err)

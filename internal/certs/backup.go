@@ -146,9 +146,9 @@ func getBackupDir(backupCount int) string {
 	return "/opt/klovercloud/certs-backup-1"
 }
 
-func BackupCertificatesKubeconfigs() {
+func BackupCertificatesKubeConfigs(backupCount int) {
 
-	backupDir := getBackupDir(3)
+	backupDir := getBackupDir(backupCount)
 	certsDir := getCertificatesDir()
 	kubeConfigs := getKubeConfigFiles()
 

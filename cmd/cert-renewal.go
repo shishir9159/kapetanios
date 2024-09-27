@@ -19,7 +19,7 @@ func Cert(namespace string) {
 	renewalMinionManager := orchestration.NewMinions(client)
 
 	nodeRole := "certs"
-	descriptor := renewalMinionManager.MinionBlueprint("ubuntu", nodeRole)
+	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", nodeRole)
 
 	// how many pods
 	// this logic need to be in the orchestration too
@@ -27,7 +27,6 @@ func Cert(namespace string) {
 	if err != nil {
 		//fmt.Println("Error creating temporary pod: %v", err)
 	}
-
 	print(minion)
 
 	//		fmt.Printf("Temporary pod created: %s\n", pod.Name)
