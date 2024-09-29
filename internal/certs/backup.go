@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 )
@@ -293,12 +294,18 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 	//err = cmd.Run()
 	//if err != nil {}
 
-	err = CopyDirectory(certsDir, backupDir)
+	cmd := exec.Command("/bin/bash -c chroot /host systemctl status etcd")
+	err = cmd.Run()
 	if err != nil {
-		fmt.Println(backupDir, certsDir, kubeConfigs)
-		log.Fatalln(err)
-		return err
+		log.Println(err, kubeConfigs, backupDir, certsDir)
 	}
+
+	//err = CopyDirectory(certsDir, backupDir)
+	//if err != nil {
+	//	fmt.Println(backupDir, certsDir, kubeConfigs)
+	//	log.Fatalln(err)
+	//	return err
+	//}
 
 	//for _, certFileName := range certificateList {
 	//
