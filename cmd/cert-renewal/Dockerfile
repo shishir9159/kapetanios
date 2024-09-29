@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
-COPY ./cmd/cert-renewal ./
+COPY . ./
 RUN go build -C ./cmd/cert-renewal -o main
 
 FROM ubuntu:latest
@@ -13,5 +13,4 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 
 COPY --from=builder /app/cmd/cert-renewal/main /app/server
 
-RUN chmod +x /app/server
 CMD ["/app/server"]
