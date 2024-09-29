@@ -1,4 +1,4 @@
-package cert_renewal
+package main
 
 import "log"
 
