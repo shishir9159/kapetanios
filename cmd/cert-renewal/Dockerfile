@@ -3,15 +3,15 @@ WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
-COPY ../../internal/certs ./
-RUN go build -C ./internal/certs/ -o main
+COPY ./cmd/cert-renewal ./
+RUN go build -C ./cmd/cert-renewal -o main
 
 FROM ubuntu:latest
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/internal/certs/main /app/server
+COPY --from=builder /app/cmd/cert-renewal/main /app/server
 
 RUN chmod +x /app/server
 CMD ["/app/server"]
