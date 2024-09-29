@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"io"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"log"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -94,29 +94,29 @@ func getBackupDir(backupCount int) string {
 		return ""
 	}
 
-	files, err := ioutil.ReadDir("testFolder")
-	sfi, err := os.Stat(src)
-	if err != nil {
-		return
-	}
-	if !sfi.Mode().IsRegular() {
-		// cannot copy non-regular files (e.g., directories,
-		// symlinks, devices, etc.)
-		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
-	}
-	dfi, err := os.Stat(dst)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return
-		}
-	} else {
-		if !(dfi.Mode().IsRegular()) {
-			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
-		}
-		if os.SameFile(sfi, dfi) {
-			return
-		}
-	}
+	//files, err := os.ReadDir("")
+	//sfi, err := os.Stat(src)
+	//if err != nil {
+	//	return ""
+	//}
+	//if !sfi.Mode().IsRegular() {
+	//	// cannot copy non-regular files (e.g., directories,
+	//	// symlinks, devices, etc.)
+	//	return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
+	//}
+	//dfi, err := os.Stat(dst)
+	//if err != nil {
+	//	if !os.IsNotExist(err) {
+	//		return ""
+	//	}
+	//} else {
+	//	if !(dfi.Mode().IsRegular()) {
+	//		return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
+	//	}
+	//	if os.SameFile(sfi, dfi) {
+	//		return
+	//	}
+	//}
 
 	if _, err = os.Stat(baseDir); err == nil {
 		// path/to/whatever exists
@@ -147,11 +147,14 @@ func getBackupDir(backupCount int) string {
 }
 
 func CopyDirectory(scrDir, dest string) error {
+
 	entries, err := os.ReadDir(scrDir)
 	if err != nil {
 		return err
 	}
+
 	for _, entry := range entries {
+
 		sourcePath := filepath.Join(scrDir, entry.Name())
 		destPath := filepath.Join(dest, entry.Name())
 
@@ -199,6 +202,7 @@ func CopyDirectory(scrDir, dest string) error {
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -264,7 +268,7 @@ func CopySymLink(source, dest string) error {
 	return os.Symlink(link, dest)
 }
 
-func BackupCertificatesKubeConfigs(backupCount int) {
+func BackupCertificatesKubeConfigs(backupCount int) error {
 
 	backupDir := getBackupDir(backupCount)
 	certsDir := getCertificatesDir()
@@ -272,18 +276,21 @@ func BackupCertificatesKubeConfigs(backupCount int) {
 
 	err := syscall.Chroot("/host")
 	if err != nil {
-
+		log.Println("Failed to create chroot on /host")
+		return err
 	}
 
 	// checking better alternatives
-	//err = Copy(certsDir, backupDir)
 	//cmd := exec.Command("systemctl status etcd")
 	//err = cmd.Run()
 	//if err != nil {}
 
-	err
-
-	fmt.Println(backupDir, certsDir, kubeConfigs)
+	err = CopyDirectory(certsDir, backupDir)
+	if err != nil {
+		fmt.Println(backupDir, certsDir, kubeConfigs)
+		log.Fatalln(err)
+		return err
+	}
 
 	//for _, certFileName := range certificateList {
 	//
@@ -295,4 +302,6 @@ func BackupCertificatesKubeConfigs(backupCount int) {
 	//}
 	//for _, kubeConfigFile := range kubeConfigs {
 	//}
+
+	return nil
 }
