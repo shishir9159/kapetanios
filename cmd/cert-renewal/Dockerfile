@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
-COPY . ./
+COPY ../../internal/certs ./
 RUN go build -C ./internal/certs/ -o main
 
 FROM ubuntu:latest

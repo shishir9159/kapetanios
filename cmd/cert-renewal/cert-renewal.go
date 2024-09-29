@@ -1,4 +1,4 @@
-package main
+package cert_renewal
 
 import (
 	"context"
