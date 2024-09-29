@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"io"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"syscall"
 )
@@ -94,29 +94,29 @@ func getBackupDir(backupCount int) string {
 		return ""
 	}
 
-	//files, err := ioutil.ReadDir("testFolder")
-	//	sfi, err := os.Stat(src)
-	//	if err != nil {
-	//		return
-	//	}
-	//	if !sfi.Mode().IsRegular() {
-	//		// cannot copy non-regular files (e.g., directories,
-	//		// symlinks, devices, etc.)
-	//		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
-	//	}
-	//	dfi, err := os.Stat(dst)
-	//	if err != nil {
-	//		if !os.IsNotExist(err) {
-	//			return
-	//		}
-	//	} else {
-	//		if !(dfi.Mode().IsRegular()) {
-	//			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
-	//		}
-	//		if os.SameFile(sfi, dfi) {
-	//			return
-	//		}
-	//	}
+	files, err := ioutil.ReadDir("testFolder")
+	sfi, err := os.Stat(src)
+	if err != nil {
+		return
+	}
+	if !sfi.Mode().IsRegular() {
+		// cannot copy non-regular files (e.g., directories,
+		// symlinks, devices, etc.)
+		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
+	}
+	dfi, err := os.Stat(dst)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return
+		}
+	} else {
+		if !(dfi.Mode().IsRegular()) {
+			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
+		}
+		if os.SameFile(sfi, dfi) {
+			return
+		}
+	}
 
 	if _, err = os.Stat(baseDir); err == nil {
 		// path/to/whatever exists
@@ -203,19 +203,30 @@ func CopyDirectory(scrDir, dest string) error {
 }
 
 func Copy(srcFile, dstFile string) error {
+
 	out, err := os.Create(dstFile)
 	if err != nil {
 		return err
 	}
 
-	defer out.Close()
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+
+		}
+	}(out)
 
 	in, err := os.Open(srcFile)
 	if err != nil {
 		return err
 	}
 
-	defer in.Close()
+	defer func(in *os.File) {
+		err := in.Close()
+		if err != nil {
+
+		}
+	}(in)
 
 	_, err = io.Copy(out, in)
 	if err != nil {
@@ -264,13 +275,15 @@ func BackupCertificatesKubeConfigs(backupCount int) {
 
 	}
 
-	cmd := exec.Command("systemctl status etcd")
-	err = cmd.Run()
-	if err != nil {
+	// checking better alternatives
+	//err = Copy(certsDir, backupDir)
+	//cmd := exec.Command("systemctl status etcd")
+	//err = cmd.Run()
+	//if err != nil {}
 
-	}
+	err
 
-	println(backupDir, certsDir, kubeConfigs)
+	fmt.Println(backupDir, certsDir, kubeConfigs)
 
 	//for _, certFileName := range certificateList {
 	//
