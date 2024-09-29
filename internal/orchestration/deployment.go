@@ -21,7 +21,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string) *corev1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("minions-for-%s-", nodeRole),
 			Labels: map[string]string{
-				"app": "etcd",
+				"app": nodeRole,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -66,11 +66,11 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string) *corev1.Pod {
 			Containers: []corev1.Container{
 				{
 					Name: "certs-renewal",
-					Command: []string{
-						"/bin/bash",
-						"-c",
-						"chroot /host systemctl status etcd",
-					},
+					//Command: []string{
+					//	"/bin/bash",
+					//	"-c",
+					//	"chroot /host systemctl status etcd",
+					//},
 					Image: image,
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: &[]bool{true}[0],

@@ -154,16 +154,16 @@ func getBackupDir(backupCount int) string {
 	return "/opt/klovercloud/certs-backup-1"
 }
 
-func CopyDirectory(scrDir, dest string) error {
+func CopyDirectory(src, dest string) error {
 
-	entries, err := os.ReadDir(scrDir)
+	entries, err := os.ReadDir(src)
 	if err != nil {
 		return err
 	}
 
 	for _, entry := range entries {
 
-		sourcePath := filepath.Join(scrDir, entry.Name())
+		sourcePath := filepath.Join(src, entry.Name())
 		destPath := filepath.Join(dest, entry.Name())
 
 		fileInfo, err := os.Stat(sourcePath)
