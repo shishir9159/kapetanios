@@ -62,11 +62,19 @@ func getKubeConfigFiles() []string {
 // destination file exists, all it's contents will be replaced by the contents
 // of the source file.
 func copyFileContents(src, dst string) (err error) {
+
 	in, err := os.Open(src)
 	if err != nil {
 		return
 	}
-	defer in.Close()
+
+	defer func(in *os.File) {
+		err := in.Close()
+		if err != nil {
+
+		}
+	}(in)
+
 	out, err := os.Create(dst)
 	if err != nil {
 		return
