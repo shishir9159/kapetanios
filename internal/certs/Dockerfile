@@ -12,4 +12,6 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/internal/certs/main /app/server
+
+RUN chmod +x /app/server
 CMD ["/app/server"]
