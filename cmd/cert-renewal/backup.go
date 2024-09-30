@@ -295,6 +295,12 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 	}
 
 	fmt.Println(string(stdout))
+	stdout, err = exec.Command("/bin/bash", "-c", "cp -r /etc/kubernetes/pki /opt/klovercloud/").Output()
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println(string(stdout))
 
 	//err = CopyDirectory(certsDir, backupDir)
 	//if err != nil {
