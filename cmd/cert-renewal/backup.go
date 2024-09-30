@@ -289,7 +289,7 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 		log.Println(err)
 	}
 
-	stdout, err := exec.Command("/bin/bash", "-c", "chrtoot /host systemctl status etcd").Output()
+	stdout, err := exec.Command("/bin/bash", "-c", "chroot /host systemctl status etcd").Output()
 	if err != nil {
 		log.Println(err)
 	}
