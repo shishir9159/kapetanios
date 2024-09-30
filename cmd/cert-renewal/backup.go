@@ -286,11 +286,14 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 	err := syscall.Chroot("/host")
 	if err != nil {
 		log.Println("Failed to create chroot on /host")
-		fmt.Println(err)
+		log.Println(err)
 		return err
 	}
 
 	cmd, err := exec.Command("/bin/bash", "-c", "systemctl status etcd").Output()
+	if err != nil {
+		log.Println(err)
+	}
 
 	fmt.Println(string(cmd))
 
@@ -312,5 +315,5 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 	//for _, kubeConfigFile := range kubeConfigs {
 	//}
 
-	return nil
+	return err
 }
