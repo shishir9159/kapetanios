@@ -9,7 +9,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"syscall"
 )
@@ -289,25 +288,24 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 		log.Println(err)
 	}
 
-	stdout, err := exec.Command("/bin/bash", "-c", "chroot /host systemctl status etcd").Output()
-	if err != nil {
-		log.Println(err)
-	}
-
-	fmt.Println(string(stdout))
-	stdout, err = exec.Command("/bin/bash", "-c", "cp -r /etc/kubernetes/pki /opt/klovercloud/").Output()
-	if err != nil {
-		log.Println(err)
-	}
-
-	fmt.Println(string(stdout))
-
-	//err = CopyDirectory(certsDir, backupDir)
+	//stdout, err := exec.Command("/bin/bash", "-c", "chroot /host systemctl status etcd").Output()
 	//if err != nil {
-	fmt.Println(backupDir, certsDir, kubeConfigs)
-	//	log.Fatalln(err)
-	//	return err
+	//	log.Println(err)
 	//}
+	//fmt.Println(string(stdout))
+	//
+	//stdout, err = exec.Command("/bin/bash", "-c", "cp -r /etc/kubernetes/pki /opt/klovercloud/").Output()
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//
+	//fmt.Println(string(stdout))
+
+	err = CopyDirectory(certsDir, backupDir)
+	if err != nil {
+		fmt.Println(backupDir, certsDir, kubeConfigs)
+		log.Println(err)
+	}
 
 	//for _, certFileName := range certificateList {
 	//
