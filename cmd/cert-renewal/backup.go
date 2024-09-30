@@ -53,7 +53,7 @@ func getKubeConfigFiles() []string {
 //    Copy the bytes (all efficient means failed), return result
 
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
-// the same, then return success. Otherise, attempt to create a hard link
+// the same, then return success. Otherwise, attempt to create a hard link
 // between the two files. If that fail, copy the file contents from src to dst.
 
 func getBackupDir(backupCount int) (string, error) {
@@ -63,8 +63,9 @@ func getBackupDir(backupCount int) (string, error) {
 
 	if dfi, err := os.Stat(baseDir); err != nil {
 		if os.IsNotExist(err) {
-			fmt.Println(baseDir, "creating backup directory for certificates")
+			log.Println(baseDir, "creating backup directory for certificates")
 			if er := CreateIfNotExists(baseDir, 0755); er != nil {
+				log.Println(er)
 				return "", er
 			}
 		} else if !dfi.IsDir() {
@@ -93,11 +94,13 @@ func getBackupDir(backupCount int) (string, error) {
 	if len(glob) == 0 {
 		if er := CreateIfNotExists(baseDir+backupDirPattern+"1", 0755); er != nil {
 			// permission 600 or 0755
+			log.Println(er)
 			return baseDir + backupDirPattern + "1", er
 		}
 	} else if len(glob) < backupCount {
 		if er := CreateIfNotExists(baseDir, 0755); er != nil {
-			return "", er
+			log.Println(er)
+			return baseDir + backupDirPattern + string(rune(len(glob)+1)), er
 		}
 		return baseDir + backupDirPattern + string(rune(len(glob)+1)), nil
 	} else {
