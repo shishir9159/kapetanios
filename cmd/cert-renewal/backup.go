@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"io"
@@ -19,7 +18,7 @@ func getCertificatesDir() string {
 
 	client, err := orchestration.NewClient()
 	if err != nil {
-		fmt.Println("Error creating Kubernetes client: %v", err)
+		fmt.Printf("Error creating Kubernetes client: %v\n", err)
 		return "/etc/kubernetes/pki"
 	}
 
@@ -57,101 +56,55 @@ func getKubeConfigFiles() []string {
 // the same, then return success. Otherise, attempt to create a hard link
 // between the two files. If that fail, copy the file contents from src to dst.
 
-// copyFileContents copies the contents of the file named src to the file named
-// by dst. The file will be created if it does not already exist. If the
-// destination file exists, all it's contents will be replaced by the contents
-// of the source file.
-func copyFileContents(src, dst string) (err error) {
-
-	in, err := os.Open(src)
-	if err != nil {
-		return
-	}
-
-	defer func(in *os.File) {
-		err := in.Close()
-		if err != nil {
-
-		}
-	}(in)
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return
-	}
-	defer func() {
-		cerr := out.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
-	if _, err = io.Copy(out, in); err != nil {
-		return
-	}
-	err = out.Sync()
-	return
-}
-
-func getBackupDir(backupCount int) string {
+func getBackupDir(backupCount int) (string, error) {
 
 	baseDir := "/opt/klovercloud"
-	//backupDirPattern := "cert-backup-*"
-	backupDirPattern := "certs-backup-"
-	err := syscall.Chroot("/host")
-	if err != nil {
-		return ""
+	backupDirPattern := "certs-backup-*"
+
+	if dfi, err := os.Stat(baseDir); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println(baseDir, "creating backup directory for certificates")
+			if er := CreateIfNotExists(baseDir, 0755); er != nil {
+				return "", er
+			}
+		} else if !dfi.IsDir() {
+			// remove the file and create a directory
+		}
 	}
 
-	//files, err := os.ReadDir("")
-	//sfi, err := os.Stat(src)
+	// TO-DO: handle possible permission errors for file coppy
 	//if err != nil {
 	//	return ""
 	//}
-	//if !sfi.Mode().IsRegular() {
-	//	// cannot copy non-regular files (e.g., directories,
-	//	// symlinks, devices, etc.)
-	//	return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
-	//}
-	//dfi, err := os.Stat(dst)
-	//if err != nil {
-	//	if !os.IsNotExist(err) {
-	//		return ""
+
+	//	if sfi, err := os.Stat(baseDir); os.IsNotExist(err) {
+	//		fmt.Println(baseDir, "creating backup directory for certificates")
+	//		if err := CreateIfNotExists(baseDir, 0755); err != nil {
+	//			return "", err
+	//		}
 	//	}
-	//} else {
-	//	if !(dfi.Mode().IsRegular()) {
-	//		return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
-	//	}
-	//	if os.SameFile(sfi, dfi) {
-	//		return
-	//	}
-	//}
 
-	if _, err = os.Stat(baseDir); err == nil {
-		// path/to/whatever exists
-
-	} else if errors.Is(err, os.ErrNotExist) {
-		err = os.Mkdir(baseDir, 600)
-
-	}
-
-	// TO-DO: handle possible permission errors
+	glob, err := filepath.Glob(baseDir + backupDirPattern)
 	if err != nil {
-		return ""
+
+		log.Println(err)
 	}
 
-	// check if it works with folder
-	oldBackupFiles, err := filepath.Glob(filepath.Join(baseDir, backupDirPattern))
-	if err != nil {
-		// non match
+	if len(glob) == 0 {
+		if er := CreateIfNotExists(baseDir+backupDirPattern+"1", 0755); er != nil {
+			// permission 600 or 0755
+			return baseDir + backupDirPattern + "1", er
+		}
+	} else if len(glob) < backupCount {
+		if er := CreateIfNotExists(baseDir, 0755); er != nil {
+			return "", er
+		}
+		return baseDir + backupDirPattern + string(rune(len(glob)+1)), nil
+	} else {
+		//	logic for removing the oldest one and increment all indices by one
 	}
 
-	// to-do: apply the old logic
-	if len(oldBackupFiles) > backupCount {
-		err = os.Mkdir("/opt/klovercloud/certs-backup-1", 600)
-		return "/opt/klovercloud/certs-backup-1"
-	}
-
-	return "/opt/klovercloud/certs-backup-1"
+	return "/opt/klovercloud/certs-backup-1", nil
 }
 
 func CopyDirectory(src, dest string) error {
@@ -188,6 +141,7 @@ func CopyDirectory(src, dest string) error {
 			if err := CopySymLink(sourcePath, destPath); err != nil {
 				return err
 			}
+		//	sfi.Mode().IsRegular() with os.Stat() can help determine if the srcDir is a device and should be avoided
 		default:
 			if err := Copy(sourcePath, destPath); err != nil {
 				return err
@@ -278,15 +232,15 @@ func CopySymLink(source, dest string) error {
 
 func BackupCertificatesKubeConfigs(backupCount int) error {
 
-	backupDir := getBackupDir(backupCount)
-	certsDir := getCertificatesDir()
-	kubeConfigs := getKubeConfigFiles()
-
 	err := syscall.Chroot("/host")
 	if err != nil {
-		log.Println("Failed to create chroot on /host\n\n\n")
+		//log.Println("Failed to create chroot on /host\n\n\n")
 		log.Println(err)
 	}
+
+	backupDir, err := getBackupDir(backupCount)
+	certsDir := getCertificatesDir()
+	kubeConfigs := getKubeConfigFiles()
 
 	//stdout, err := exec.Command("/bin/bash", "-c", "chroot /host systemctl status etcd").Output()
 	//if err != nil {

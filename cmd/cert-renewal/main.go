@@ -4,7 +4,7 @@ import "log"
 
 func main() {
 	//	step 1. Backup directories
-	err := BackupCertificatesKubeConfigs(3)
+	err := BackupCertificatesKubeConfigs(7)
 	if err != nil {
 		log.Println(err)
 	}
