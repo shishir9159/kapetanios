@@ -5,7 +5,7 @@ COPY go.* ./
 RUN rm -rf go.mod
 COPY ./cmd/cert-renewal/go.mod .
 RUN go mod download
-COPY . ./
+COPY cmd/cert-renewal ./
 RUN go build -C ./cmd/cert-renewal -o main
 
 FROM ubuntu:latest
