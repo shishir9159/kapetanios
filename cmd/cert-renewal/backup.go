@@ -289,20 +289,19 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 		return err
 	}
 
-	// checking better alternatives
-	//cmd := exec.Command("systemctl status etcd")
-	//err = cmd.Run()
-	//if err != nil {}
-
-	cmd := exec.Command("/bin/bash -c chroot /host systemctl status etcd")
-	err = cmd.Run()
+	err = syscall.Chroot("/host")
 	if err != nil {
-		log.Println(err, kubeConfigs, backupDir, certsDir)
+		fmt.Println(err)
+		return err
 	}
+
+	cmd, err := exec.Command("/bin/bash", "-c", "systemctl status etcd").Output()
+
+	fmt.Println(string(cmd))
 
 	//err = CopyDirectory(certsDir, backupDir)
 	//if err != nil {
-	//	fmt.Println(backupDir, certsDir, kubeConfigs)
+	fmt.Println(backupDir, certsDir, kubeConfigs)
 	//	log.Fatalln(err)
 	//	return err
 	//}

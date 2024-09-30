@@ -2,6 +2,8 @@ FROM golang:1.23-bookworm AS builder
 WORKDIR /app
 
 COPY go.* ./
+RUN rm -rf go.mod
+COPY ./cmd/cert-renewal/go.mod .
 RUN go mod download
 COPY . ./
 RUN go build -C ./cmd/cert-renewal -o main
