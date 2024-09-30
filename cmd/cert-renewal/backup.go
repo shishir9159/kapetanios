@@ -58,7 +58,7 @@ func getKubeConfigFiles() []string {
 
 func getBackupDir(backupCount int) (string, error) {
 
-	baseDir := "/opt/klovercloud"
+	baseDir := "/opt/klovercloud/"
 	backupDirPattern := "certs-backup-"
 
 	if dfi, err := os.Stat(baseDir); err != nil {
