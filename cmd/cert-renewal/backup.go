@@ -283,18 +283,18 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 	certsDir := getCertificatesDir()
 	kubeConfigs := getKubeConfigFiles()
 
-	//err := syscall.Chroot("/host")
-	//if err != nil {
-	//	log.Println("Failed to create chroot on /host")
-	//	log.Println(err)
-	//}
+	err := syscall.Chroot("/host")
+	if err != nil {
+		log.Println("Failed to create chroot on /host\n\n\n")
+		log.Println(err)
+	}
 
-	cmd, err := exec.Command("/bin/bash", "-c", "chrtoot /host systemctl status etcd").Output()
+	stdout, err := exec.Command("/bin/bash", "-c", "chrtoot /host systemctl status etcd").Output()
 	if err != nil {
 		log.Println(err)
 	}
 
-	fmt.Println(string(cmd))
+	fmt.Println(string(stdout))
 
 	//err = CopyDirectory(certsDir, backupDir)
 	//if err != nil {
