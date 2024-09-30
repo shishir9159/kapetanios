@@ -86,6 +86,7 @@ func getBackupDir(backupCount int) (string, error) {
 	//	}
 
 	glob, err := filepath.Glob(baseDir + backupDirPattern)
+	log.Println("glob", glob)
 	if err != nil {
 
 		log.Println(err)
