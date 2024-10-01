@@ -100,7 +100,7 @@ func getBackupDir(backupCount int) (string, error) {
 			return baseDir + backupDirPattern + "1", er
 		}
 	} else if len(glob) < backupCount {
-		if er := CreateIfNotExists(baseDir, 0755); er != nil {
+		if er := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(len(glob)+1), 0755); er != nil {
 			log.Println(er)
 			return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), er
 		}
