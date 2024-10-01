@@ -271,20 +271,22 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 
 	err = CopyDirectory(certsDir, backupDir)
 	if err != nil {
-		fmt.Println(backupDir, certsDir, kubeConfigs)
 		log.Println(err)
 	}
 
-	//for _, certFileName := range certificateList {
-	//
-	//	// add arguments
-	//	cmd := exec.Command("cp")
-	//	err = cmd.Run()
-	//	if err != nil {
-	//	}
-	//}
-	//for _, kubeConfigFile := range kubeConfigs {
-	//}
+	dest := "/opt/klovercloud/kubeConfig"
+
+	if err = CreateIfNotExists(dest, 0755); err != nil {
+		log.Println(err)
+	}
+
+	for _, kubeConfigFile := range kubeConfigs {
+		err = CopyDirectory(kubeConfigFile, dest)
+		if err != nil {
+			fmt.Println(backupDir, certsDir, kubeConfigs)
+			log.Println(err)
+		}
+	}
 
 	return err
 }
