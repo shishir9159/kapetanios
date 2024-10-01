@@ -95,18 +95,27 @@ func getBackupDir(backupCount int) (string, error) {
 
 	if len(glob) == 0 {
 		if er := CreateIfNotExists(baseDir+backupDirPattern+"1", 0755); er != nil {
+
+			if len(glob) >= backupCount {
+				// increment the indices
+				//sort.Slice(s, func(i, j int) bool {
+				//		if s[i][:2] != s[j][:2] {
+				//			return s[i] < s[j]
+				//		}
+				//		ii, _ := strconv.Atoi(s[i][2:])
+				//		jj, _ := strconv.Atoi(s[j][2:])
+				//		return ii < jj
+				//	})
+			}
+
 			// permission 600 or 0755
-			log.Println(er)
-			return baseDir + backupDirPattern + "1", er
+			if er := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(len(glob)+1), 0755); er != nil {
+				log.Println(er)
+				return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), er
+			}
+
+			return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), nil
 		}
-	} else if len(glob) < backupCount {
-		if er := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(len(glob)+1), 0755); er != nil {
-			log.Println(er)
-			return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), er
-		}
-		return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), nil
-	} else {
-		//	logic for removing the oldest one and increment all indices by one
 	}
 
 	return "/opt/klovercloud/certs-backup-1", nil
