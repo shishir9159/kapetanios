@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 )
@@ -33,6 +34,6 @@ func CheckCertificateValidity(baseName string, cert *x509.Certificate) {
 	certPeriodValidationCached[baseName] = struct{}{}
 
 	if err := ValidateCertPeriod(cert, 0); err != nil {
-		fmt.Errorf("WARNING: could not validate bounds for certificate %s: %v", baseName, err)
+		log.Println(fmt.Errorf("WARNING: could not validate bounds for certificate %s: %v", baseName, err))
 	}
 }

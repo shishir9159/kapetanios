@@ -190,8 +190,8 @@ func Copy(srcFile, dstFile string) error {
 	}
 
 	defer func(out *os.File) {
-		err := out.Close()
-		if err != nil {
+		er := out.Close()
+		if er != nil {
 
 		}
 	}(out)
