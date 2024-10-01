@@ -26,7 +26,7 @@ func getCertificatesDir() string {
 	cm, err := client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
 
 	// temporary lines
-	print(cm)
+	fmt.Println(cm)
 	return "/etc/kubernetes/pki"
 
 	// convert the cm to a file and read from the yaml file
@@ -202,8 +202,8 @@ func Copy(srcFile, dstFile string) error {
 	}
 
 	defer func(in *os.File) {
-		err := in.Close()
-		if err != nil {
+		er := in.Close()
+		if er != nil {
 
 		}
 	}(in)
@@ -248,26 +248,13 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 
 	err := syscall.Chroot("/host")
 	if err != nil {
-		//log.Println("Failed to create chroot on /host\n\n\n")
+		log.Println("Failed to create chroot on /host")
 		log.Println(err)
 	}
 
 	backupDir, err := getBackupDir(backupCount)
 	certsDir := getCertificatesDir()
 	kubeConfigs := getKubeConfigFiles()
-
-	//stdout, err := exec.Command("/bin/bash", "-c", "chroot /host systemctl status etcd").Output()
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//fmt.Println(string(stdout))
-	//
-	//stdout, err = exec.Command("/bin/bash", "-c", "cp -r /etc/kubernetes/pki /opt/klovercloud/").Output()
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//
-	//fmt.Println(string(stdout))
 
 	err = CopyDirectory(certsDir, backupDir)
 	if err != nil {

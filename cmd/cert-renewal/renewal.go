@@ -17,6 +17,7 @@ func Renew() {
 
 	// whereis kubeadm
 	//"/usr/local/bin/kubeadm certs renew scheduler.conf"
+	// it is assumed that kubeadm exist otherwise, cert validity wouldn't have work
 
 	cmd := exec.Command("/usr/bin/kubeadm", "certs", "renew", "all", "--config=kubeadm-config.yaml")
 

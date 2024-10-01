@@ -1,0 +1,16 @@
+syntax = "proto3";
+option go_package = 
+
+message CreateRequest {
+  bool backupSuccess = ;
+  bytes ty = 1;
+}
+
+message CreateResponse {
+
+}
+
+service RenewalEvent {
+  rpc Backup(CreateRequest) returns (CreateResponse);
+
+}
