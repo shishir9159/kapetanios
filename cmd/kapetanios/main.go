@@ -20,9 +20,11 @@ func RunForever() {
 }
 
 func main() {
-
+	// certificate
 	Cert("default")
 	RunForever()
+
+	// minor upgrade
 
 	//	what happens when lighthouse fails in the middle of the cert renewal process?
 

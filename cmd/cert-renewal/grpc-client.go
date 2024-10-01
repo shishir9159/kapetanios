@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"google.golang.org/grpc"
 	"log"
 	"time"
@@ -12,7 +11,7 @@ import (
 )
 
 var (
-	addr        = flag.String("addr", "localhost:50052", "the address to connect to")
+	//addr        = flag.String("addr", "localhost:50052", "the address to connect to")
 	retryPolicy = `{
 		"methodConfig": [{
 		  "name": [{"service": "grpc.examples.echo.Echo"}],

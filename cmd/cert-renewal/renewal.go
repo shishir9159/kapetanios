@@ -4,11 +4,12 @@ import (
 	"log"
 	"os/exec"
 	"syscall"
+	"time"
 )
 
 ///usr/local/bin/kubeadm certs renew
 
-func Renew() {
+func Renew() error {
 	err := syscall.Chroot("/host")
 	if err != nil {
 		//log.Println("Failed to create chroot on /host\n\n\n")
@@ -21,8 +22,12 @@ func Renew() {
 
 	cmd := exec.Command("/usr/bin/kubeadm", "certs", "renew", "all", "--config=kubeadm-config.yaml")
 
+	//    cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
+		time.Sleep(10 * time.Second)
 	}
+
+	return nil
 }

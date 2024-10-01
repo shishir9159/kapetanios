@@ -1,16 +1,17 @@
 syntax = "proto3";
-option go_package = 
+option go_package = "github.com/shishir9159/kapetanios/proto";
 
 message CreateRequest {
-  bool backupSuccess = ;
-  bytes ty = 1;
+//  TO-DO: Bool
+  bool backupSuccess = 1;
+  bool renewalSuccess = 2;
+  bool restartSuccess = 3;
 }
 
 message CreateResponse {
-
+  bool nextStep = 1;
 }
 
-service RenewalEvent {
-  rpc Backup(CreateRequest) returns (CreateResponse);
-
+service Renewal {
+  rpc StatusUpdate(CreateRequest) returns (CreateResponse);
 }

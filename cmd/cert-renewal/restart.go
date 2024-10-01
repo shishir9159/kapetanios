@@ -60,7 +60,54 @@ func restartByLabel(client *orchestration.Client, matchLabels map[string]string)
 		//wait gracefully, for them to restart
 	}
 
+	//// stop signal for the informer
+	//    stopper := make(chan struct{})
+	//    defer close(stopper)
+	//
+	//    // create shared informers for resources in all known API group versions with a reSync period and namespace
+	//    factory := informers.NewSharedInformerFactoryWithOptions(clientSet, 10*time.Second, informers.WithNamespace("demo"))
+	//    podInformer := factory.Core().V1().Pods().Informer()
+	//
+	//    defer runtime.HandleCrash()
+	//
+	//    // start informer ->
+	//    go factory.Start(stopper)
+	//
+	//    // start to sync and call list
+	//    if !cache.WaitForCacheSync(stopper, podInformer.HasSynced) {
+	//        runtime.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
+	//        return
+	//    }
+	//
+	//    podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	//        AddFunc:    onAdd, // register add eventhandler
+	//        UpdateFunc: onUpdate,
+	//        DeleteFunc: onDelete,
+	//    })
+	//
+	//    // block the main go routine from exiting
+	//    <-stopper
+
 	return nil
+}
+
+func onAdd(obj interface{}) {
+	pod := obj.(*corev1.Pod)
+	fmt.Printf("POD CREATED: %s/%s", pod.Namespace, pod.Name)
+}
+
+func onUpdate(oldObj interface{}, newObj interface{}) {
+	oldPod := oldObj.(*corev1.Pod)
+	newPod := newObj.(*corev1.Pod)
+	fmt.Printf(
+		"POD UPDATED. %s/%s %s",
+		oldPod.Namespace, oldPod.Name, newPod.Status.Phase,
+	)
+}
+
+func onDelete(obj interface{}) {
+	pod := obj.(*corev1.Pod)
+	fmt.Printf("POD DELETED: %s/%s", pod.Namespace, pod.Name)
 }
 
 func restartService(component string) error {
@@ -85,7 +132,7 @@ func restartService(component string) error {
 	return nil
 }
 
-func restart() error {
+func Restart() error {
 
 	client, err := orchestration.NewClient()
 	if err != nil {
