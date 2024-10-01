@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"syscall"
 )
 
@@ -101,9 +102,9 @@ func getBackupDir(backupCount int) (string, error) {
 	} else if len(glob) < backupCount {
 		if er := CreateIfNotExists(baseDir, 0755); er != nil {
 			log.Println(er)
-			return baseDir + backupDirPattern + string(rune(len(glob)+1)), er
+			return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), er
 		}
-		return baseDir + backupDirPattern + string(rune(len(glob)+1)), nil
+		return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), nil
 	} else {
 		//	logic for removing the oldest one and increment all indices by one
 	}
