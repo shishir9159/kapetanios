@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kapetanios
+spec:
+  selector:
+    app: kapetanios
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP

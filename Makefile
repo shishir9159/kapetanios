@@ -6,6 +6,7 @@ DOCKER ?= docker buildx
 NATIVE_ARCH := amd64
 GO111MODULE := ''
 GOMOD := '/dev/null'
+GOOS := linux
 GOTELEMETRY='local'
 GOVERSION := 'go1.23.1'
 

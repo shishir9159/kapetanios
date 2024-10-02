@@ -12,13 +12,13 @@ func main() {
 		log.Println(err)
 	}
 
-	//	step 2.
+	//	step 2. Kubeadm certs renew all
 	err = Renew()
 	if err != nil {
 		log.Println(err)
 	}
 
-	//step 3.
+	//step 3. Restarting pods to work with the updated certificates
 	err = Restart()
 	if err != nil {
 		log.Println(err)

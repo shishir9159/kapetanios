@@ -13,16 +13,18 @@ import (
 )
 
 const (
-	defaultName = "world"
+	defaultName = "cert-renewal"
 )
 
 var (
 	addr = flag.String("addr", "localhost:50051", "the address to connect to")
-	name = flag.String("name", defaultName, "Name to greet")
+	name = flag.String("name", defaultName, "gRPC test")
 )
 
 func GrpcClient() {
+
 	flag.Parse()
+
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

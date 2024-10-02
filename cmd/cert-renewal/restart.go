@@ -23,6 +23,7 @@ func restartByLabel(client *orchestration.Client, matchLabels map[string]string)
 	}
 
 	pods, err := client.Clientset().CoreV1().Pods("kube-system").List(context.Background(), listOptions)
+
 	if err != nil {
 		return err
 	}
