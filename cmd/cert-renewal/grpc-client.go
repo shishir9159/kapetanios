@@ -2,50 +2,50 @@ package main
 
 import (
 	"context"
-	"google.golang.org/grpc"
+	"flag"
 	"log"
 	"time"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "google.golang.org/grpc/examples/features/proto/echo"
+
+	pb "github.com/shishir9159/kapetanios/proto"
+)
+
+const (
+	defaultName = "world"
 )
 
 var (
-	//addr        = flag.String("addr", "localhost:50052", "the address to connect to")
-	retryPolicy = `{
-		"methodConfig": [{
-		  "name": [{"service": "grpc.examples.echo.Echo"}],
-		  "retryPolicy": {
-			  "MaxAttempts": 4,
-			  "InitialBackoff": ".01s",
-			  "MaxBackoff": ".01s",
-			  "BackoffMultiplier": 1.0,
-			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
-		  }
-		}]}`
+	addr = flag.String("addr", "localhost:50051", "the address to connect to")
+	name = flag.String("name", defaultName, "Name to greet")
 )
 
-func grpcClient() {
-
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultServiceConfig(retryPolicy))
+func GrpcClient() {
+	flag.Parse()
+	// Set up a connection to the server.
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-	defer func() {
-		if e := conn.Close(); e != nil {
-			log.Printf("failed to close connection: %s", e)
+	defer func(conn *grpc.ClientConn) {
+		er := conn.Close()
+		if er != nil {
+
 		}
-	}()
+	}(conn)
+	c := pb.NewRenewalClient(conn)
 
-	c := pb.NewEchoClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-
-	reply, err := c.UnaryEcho(ctx, &pb.EchoRequest{Message: "Try and Success"})
+	r, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true})
 	if err != nil {
-		log.Fatalf("UnaryEcho error: %v", err)
+		log.Fatalf("could not send status update: %v", err)
 	}
-	log.Printf("UnaryEcho reply: %v", reply)
+	log.Printf("Status Update: %t", r.GetNextStep())
+}
 
+func main() {
+	GrpcClient()
 }
