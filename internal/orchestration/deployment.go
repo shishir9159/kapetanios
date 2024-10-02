@@ -65,12 +65,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string) *corev1.Pod {
 			HostNetwork: true,
 			Containers: []corev1.Container{
 				{
-					Name: "certs-renewal",
-					//Command: []string{
-					//	"/bin/bash",
-					//	"-c",
-					//	"chroot /host systemctl status etcd",
-					//},
+					Name:  "certs-renewal",
 					Image: image,
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: &[]bool{true}[0],

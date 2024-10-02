@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/router"
 	"github.com/gofiber/swagger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -48,12 +47,12 @@ func certRenewal(c *fiber.Ctx) error {
 
 func setupRoutes(app *fiber.App) {
 
-	cert := app.Group("cert-renewal", logger.New())
-	minorUpgrade := app.Group("minor-upgrade")
+	api := app.Group("/cert", logger.New())
+	//minorUpgrade := app.Group("minor-upgrade")
 
 	app.Get("/swagger", swagger.HandlerDefault)
-	app.Get("/cert-renewal", certRenewal)
-
+	app.Get("/renewal", certRenewal)
+	api.Group("")
 	//	.SetupRoutes(cert)
 	//	.SetupRoutes(minorUpgrade)
 
