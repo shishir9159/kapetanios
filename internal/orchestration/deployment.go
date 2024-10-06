@@ -15,7 +15,7 @@ func NewMinions(client *Client) *Minions {
 	return &Minions{client: client}
 }
 
-func (c *Minions) MinionBlueprint(image string, nodeRole string) *corev1.Pod {
+func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string) *corev1.Pod {
 
 	blueprint := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -63,6 +63,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string) *corev1.Pod {
 			//},
 			HostPID:     true,
 			HostNetwork: true,
+			NodeName:    nodeName,
 			Containers: []corev1.Container{
 				{
 					Name:  "certs-renewal",

@@ -8,7 +8,7 @@ import (
 
 // Step 1. import the pod and create it
 
-func Cert(namespace string) {
+func Cert(namespace string, nodeName string) {
 
 	ctx := context.Background()
 	client, err := orchestration.NewClient()
@@ -19,7 +19,7 @@ func Cert(namespace string) {
 	renewalMinionManager := orchestration.NewMinions(client)
 
 	nodeRole := "certs"
-	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", nodeRole)
+	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", nodeRole, nodeName)
 
 	// how many pods
 	// this logic need to be in the orchestration too

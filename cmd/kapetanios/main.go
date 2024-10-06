@@ -1,37 +1,53 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/swagger"
+	"github.com/shishir9159/kapetanios/internal/orchestration"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"net/http"
-	"time"
 )
-
-func run(ch chan struct{}) {
-	fmt.Println("run")
-	time.Sleep(1 * time.Second)
-	ch <- struct{}{}
-}
-
-func RunForever() {
-	wait := make(chan struct{})
-	for {
-		go run(wait)
-		<-wait
-	}
-}
 
 type response struct {
 	statusCode int32
 }
 
 func certRenewal(c *fiber.Ctx) error {
+
+	matchLabels := map[string]string{"": ""}
+
+	// certificate
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	// refactor
+
+	client, err := orchestration.NewClient()
+	if err != nil {
+		fmt.Printf("Error creating Kubernetes client: %v\n", err)
+	}
+
+	nodes, err := client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
+	if err != nil {
+
+	}
+
+	if len(nodes.Items) == 0 {
+		//
+	}
+
+	for _, node := range nodes.Items {
+		// call cert for each nodes individually
+		Cert("default", node.Name)
+	}
 
 	r := response{
 		statusCode: http.StatusOK, // http collision with rpc version of http
@@ -73,34 +89,13 @@ func main() {
 		AllowMethods: "GET, HEAD, PUT, PATCH, POST, DELETE",
 	}))
 
+	// setup routes
 	setupRoutes(app)
 
 	err := app.Listen(":8080")
 	if err != nil {
 		return
 	}
-	// setup routes
-
-	router.SetupRoutes(app)
-
-	matchLabels := map[string]string{"": ""}
-
-	// certificate
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	}
-
-	nodes, err := client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
-	if err != nil {
-	}
-
-	for _, node := range nodes.Items {
-		// call cert for each nodes individually
-	}
-
-	Cert("default")
-	RunForever()
 
 	// minor upgrade
 
