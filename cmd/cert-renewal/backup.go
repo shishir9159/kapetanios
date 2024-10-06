@@ -269,7 +269,7 @@ func BackupCertificatesKubeConfigs(backupCount int) error {
 	}
 
 	for _, kubeConfigFile := range kubeConfigs {
-		err = CopyDirectory(kubeConfigFile, dest)
+		err = Copy(kubeConfigFile, dest)
 		if err != nil {
 			fmt.Println(backupDir, certsDir, kubeConfigs)
 			log.Println(err)
