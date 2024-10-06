@@ -20,6 +20,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 	blueprint := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("minions-for-%s-", nodeRole),
+			//Namespace: namespace,
 			Labels: map[string]string{
 				"app": nodeRole,
 			},

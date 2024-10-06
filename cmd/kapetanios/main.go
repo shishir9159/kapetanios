@@ -1,16 +1,11 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/swagger"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"net/http"
 )
 
@@ -18,36 +13,12 @@ type response struct {
 	statusCode int32
 }
 
+var (
+	certRenewalNamespace = "default"
+	//	or should it be klovercloud with additional service accounts?
+)
+
 func certRenewal(c *fiber.Ctx) error {
-
-	matchLabels := map[string]string{"": ""}
-
-	// certificate
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	}
-
-	// refactor
-
-	client, err := orchestration.NewClient()
-	if err != nil {
-		fmt.Printf("Error creating Kubernetes client: %v\n", err)
-	}
-
-	nodes, err := client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
-	if err != nil {
-
-	}
-
-	if len(nodes.Items) == 0 {
-		//
-	}
-
-	for _, node := range nodes.Items {
-		// call cert for each nodes individually
-		Cert("default", node.Name)
-	}
 
 	r := response{
 		statusCode: http.StatusOK, // http collision with rpc version of http
@@ -56,6 +27,8 @@ func certRenewal(c *fiber.Ctx) error {
 	if err != nil {
 
 	}
+
+	go Cert(certRenewalNamespace)
 
 	// return c.JSON(fiber.Map{"status":"success"})
 	return c.JSON(j)
@@ -82,6 +55,7 @@ func SetupGroupRoutes(router fiber.Router) {
 func main() {
 
 	app := fiber.New()
+
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",

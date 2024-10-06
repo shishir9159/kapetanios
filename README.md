@@ -1,13 +1,18 @@
 # kapetanios
 
-Tested against: ubuntu 22.04 LTS
+#### Tested against:
+ubuntu 22.04 LTS
 
-build requirements:
-golang v1.23.1
-
+#### build requirements:
+golang v1.23.1 \
 libprotoc 27.3
 
-plugin install:
+#### cluster requirement
+It is assumed that the following roles would be assigned to the respective nodes:
+1. Master Nodes: assigned-node-role.kubernetes.io=certs
+2. External Etcd Nodes: assigned-node-role.kubernetes.io=etcd
+
+#### plugin install:
 ```Bash
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest

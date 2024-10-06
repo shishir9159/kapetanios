@@ -2,32 +2,56 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"log"
 )
 
 // Step 1. import the pod and create it
 
-func Cert(namespace string, nodeName string) {
+func Cert(namespace string) {
 
-	ctx := context.Background()
+	matchLabels := map[string]string{"assigned-node-role.kubernetes.io": "certs"}
+
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	// refactor
 	client, err := orchestration.NewClient()
 	if err != nil {
-		//errors.New("Error creating Kubernetes client: %v", err)
+		fmt.Printf("Error creating Kubernetes client: %v\n", err)
 	}
 
-	renewalMinionManager := orchestration.NewMinions(client)
-
-	nodeRole := "certs"
-	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", nodeRole, nodeName)
-
-	// how many pods
-	// this logic need to be in the orchestration too
-	minion, err := client.Clientset().CoreV1().Pods(namespace).Create(ctx, descriptor, metav1.CreateOptions{})
+	nodes, err := client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
-		//fmt.Println("Error creating temporary pod: %v", err)
-	}
-	print(minion)
 
-	//		fmt.Printf("Temporary pod created: %s\n", pod.Name)
+	}
+
+	if len(nodes.Items) == 0 {
+		log.Fatalln(fmt.Errorf("no master nodes found"))
+	}
+
+	for _, node := range nodes.Items {
+		renewalMinionManager := orchestration.NewMinions(client)
+
+		nodeRole := "certs"
+
+		// namespace should only be included after the consideration for the existing
+		// service account, cluster role binding
+		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", nodeRole, node.Name)
+
+		// how many pods this logic need to be in the orchestration too
+		minion, er := client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
+		if er != nil {
+			fmt.Printf("Error creating Cert Renewal pod: %v\n", er)
+		}
+
+		fmt.Println(minion)
+		fmt.Printf("Cert Renewal pod created: %s\n", minion.Name)
+	}
+
 }

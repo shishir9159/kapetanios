@@ -27,6 +27,7 @@ func getCertificatesDir() string {
 
 	// temporary lines
 	fmt.Println(cm)
+
 	return "/etc/kubernetes/pki"
 
 	// convert the cm to a file and read from the yaml file
