@@ -40,7 +40,3 @@ func CertGrpc() {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
-
-func main() {
-	CertGrpc()
-}

@@ -47,7 +47,3 @@ func GrpcClient() {
 	}
 	log.Printf("Status Update: %t", r.GetNextStep())
 }
-
-func main() {
-	GrpcClient()
-}
