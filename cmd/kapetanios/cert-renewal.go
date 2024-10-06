@@ -13,6 +13,7 @@ import (
 
 func Cert(namespace string) {
 
+	nodeRole := "certs"
 	matchLabels := map[string]string{"assigned-node-role.kubernetes.io": "certs"}
 
 	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
@@ -26,6 +27,8 @@ func Cert(namespace string) {
 		fmt.Printf("Error creating Kubernetes client: %v\n", err)
 	}
 
+	renewalMinionManager := orchestration.NewMinions(client)
+
 	nodes, err := client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
 
@@ -35,10 +38,7 @@ func Cert(namespace string) {
 		log.Fatalln(fmt.Errorf("no master nodes found"))
 	}
 
-	for _, node := range nodes.Items {
-		renewalMinionManager := orchestration.NewMinions(client)
-
-		nodeRole := "certs"
+	for index, node := range nodes.Items {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
@@ -47,11 +47,11 @@ func Cert(namespace string) {
 		// how many pods this logic need to be in the orchestration too
 		minion, er := client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			fmt.Printf("Error creating Cert Renewal pod: %v\n", er)
+			fmt.Printf("Error creating Cert Renewal pod as the %dth minion: %v\n", index, er)
 		}
 
 		fmt.Println(minion)
-		fmt.Printf("Cert Renewal pod created: %s\n", minion.Name)
+		fmt.Printf("Cert Renewal pod created as the %dth minion: %s\n", index, minion.Name)
 	}
 
 }

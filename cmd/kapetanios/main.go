@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -9,29 +8,16 @@ import (
 	"net/http"
 )
 
-type response struct {
-	statusCode int32
-}
-
 var (
 	certRenewalNamespace = "default"
-	//	or should it be klovercloud with additional service accounts?
+	//	TODO: or should it be klovercloud with additional service accounts?
 )
 
 func certRenewal(c *fiber.Ctx) error {
 
-	r := response{
-		statusCode: http.StatusOK, // http collision with rpc version of http
-	}
-	j, err := json.Marshal(r)
-	if err != nil {
-
-	}
-
 	go Cert(certRenewalNamespace)
 
-	// return c.JSON(fiber.Map{"status":"success"})
-	return c.JSON(j)
+	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 
 func setupRoutes(app *fiber.App) {

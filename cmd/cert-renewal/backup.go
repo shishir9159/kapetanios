@@ -110,9 +110,9 @@ func getBackupDir(backupCount int) (string, error) {
 			}
 
 			// permission 600 or 0755
-			if er := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(len(glob)+1), 0755); er != nil {
-				log.Println(er)
-				return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), er
+			if e := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(len(glob)+1), 0755); e != nil {
+				log.Println(e)
+				return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), e
 			}
 
 			return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), nil
