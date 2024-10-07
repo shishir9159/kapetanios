@@ -10,10 +10,10 @@ import (
 
 ///usr/local/bin/kubeadm certs renew
 
-func Renew(logger *zap.Logger) error {
+func Renew(c Controller) error {
 	err := syscall.Chroot("/host")
 	if err != nil {
-		logger.Error("Failed to create chroot on /host", zap.Error(err))
+		c.log.Error("Failed to create chroot on /host", zap.Error(err))
 	}
 
 	// whereis kubeadm
@@ -26,7 +26,7 @@ func Renew(logger *zap.Logger) error {
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
-		logger.Error("Failed to renew certificates", zap.Error(err))
+		c.log.Error("Failed to renew certificates", zap.Error(err))
 		time.Sleep(10 * time.Second)
 	}
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +13,7 @@ import (
 // TODO:
 //  etcd-restart
 
-func RestartByLabel(client *orchestration.Client, matchLabels map[string]string, nodeName string) error {
+func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string) error {
 
 	// TODO:
 	//  how to add multiple values for one key
@@ -27,14 +26,14 @@ func RestartByLabel(client *orchestration.Client, matchLabels map[string]string,
 		//			FieldSelector: "spec.nodeName=" + nodeName,
 	}
 
-	pods, err := client.Clientset().CoreV1().Pods("kube-system").List(context.Background(), listOptions)
-
+	pods, err := c.client.CoreV1().Pods("kube-system").List(c.ctx, listOptions)
 	if err != nil {
+
 		return err
 	}
 
 	for _, pod := range pods.Items {
-		er := client.Clientset().CoreV1().Pods("kube-system").Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+		er := c.client.CoreV1().Pods("kube-system").Delete(c.ctx, pod.Name, metav1.DeleteOptions{})
 		if er != nil {
 			log.Println(err)
 		}
@@ -44,7 +43,9 @@ func RestartByLabel(client *orchestration.Client, matchLabels map[string]string,
 		//wait gracefully, for them to restart
 	}
 
-	err = orchestration.Informer(client.Clientset(), &labelSelector, &fieldSelector)
+	//listOptions
+
+	err = orchestration.Informer(c.client, c.ctx, c.log, listOptions)
 
 	if err != nil {
 		fmt.Println(err)

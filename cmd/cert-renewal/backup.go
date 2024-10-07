@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
+	"go.uber.org/zap"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
@@ -257,12 +258,12 @@ func CopySymLink(source, dest string) error {
 	return os.Symlink(link, dest)
 }
 
-func BackupCertificatesKubeConfigs(backupCount int) error {
+func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 
 	err := syscall.Chroot("/host")
 	if err != nil {
-		log.Println("Failed to create chroot on /host")
-		log.Println(err)
+		c.log.Error("Failed to create chroot on /host",
+			zap.Error(err))
 	}
 
 	backupDir, err := getBackupDir(backupCount)

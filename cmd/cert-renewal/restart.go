@@ -1,21 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"os/exec"
 	"syscall"
 	"time"
 )
 
-func restartService(component string) error {
+func restartService(c Controller, component string) error {
 
 	// edit this part
 
 	err := syscall.Chroot("/host")
 	if err != nil {
-		log.Println("Failed to create chroot on /host")
-		log.Println(err)
+		c.log.Error("Failed to create chroot on /host",
+			zap.String("component", component),
+			zap.Error(err))
 		return err
 	}
 
@@ -25,23 +25,27 @@ func restartService(component string) error {
 
 	time.Sleep(10 * time.Second)
 	if err != nil {
-		log.Println(err)
+		c.log.Error("Failed to restart service",
+			zap.String("component", component),
+			zap.Error(err))
 		return err
 	}
 
 	return nil
 }
 
-func Restart() error {
+func Restart(c Controller) error {
 
-	err := restartService("etcd")
+	err := restartService(c, "etcd")
 	if err != nil {
-		fmt.Printf("Error restarting etcd: %v\n", err)
+		c.log.Error("Error restarting etcd: ",
+			zap.Error(err))
 	}
 
-	err = restartService("kubelet")
+	err = restartService(c, "kubelet")
 	if err != nil {
-		fmt.Printf("Error restarting kubelet: %v\n", err)
+		c.log.Error("Error restarting kubelet: ",
+			zap.Error(err))
 	}
 
 	return nil

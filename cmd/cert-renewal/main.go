@@ -1,8 +1,18 @@
 package main
 
 import (
+	"context"
 	"go.uber.org/zap"
 )
+
+var (
+	backupCount = 7
+)
+
+type Controller struct {
+	ctx context.Context
+	log *zap.Logger
+}
 
 func main() {
 
@@ -13,6 +23,11 @@ func main() {
 
 		}
 	}(logger)
+
+	c := Controller{
+		ctx: context.Background(),
+		log: logger,
+	}
 
 	//zap.ReplaceGlobals(logger)
 
@@ -30,23 +45,23 @@ func main() {
 	//}
 
 	//	step 1. Backup directories
-	err = BackupCertificatesKubeConfigs(7)
+	err = BackupCertificatesKubeConfigs(c, backupCount)
 	if err != nil {
-		logger.Error("failed to backup certificates and kubeConfigs",
+		c.log.Error("failed to backup certificates and kubeConfigs",
 			zap.Error(err))
 	}
 
 	//	step 2. Kubeadm certs renew all
-	err = Renew(logger)
+	err = Renew(c)
 	if err != nil {
-		logger.Error("failed to renew certificates and kubeConfigs",
+		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))
 	}
 
 	//step 3. Restarting pods to work with the updated certificates
-	err = Restart()
+	err = Restart(c)
 	if err != nil {
-		logger.Error("failed to restart kubernetes components after certificate renewal",
+		c.log.Error("failed to restart kubernetes components after certificate renewal",
 			zap.Error(err))
 	}
 }

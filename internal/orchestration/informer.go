@@ -3,9 +3,9 @@ package orchestration
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/informers"
@@ -14,6 +14,9 @@ import (
 	"log"
 	"time"
 )
+
+// FixmE: code smell
+// ToDo: refactor to be accessible across
 
 func onAdd(obj interface{}) {
 	pod := obj.(*corev1.Pod)
@@ -89,15 +92,15 @@ func SharedInformer(client *kubernetes.Clientset) error {
 	return nil
 }
 
-func Informer(client *kubernetes.Clientset, labelSelector *metav1.LabelSelector, fieldSelector *metav1.LabelSelector) error {
+func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, listOptions metav1.ListOptions) error {
 
 	// ToDo:
 	//	 time limit with context cancellation
 
 	//"component": "kube-scheduler"
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		FieldSelector: labels.Set(fieldSelector.MatchLabels).String(),
+	listOptions = metav1.ListOptions{
+		LabelSelector: listOptions.LabelSelector,
+		FieldSelector: listOptions.FieldSelector,
 		Watch:         true,
 	}
 
@@ -106,11 +109,13 @@ func Informer(client *kubernetes.Clientset, labelSelector *metav1.LabelSelector,
 	fmt.Println(watcher)
 
 	if err != nil {
-		fmt.Println(err)
+		l.Error("error creating the watcher",
+			zap.Error(err))
 		return err
 	}
 
 	if watcher == nil {
+		l.Error("watcher is empty")
 		fmt.Println(watcher)
 		return err
 	}
@@ -138,16 +143,20 @@ func Informer(client *kubernetes.Clientset, labelSelector *metav1.LabelSelector,
 		switch event.Type {
 		case watch.Deleted:
 			// ToDo: completed status check
+			l.Info("pod "+pod.Name+"is deleted",
+				zap.Error(nil))
 			log.Printf("pod %s is deleted %s\n", pod.Name, pod.Status.Phase)
 			return nil
 		case watch.Added:
+			l.Info("pod "+pod.Name+"is added",
+				zap.Error(nil))
 			log.Println(pod.Status.ContainerStatuses)
 			log.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
 			return nil
 		case watch.Error:
 			log.Printf("error %s\n", event.Object)
 			log.Printf("pod %s has failed %s\n", pod.Name, pod.Status.Phase)
-			e, _ := client.CoreV1().Events("default").List(context.TODO(), metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
+			e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
 			return fmt.Errorf(e.String())
 		case watch.Modified:
 			log.Printf("modified")
