@@ -140,6 +140,7 @@ func Informer(client *kubernetes.Clientset, labelSelector *metav1.LabelSelector,
 			log.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
 			return nil
 		case watch.Error:
+			log.Printf("error %s\n", event.Object)
 			log.Printf("pod %s has failed %s\n", pod.Name, pod.Status.Phase)
 			e, _ := client.CoreV1().Events("default").List(context.TODO(), metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
 			return fmt.Errorf(e.String())
