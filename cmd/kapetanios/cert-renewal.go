@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"log"
+	"time"
 )
 
 // Step 1. import the pod and create it
@@ -52,6 +53,14 @@ func Cert(namespace string) {
 
 		fmt.Println(minion)
 		fmt.Printf("Cert Renewal pod created as the %dth minion: %s\n", index, minion.Name)
+
+		time.Sleep(5 * time.Second)
+
+		er = RestartByLabel(client, map[string]string{"tier": "control-plane"}, node.Name)
+		if er != nil {
+			break
+			fmt.Println("pod Restart failed")
+		}
 	}
 
 }

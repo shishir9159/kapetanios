@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go.uber.org/zap"
 	"log"
 	"os/exec"
 	"syscall"
@@ -9,11 +10,10 @@ import (
 
 ///usr/local/bin/kubeadm certs renew
 
-func Renew() error {
+func Renew(logger *zap.Logger) error {
 	err := syscall.Chroot("/host")
 	if err != nil {
-		//log.Println("Failed to create chroot on /host\n\n\n")
-		log.Println(err)
+		logger.Error("Failed to create chroot on /host", zap.Error(err))
 	}
 
 	// whereis kubeadm
@@ -26,6 +26,7 @@ func Renew() error {
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
+		logger.Error("Failed to renew certificates", zap.Error(err))
 		time.Sleep(10 * time.Second)
 	}
 
