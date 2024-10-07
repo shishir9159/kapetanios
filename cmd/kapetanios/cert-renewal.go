@@ -58,8 +58,8 @@ func Cert(namespace string) {
 
 		er = RestartByLabel(client, map[string]string{"tier": "control-plane"}, node.Name)
 		if er != nil {
-			break
 			fmt.Println("pod Restart failed")
+			break
 		}
 	}
 
