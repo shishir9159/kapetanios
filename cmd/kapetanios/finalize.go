@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -46,6 +47,7 @@ func RestartByLabel(client *orchestration.Client, matchLabels map[string]string,
 	err = orchestration.Informer(client.Clientset(), &labelSelector, &fieldSelector)
 
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 

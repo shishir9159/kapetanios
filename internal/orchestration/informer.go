@@ -103,18 +103,23 @@ func Informer(client *kubernetes.Clientset, labelSelector *metav1.LabelSelector,
 
 	watcher, err := client.CoreV1().Pods("default").Watch(context.Background(), listOptions)
 
-	if err != nil {
+	fmt.Println(watcher)
 
+	if err != nil {
+		fmt.Println(err)
+		return err
 	}
 
 	if watcher == nil {
-
+		fmt.Println(watcher)
+		return err
 	}
 
 	events := watcher.ResultChan()
 
-	if events != nil {
-
+	if events == nil {
+		fmt.Println(events)
+		return fmt.Errorf("event is nil")
 	}
 
 	defer watcher.Stop()
@@ -145,7 +150,10 @@ func Informer(client *kubernetes.Clientset, labelSelector *metav1.LabelSelector,
 			e, _ := client.CoreV1().Events("default").List(context.TODO(), metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
 			return fmt.Errorf(e.String())
 		case watch.Modified:
+			log.Printf("modified")
+
 		case watch.Bookmark:
+			log.Printf("booksmark")
 
 		}
 	}

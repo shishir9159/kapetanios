@@ -51,7 +51,6 @@ func Cert(namespace string) {
 			fmt.Printf("Error creating Cert Renewal pod as the %dth minion: %v\n", index, er)
 		}
 
-		fmt.Println(minion)
 		fmt.Printf("Cert Renewal pod created as the %dth minion: %s\n", index, minion.Name)
 
 		time.Sleep(5 * time.Second)
@@ -61,6 +60,7 @@ func Cert(namespace string) {
 			fmt.Println("pod Restart failed")
 			break
 		}
+
 	}
 
 }
