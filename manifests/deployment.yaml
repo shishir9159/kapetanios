@@ -15,10 +15,37 @@ spec:
         app: kapetanios
     spec:
       containers:
-# TO-DO:
+# TODO: update the image name in readme
         - image: quay.io/klovercloud/kapetanios:latest
           imagePullPolicy: Always
           name: kapetanios
+          livenessProbe:
+            failureThreshold: 10
+            httpGet:
+              host: 127.0.0.1
+              httpHeaders:
+                - name: brief
+                  value: "true"
+              path: /healthz
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 300
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              host: 127.0.0.1
+              httpHeaders:
+                - name: brief
+                  value: "true"
+              path: /healthz
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 300
+            successThreshold: 1
+            timeoutSeconds: 15
       terminationGracePeriodSeconds: 60
       schedulerName: default-scheduler
+#      TODO: serviceAccount
       serviceAccountName: kapetanios
