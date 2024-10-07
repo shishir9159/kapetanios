@@ -15,9 +15,6 @@ import (
 	"time"
 )
 
-// FixmE: code smell
-// ToDo: refactor to be accessible across
-
 func onAdd(obj interface{}) {
 	pod := obj.(*corev1.Pod)
 	fmt.Printf("POD CREATED: %s/%s", pod.Namespace, pod.Name)

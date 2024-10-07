@@ -4,7 +4,7 @@ metadata:
   name: kapetanios
   namespace: default
   labels:
-    name: kapetanios
+    app: kapetanios
 spec:
   selector:
     matchLabels:
