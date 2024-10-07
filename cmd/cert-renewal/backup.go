@@ -17,6 +17,18 @@ func getCertificatesDir() string {
 	//	will be called after getKubeadmFileLocation
 	// default:	/etc/kubernetes/pki
 
+	// etcd certs and nodes info
+	//etcd:
+	//  external:
+	//    caFile: /etc/kubernetes/pki/etcd-ca.pem
+	//    certFile: /etc/kubernetes/pki/etcd.cert
+	//    endpoints:
+	//    - https://5.161.64.103:2379
+	//    - https://5.161.248.112:2379
+	//    - https://5.161.67.249:2379
+	//    keyFile: /etc/kubernetes/pki/etcd.key
+	//kubernetesVersion
+
 	client, err := orchestration.NewClient()
 	if err != nil {
 		fmt.Printf("Error creating Kubernetes client: %v\n", err)
