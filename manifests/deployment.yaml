@@ -19,6 +19,9 @@ spec:
         - image: quay.io/klovercloud/kapetanios:latest
           imagePullPolicy: Always
           name: kapetanios
+          ports:
+            - containerPort: 80
+              name: kapetanios
           livenessProbe:
             failureThreshold: 10
             httpGet:
