@@ -47,11 +47,8 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 		//wait gracefully, for them to restart
 	}
 
-	//listOptions
-
 	go func() {
 		er := orchestration.Informer(c.client, c.ctx, c.log, listOptions)
-		c.log.Info("go r")
 		if er != nil {
 
 		}
