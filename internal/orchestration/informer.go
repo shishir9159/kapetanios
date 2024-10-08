@@ -7,7 +7,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -103,92 +102,75 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	watcher, err := client.CoreV1().Pods("default").Watch(context.Background(), listOptions)
 
 	if err != nil {
-		l.Info("1")
 		l.Error("error creating the watcher",
 			zap.Error(err))
-		fmt.Println(err)
 		return err
 	}
 
 	if watcher == nil {
 		l.Error("watcher is empty")
-		fmt.Println(watcher)
 		return err
 	}
 
-	l.Info("2")
-
-	events := watcher.ResultChan()
-
-	if events == nil {
-		fmt.Println(events)
-		return fmt.Errorf("event is nil")
-	}
-
-	l.Info("3")
-	i := 0
 	defer watcher.Stop()
 
-	for event := range events {
+	for {
+		select {
+		case event := <-watcher.ResultChan():
+			pod := event.Object.(*corev1.Pod)
 
-		l.Info("4")
-		pod, running := event.Object.(*corev1.Pod)
-		if !running {
-			// TODO:
-			//	 evicted or pending status check
-			fmt.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
-		}
+			if pod.Status.Phase == corev1.PodRunning {
+				l.Info("The pod is running")
+				return nil
+			}
 
-		l.Info("5")
-		event.Object.GetObjectKind()
-
-		switch event.Type {
-		case watch.Deleted:
-			l.Info("6")
-			// ToDo: completed status check
-			l.Info("pod "+pod.Name+"is deleted",
-				zap.Error(nil))
-			fmt.Printf("pod %s is deleted %s\n", pod.Name, pod.Status.Phase)
+		case <-ctx.Done():
+			l.Info("Exit from waitPodRunning for the POD")
 			return nil
-		case watch.Added:
-			l.Info("7")
-			l.Info("pod "+pod.Name+"is added",
-				zap.Error(nil))
-			fmt.Println(pod.Status.ContainerStatuses)
-			fmt.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
-
-			fmt.Println("f")
-			l.Info("returning nil watch added")
-			return nil
-		case watch.Error:
-			l.Info("8")
-			fmt.Printf("error %s\n", event.Object)
-			fmt.Printf("pod %s has failed %s\n", pod.Name, pod.Status.Phase)
-			e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
-
-			fmt.Println("f")
-			l.Info("returning nil watch added")
-			return fmt.Errorf(e.String())
-		case watch.Modified:
-			l.Info("9")
-			fmt.Printf("modified")
-			l.Info("modified L")
-
-		case watch.Bookmark:
-			l.Info("10")
-			fmt.Printf("booksmark")
-			l.Info("bookmark")
-		default:
-			l.Info("5")
-			continue
 		}
-
-		l.Info("inside the loop", zap.Int("i", i))
 	}
-
-	l.Info("returning nil l")
-	fmt.Println("returning nil fmt")
-
-	l.Sync()
-	return nil
 }
+
+//func switchBasedWatchEventHandling() {
+//events := watcher.ResultChan()
+//
+//	for event := range events {
+//
+//		pod, running := event.Object.(*corev1.Pod)
+//		if !running {
+//			// TODO:
+//			//	 evicted or pending status check
+//			fmt.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
+//		}
+//
+//		event.Object.GetObjectKind()
+//
+//		switch event.Type {
+//		case watch.Deleted:
+//			l.Info("6")
+//			// ToDo: completed status check
+//			l.Info("pod "+pod.Name+"is deleted",
+//				zap.Error(nil))
+//			fmt.Printf("pod %s is deleted %s\n", pod.Name, pod.Status.Phase)
+//			return nil
+//		case watch.Added:
+//			l.Info("pod "+pod.Name+"is added",
+//				zap.Error(nil))
+//			fmt.Println(pod.Status.ContainerStatuses)
+//			fmt.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
+//
+//			fmt.Println("f")
+//			l.Info("returning nil watch added")
+//			return nil
+//		case watch.Error:
+//			e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
+//			l.Info("returning nil watch added")
+//			return fmt.Errorf(e.String())
+//		case watch.Modified:
+//			l.Info("modified")
+//
+//		case watch.Bookmark:
+//			l.Info("bookmark")
+//		}
+//	}
+//}
