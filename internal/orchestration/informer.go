@@ -89,10 +89,6 @@ func SharedInformer(client *kubernetes.Clientset) error {
 
 func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, listOptions metav1.ListOptions) error {
 
-	// ToDo:
-	//	 time limit with context cancellation
-
-	//"component": "kube-scheduler"
 	listOptions = metav1.ListOptions{
 		TypeMeta:      metav1.TypeMeta{},
 		LabelSelector: listOptions.LabelSelector,
@@ -120,37 +116,41 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		select {
 		case event := <-watcher.ResultChan():
 
-			if event.Type == watch.Deleted {
-				l.Info("The pod is deleted")
-				return nil
-			} else if event.Type == watch.Modified || event.Type == watch.Added {
+			pod, running := event.Object.(*corev1.Pod)
+
+			l.Info("running")
+			fmt.Println(running)
+			if !running {
+				//fmt.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
+			}
+
+			fmt.Println(event.Object.GetObjectKind())
+
+			if event.Type == watch.Added {
 				l.Info("The pod is added")
+				if pod.Status.Phase == corev1.PodRunning {
+					l.Info("The pod is running")
+				}
+				fmt.Println(event)
+
+				return nil
+			} else if event.Type == watch.Modified {
+				l.Info("The pod is modified")
+				if pod.Status.Phase == corev1.PodRunning {
+					l.Info("The pod is running")
+				}
+				fmt.Println(event)
 				return nil
 			}
 
+		// ToDo:
+		//	 time limit with context cancellation
 		case <-ctx.Done():
 			l.Info("Exit from waitPodRunning for the POD")
 			return nil
 		}
 	}
 
-	//for {
-	//	select {
-	//
-	//	case event := <-watcher.ResultChan():
-	//		fmt.Println(event)
-	//		l.Info("event")
-	//		pod := event.Object.(*corev1.Pod)
-	//		if pod.Status.Phase == corev1.PodRunning {
-	//			l.Info("The pod is running")
-	//			return nil
-	//		}
-	//
-	//	case <-ctx.Done():
-	//		l.Info("Exit from waitPodRunning for the POD")
-	//		return nil
-	//	}
-	//}
 }
 
 //func switchBasedWatchEventHandling() {
@@ -162,10 +162,8 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 //		if !running {
 //			// TODO:
 //			//	 evicted or pending status check
-//			fmt.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
-//		}
 //
-//		event.Object.GetObjectKind()
+//		}
 //
 //		switch event.Type {
 //		case watch.Deleted:
