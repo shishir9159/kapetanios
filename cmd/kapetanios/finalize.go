@@ -40,6 +40,7 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 	}
 
 	go func() {
+		// todo: instead of the first pod, count the number of pods in switch case
 		er := orchestration.Informer(c.client, c.ctx, c.log, listOptions)
 		if er != nil {
 			c.log.Error("watcher error from pod restart",

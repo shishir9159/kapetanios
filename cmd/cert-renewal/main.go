@@ -64,4 +64,6 @@ func main() {
 		c.log.Error("failed to restart kubernetes components after certificate renewal",
 			zap.Error(err))
 	}
+
+	GrpcClient()
 }

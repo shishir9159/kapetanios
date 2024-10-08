@@ -88,6 +88,7 @@ func Cert(namespace string) {
 			break
 		}
 
+		CertGrpc()
 	}
 
 }
