@@ -7,6 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -52,7 +53,6 @@ func SharedInformer(client *kubernetes.Clientset) error {
 	//factory := informers.NewSharedInformerFactoryWithOptions(client, time.Second, informers.WithNamespace("default"), listOptions)
 
 	podInformer := factory.Core().V1().Pods().Informer()
-
 	defer runtime.HandleCrash()
 
 	// start informer ->
@@ -116,13 +116,10 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 
 	for {
 		select {
-
 		case event := <-watcher.ResultChan():
-			fmt.Println(event)
-			l.Info("event")
-			pod := event.Object.(*corev1.Pod)
-			if pod.Status.Phase == corev1.PodRunning {
-				l.Info("The pod is running")
+
+			if event.Type == watch.Deleted {
+				l.Info("The pod is deleted")
 				return nil
 			}
 
@@ -131,6 +128,24 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 			return nil
 		}
 	}
+
+	//for {
+	//	select {
+	//
+	//	case event := <-watcher.ResultChan():
+	//		fmt.Println(event)
+	//		l.Info("event")
+	//		pod := event.Object.(*corev1.Pod)
+	//		if pod.Status.Phase == corev1.PodRunning {
+	//			l.Info("The pod is running")
+	//			return nil
+	//		}
+	//
+	//	case <-ctx.Done():
+	//		l.Info("Exit from waitPodRunning for the POD")
+	//		return nil
+	//	}
+	//}
 }
 
 //func switchBasedWatchEventHandling() {
