@@ -92,6 +92,8 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	// ToDo:
 	//	 time limit with context cancellation
 
+	l.Info("informer")
+
 	//"component": "kube-scheduler"
 	listOptions = metav1.ListOptions{
 		LabelSelector: listOptions.LabelSelector,
@@ -120,6 +122,9 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 
 			if event.Type == watch.Deleted {
 				l.Info("The pod is deleted")
+				return nil
+			} else if event.Type == watch.Modified || event.Type == watch.Added {
+				l.Info("The pod is added")
 				return nil
 			}
 

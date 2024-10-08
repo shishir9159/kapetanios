@@ -35,14 +35,6 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 		return err
 	}
 
-	go func() {
-		er := orchestration.Informer(c.client, c.ctx, c.log, listOptions)
-		c.log.Info("go r")
-		if er != nil {
-
-		}
-	}()
-
 	for _, pod := range pods.Items {
 		er := c.client.CoreV1().Pods("kube-system").Delete(c.ctx, pod.Name, metav1.DeleteOptions{})
 		if er != nil {
@@ -56,6 +48,14 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 	}
 
 	//listOptions
+
+	go func() {
+		er := orchestration.Informer(c.client, c.ctx, c.log, listOptions)
+		c.log.Info("go r")
+		if er != nil {
+
+		}
+	}()
 
 	if err != nil {
 		fmt.Println("orchestration informer error:")
