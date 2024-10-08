@@ -78,6 +78,8 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 	//	}
 	//}
 
+	c.log.Info("return from restart by label")
+
 	defer func(log *zap.Logger) {
 		er := log.Sync()
 		if er != nil {

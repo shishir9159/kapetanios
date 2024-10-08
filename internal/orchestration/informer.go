@@ -90,6 +90,8 @@ func SharedInformer(client *kubernetes.Clientset) error {
 
 func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, listOptions metav1.ListOptions) error {
 
+	fmt.Println("inside informer")
+	l.Info("inside informer")
 	// ToDo:
 	//	 time limit with context cancellation
 
@@ -105,8 +107,10 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	fmt.Println(watcher)
 
 	if err != nil {
+		l.Info("1")
 		l.Error("error creating the watcher",
 			zap.Error(err))
+		fmt.Println(err)
 		return err
 	}
 
@@ -163,5 +167,7 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		}
 	}
 
+	l.Info("returning nil")
+	fmt.Println("returning nil")
 	return nil
 }
