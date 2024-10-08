@@ -95,8 +95,8 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	//"component": "kube-scheduler"
 	listOptions = metav1.ListOptions{
 		LabelSelector: listOptions.LabelSelector,
-		FieldSelector: listOptions.FieldSelector,
-		Watch:         true,
+		//FieldSelector: listOptions.FieldSelector,
+		Watch: true,
 	}
 
 	watcher, err := client.CoreV1().Pods("default").Watch(context.Background(), listOptions)
@@ -116,9 +116,11 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 
 	for {
 		select {
-		case event := <-watcher.ResultChan():
-			pod := event.Object.(*corev1.Pod)
 
+		case event := <-watcher.ResultChan():
+			fmt.Println(event)
+			l.Info("event")
+			pod := event.Object.(*corev1.Pod)
 			if pod.Status.Phase == corev1.PodRunning {
 				l.Info("The pod is running")
 				return nil
