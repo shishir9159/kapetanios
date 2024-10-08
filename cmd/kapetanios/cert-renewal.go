@@ -75,6 +75,8 @@ func Cert(namespace string) {
 		if er != nil {
 			fmt.Printf("Error creating Cert Renewal pod as the %dth minion: %v\n", index, er)
 		}
+		c.log.Info("Cert Renewal pod created as the minion: ")
+		//zap.String(minion.Name)
 
 		fmt.Printf("Cert Renewal pod created as the %dth minion: %s\n", index, minion.Name)
 

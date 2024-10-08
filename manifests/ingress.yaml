@@ -4,6 +4,8 @@ metadata:
   name: kapetanios
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+  labels:
+    app: kapetanios
 spec:
   ingressClassName: nginx
   rules:

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"github.com/gofiber/contrib/fiberzap/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/swagger"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -33,7 +35,8 @@ func setupRoutes(app *fiber.App) {
 
 }
 
-// decide if you need a seperate router folder or not. more like you are gonna need it
+// decide if you need a separate router folder or not. more like you are gonna need it
+
 func SetupGroupRoutes(router fiber.Router) {
 
 }
@@ -42,7 +45,15 @@ func main() {
 
 	app := fiber.New()
 
-	//app.Use(logger.New())
+	logger, err := zap.NewProduction()
+
+	if err != nil {
+	}
+
+	app.Use(fiberzap.New(fiberzap.Config{
+		Logger: logger,
+	}))
+
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
@@ -63,7 +74,7 @@ func main() {
 	// setup routes
 	setupRoutes(app)
 
-	err := app.Listen(":80")
+	err = app.Listen(":80")
 	if err != nil {
 		return
 	}

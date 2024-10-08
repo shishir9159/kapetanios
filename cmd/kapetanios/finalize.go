@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
+	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"log"
@@ -26,6 +27,8 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 		//			FieldSelector: "spec.nodeName=" + nodeName,
 	}
 
+	c.log.Info("restart by label")
+
 	pods, err := c.client.CoreV1().Pods("kube-system").List(c.ctx, listOptions)
 	if err != nil {
 
@@ -48,6 +51,7 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 	err = orchestration.Informer(c.client, c.ctx, c.log, listOptions)
 
 	if err != nil {
+		fmt.Println("orchestration informer error:")
 		fmt.Println(err)
 		return err
 	}
@@ -74,6 +78,12 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 	//	}
 	//}
 
+	defer func(log *zap.Logger) {
+		er := log.Sync()
+		if er != nil {
+
+		}
+	}(c.log)
 	return nil
 }
 

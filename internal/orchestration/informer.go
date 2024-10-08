@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"log"
 	"time"
 )
 
@@ -132,7 +131,7 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		if !running {
 			// TODO:
 			//	 evicted or pending status check
-			log.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
+			fmt.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
 		}
 
 		event.Object.GetObjectKind()
@@ -142,24 +141,24 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 			// ToDo: completed status check
 			l.Info("pod "+pod.Name+"is deleted",
 				zap.Error(nil))
-			log.Printf("pod %s is deleted %s\n", pod.Name, pod.Status.Phase)
+			fmt.Printf("pod %s is deleted %s\n", pod.Name, pod.Status.Phase)
 			return nil
 		case watch.Added:
 			l.Info("pod "+pod.Name+"is added",
 				zap.Error(nil))
-			log.Println(pod.Status.ContainerStatuses)
-			log.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
+			fmt.Println(pod.Status.ContainerStatuses)
+			fmt.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
 			return nil
 		case watch.Error:
-			log.Printf("error %s\n", event.Object)
-			log.Printf("pod %s has failed %s\n", pod.Name, pod.Status.Phase)
+			fmt.Printf("error %s\n", event.Object)
+			fmt.Printf("pod %s has failed %s\n", pod.Name, pod.Status.Phase)
 			e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
 			return fmt.Errorf(e.String())
 		case watch.Modified:
-			log.Printf("modified")
+			fmt.Printf("modified")
 
 		case watch.Bookmark:
-			log.Printf("booksmark")
+			fmt.Printf("booksmark")
 
 		}
 	}

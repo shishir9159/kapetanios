@@ -30,6 +30,8 @@ func getCertificatesDir() string {
 	//    keyFile: /etc/kubernetes/pki/etcd.key
 	//kubernetesVersion
 
+	// format Data:map[string]string{ClusterConfiguration
+
 	client, err := orchestration.NewClient()
 	if err != nil {
 		fmt.Printf("Error creating Kubernetes client: %v\n", err)
@@ -159,36 +161,36 @@ func CopyDirectory(src, dest string) error {
 
 		switch fileInfo.Mode() & os.ModeType {
 		case os.ModeDir:
-			if err := CreateIfNotExists(destPath, 0755); err != nil {
-				return err
+			if er := CreateIfNotExists(destPath, 0755); er != nil {
+				return er
 			}
-			if err := CopyDirectory(sourcePath, destPath); err != nil {
-				return err
+			if er := CopyDirectory(sourcePath, destPath); er != nil {
+				return er
 			}
 		case os.ModeSymlink:
-			if err := CopySymLink(sourcePath, destPath); err != nil {
-				return err
+			if er := CopySymLink(sourcePath, destPath); er != nil {
+				return er
 			}
 		//	sfi.Mode().IsRegular() with os.Stat() can help determine if the srcDir is a device and should be avoided
 		default:
-			if err := Copy(sourcePath, destPath); err != nil {
-				return err
+			if er := Copy(sourcePath, destPath); er != nil {
+				return er
 			}
 		}
 
-		if err := os.Lchown(destPath, int(stat.Uid), int(stat.Gid)); err != nil {
-			return err
+		if er := os.Lchown(destPath, int(stat.Uid), int(stat.Gid)); er != nil {
+			return er
 		}
 
-		fInfo, err := entry.Info()
-		if err != nil {
-			return err
+		fInfo, er := entry.Info()
+		if er != nil {
+			return er
 		}
 
 		isSymlink := fInfo.Mode()&os.ModeSymlink != 0
 		if !isSymlink {
-			if err := os.Chmod(destPath, fInfo.Mode()); err != nil {
-				return err
+			if e := os.Chmod(destPath, fInfo.Mode()); e != nil {
+				return e
 			}
 		}
 	}
