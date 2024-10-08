@@ -104,15 +104,12 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		return err
 	}
 
-	if watcher == nil {
-		l.Error("watcher is empty")
-		return nil
-	}
-
 	defer watcher.Stop()
 
+	// ToDo:
+	//  should I count the retry???
+
 	for {
-		l.Info("for loop")
 		select {
 		case event := <-watcher.ResultChan():
 
@@ -126,21 +123,26 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 
 			fmt.Println(event.Object.GetObjectKind())
 
-			if event.Type == watch.Added {
+			switch event.Type {
+			case watch.Added:
 				l.Info("The pod is added")
 				if pod.Status.Phase == corev1.PodRunning {
+					//pod.Status.ContainerStatuses
 					l.Info("The pod is running")
 				}
 				fmt.Println(event)
-
 				return nil
-			} else if event.Type == watch.Modified {
+			case watch.Modified:
 				l.Info("The pod is modified")
 				if pod.Status.Phase == corev1.PodRunning {
 					l.Info("The pod is running")
 				}
 				fmt.Println(event)
 				return nil
+			case watch.Error:
+				e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
+				l.Info("returning nil watch added")
+				return fmt.Errorf(e.String())
 			}
 
 		// ToDo:
@@ -152,45 +154,3 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	}
 
 }
-
-//func switchBasedWatchEventHandling() {
-//events := watcher.ResultChan()
-//
-//	for event := range events {
-//
-//		pod, running := event.Object.(*corev1.Pod)
-//		if !running {
-//			// TODO:
-//			//	 evicted or pending status check
-//
-//		}
-//
-//		switch event.Type {
-//		case watch.Deleted:
-//			l.Info("6")
-//			// ToDo: completed status check
-//			l.Info("pod "+pod.Name+"is deleted",
-//				zap.Error(nil))
-//			fmt.Printf("pod %s is deleted %s\n", pod.Name, pod.Status.Phase)
-//			return nil
-//		case watch.Added:
-//			l.Info("pod "+pod.Name+"is added",
-//				zap.Error(nil))
-//			fmt.Println(pod.Status.ContainerStatuses)
-//			fmt.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
-//
-//			fmt.Println("f")
-//			l.Info("returning nil watch added")
-//			return nil
-//		case watch.Error:
-//			e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
-//			l.Info("returning nil watch added")
-//			return fmt.Errorf(e.String())
-//		case watch.Modified:
-//			l.Info("modified")
-//
-//		case watch.Bookmark:
-//			l.Info("bookmark")
-//		}
-//	}
-//}
