@@ -96,11 +96,11 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	listOptions = metav1.ListOptions{
 		TypeMeta:      metav1.TypeMeta{},
 		LabelSelector: listOptions.LabelSelector,
-		//FieldSelector: listOptions.FieldSelector,
-		//Watch: true,
+		FieldSelector: listOptions.FieldSelector,
+		Watch:         true,
 	}
 
-	watcher, err := client.CoreV1().Pods("default").Watch(context.Background(), listOptions)
+	watcher, err := client.CoreV1().Pods("kube-system").Watch(context.Background(), listOptions)
 
 	if err != nil {
 		l.Error("error creating the watcher",
