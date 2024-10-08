@@ -90,8 +90,8 @@ func SharedInformer(client *kubernetes.Clientset) error {
 
 func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, listOptions metav1.ListOptions) error {
 
-	fmt.Println("inside informer")
-	l.Info("inside informer")
+	fmt.Println("inside informer fmt")
+	l.Info("inside informer l")
 	// ToDo:
 	//	 time limit with context cancellation
 
@@ -103,8 +103,6 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	}
 
 	watcher, err := client.CoreV1().Pods("default").Watch(context.Background(), listOptions)
-
-	fmt.Println(watcher)
 
 	if err != nil {
 		l.Info("1")
@@ -129,6 +127,8 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 
 	defer watcher.Stop()
 
+	i := 0
+
 	for event := range events {
 
 		pod, running := event.Object.(*corev1.Pod)
@@ -152,22 +152,34 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 				zap.Error(nil))
 			fmt.Println(pod.Status.ContainerStatuses)
 			fmt.Printf("pod %s is running %s\n", pod.Name, pod.Status.Phase)
+
+			fmt.Println("f")
+			l.Info("returning nil watch added")
 			return nil
 		case watch.Error:
 			fmt.Printf("error %s\n", event.Object)
 			fmt.Printf("pod %s has failed %s\n", pod.Name, pod.Status.Phase)
 			e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
+
+			fmt.Println("f")
+			l.Info("returning nil watch added")
 			return fmt.Errorf(e.String())
 		case watch.Modified:
 			fmt.Printf("modified")
+			l.Info("modified L")
 
 		case watch.Bookmark:
 			fmt.Printf("booksmark")
+			l.Info("bookmark")
 
 		}
+
+		l.Info("inside the loop", zap.Int("i", i))
 	}
 
-	l.Info("returning nil")
-	fmt.Println("returning nil")
+	l.Info("returning nil l")
+	fmt.Println("returning nil fmt")
+
+	l.Sync()
 	return nil
 }
