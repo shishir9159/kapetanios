@@ -92,13 +92,12 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 	// ToDo:
 	//	 time limit with context cancellation
 
-	l.Info("informer")
-
 	//"component": "kube-scheduler"
 	listOptions = metav1.ListOptions{
+		TypeMeta:      metav1.TypeMeta{},
 		LabelSelector: listOptions.LabelSelector,
 		//FieldSelector: listOptions.FieldSelector,
-		Watch: true,
+		//Watch: true,
 	}
 
 	watcher, err := client.CoreV1().Pods("default").Watch(context.Background(), listOptions)
@@ -111,12 +110,13 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 
 	if watcher == nil {
 		l.Error("watcher is empty")
-		return err
+		return nil
 	}
 
 	defer watcher.Stop()
 
 	for {
+		l.Info("for loop")
 		select {
 		case event := <-watcher.ResultChan():
 
