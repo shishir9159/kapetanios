@@ -90,8 +90,6 @@ func SharedInformer(client *kubernetes.Clientset) error {
 
 func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, listOptions metav1.ListOptions) error {
 
-	fmt.Println("inside informer fmt")
-	l.Info("inside informer l")
 	// ToDo:
 	//	 time limit with context cancellation
 
@@ -118,6 +116,8 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		return err
 	}
 
+	l.Info("2")
+
 	events := watcher.ResultChan()
 
 	if events == nil {
@@ -125,12 +125,13 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		return fmt.Errorf("event is nil")
 	}
 
-	defer watcher.Stop()
-
+	l.Info("3")
 	i := 0
+	defer watcher.Stop()
 
 	for event := range events {
 
+		l.Info("4")
 		pod, running := event.Object.(*corev1.Pod)
 		if !running {
 			// TODO:
@@ -138,16 +139,19 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 			fmt.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
 		}
 
+		l.Info("5")
 		event.Object.GetObjectKind()
 
 		switch event.Type {
 		case watch.Deleted:
+			l.Info("6")
 			// ToDo: completed status check
 			l.Info("pod "+pod.Name+"is deleted",
 				zap.Error(nil))
 			fmt.Printf("pod %s is deleted %s\n", pod.Name, pod.Status.Phase)
 			return nil
 		case watch.Added:
+			l.Info("7")
 			l.Info("pod "+pod.Name+"is added",
 				zap.Error(nil))
 			fmt.Println(pod.Status.ContainerStatuses)
@@ -157,6 +161,7 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 			l.Info("returning nil watch added")
 			return nil
 		case watch.Error:
+			l.Info("8")
 			fmt.Printf("error %s\n", event.Object)
 			fmt.Printf("pod %s has failed %s\n", pod.Name, pod.Status.Phase)
 			e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
@@ -165,13 +170,17 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 			l.Info("returning nil watch added")
 			return fmt.Errorf(e.String())
 		case watch.Modified:
+			l.Info("9")
 			fmt.Printf("modified")
 			l.Info("modified L")
 
 		case watch.Bookmark:
+			l.Info("10")
 			fmt.Printf("booksmark")
 			l.Info("bookmark")
-
+		default:
+			l.Info("5")
+			continue
 		}
 
 		l.Info("inside the loop", zap.Int("i", i))
