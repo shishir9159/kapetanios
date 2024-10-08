@@ -22,6 +22,8 @@ spec:
           ports:
             - containerPort: 80
               name: kapetanios
+            - containerPort: 50051
+              name: kapetanios-grpc
           livenessProbe:
             failureThreshold: 10
             httpGet:
