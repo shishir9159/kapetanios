@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"os/exec"
 	"time"
@@ -35,7 +36,13 @@ func restartService(c Controller, component string) error {
 
 func Restart(c Controller) error {
 
-	err := restartService(c, "etcd")
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		c.log.Fatal("Failed to create chroot on /host",
+			zap.Error(err))
+	}
+
+	err = restartService(c, "etcd")
 	if err != nil {
 		c.log.Error("Error restarting etcd: ",
 			zap.Error(err))
@@ -47,5 +54,10 @@ func Restart(c Controller) error {
 			zap.Error(err))
 	}
 
-	return nil
+	if err = changedRoot(); err != nil {
+		c.log.Fatal("Failed to exit from the updated root",
+			zap.Error(err))
+	}
+
+	return err
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
+	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -261,7 +262,7 @@ func etcdBackup() {
 
 func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 
-	err := syscall.Chroot("/host")
+	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
@@ -274,9 +275,14 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 	// Copy Recursively
 	err = CopyDirectory(kubernetesConfigDir, backupDir)
 	if err != nil {
-		log.Println(err)
-		return err
+		c.log.Error("Failed to take backups",
+			zap.Error(err))
 	}
 
-	return nil
+	if err = changedRoot(); err != nil {
+		c.log.Fatal("Failed to exit from the updated root",
+			zap.Error(err))
+	}
+
+	return err
 }

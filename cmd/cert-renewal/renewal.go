@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"os/exec"
 	"time"
@@ -10,10 +11,12 @@ import (
 
 func Renew(c Controller) error {
 
-	//err := syscall.Chroot("/host")
-	//if err != nil {
-	//	c.log.Error("Failed to create chroot on /host", zap.Error(err))
-	//}
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		c.log.Error("Failed to create chroot on /host",
+			zap.Error(err))
+		return err
+	}
 
 	// whereis kubeadm
 	//"/usr/local/bin/kubeadm certs renew scheduler.conf"
@@ -22,11 +25,17 @@ func Renew(c Controller) error {
 	cmd := exec.Command("/usr/bin/kubeadm", "certs", "renew", "all", "--config=/etc/kubernetes/kubeadm-config.yaml")
 
 	//    cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
-		c.log.Error("Failed to renew certificates", zap.Error(err))
-		time.Sleep(5 * time.Second)
+		c.log.Error("Failed to renew certificates",
+			zap.Error(err))
+		time.Sleep(3 * time.Second)
 	}
 
-	return nil
+	if err = changedRoot(); err != nil {
+		c.log.Fatal("Failed to exit from the updated root",
+			zap.Error(err))
+	}
+
+	return err
 }

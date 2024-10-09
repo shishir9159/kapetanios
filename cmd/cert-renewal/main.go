@@ -29,8 +29,6 @@ func main() {
 		log: logger,
 	}
 
-	GrpcClient(c.log)
-
 	//zap.ReplaceGlobals(logger)
 
 	//logger.Info("failed to fetch URL",
@@ -66,4 +64,6 @@ func main() {
 		c.log.Error("failed to restart kubernetes components after certificate renewal",
 			zap.Error(err))
 	}
+
+	GrpcClient(c.log)
 }
