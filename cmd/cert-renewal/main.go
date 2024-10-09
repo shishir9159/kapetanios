@@ -19,7 +19,7 @@ type Controller struct {
 func main() {
 
 	var outb, errb bytes.Buffer
-	cmd := exec.Command("/bin/bash", "-c", "ls -la")
+	cmd := exec.Command("/bin/bash", "-c", "ls")
 	cmd.Stdout = &outb
 	cmd.Stderr = &errb
 
@@ -56,7 +56,7 @@ func main() {
 		c.log.Error("Failed to list directories",
 			zap.Error(err))
 	}
-	c.log.Info("ls -la",
+	c.log.Info("ls before chroot",
 		zap.String("output", outb.String()),
 		zap.String("err", errb.String()))
 
@@ -75,7 +75,7 @@ func main() {
 		c.log.Error("Failed to list directories",
 			zap.Error(err))
 	}
-	c.log.Info("ls -la",
+	c.log.Info("ls after step 1 chroot",
 		zap.String("output", outb.String()),
 		zap.String("err", errb.String()))
 
@@ -90,7 +90,7 @@ func main() {
 		c.log.Error("Failed to list directories",
 			zap.Error(err))
 	}
-	c.log.Info("ls -la",
+	c.log.Info("ls -after renew step 2 chroot",
 		zap.String("output", outb.String()),
 		zap.String("err", errb.String()))
 
