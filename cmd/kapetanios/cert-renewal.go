@@ -70,11 +70,18 @@ func Cert(namespace string) {
 		// how many pods this logic need to be in the orchestration too
 		minion, er := c.client.CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			c.log.Info("Cert Renewal pod created as the minion: ",
+			c.log.Error("Cert Renewal pod creation failed: ",
 				zap.Int("index", index),
-				zap.String("pod_name", minion.Name),
+				zap.Error(er),
 			)
+
+			return
+			//return er
 		}
+
+		c.log.Info("Cert Renewal pod created",
+			zap.Int("index", index),
+			zap.String("pod_name", minion.Name))
 
 		// todo: wait for request for restart from the minions
 		time.Sleep(5 * time.Second)
