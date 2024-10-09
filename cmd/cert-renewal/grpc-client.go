@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	addr = flag.String("addr", "kapetanios.com:50051", "the address to connect to")
+	addr = flag.String("addr", "kapetanios-grpc.com:50051", "the address to connect to")
 	//addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 	name = flag.String("name", defaultName, "gRPC test")
 )

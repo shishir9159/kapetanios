@@ -87,7 +87,7 @@ func SharedInformer(client *kubernetes.Clientset) error {
 	return nil
 }
 
-func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, listOptions metav1.ListOptions) error {
+func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, n int, listOptions metav1.ListOptions) error {
 
 	listOptions = metav1.ListOptions{
 		TypeMeta:      metav1.TypeMeta{},
@@ -108,6 +108,8 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 
 	// ToDo:
 	//  should I count the retry???
+
+	// check for n
 
 	for {
 		select {

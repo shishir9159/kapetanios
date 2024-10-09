@@ -13,5 +13,5 @@ spec:
       name: kapetanios
     - port: 50051
       targetPort: 50051
-      name: kapetanios-grpcs
+      name: kapetanios-grpc
   type: ClusterIP
