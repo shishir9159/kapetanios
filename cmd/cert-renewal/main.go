@@ -18,11 +18,6 @@ type Controller struct {
 
 func main() {
 
-	var outb, errb bytes.Buffer
-	cmd := exec.Command("/bin/bash", "-c", "ls")
-	cmd.Stdout = &outb
-	cmd.Stderr = &errb
-
 	logger, err := zap.NewProduction()
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
@@ -35,6 +30,13 @@ func main() {
 		ctx: context.Background(),
 		log: logger,
 	}
+
+	GrpcClient(c.log)
+
+	var outb, errb bytes.Buffer
+	cmd := exec.Command("/bin/bash", "-c", "ls")
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
 
 	//zap.ReplaceGlobals(logger)
 
@@ -51,14 +53,7 @@ func main() {
 	//		zap.Error(err))
 	//}
 
-	err = cmd.Run()
-	if err != nil {
-		c.log.Error("Failed to list directories",
-			zap.Error(err))
-	}
-	c.log.Info("ls before chroot",
-		zap.String("output", outb.String()),
-		zap.String("err", errb.String()))
+	GrpcClient(c.log)
 
 	//	step 1. Backup directories
 	err = BackupCertificatesKubeConfigs(c, backupCount)
@@ -71,10 +66,6 @@ func main() {
 
 	//    cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	err = cmd.Run()
-	if err != nil {
-		c.log.Error("Failed to list directories",
-			zap.Error(err))
-	}
 	c.log.Info("ls after step 1 chroot",
 		zap.String("output", outb.String()),
 		zap.String("err", errb.String()))
@@ -86,10 +77,6 @@ func main() {
 	}
 
 	err = cmd.Run()
-	if err != nil {
-		c.log.Error("Failed to list directories",
-			zap.Error(err))
-	}
 	c.log.Info("ls -after renew step 2 chroot",
 		zap.String("output", outb.String()),
 		zap.String("err", errb.String()))

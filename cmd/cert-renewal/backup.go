@@ -57,7 +57,6 @@ func getK8sConfigsDir() string {
 func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern string) (int, error) {
 
 	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
-	log.Println("glob", glob)
 	if err != nil {
 
 		log.Println(err)
@@ -118,7 +117,9 @@ func getBackupDir(backupCount int) (string, error) {
 	//	}
 
 	index, err := checkSurplusBackupDirs(backupCount, baseDir, backupDirPattern)
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	// permission 600 or 0755
 	if er := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(index), 0755); er != nil {
