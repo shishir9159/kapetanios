@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"go.uber.org/zap"
+	"os/exec"
 )
 
 var (
@@ -52,6 +53,16 @@ func main() {
 	}
 
 	//	step 2. Kubeadm certs renew all
+
+	cmd := exec.Command("ls", "-la")
+
+	//    cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		c.log.Error("Failed to list directories",
+			zap.Error(err))
+	}
+
 	err = Renew(c)
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
