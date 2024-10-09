@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"go.uber.org/zap"
+	"os/exec"
 	"time"
 
 	"google.golang.org/grpc"
@@ -23,6 +25,15 @@ var (
 )
 
 func GrpcClient(log *zap.Logger) {
+
+	var outb, errb bytes.Buffer
+	cmd := exec.Command("/bin/bash", "-c", "ls")
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
+
+	err := cmd.Run()
+	log.Info("ls inside grpc client",
+		zap.String("output", outb.String()))
 
 	flag.Parse()
 
