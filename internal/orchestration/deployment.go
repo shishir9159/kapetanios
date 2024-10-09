@@ -88,7 +88,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 			},
 			DNSPolicy: corev1.DNSClusterFirst,
 			//DNSConfig: &corev1.PodDNSConfig{
-			//	Nameservers: []string{"10.96.0.10:53"},
+			//	Nameservers: []string{"10.96.0.10"},
 			//},
 			RestartPolicy: corev1.RestartPolicyNever,
 			Volumes: []corev1.Volume{
