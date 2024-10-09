@@ -86,12 +86,12 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 					},
 				},
 			},
-			DNSPolicy: corev1.DNSClusterFirst,
+			//DNSPolicy: corev1.DNSClusterFirst,
 			// Todo:
 			//  fix on the grpc client rather than the descriptor
-			DNSConfig: &corev1.PodDNSConfig{
-				Nameservers: []string{"10.96.0.10"},
-			},
+			//DNSConfig: &corev1.PodDNSConfig{
+			//	Nameservers: []string{"10.96.0.10"},
+			//},
 			RestartPolicy: corev1.RestartPolicyNever,
 			Volumes: []corev1.Volume{
 				{
