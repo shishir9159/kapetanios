@@ -2,7 +2,6 @@ syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
 message CreateRequest {
-//  TO-DO: Bool
   bool backupSuccess = 1;
   bool renewalSuccess = 2;
   bool restartSuccess = 3;
@@ -15,3 +14,9 @@ message CreateResponse {
 service Renewal {
   rpc StatusUpdate(CreateRequest) returns (CreateResponse);
 }
+
+//grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 proto.Renewal/CreateRequest{
+//  "backupSuccess" : true,
+//  "renewalSuccess" : true,
+//  "restartSuccess" : true
+//}

@@ -53,6 +53,4 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 
 func Finalize(client *orchestration.Client, nodeName string) {
 
-	//"component": "kube-scheduler"}
-
 }
