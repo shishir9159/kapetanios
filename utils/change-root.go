@@ -7,7 +7,7 @@ import (
 )
 
 func ChangeRoot(path string) (func() error, error) {
-	root, err := os.Open("/app/")
+	root, err := os.Open("/")
 	if err != nil {
 		fmt.Println("failed to open / directory to use file descriptor as returning artifact/spell")
 		return nil, err
