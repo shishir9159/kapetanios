@@ -65,5 +65,5 @@ func main() {
 			zap.Error(err))
 	}
 
-	GrpcClient()
+	GrpcClient(c.log)
 }

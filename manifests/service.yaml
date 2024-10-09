@@ -10,6 +10,8 @@ spec:
   ports:
     - port: 80
       targetPort: 80
+      name: kapetanios
     - port: 50051
       targetPort: 50051
+      name: kapetanios-grpcs
   type: ClusterIP

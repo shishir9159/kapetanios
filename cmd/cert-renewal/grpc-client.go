@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
+	"go.uber.org/zap"
 	"time"
 
 	"google.golang.org/grpc"
@@ -21,14 +21,14 @@ var (
 	name = flag.String("name", defaultName, "gRPC test")
 )
 
-func GrpcClient() {
+func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
 
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Error("did not connect", zap.Error(err))
 	}
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
@@ -43,7 +43,7 @@ func GrpcClient() {
 	defer cancel()
 	r, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true})
 	if err != nil {
-		log.Fatalf("could not send status update: %v", err)
+		log.Error("could not send status update: ", zap.Error(err))
 	}
-	log.Printf("Status Update: %t", r.GetNextStep())
+	log.Error("Status Update", zap.Bool("next step", r.GetNextStep()))
 }

@@ -116,11 +116,13 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 			pod, running := event.Object.(*corev1.Pod)
 
 			l.Info("running")
-			fmt.Println(running)
 			if !running {
-				//fmt.Printf("pod %s not running %s\n", pod.Name, pod.Status.Phase)
+				l.Error("pod is not running",
+					zap.String("pod_name", pod.Name))
+				//zap.String("status", pod.Status.Phase))
 			}
 
+			l.Info("event,Object.GetObjectKind()")
 			fmt.Println(event.Object.GetObjectKind())
 
 			switch event.Type {

@@ -55,13 +55,11 @@ func Cert(namespace string) {
 
 	nodes, err := c.client.CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
-		c.log.Error("error listing nodes",
-			zap.Error(err))
+		c.log.Error("error listing nodes", zap.Error(err))
 	}
 
 	if len(nodes.Items) == 0 {
-		c.log.Error("no master nodes found",
-			zap.Error(err))
+		c.log.Error("no master nodes found", zap.Error(err))
 	}
 
 	for index, node := range nodes.Items {
@@ -75,20 +73,24 @@ func Cert(namespace string) {
 		if er != nil {
 			fmt.Printf("Error creating Cert Renewal pod as the %dth minion: %v\n", index, er)
 		}
-		c.log.Info("Cert Renewal pod created as the minion: ")
-		//zap.String(minion.Name)
+		c.log.Info("Cert Renewal pod created as the minion: ",
+			zap.Int("index", index),
+			zap.String("pod_name", minion.Name),
+		)
 
-		fmt.Printf("Cert Renewal pod created as the %dth minion: %s\n", index, minion.Name)
-
+		// todo: wait for request for restart from the minions
 		time.Sleep(5 * time.Second)
 
 		er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 		if er != nil {
-			fmt.Println("pod Restart failed")
+			c.log.Error("error restarting pods for certificate renewal", zap.Error(er))
+
+			//retry logic
+			//return er
 			break
 		}
 
-		CertGrpc()
+		CertGrpc(c.log)
 	}
 
 }

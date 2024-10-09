@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"go.uber.org/zap"
 
 	"flag"
 	"fmt"
@@ -27,17 +28,18 @@ func (s *server) StatusUpdate(_ context.Context, in *pb.CreateRequest) (*pb.Crea
 	return &pb.CreateResponse{NextStep: true}, nil
 }
 
-func CertGrpc() {
+func CertGrpc(l *zap.Logger) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		l.Error("failed to listen", zap.Error(err))
 	}
 	s := grpc.NewServer()
 	pb.RegisterRenewalServer(s, &server{})
-	log.Printf("server listening at %v", lis.Addr())
+
+	l.Info("sever listening")
 
 	if er := s.Serve(lis); er != nil {
-		log.Fatalf("failed to serve: %v", er)
+		l.Error("failed to serve", zap.Error(er))
 	}
 }
