@@ -129,7 +129,6 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 					//pod.Status.ContainerStatuses
 					l.Info("The pod is running")
 				}
-				fmt.Println(event)
 				return nil
 			case watch.Modified:
 				l.Info("The pod is modified")
@@ -143,7 +142,7 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 				return fmt.Errorf(e.String())
 			}
 
-		//  print watch
+		//  print event
 		//	{ADDED &Pod{ObjectMeta:{kube-scheduler-shihab-node-1 kube-system
 		//	45bdcebb-412a-44b1-9588-ce69f057a21f 25109346 0 2024-10-08 14:03:48 +0000 UTC
 		//	2024-10-09 00:31:55 +0000 UTC 0xc0005f9fb0 map[component:kube-scheduler

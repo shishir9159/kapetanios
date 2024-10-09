@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -71,12 +70,11 @@ func Cert(namespace string) {
 		// how many pods this logic need to be in the orchestration too
 		minion, er := c.client.CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			fmt.Printf("Error creating Cert Renewal pod as the %dth minion: %v\n", index, er)
+			c.log.Info("Cert Renewal pod created as the minion: ",
+				zap.Int("index", index),
+				zap.String("pod_name", minion.Name),
+			)
 		}
-		c.log.Info("Cert Renewal pod created as the minion: ",
-			zap.Int("index", index),
-			zap.String("pod_name", minion.Name),
-		)
 
 		// todo: wait for request for restart from the minions
 		time.Sleep(5 * time.Second)
@@ -89,8 +87,8 @@ func Cert(namespace string) {
 			//return er
 			break
 		}
-
-		CertGrpc(c.log)
 	}
+
+	CertGrpc(c.log)
 
 }
