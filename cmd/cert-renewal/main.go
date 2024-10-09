@@ -19,7 +19,7 @@ type Controller struct {
 func main() {
 
 	var outb, errb bytes.Buffer
-	cmd := exec.Command("ls", "-la")
+	cmd := exec.Command("/bin/bash", "-c", "ls -la")
 	cmd.Stdout = &outb
 	cmd.Stderr = &errb
 
