@@ -75,7 +75,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 					Env: []corev1.EnvVar{
 						{
 							Name:  "GRPC_DNS_RESOLVER",
-							Value: "native",
+							Value: "ares",
 						},
 					},
 					VolumeMounts: []corev1.VolumeMount{
