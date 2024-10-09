@@ -72,6 +72,12 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: &[]bool{true}[0],
 					},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "GRPC_DNS_RESOLVER",
+							Value: "native",
+						},
+					},
 					VolumeMounts: []corev1.VolumeMount{
 						{
 							Name:      "host",

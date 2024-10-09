@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"go.uber.org/zap"
-
 	"flag"
 	"fmt"
+	"go.uber.org/zap"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 
@@ -35,6 +35,9 @@ func CertGrpc(l *zap.Logger) {
 		l.Error("failed to listen", zap.Error(err))
 	}
 	s := grpc.NewServer()
+
+	// in dev mode
+	reflection.Register(s)
 	pb.RegisterRenewalServer(s, &server{})
 
 	l.Info("sever listening")
