@@ -14,7 +14,7 @@ import (
 	"syscall"
 )
 
-func getCertificatesDir() string {
+func getK8sConfigsDir() string {
 	//	will be called after getKubeadmFileLocation
 	// default:	/etc/kubernetes/pki
 
@@ -35,33 +35,46 @@ func getCertificatesDir() string {
 	client, err := orchestration.NewClient()
 	if err != nil {
 		fmt.Printf("Error creating Kubernetes client: %v\n", err)
-		return "/etc/kubernetes/pki"
+		return "/etc/kubernetes/"
+		//return "/etc/kubernetes/pki"
 	}
 
+	// todo: should be relocated to lighthouse agent
 	cm, err := client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
 
-	// temporary lines
-	fmt.Println(cm)
+	if err != nil {
+		fmt.Printf("Error getting kubeadm-config: %v\n", cm)
+	}
 
-	return "/etc/kubernetes/pki"
+	return "/etc/kubernetes/"
 
 	// convert the cm to a file and read from the yaml file
 	//var certsDir string = cm.BinaryData // certificatesDir
 
 }
 
-func getKubeConfigFiles() []string {
+func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern string) (int, error) {
 
-	// could be extracted from the static manifest files
-	// --kubeconfig=/etc/kubernetes/controller-manager.conf
+	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
+	log.Println("glob", glob)
+	if err != nil {
 
-	kubeConfigFiles := []string{
-		"/etc/kubernetes/admin.conf",
-		"/etc/kubernetes/controller-manager.conf",
-		"/etc/kubernetes/scheduler.conf",
+		log.Println(err)
 	}
 
-	return kubeConfigFiles
+	if len(glob) >= backupCount {
+		// increment the indices
+		//sort.Slice(s, func(i, j int) bool {
+		//		if s[i][:2] != s[j][:2] {
+		//			return s[i] < s[j]
+		//		}
+		//		ii, _ := strconv.Atoi(s[i][2:])
+		//		jj, _ := strconv.Atoi(s[j][2:])
+		//		return ii < jj
+		//	})
+	}
+
+	return len(glob) + 1, nil
 }
 
 // checkList:
@@ -76,7 +89,8 @@ func getKubeConfigFiles() []string {
 func getBackupDir(backupCount int) (string, error) {
 
 	baseDir := "/opt/klovercloud/"
-	backupDirPattern := "certs-backup-"
+	backupDirPattern := "k8s-backup-"
+	//certsBackupDirPattern := "certs-backup-"
 
 	if dfi, err := os.Stat(baseDir); err != nil {
 		if os.IsNotExist(err) {
@@ -90,7 +104,7 @@ func getBackupDir(backupCount int) (string, error) {
 		}
 	}
 
-	// TO-DO: handle possible permission errors for file coppy
+	// TO-DO: handle possible permission errors for file copy
 	//if err != nil {
 	//	return ""
 	//}
@@ -102,39 +116,16 @@ func getBackupDir(backupCount int) (string, error) {
 	//		}
 	//	}
 
-	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
-	log.Println("glob", glob)
-	if err != nil {
+	index, err := checkSurplusBackupDirs(backupCount, baseDir, backupDirPattern)
+	fmt.Println(err)
 
-		log.Println(err)
+	// permission 600 or 0755
+	if er := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(index), 0755); er != nil {
+		log.Println(er)
+		return "", er
 	}
 
-	if len(glob) == 0 {
-		if er := CreateIfNotExists(baseDir+backupDirPattern+"1", 0755); er != nil {
-
-			if len(glob) >= backupCount {
-				// increment the indices
-				//sort.Slice(s, func(i, j int) bool {
-				//		if s[i][:2] != s[j][:2] {
-				//			return s[i] < s[j]
-				//		}
-				//		ii, _ := strconv.Atoi(s[i][2:])
-				//		jj, _ := strconv.Atoi(s[j][2:])
-				//		return ii < jj
-				//	})
-			}
-
-			// permission 600 or 0755
-			if e := CreateIfNotExists(baseDir+backupDirPattern+strconv.Itoa(len(glob)+1), 0755); e != nil {
-				log.Println(e)
-				return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), e
-			}
-
-			return baseDir + backupDirPattern + strconv.Itoa(len(glob)+1), nil
-		}
-	}
-
-	return "/opt/klovercloud/certs-backup-1", nil
+	return baseDir + backupDirPattern + strconv.Itoa(index), nil
 }
 
 func CopyDirectory(src, dest string) error {
@@ -149,9 +140,9 @@ func CopyDirectory(src, dest string) error {
 		sourcePath := filepath.Join(src, entry.Name())
 		destPath := filepath.Join(dest, entry.Name())
 
-		fileInfo, err := os.Stat(sourcePath)
-		if err != nil {
-			return err
+		fileInfo, er := os.Stat(sourcePath)
+		if er != nil {
+			return er
 		}
 
 		stat, ok := fileInfo.Sys().(*syscall.Stat_t)
@@ -161,25 +152,25 @@ func CopyDirectory(src, dest string) error {
 
 		switch fileInfo.Mode() & os.ModeType {
 		case os.ModeDir:
-			if er := CreateIfNotExists(destPath, 0755); er != nil {
-				return er
+			if e := CreateIfNotExists(destPath, 0755); e != nil {
+				return e
 			}
-			if er := CopyDirectory(sourcePath, destPath); er != nil {
-				return er
+			if e := CopyDirectory(sourcePath, destPath); e != nil {
+				return e
 			}
 		case os.ModeSymlink:
-			if er := CopySymLink(sourcePath, destPath); er != nil {
-				return er
+			if e := CopySymLink(sourcePath, destPath); e != nil {
+				return e
 			}
 		//	sfi.Mode().IsRegular() with os.Stat() can help determine if the srcDir is a device and should be avoided
 		default:
-			if er := Copy(sourcePath, destPath); er != nil {
-				return er
+			if e := Copy(sourcePath, destPath); e != nil {
+				return e
 			}
 		}
 
-		if er := os.Lchown(destPath, int(stat.Uid), int(stat.Gid)); er != nil {
-			return er
+		if e := os.Lchown(destPath, int(stat.Uid), int(stat.Gid)); e != nil {
+			return e
 		}
 
 		fInfo, er := entry.Info()
@@ -232,6 +223,10 @@ func Copy(srcFile, dstFile string) error {
 	return nil
 }
 
+func removeDirectory(dirPath string) error {
+	return nil
+}
+
 func Exists(filePath string) bool {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return false
@@ -260,36 +255,28 @@ func CopySymLink(source, dest string) error {
 	return os.Symlink(link, dest)
 }
 
+func etcdBackup() {
+
+}
+
 func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 
 	err := syscall.Chroot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
+		return err
 	}
 
 	backupDir, err := getBackupDir(backupCount)
-	certsDir := getCertificatesDir()
-	kubeConfigs := getKubeConfigFiles()
+	kubernetesConfigDir := getK8sConfigsDir()
 
-	err = CopyDirectory(certsDir, backupDir)
+	// Copy Recursively
+	err = CopyDirectory(kubernetesConfigDir, backupDir)
 	if err != nil {
 		log.Println(err)
+		return err
 	}
 
-	dest := "/opt/klovercloud/kubeConfig"
-
-	if err = CreateIfNotExists(dest, 0755); err != nil {
-		log.Println(err)
-	}
-
-	for _, kubeConfigFile := range kubeConfigs {
-		err = Copy(kubeConfigFile, dest)
-		if err != nil {
-			fmt.Println(backupDir, certsDir, kubeConfigs)
-			log.Println(err)
-		}
-	}
-
-	return err
+	return nil
 }
