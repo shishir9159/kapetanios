@@ -86,6 +86,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 					},
 				},
 			},
+			DNSPolicy:     corev1.DNSClusterFirst,
 			RestartPolicy: corev1.RestartPolicyNever,
 			Volumes: []corev1.Volume{
 				{
