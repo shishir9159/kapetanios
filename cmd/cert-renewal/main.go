@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"go.uber.org/zap"
 	"os/exec"
@@ -16,6 +17,11 @@ type Controller struct {
 }
 
 func main() {
+
+	var outb, errb bytes.Buffer
+	cmd := exec.Command("ls", "-la")
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
 
 	logger, err := zap.NewProduction()
 	defer func(logger *zap.Logger) {
@@ -45,6 +51,15 @@ func main() {
 	//		zap.Error(err))
 	//}
 
+	err = cmd.Run()
+	if err != nil {
+		c.log.Error("Failed to list directories",
+			zap.Error(err))
+	}
+	c.log.Info("ls -la",
+		zap.String("output", outb.String()),
+		zap.String("err", errb.String()))
+
 	//	step 1. Backup directories
 	err = BackupCertificatesKubeConfigs(c, backupCount)
 	if err != nil {
@@ -54,20 +69,30 @@ func main() {
 
 	//	step 2. Kubeadm certs renew all
 
-	cmd := exec.Command("ls", "-la")
-
 	//    cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	err = cmd.Run()
 	if err != nil {
 		c.log.Error("Failed to list directories",
 			zap.Error(err))
 	}
+	c.log.Info("ls -la",
+		zap.String("output", outb.String()),
+		zap.String("err", errb.String()))
 
 	err = Renew(c)
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))
 	}
+
+	err = cmd.Run()
+	if err != nil {
+		c.log.Error("Failed to list directories",
+			zap.Error(err))
+	}
+	c.log.Info("ls -la",
+		zap.String("output", outb.String()),
+		zap.String("err", errb.String()))
 
 	//step 3. Restarting pods to work with the updated certificates
 	err = Restart(c)
