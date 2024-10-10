@@ -34,9 +34,11 @@ func GrpcClient(log *zap.Logger) {
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
 		if er != nil {
-
+			log.Error("failed to close the grpc connection",
+				zap.Error(er))
 		}
 	}(conn)
+
 	c := pb.NewRenewalClient(conn)
 
 	// Contact the server and print out its response.
