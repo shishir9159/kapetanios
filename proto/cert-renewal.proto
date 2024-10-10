@@ -14,9 +14,3 @@ message CreateResponse {
 service Renewal {
   rpc StatusUpdate(CreateRequest) returns (CreateResponse);
 }
-
-//grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 proto.Renewal/CreateRequest{
-//  "backupSuccess" : true,
-//  "renewalSuccess" : true,
-//  "restartSuccess" : true
-//}

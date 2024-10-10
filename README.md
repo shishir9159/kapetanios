@@ -36,3 +36,21 @@ docker push quay.io/klovercloud/certs-renewal:latest
 ```Bash
 kubectl create -f manifests/.
 ```
+
+## Testing
+### grpc
+```Bash
+grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 proto.Renewal/CreateRequest{
+  "backupSuccess" : true,
+  "renewalSuccess" : true,
+  "restartSuccess" : true
+}
+```
+
+### Possible errors:
+
+```
+domain cluster.local
+search cluster.local
+nameserver 10.96.0.10 
+```

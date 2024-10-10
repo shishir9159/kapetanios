@@ -26,6 +26,8 @@ func main() {
 		}
 	}(logger)
 
+	// replace zap with zerolog
+
 	c := Controller{
 		ctx: context.Background(),
 		log: logger,
