@@ -78,6 +78,12 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 							MountPath: "/host",
 						},
 					},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "GRPC_DNS_RESOLVER",
+							Value: "native",
+						},
+					},
 				},
 			},
 			DNSPolicy: corev1.DNSClusterFirst,
