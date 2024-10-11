@@ -58,12 +58,26 @@ func GrpcClient(log *zap.Logger) {
 	}
 
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
+	if err != nil {
+		log.Error("error from client request", zap.Error(err))
+	}
+
+	if resp == nil {
+		log.Fatal("response is empty")
+	}
+
+	defer func(Body io.ReadCloser) {
+		er := Body.Close()
+		if er != nil {
+			log.Error("error closing the body")
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Error("Failed to read body", zap.Error(err))
 	}
+
 	log.Info("body", zap.String("body", string(body)))
 
 	//address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
