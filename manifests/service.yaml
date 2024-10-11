@@ -10,8 +10,10 @@ spec:
   ports:
     - port: 80
       targetPort: 80
+      protocol: TCP
       name: kapetanios
     - port: 50051
       targetPort: 50051
+      protocol: TCP
       name: kapetanios-grpc
   type: ClusterIP
