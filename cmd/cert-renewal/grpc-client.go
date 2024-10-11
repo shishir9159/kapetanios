@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"flag"
 	"go.uber.org/zap"
 	"io"
@@ -64,7 +65,7 @@ func GrpcClient(log *zap.Logger) {
 
 	ip, err := r.LookupIP(context.Background(), "ip4", "www.google.com")
 	if len(ip) != 0 {
-		log.Info("google address", zap.String("www.google.com", string(ip[0])))
+		log.Info("google address", zap.Int("www.google.com", int(binary.BigEndian.Uint64(ip[0]))))
 	}
 
 	if err != nil {
@@ -73,7 +74,7 @@ func GrpcClient(log *zap.Logger) {
 
 	ip, err = r.LookupIP(context.Background(), "ip4", "http://hello.default.svc.cluster.local")
 	if len(ip) != 0 {
-		log.Info("hello http address", zap.String("http://hello.default.svc.cluster.local", string(ip[0])))
+		log.Info("hello http address", zap.Int("http://hello.default.svc.cluster.local", int(binary.BigEndian.Uint64(ip[0]))))
 	}
 
 	if err != nil {
@@ -82,7 +83,7 @@ func GrpcClient(log *zap.Logger) {
 
 	ip, err = r.LookupIP(context.Background(), "ip4", "hello.default.svc.cluster.local")
 	if len(ip) != 0 {
-		log.Info("hello service address", zap.String("hello.default.svc.cluster.local", string(ip[0])))
+		log.Info("hello service address", zap.Int("hello.default.svc.cluster.local", int(binary.BigEndian.Uint64(ip[0]))))
 	}
 
 	if err != nil {
