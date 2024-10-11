@@ -26,7 +26,7 @@ func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
 
-	resp, err := http.Get("hello.default.svc.cluster.local")
+	resp, err := http.Get("http://hello.default.svc.cluster.local")
 	if err != nil {
 		log.Error("Failed to connect to hello.default.svc.cluster.local", zap.Error(err))
 	}
