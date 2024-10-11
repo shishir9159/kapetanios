@@ -38,8 +38,6 @@ func main() {
 		}
 	}(logger)
 
-	GrpcClient(c.log)
-
 	//	step 1. Backup directories
 	err = BackupCertificatesKubeConfigs(c, backupCount)
 	if err != nil {

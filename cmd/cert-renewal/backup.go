@@ -270,6 +270,8 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 		return err
 	}
 
+	GrpcClient(c.log)
+
 	backupDir, err := getBackupDir(backupCount)
 	kubernetesConfigDir := getK8sConfigsDir()
 
