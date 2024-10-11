@@ -24,10 +24,12 @@ type server struct {
 
 // StatusUpdate implements proto.Renewal
 func (s *server) StatusUpdate(_ context.Context, in *pb.CreateRequest) (*pb.CreateResponse, error) {
-	log.Printf("Received: %v", in.GetBackupSuccess())
-	log.Printf("Received: %v", in.GetRenewalSuccess())
-	log.Printf("Received: %v", in.GetRestartSuccess())
-	return &pb.CreateResponse{NextStep: true, Err: ""}, nil
+	log.Printf("Received backup sucess: %v", in.GetBackupSuccess())
+	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
+	log.Printf("Received restart sucess: %v", in.GetRestartSuccess())
+	log.Printf("Received log: %v", in.GetLog())
+	log.Printf("Received error: %v", in.GetErr())
+	return &pb.CreateResponse{NextStep: true}, nil
 }
 
 func CertGrpc(l *zap.Logger) {
