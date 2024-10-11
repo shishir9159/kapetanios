@@ -28,13 +28,15 @@ func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
 
-	address, err := net.LookupHost(*addr)
+	address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
 
 	if err != nil {
 		log.Error("failed to resolve host", zap.String("address", *addr), zap.Error(err))
 	}
 
 	if address != nil {
+		log.Info("resolved host", zap.String("host", address[0]), zap.String("host", *addr))
+		addr = flag.String("addr", address[0]+"50051", "the address to connect to")
 		addr = &address[0]
 	}
 
