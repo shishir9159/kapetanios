@@ -1,18 +1,10 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"go.uber.org/zap"
 	"io"
-	"net"
 	"net/http"
-	"time"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
-	pb "github.com/shishir9159/kapetanios/proto"
 )
 
 const (
@@ -36,7 +28,7 @@ func GrpcClient(log *zap.Logger) {
 
 	resp, err := http.Get("hello.default.svc.cluster.local")
 	if err != nil {
-		log.Error("Failed to connect to kapetanios.default.svc.cluster.local", zap.Error(err))
+		log.Error("Failed to connect to hello.default.svc.cluster.local", zap.Error(err))
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -45,40 +37,40 @@ func GrpcClient(log *zap.Logger) {
 	}
 	log.Info("body", zap.String("body", string(body)))
 
-	address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
-
-	if err != nil {
-		log.Error("failed to resolve host", zap.String("address", address[0]), zap.String("address", address[1]), zap.Error(err))
-	}
-
-	if address != nil {
-		log.Info("resolved host", zap.String("host", address[0]), zap.String("host", *addr))
-		addr = flag.String("addr", address[0]+"50051", "the address to connect to")
-		addr = &address[0]
-	}
-
-	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Error("did not connect", zap.Error(err))
-	}
-	grpc.WithDisableServiceConfig()
-	defer func(conn *grpc.ClientConn) {
-		er := conn.Close()
-		if er != nil {
-			log.Error("failed to close the grpc connection",
-				zap.Error(er))
-		}
-	}(conn)
-
-	c := pb.NewRenewalClient(conn)
-
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true, Log: "", Err: "s"})
-	if err != nil {
-		log.Error("could not send status update: ", zap.Error(err))
-	}
-	log.Error("Status Update", zap.Bool("next step", r.GetProceedNextStep()), zap.Bool("retry", r.GetRetryCurrentStep()))
+	//address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
+	//
+	//if err != nil {
+	//	log.Error("failed to resolve host", zap.String("address", address[0]), zap.String("address", address[1]), zap.Error(err))
+	//}
+	//
+	//if address != nil {
+	//	log.Info("resolved host", zap.String("host", address[0]), zap.String("host", *addr))
+	//	addr = flag.String("addr", address[0]+"50051", "the address to connect to")
+	//	addr = &address[0]
+	//}
+	//
+	//// Set up a connection to the server.
+	//conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	//if err != nil {
+	//	log.Error("did not connect", zap.Error(err))
+	//}
+	////grpc.WithDisableServiceConfig()
+	//defer func(conn *grpc.ClientConn) {
+	//	er := conn.Close()
+	//	if er != nil {
+	//		log.Error("failed to close the grpc connection",
+	//			zap.Error(er))
+	//	}
+	//}(conn)
+	//
+	//c := pb.NewRenewalClient(conn)
+	//
+	//// Contact the server and print out its response.
+	//ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	//defer cancel()
+	//r, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true, Log: "", Err: "s"})
+	//if err != nil {
+	//	log.Error("could not send status update: ", zap.Error(err))
+	//}
+	//log.Error("Status Update", zap.Bool("next step", r.GetProceedNextStep()), zap.Bool("retry", r.GetRetryCurrentStep()))
 }
