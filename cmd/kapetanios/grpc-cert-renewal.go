@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 
@@ -24,7 +25,9 @@ type server struct {
 // StatusUpdate implements proto.Renewal
 func (s *server) StatusUpdate(_ context.Context, in *pb.CreateRequest) (*pb.CreateResponse, error) {
 	log.Printf("Received: %v", in.GetBackupSuccess())
-	return &pb.CreateResponse{NextStep: true}, nil
+	log.Printf("Received: %v", in.GetRenewalSuccess())
+	log.Printf("Received: %v", in.GetRestartSuccess())
+	return &pb.CreateResponse{NextStep: true, Err: ""}, nil
 }
 
 func CertGrpc(l *zap.Logger) {
@@ -36,7 +39,7 @@ func CertGrpc(l *zap.Logger) {
 	s := grpc.NewServer()
 
 	// in dev mode
-	//reflection.Register(s)
+	reflection.Register(s)
 	pb.RegisterRenewalServer(s, &server{})
 
 	l.Info("sever listening")
