@@ -4,7 +4,9 @@ import (
 	"context"
 	"flag"
 	"go.uber.org/zap"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"time"
 
 	"google.golang.org/grpc"
@@ -17,6 +19,10 @@ const (
 	defaultName = "cert-renewal"
 )
 
+//type Post struct {
+//	"message" string `json:"message"`
+//}
+
 var (
 	//addr = flag.String("addr", "kapetanios-grpc.com:80", "the address to connect to") .svc.cluster.local
 	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
@@ -27,6 +33,17 @@ var (
 func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
+
+	resp, err := http.Get("kapetanios.default.svc.cluster.local")
+	if err != nil {
+		log.Error("Failed to connect to kapetanios.default.svc.cluster.local", zap.Error(err))
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("Failed to read body", zap.Error(err))
+	}
+	log.Info("body", zap.String("body", string(body)))
 
 	address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
 
