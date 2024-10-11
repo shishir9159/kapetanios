@@ -85,7 +85,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 						},
 						{
 							Name:  "GRPC_GO_LOG_SEVERITY_LEVEL",
-							Value: "DEBUG",
+							Value: "INFO",
 						},
 						{
 							Name:  "GRPC_TRACE",
