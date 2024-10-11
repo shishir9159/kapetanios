@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"go.uber.org/zap"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"time"
@@ -34,12 +34,12 @@ func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
 
-	resp, err := http.Get("kapetanios.default.svc.cluster.local")
+	resp, err := http.Get("hello.default.svc.cluster.local")
 	if err != nil {
 		log.Error("Failed to connect to kapetanios.default.svc.cluster.local", zap.Error(err))
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Error("Failed to read body", zap.Error(err))
 	}
