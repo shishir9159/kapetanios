@@ -29,7 +29,7 @@ func (s *server) StatusUpdate(_ context.Context, in *pb.CreateRequest) (*pb.Crea
 	log.Printf("Received restart sucess: %v", in.GetRestartSuccess())
 	log.Printf("Received log: %v", in.GetLog())
 	log.Printf("Received error: %v", in.GetErr())
-	return &pb.CreateResponse{NextStep: true}, nil
+	return &pb.CreateResponse{ProceedNextStep: true, RetryCurrentStep: false}, nil
 }
 
 func CertGrpc(l *zap.Logger) {

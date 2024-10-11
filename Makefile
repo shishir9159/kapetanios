@@ -4,7 +4,6 @@ COLOR := "\e[1;36m%s\e[0m\n"
 CGO_ENABLED ?= 0
 DOCKER ?= docker buildx
 NATIVE_ARCH := amd64
-GO111MODULE := ''
 GOMOD := '/dev/null'
 GOOS := linux
 GOTELEMETRY='local'
@@ -12,6 +11,9 @@ GOVERSION := 'go1.23.1'
 
 ##### Scripts ######
 protogen:
+	@printf $(COLOR) "Generating gRPC code"
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/cert-renewal.proto;
+go-protogen:
 	@printf $(COLOR) "Generating gRPC code"
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest; go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest; export PATH="$PATH:$(go env GOPATH)/bin"; protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/cert-renewal.proto;
 clean:

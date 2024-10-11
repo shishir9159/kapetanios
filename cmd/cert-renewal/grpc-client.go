@@ -48,5 +48,5 @@ func GrpcClient(log *zap.Logger) {
 	if err != nil {
 		log.Error("could not send status update: ", zap.Error(err))
 	}
-	log.Error("Status Update", zap.Bool("next step", r.GetNextStep()))
+	log.Error("Status Update", zap.Bool("next step", r.GetProceedNextStep()), zap.Bool("retry", r.GetRetryCurrentStep()))
 }

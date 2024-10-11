@@ -10,7 +10,9 @@ message CreateRequest {
 }
 
 message CreateResponse {
-  bool nextStep = 1;
+  bool proceedNextStep = 1;
+  bool retryCurrentStep = 2;
+//  int retryAttmept
 }
 
 service Renewal {
