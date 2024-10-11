@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"go.uber.org/zap"
+	"net"
 	"time"
 
 	"google.golang.org/grpc"
@@ -18,7 +19,7 @@ const (
 
 var (
 	//addr = flag.String("addr", "kapetanios-grpc.com:80", "the address to connect to") .svc.cluster.local
-	addr = flag.String("addr", "kapetanios.default:50051", "the address to connect to")
+	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
 	name = flag.String("name", defaultName, "gRPC test")
 )
@@ -26,6 +27,16 @@ var (
 func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
+
+	address, err := net.LookupHost(*addr)
+
+	if err != nil {
+		log.Error("failed to resolve host", zap.String("address", *addr), zap.Error(err))
+	}
+
+	if address != nil {
+		addr = &address[0]
+	}
 
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
