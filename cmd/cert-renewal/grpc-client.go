@@ -58,11 +58,11 @@ func GrpcClient(log *zap.Logger) {
 			d := net.Dialer{
 				Timeout: time.Millisecond * time.Duration(10000),
 			}
-			return d.DialContext(ctx, "ip4", "10.96.0.10:53")
+			return d.DialContext(ctx, network, "10.96.0.10:53")
 		},
 	}
 
-	ip, err := r.LookupHost(context.Background(), "www.google.com")
+	ip, err := r.LookupIP(context.Background(), "ip4", "www.google.com")
 	if len(ip) != 0 {
 		log.Info("google address", zap.String("www.google.com", ip[0]))
 	}
@@ -71,7 +71,7 @@ func GrpcClient(log *zap.Logger) {
 		log.Error("error google address", zap.Error(err))
 	}
 
-	ip, err = r.LookupHost(context.Background(), "http://hello.default.svc.cluster.local")
+	ip, err = r.LookupIP(context.Background(), "ip4", "http://hello.default.svc.cluster.local")
 	if len(ip) != 0 {
 		log.Info("hello http address", zap.String("http://hello.default.svc.cluster.local", ip[0]))
 	}
@@ -80,7 +80,7 @@ func GrpcClient(log *zap.Logger) {
 		log.Error("error hello http address", zap.Error(err))
 	}
 
-	ip, err = r.LookupHost(context.Background(), "hello.default.svc.cluster.local")
+	ip, err = r.LookupIP(context.Background(), "ip4", "hello.default.svc.cluster.local")
 	if len(ip) != 0 {
 		log.Info("hello service address", zap.String("hello.default.svc.cluster.local", ip[0]))
 	}
