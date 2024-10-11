@@ -28,7 +28,7 @@ func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
 
-	address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
+	address, err := net.LookupAddr("kapetanios.default.svc.cluster.local")
 
 	if err != nil {
 		log.Error("failed to resolve host", zap.String("address", *addr), zap.Error(err))
