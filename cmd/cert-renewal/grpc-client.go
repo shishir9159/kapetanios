@@ -32,6 +32,7 @@ func GrpcClient(log *zap.Logger) {
 	if err != nil {
 		log.Error("did not connect", zap.Error(err))
 	}
+	grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
 		if er != nil {
