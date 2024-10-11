@@ -19,7 +19,7 @@ const (
 
 var (
 	//addr = flag.String("addr", "kapetanios-grpc.com:80", "the address to connect to")
-	addr = flag.String("addr", "kapetanios:50051", "the address to connect to")
+	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
 	name = flag.String("name", defaultName, "gRPC test")
 )
@@ -28,7 +28,7 @@ func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
 
-	resolver.SetDefaultScheme("dns")
+	resolver.SetDefaultScheme("passthrough")
 
 	//conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials())
 
