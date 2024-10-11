@@ -37,7 +37,7 @@ func GrpcClient(log *zap.Logger) {
 			//},
 			// Inspect the network connection type
 			DialContext: func(ctx context.Context, network string, addr string) (net.Conn, error) {
-				return (&net.Dialer{}).DialContext(ctx, "tcp4", addr)
+				return (&net.Dialer{}).DialContext(ctx, "tcp4", "10.96.0.10:53")
 			},
 
 			//DialContext: (&net.Dialer{
