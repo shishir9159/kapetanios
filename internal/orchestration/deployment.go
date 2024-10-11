@@ -81,7 +81,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 					Env: []corev1.EnvVar{
 						{
 							Name:  "GRPC_DNS_RESOLVER",
-							Value: "ares",
+							Value: "native",
 						},
 						{
 							Name:  "GRPC_GO_LOG_SEVERITY_LEVEL",
@@ -90,6 +90,10 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 						{
 							Name:  "GRPC_TRACE",
 							Value: "all",
+						},
+						{
+							Name:  "GODEBUG",
+							Value: "http2debug=2",
 						},
 					},
 				},

@@ -34,9 +34,12 @@ func main() {
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			c.log.Error("failed to close logger", zap.Error(er))
+			c.log.Error("failed to close logger",
+				zap.Error(er))
 		}
 	}(logger)
+
+	GrpcClient(c.log)
 
 	//	step 1. Backup directories
 	err = BackupCertificatesKubeConfigs(c, backupCount)

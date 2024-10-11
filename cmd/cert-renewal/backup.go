@@ -261,6 +261,9 @@ func etcdBackup() {
 
 }
 
+// todo:
+//  compression enabled copy
+
 func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
@@ -269,8 +272,6 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 			zap.Error(err))
 		return err
 	}
-
-	GrpcClient(c.log)
 
 	backupDir, err := getBackupDir(backupCount)
 	kubernetesConfigDir := getK8sConfigsDir()
