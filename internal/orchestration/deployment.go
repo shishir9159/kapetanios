@@ -88,6 +88,10 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 							Value: "INFO",
 						},
 						{
+							Name:  "GRPC_GO_LOG_VERBOSITY_LEVEL",
+							Value: "99",
+						},
+						{
 							Name:  "GRPC_TRACE",
 							Value: "all",
 						},
