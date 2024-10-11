@@ -40,7 +40,7 @@ kubectl create -f manifests/.
 ## Testing
 ### grpc
 ```Bash
-grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 proto.Renewal/CreateRequest{
+grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 Renewal/StatusUpdate{
   "backupSuccess" : true,
   "renewalSuccess" : true,
   "restartSuccess" : true
