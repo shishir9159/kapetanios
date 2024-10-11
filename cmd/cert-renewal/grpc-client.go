@@ -37,7 +37,7 @@ func GrpcClient(log *zap.Logger) {
 			//},
 			// Inspect the network connection type
 			DialContext: func(ctx context.Context, network string, addr string) (net.Conn, error) {
-				return (&net.Dialer{}).DialContext(ctx, "tcp4", "10.96.0.10:53")
+				return (&net.Dialer{}).DialContext(ctx, "tcp4", addr)
 			},
 
 			//DialContext: (&net.Dialer{
@@ -51,6 +51,21 @@ func GrpcClient(log *zap.Logger) {
 			//}).DialContext,
 		},
 	}
+
+	r := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: time.Millisecond * time.Duration(10000),
+			}
+			return d.DialContext(ctx, network, "10.96.0.10:53")
+		},
+	}
+	ip, _ := r.LookupHost(context.Background(), "www.google.com")
+	log.Info("google address", zap.String("www.google.com", ip[0]))
+
+	ip, _ = r.LookupHost(context.Background(), "http://hello.default.svc.cluster.local")
+	log.Info("google address", zap.String("hello.default.svc.cluster.local", ip[0]))
 
 	req, err := http.NewRequest("GET", "http://hello.default.svc.cluster.local", nil)
 	if err != nil {
