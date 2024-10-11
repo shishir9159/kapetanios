@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/resolver"
 	"time"
 
 	"google.golang.org/grpc"
@@ -28,12 +27,8 @@ func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
 
-	resolver.SetDefaultScheme("passthrough")
-
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
 	// Set up a connection to the server.
-	//conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error("did not connect", zap.Error(err))
 	}
