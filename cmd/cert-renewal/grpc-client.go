@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"go.uber.org/zap"
 	"io"
+	"net"
 	"net/http"
+	"time"
 )
 
 const (
@@ -25,12 +28,38 @@ var (
 func GrpcClient(log *zap.Logger) {
 
 	flag.Parse()
+	client := &http.Client{
+		Timeout: time.Second * 5,
+		Transport: &http.Transport{
+			// Avoid: "x509: certificate signed by unknown authority"
+			//TLSClientConfig: &tls.Config{
+			//	InsecureSkipVerify: true,
+			//},
+			// Inspect the network connection type
+			DialContext: func(ctx context.Context, network string, addr string) (net.Conn, error) {
+				return (&net.Dialer{}).DialContext(ctx, "tcp4", addr)
+			},
 
-	resp, err := http.Get("http://hello.default.svc.cluster.local")
+			//DialContext: (&net.Dialer{
+			//	Control: func(network, address string, c syscall.RawConn) error {
+			//		// Reference: https://golang.org/pkg/net/#Dial
+			//		if network == "tcp4" {
+			//			log.Error("ipv6 error")
+			//		}
+			//		return nil
+			//	},
+			//}).DialContext,
+		},
+	}
+
+	req, err := http.NewRequest("GET", "http://hello.default.svc.cluster.local", nil)
 	if err != nil {
 		log.Error("Failed to connect to hello.default.svc.cluster.local", zap.Error(err))
 	}
+
+	resp, err := client.Do(req)
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Error("Failed to read body", zap.Error(err))
