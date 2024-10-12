@@ -88,10 +88,21 @@ func GrpcClient(log *zap.Logger) {
 	ip, err = r.LookupIP(context.Background(), "ip4", "hello.default.svc.cluster.local")
 	if len(ip) != 0 {
 		log.Info("hello service address")
+		fmt.Println(ip)
 	}
 
 	if err != nil {
 		log.Error("error hello http address")
+	}
+
+	ip, err = r.LookupIP(context.Background(), "ip4", "kapetanios.default.svc.cluster.local")
+	if len(ip) != 0 {
+		log.Info("hello service address")
+		fmt.Println(ip)
+	}
+
+	if err != nil {
+		log.Error("error kapetanios address")
 	}
 
 	req, err := http.NewRequest("GET", "http://hello.default.svc.cluster.local", nil)
