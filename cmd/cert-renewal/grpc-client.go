@@ -146,7 +146,9 @@ func GrpcClient(log *zap.Logger) {
 		log.Error("Failed to read body", zap.Error(err))
 	}
 
-	log.Info("body", zap.String("body", string(body)))
+	if body != nil {
+		log.Info("body", zap.String("body", string(body)))
+	}
 
 	//address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
 	//
@@ -183,5 +185,6 @@ func GrpcClient(log *zap.Logger) {
 	if err != nil {
 		log.Error("could not send status update: ", zap.Error(err))
 	}
+
 	log.Info("Status Update", zap.Bool("next step", rpc.GetProceedNextStep()), zap.Bool("retry", rpc.GetRetryCurrentStep()))
 }
