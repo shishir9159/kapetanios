@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/gofiber/fiber/v2/log"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -18,20 +19,7 @@ const (
 	defaultName = "cert-renewal"
 )
 
-//type Post struct {
-//	"message" string `json:"message"`
-//}
-
-var (
-	//addr = flag.String("addr", "kapetanios-grpc.com:80", "the address to connect to") .svc.cluster.local
-	//addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
-	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
-	name = flag.String("name", defaultName, "gRPC test")
-)
-
-func GrpcClient(log *zap.Logger) {
-
-	var addr *string
+func httpClient() {
 
 	client := &http.Client{
 		Timeout: time.Second * 5,
@@ -55,69 +43,6 @@ func GrpcClient(log *zap.Logger) {
 			//	},
 			//}).DialContext,
 		},
-	}
-
-	r := &net.Resolver{
-		PreferGo: true,
-		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-			d := net.Dialer{
-				Timeout: time.Millisecond * time.Duration(10000),
-			}
-			return d.DialContext(ctx, network, "10.96.0.10:53")
-		},
-	}
-
-	//ip, err := r.LookupIP(context.Background(), "ip4", "www.google.com")
-	//if len(ip) != 0 {
-	//	log.Info("google address")
-	//	fmt.Println(ip)
-	//}
-	//
-	//if err != nil {
-	//	log.Error("error google address", zap.Error(err))
-	//	fmt.Println(ip)
-	//}
-	//
-	//ip, err = r.LookupIP(context.Background(), "ip4", "http://hello.default.svc.cluster.local")
-	//if len(ip) != 0 {
-	//	log.Info("hello http address")
-	//	fmt.Println(ip)
-	//}
-	//
-	//if err != nil {
-	//	log.Error("error hello http address", zap.Error(err))
-	//	fmt.Println(ip)
-	//}
-	//
-	//ip, err = r.LookupIP(context.Background(), "ip4", "hello.default.svc.cluster.local")
-	//if len(ip) != 0 {
-	//	log.Info("hello service address")
-	//	fmt.Println(ip)
-	//}
-	//
-	//if err != nil {
-	//	log.Error("error hello http address")
-	//}
-
-	ips, err := r.LookupNetIP(context.Background(), "ip4", "kapetanios.default.svc.cluster.local")
-	fmt.Println(ips)
-	if len(ips) != 0 {
-
-		log.Info("kapetanios service address")
-		for i, ip := range ips {
-			if ip.BitLen() == 32 {
-				log.Info("kapetanios service address", zap.String("ip", ip.String()))
-				addr = flag.String("addr", ip.String()+":50051", "the address to connect to")
-				log.Info("address", zap.Int("index", i), zap.String("addr", *addr))
-			}
-		}
-		log.Info("address", zap.String("addr", *addr))
-	}
-
-	flag.Parse()
-
-	if err != nil {
-		log.Error("error kapetanios address", zap.Error(err))
 	}
 
 	req, err := http.NewRequest("GET", "http://hello.default.svc.cluster.local", nil)
@@ -150,18 +75,50 @@ func GrpcClient(log *zap.Logger) {
 		log.Info("body", zap.String("body", string(body)))
 	}
 
-	//address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
-	//
-	//if err != nil {
-	//	log.Error("failed to resolve host", zap.String("address", address[0]), zap.String("address", address[1]), zap.Error(err))
-	//}
-	//
-	//if address != nil {
-	//	log.Info("resolved host", zap.String("host", address[0]), zap.String("host", *addr))
-	//	addr = flag.String("addr", address[0]+"50051", "the address to connect to")
-	//	addr = &address[0]
-	//}
+}
 
+var (
+	//addr = flag.String("addr", "kapetanios-grpc.com:80", "the address to connect to") .svc.cluster.local
+	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
+	name = flag.String("name", defaultName, "gRPC test")
+)
+
+func GrpcClient(log *zap.Logger) {
+
+	var addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+
+	r := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: time.Millisecond * time.Duration(10000),
+			}
+			return d.DialContext(ctx, network, "10.96.0.10:53")
+		},
+	}
+
+	ips, err := r.LookupNetIP(context.Background(), "ip4", "kapetanios.default.svc.cluster.local")
+	log.Info("kapetanios service address")
+	fmt.Println(ips)
+
+	if len(ips) != 0 {
+		for i, ip := range ips {
+			if ip.BitLen() == 32 {
+				log.Info("kapetanios service address", zap.String("ip", ip.String()))
+				addr = flag.String("addr", ip.String()+":50051", "the address to connect to")
+				log.Info("address", zap.Int("index", i), zap.String("addr", *addr))
+			}
+		}
+		log.Info("address", zap.String("addr", *addr))
+	}
+
+	if err != nil {
+		log.Error("error kapetanios address", zap.Error(err))
+	}
+
+	flag.Parse()
+
+	log.Info("connecting to kapetanios service address", zap.String("addr", *addr))
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
