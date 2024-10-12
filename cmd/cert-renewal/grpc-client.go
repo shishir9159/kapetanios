@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -23,7 +24,7 @@ const (
 
 var (
 	//addr = flag.String("addr", "kapetanios-grpc.com:80", "the address to connect to") .svc.cluster.local
-	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	//addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
 	name = flag.String("name", defaultName, "gRPC test")
 )
@@ -32,7 +33,6 @@ func GrpcClient(log *zap.Logger) {
 
 	var addr *string
 
-	flag.Parse()
 	client := &http.Client{
 		Timeout: time.Second * 5,
 		Transport: &http.Transport{
@@ -100,17 +100,21 @@ func GrpcClient(log *zap.Logger) {
 	//}
 
 	ips, err := r.LookupNetIP(context.Background(), "ip4", "kapetanios.default.svc.cluster.local")
+	fmt.Println(ips)
 	if len(ips) != 0 {
 
-		log.Info("hello service address")
+		log.Info("kapetanios service address")
 		for i, ip := range ips {
 			if ip.BitLen() == 32 {
+				log.Info("kapetanios service address", zap.String("ip", ip.String()))
 				addr = flag.String("addr", ip.String()+":50051", "the address to connect to")
 				log.Info("address", zap.Int("index", i), zap.String("addr", *addr))
 			}
 		}
 		log.Info("address", zap.String("addr", *addr))
 	}
+
+	flag.Parse()
 
 	if err != nil {
 		log.Error("error kapetanios address", zap.Error(err))
