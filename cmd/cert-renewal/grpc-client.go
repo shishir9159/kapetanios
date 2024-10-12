@@ -85,7 +85,7 @@ var (
 
 func GrpcClient(log *zap.Logger) {
 
-	var addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	var addr *string
 
 	r := &net.Resolver{
 		PreferGo: true,
@@ -109,21 +109,28 @@ func GrpcClient(log *zap.Logger) {
 				log.Info("address", zap.Int("index", i), zap.String("addr", *addr))
 			}
 		}
-		log.Info("address", zap.String("addr", *addr))
 	}
 
 	if err != nil {
 		log.Error("error kapetanios address", zap.Error(err))
 	}
 
+	if addr == nil {
+		log.Error("addr was empty")
+		addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	}
+
 	flag.Parse()
 
 	log.Info("connecting to kapetanios service address", zap.String("addr", *addr))
+
+	log.Info("1")
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error("did not connect", zap.Error(err))
 	}
+	log.Info("2")
 	//grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
@@ -133,15 +140,20 @@ func GrpcClient(log *zap.Logger) {
 		}
 	}(conn)
 
+	log.Info("3")
 	c := pb.NewRenewalClient(conn)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	log.Info("4")
 	defer cancel()
+
+	log.Info("5")
 	rpc, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true, Log: "", Err: "s"})
 	if err != nil {
 		log.Error("could not send status update: ", zap.Error(err))
 	}
 
+	log.Info("6")
 	log.Info("Status Update", zap.Bool("next step", rpc.GetProceedNextStep()), zap.Bool("retry", rpc.GetRetryCurrentStep()))
 }
