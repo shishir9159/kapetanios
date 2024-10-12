@@ -7,6 +7,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"io"
+	"net"
+	"net/http"
 	"time"
 )
 
@@ -27,41 +30,43 @@ var (
 
 func GrpcClient(log *zap.Logger) {
 
+	var addr *string
+
 	flag.Parse()
-	//client := &http.Client{
-	//	Timeout: time.Second * 5,
-	//	Transport: &http.Transport{
-	//		// Avoid: "x509: certificate signed by unknown authority"
-	//		//TLSClientConfig: &tls.Config{
-	//		//	InsecureSkipVerify: true,
-	//		//},
-	//		// Inspect the network connection type
-	//		DialContext: func(ctx context.Context, network string, addr string) (net.Conn, error) {
-	//			return (&net.Dialer{}).DialContext(ctx, "tcp4", addr)
-	//		},
-	//
-	//		//DialContext: (&net.Dialer{
-	//		//	Control: func(network, address string, c syscall.RawConn) error {
-	//		//		// Reference: https://golang.org/pkg/net/#Dial
-	//		//		if network == "tcp4" {
-	//		//			log.Error("ipv6 error")
-	//		//		}
-	//		//		return nil
-	//		//	},
-	//		//}).DialContext,
-	//	},
-	//}
-	//
-	//r := &net.Resolver{
-	//	PreferGo: true,
-	//	Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-	//		d := net.Dialer{
-	//			Timeout: time.Millisecond * time.Duration(10000),
-	//		}
-	//		return d.DialContext(ctx, network, "10.96.0.10:53")
-	//	},
-	//}
-	//
+	client := &http.Client{
+		Timeout: time.Second * 5,
+		Transport: &http.Transport{
+			// Avoid: "x509: certificate signed by unknown authority"
+			//TLSClientConfig: &tls.Config{
+			//	InsecureSkipVerify: true,
+			//},
+			// Inspect the network connection type
+			DialContext: func(ctx context.Context, network string, addr string) (net.Conn, error) {
+				return (&net.Dialer{}).DialContext(ctx, "tcp4", addr)
+			},
+
+			//DialContext: (&net.Dialer{
+			//	Control: func(network, address string, c syscall.RawConn) error {
+			//		// Reference: https://golang.org/pkg/net/#Dial
+			//		if network == "tcp4" {
+			//			log.Error("ipv6 error")
+			//		}
+			//		return nil
+			//	},
+			//}).DialContext,
+		},
+	}
+
+	r := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: time.Millisecond * time.Duration(10000),
+			}
+			return d.DialContext(ctx, network, "10.96.0.10:53")
+		},
+	}
+
 	//ip, err := r.LookupIP(context.Background(), "ip4", "www.google.com")
 	//if len(ip) != 0 {
 	//	log.Info("google address")
@@ -93,44 +98,51 @@ func GrpcClient(log *zap.Logger) {
 	//if err != nil {
 	//	log.Error("error hello http address")
 	//}
-	//
-	//ip, err = r.LookupIP(context.Background(), "ip4", "kapetanios.default.svc.cluster.local")
-	//if len(ip) != 0 {
-	//	log.Info("hello service address")
-	//	fmt.Println(ip)
-	//}
-	//
-	//if err != nil {
-	//	log.Error("error kapetanios address")
-	//}
-	//
-	//req, err := http.NewRequest("GET", "http://hello.default.svc.cluster.local", nil)
-	//if err != nil {
-	//	log.Error("Failed to connect to hello.default.svc.cluster.local", zap.Error(err))
-	//}
-	//
-	//resp, err := client.Do(req)
-	//if err != nil {
-	//	log.Error("error from client request", zap.Error(err))
-	//}
-	//
-	//if resp == nil {
-	//	log.Fatal("response is empty")
-	//}
-	//
-	//defer func(Body io.ReadCloser) {
-	//	er := Body.Close()
-	//	if er != nil {
-	//		log.Error("error closing the body")
-	//	}
-	//}(resp.Body)
-	//
-	//body, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	log.Error("Failed to read body", zap.Error(err))
-	//}
-	//
-	//log.Info("body", zap.String("body", string(body)))
+
+	ips, err := r.LookupNetIP(context.Background(), "ip4", "kapetanios.default.svc.cluster.local")
+	if len(ips) != 0 {
+
+		log.Info("hello service address")
+		for i, ip := range ips {
+			if ip.BitLen() == 32 {
+				addr = flag.String("addr", ip.String()+":50051", "the address to connect to")
+				log.Info("address", zap.Int("index", i), zap.String("addr", *addr))
+			}
+		}
+		log.Info("address", zap.String("addr", *addr))
+	}
+
+	if err != nil {
+		log.Error("error kapetanios address", zap.Error(err))
+	}
+
+	req, err := http.NewRequest("GET", "http://hello.default.svc.cluster.local", nil)
+	if err != nil {
+		log.Error("Failed to connect to hello.default.svc.cluster.local", zap.Error(err))
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error("error from client request", zap.Error(err))
+	}
+
+	if resp == nil {
+		log.Fatal("response is empty")
+	}
+
+	defer func(Body io.ReadCloser) {
+		er := Body.Close()
+		if er != nil {
+			log.Error("error closing the body")
+		}
+	}(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("Failed to read body", zap.Error(err))
+	}
+
+	log.Info("body", zap.String("body", string(body)))
 
 	//address, err := net.LookupHost("kapetanios.default.svc.cluster.local")
 	//
@@ -163,9 +175,9 @@ func GrpcClient(log *zap.Logger) {
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true, Log: "", Err: "s"})
+	rpc, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true, Log: "", Err: "s"})
 	if err != nil {
 		log.Error("could not send status update: ", zap.Error(err))
 	}
-	log.Error("Status Update", zap.Bool("next step", r.GetProceedNextStep()), zap.Bool("retry", r.GetRetryCurrentStep()))
+	log.Error("Status Update", zap.Bool("next step", rpc.GetProceedNextStep()), zap.Bool("retry", rpc.GetRetryCurrentStep()))
 }
