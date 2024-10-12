@@ -48,9 +48,8 @@ grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 Renewal/StatusU
 ```
 
 ### Possible errors:
-
 ```
 domain cluster.local
 search cluster.local
-nameserver 10.96.0.10 
+nameserver 10.96.0.10
 ```
