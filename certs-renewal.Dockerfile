@@ -1,4 +1,4 @@
-FROM quay.io/klovercloud/golang:1.20 as builder
+FROM quay.io/klovercloud/golang:1.20
 
 WORKDIR /app
 

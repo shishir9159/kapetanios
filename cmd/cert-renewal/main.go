@@ -1,35 +1,66 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
+	"github.com/gofiber/fiber/v2/log"
+	"io"
+	"net/http"
 )
 
-type Controller struct {
-	ctx context.Context
-	log *zap.Logger
+type ResponseDTO struct {
+	Message string `json:"message"`
 }
 
 func main() {
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, "http://hello.default.svc.cluster.local", nil)
+	if req != nil {
+		req.Header.Add("Content-Type", "application/json")
+	} else {
+		log.Error(fmt.Sprintf("error in requesting: %s", err.Error()))
+	}
 
-	logger, err := zap.NewProduction()
+	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(fmt.Sprintf("error in getting the response body: %s", err.Error()))
 	}
 
-	c := Controller{
-		ctx: context.Background(),
-		log: logger,
-	}
-
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
+	defer resp.Body.Close()
+	if resp.Body != nil {
+		jsonDataFromHttp, er := io.ReadAll(resp.Body)
 		if er != nil {
-			c.log.Error("failed to close logger",
-				zap.Error(er))
+			log.Error(fmt.Sprintf("error in reading response body: %s", er.Error()))
 		}
-	}(logger)
+		log.Info("response")
+		fmt.Println(jsonDataFromHttp)
+		responseDto := ResponseDTO{}
+		er = json.Unmarshal(jsonDataFromHttp, &responseDto)
+		if er != nil {
+			log.Error(fmt.Sprintf("error in parsing response body to json: %s", er.Error()))
+		}
+		log.Info("responseDTO")
+		fmt.Println(responseDto.Message)
+	}
 
-	GrpcClient(c.log)
+	resp, err = http.Get("http://hello.default")
+
+	if req != nil {
+		req.Header.Add("Content-Type", "application/json")
+	}
+	if err != nil {
+		log.Error("Failed to connect to hello.default.svc.cluster.local", err.Error())
+	}
+
+	if resp == nil {
+		log.Fatal("response is empty")
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("Failed to read body", err.Error())
+	}
+
+	log.Info("body")
+	fmt.Println(body)
 }
