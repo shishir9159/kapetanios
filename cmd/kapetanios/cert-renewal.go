@@ -97,6 +97,5 @@ func Cert(namespace string) {
 		}
 	}
 
-	CertGrpc(c.log)
-
+	//CertGrpc(c.log)
 }
