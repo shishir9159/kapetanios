@@ -1,4 +1,5 @@
-FROM golang:1.23 AS builder
+FROM quay.io/klovercloud/golang:1.20 as builder
+
 WORKDIR /app
 
 COPY . ./

@@ -1,4 +1,4 @@
-FROM golang:1.23-bookworm AS builder
+FROM quay.io/klovercloud/golang:1.20 as builder
 WORKDIR /app
 
 COPY go.* ./
