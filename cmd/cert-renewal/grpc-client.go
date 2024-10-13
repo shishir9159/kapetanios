@@ -15,7 +15,7 @@ type ResponseDTO struct {
 func GrpcClient(log *zap.Logger) {
 
 	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, "http://hello", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://hello.default.svc.cluster.local", nil)
 	if req != nil {
 		req.Header.Add("Content-Type", "application/json")
 	} else {
