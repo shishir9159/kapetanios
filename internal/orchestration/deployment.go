@@ -62,9 +62,8 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 			//NodeSelector: map[string]string{
 			//	"assigned-node-role.kubernetes.io": nodeRole,
 			//},
-			HostPID:     true,
-			HostNetwork: true,
-			NodeName:    nodeName,
+			HostPID:  true,
+			NodeName: nodeName,
 			Containers: []corev1.Container{
 				{
 					Name:  "certs-renewal",
@@ -78,36 +77,33 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 							MountPath: "/host",
 						},
 					},
-					Env: []corev1.EnvVar{
-						{
-							Name:  "GRPC_DNS_RESOLVER",
-							Value: "native",
-						},
-						{
-							Name:  "GRPC_GO_LOG_SEVERITY_LEVEL",
-							Value: "INFO",
-						},
-						{
-							Name:  "GRPC_GO_LOG_VERBOSITY_LEVEL",
-							Value: "99",
-						},
-						{
-							Name:  "GRPC_TRACE",
-							Value: "all",
-						},
-						{
-							Name:  "GODEBUG",
-							Value: "http2debug=2",
-						},
-					},
+					// ToDo:
+					//  make them available in debug mode
+					//Env: []corev1.EnvVar{
+					//	{
+					//		Name:  "GRPC_DNS_RESOLVER",
+					//		Value: "native",
+					//	},
+					//	{
+					//		Name:  "GRPC_GO_LOG_SEVERITY_LEVEL",
+					//		Value: "INFO",
+					//	},
+					//	{
+					//		Name:  "GRPC_GO_LOG_VERBOSITY_LEVEL",
+					//		Value: "99",
+					//	},
+					//	{
+					//		Name:  "GRPC_TRACE",
+					//		Value: "all",
+					//	},
+					//	{
+					//		Name:  "GODEBUG",
+					//		Value: "http2debug=2",
+					//	},
+					//},
 				},
 			},
-			DNSPolicy: corev1.DNSClusterFirst,
-			// Todo:
-			//  fix on the grpc client rather than the descriptor
-			//DNSConfig: &corev1.PodDNSConfig{
-			//	Nameservers: []string{"10.96.0.10"},
-			//},
+			DNSPolicy:     corev1.DNSClusterFirst,
 			RestartPolicy: corev1.RestartPolicyNever,
 			Volumes: []corev1.Volume{
 				{
