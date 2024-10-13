@@ -62,22 +62,22 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 			//NodeSelector: map[string]string{
 			//	"assigned-node-role.kubernetes.io": nodeRole,
 			//},
-			HostPID:     true,
-			HostNetwork: true,
-			NodeName:    nodeName,
+			//HostPID:     true,
+			//HostNetwork: true,
+			NodeName: nodeName,
 			Containers: []corev1.Container{
 				{
 					Name:  "certs-renewal",
 					Image: image,
-					SecurityContext: &corev1.SecurityContext{
-						Privileged: &[]bool{true}[0],
-					},
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							Name:      "host",
-							MountPath: "/host",
-						},
-					},
+					//SecurityContext: &corev1.SecurityContext{
+					//	Privileged: &[]bool{true}[0],
+					//},
+					//VolumeMounts: []corev1.VolumeMount{
+					//	{
+					//		Name:      "host",
+					//		MountPath: "/host",
+					//	},
+					//},
 					//Env: []corev1.EnvVar{
 					//	{
 					//		Name:  "GRPC_DNS_RESOLVER",
@@ -109,16 +109,16 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 			//	Nameservers: []string{"10.96.0.10"},
 			//},
 			RestartPolicy: corev1.RestartPolicyNever,
-			Volumes: []corev1.Volume{
-				{
-					Name: "host",
-					VolumeSource: corev1.VolumeSource{
-						HostPath: &corev1.HostPathVolumeSource{
-							Path: "/",
-						},
-					},
-				},
-			},
+			//Volumes: []corev1.Volume{
+			//	{
+			//		Name: "host",
+			//		VolumeSource: corev1.VolumeSource{
+			//			HostPath: &corev1.HostPathVolumeSource{
+			//				Path: "/",
+			//			},
+			//		},
+			//	},
+			//},
 		},
 	}
 
