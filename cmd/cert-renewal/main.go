@@ -26,7 +26,13 @@ func main() {
 		log.Print(fmt.Sprintf("error in getting the response body: %s", err.Error()))
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		er := Body.Close()
+		if er != nil {
+			log.Print(fmt.Sprintf("error closing response body: %s", er.Error()))
+		}
+	}(resp.Body)
+
 	if resp.Body != nil {
 		jsonDataFromHttp, er := io.ReadAll(resp.Body)
 		if er != nil {
@@ -40,27 +46,6 @@ func main() {
 			log.Print(fmt.Sprintf("error in parsing response body to json: %s", er.Error()))
 		}
 		log.Print("responseDTO")
-		fmt.Println(responseDto.Message)
+		log.Println(responseDto.Message)
 	}
-
-	resp, err = http.Get("http://hello.default")
-
-	if req != nil {
-		req.Header.Add("Content-Type", "application/json")
-	}
-	if err != nil {
-		log.Print("Failed to connect to hello.default.svc.cluster.local", err.Error())
-	}
-
-	if resp == nil {
-		log.Fatal("response is empty")
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Print("Failed to read body", err.Error())
-	}
-
-	log.Print("body")
-	fmt.Println(body)
 }
