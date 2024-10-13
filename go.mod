@@ -2,8 +2,6 @@ module github.com/shishir9159/kapetanios
 
 go 1.21
 
-toolchain go1.23.1
-
 require (
 	github.com/gofiber/contrib/fiberzap/v2 v2.1.4
 	github.com/gofiber/fiber/v2 v2.52.5
