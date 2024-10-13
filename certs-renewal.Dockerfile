@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY . ./
 RUN go mod download
-RUN go build -C ./cmd/cert-renewal -o ./server
+RUN go build -C ./cmd/cert-renewal -o /app/server
 
 #FROM ubuntu:latest
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
