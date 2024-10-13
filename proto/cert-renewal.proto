@@ -5,14 +5,14 @@ message CreateRequest {
   bool backupSuccess = 1;
   bool renewalSuccess = 2;
   bool restartSuccess = 3;
-  string err = 4;
-  string log = 5;
+  uint32 retryAttempt = 4;
+  string err = 5;
+  string log = 6;
 }
 
 message CreateResponse {
   bool proceedNextStep = 1;
-  bool retryCurrentStep = 2;
-//  int retryAttmept
+  bool skipRetryCurrentStep = 2;
 }
 
 service Renewal {
