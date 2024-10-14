@@ -15,14 +15,15 @@ func NewMinions(client *Client) *Minions {
 	return &Minions{client: client}
 }
 
-func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string) *corev1.Pod {
+func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *corev1.Pod {
 
 	blueprint := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: fmt.Sprintf("minions-for-%s-", nodeRole),
-			//Namespace: namespace,
+			GenerateName: fmt.Sprintf("minions-for-%s-", role),
+			// only after implementing namespace for all communications and service account
+			// Namespace: namespace,
 			Labels: map[string]string{
-				"app": nodeRole,
+				"app": role,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -33,9 +34,9 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 							{
 								MatchExpressions: []corev1.NodeSelectorRequirement{
 									{
-										Key:      "assigned-node-role.kubernetes.io",
+										Key:      "assigned-node-role-" + role + ".kubernetes.io",
 										Operator: corev1.NodeSelectorOpIn,
-										Values:   []string{nodeRole},
+										Values:   []string{role},
 									},
 								},
 							},
@@ -48,9 +49,9 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 							LabelSelector: &metav1.LabelSelector{
 								MatchExpressions: []metav1.LabelSelectorRequirement{
 									{
-										Key:      "assigned-node-role.kubernetes.io",
+										Key:      "assigned-node-role-" + role + ".kubernetes.io",
 										Operator: metav1.LabelSelectorOpIn,
-										Values:   []string{nodeRole},
+										Values:   []string{role},
 									},
 								},
 							},
@@ -60,7 +61,7 @@ func (c *Minions) MinionBlueprint(image string, nodeRole string, nodeName string
 				},
 			},
 			//NodeSelector: map[string]string{
-			//	"assigned-node-role.kubernetes.io": nodeRole,
+			//	"assigned-node-role.kubernetes.io": role,
 			//},
 			HostPID:  true,
 			NodeName: nodeName,

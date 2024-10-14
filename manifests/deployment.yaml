@@ -28,9 +28,9 @@ spec:
             failureThreshold: 10
             httpGet:
               host: 127.0.0.1
-              httpHeaders:
-                - name: brief
-                  value: "true"
+#              httpHeaders:
+#                - name: brief
+#                  value: "true"
               path: /healthz
               port: 80
               scheme: HTTP
@@ -41,9 +41,9 @@ spec:
             failureThreshold: 3
             httpGet:
               host: 127.0.0.1
-              httpHeaders:
-                - name: brief
-                  value: "true"
+#              httpHeaders:
+#                - name: brief
+#                  value: "true"
               path: /healthz
               port: 80
               scheme: HTTP
