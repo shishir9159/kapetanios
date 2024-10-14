@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	certRenewalNamespace = "default"
 	//	TODO: or should it be klovercloud with additional service accounts?
+	certRenewalNamespace = "default"
 )
 
 func certRenewal(c *fiber.Ctx) error {

@@ -9,8 +9,8 @@ libprotoc 27.3
 
 #### cluster requirement
 It is assumed that the following roles would be assigned to the respective nodes:
-1. Master Nodes: kubectl label node <node-name> assigned-etcdNode-role-certs.kubernetes.io=certs
-2. External Etcd Nodes: kubectl label node <node-name> assigned-etcdNode-role-etcd.kubernetes.io=etcd
+1. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs
+2. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
 
 #### plugin install:
 ```Bash
