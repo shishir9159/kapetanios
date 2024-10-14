@@ -39,6 +39,11 @@ func main() {
 		}
 	}(logger)
 
+	err = PrerequisitesForCertRenewal(c.log)
+	if err != nil {
+
+	}
+
 	//	step 1. Backup directories
 	err = BackupCertificatesKubeConfigs(c, backupCount)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	//	TODO: or should it be klovercloud with additional service accounts?
+	// TODO: or should it be klovercloud with additional service accounts?
 	certRenewalNamespace = "default"
 )
 

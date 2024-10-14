@@ -10,9 +10,21 @@ message CreateRequest {
   string log = 6;
 }
 
+message PrerequisiteCheckReport {
+  int64 etcdDirFreeSpace = 1;
+  int64 kubeDirFreeSpace = 2;
+  bool etcdStatus = 3;
+  string err = 4;
+}
+
 message CreateResponse {
   bool proceedNextStep = 1;
   bool skipRetryCurrentStep = 2;
+  bool terminateApplication = 3;
+}
+
+service Prerequisites {
+  rpc ClusterHealthChecking(PrerequisiteCheckReport) returns (CreateResponse);
 }
 
 service Renewal {
