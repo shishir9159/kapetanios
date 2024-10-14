@@ -17,13 +17,14 @@ func getStorage(path string) (int64, error) {
 	return int64(stat.Bfree) * stat.Bsize, nil
 }
 
-func PrerequisitesForCertRenewal(log *zap.Logger) {
+func PrerequisitesForCertRenewal(log *zap.Logger) error {
 
 	// available disk space
 	freeSpace, err := getStorage("/opt/")
 
 	if err != nil {
 		log.Error("Failed to get storage space for /opt/ directory", zap.Error(err))
+		return err
 	}
 
 	// TODO:
@@ -38,6 +39,7 @@ func PrerequisitesForCertRenewal(log *zap.Logger) {
 
 	if err != nil {
 		log.Error("Failed to get storage space for /opt/ directory", zap.Error(err))
+		return err
 	}
 
 	// TODO:
@@ -47,4 +49,6 @@ func PrerequisitesForCertRenewal(log *zap.Logger) {
 
 	//	etcd status
 	//
+
+	return nil
 }

@@ -41,7 +41,8 @@ func main() {
 
 	err = PrerequisitesForCertRenewal(c.log)
 	if err != nil {
-
+		c.log.Error("failed to get cluster health status",
+			zap.Error(err))
 	}
 
 	//	step 1. Backup directories
