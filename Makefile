@@ -31,6 +31,11 @@ cert-renewal:
 	@printf $(COLOR) "Building docker image for cert-renewal minions and pushing it to the registry..."
 	docker build -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile .; docker push quay.io/klovercloud/certs-renewal:latest;
 
+.PHONY: etcd-restart
+etcd-restart:
+	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
+	docker build -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile .; docker push quay.io/klovercloud/etcd-restart:latest;
+
 #### Deploy ####
 deploy:
 	@printf $(COLOR) "Deploying kapetanios in Kubernetes..."
