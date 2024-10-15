@@ -17,10 +17,10 @@ func getStorage(path string) (int64, error) {
 	var stat syscall.Statfs_t
 	err := syscall.Statfs(path, &stat)
 
-	log.Printf("Total Disk Space: %d", stat.Blocks*uint64(stat.Bsize))
-	log.Printf("Avail Disk Space: %d", stat.Bavail*uint64(stat.Bsize))
-	log.Printf("Free Disk Space: %d", stat.Bfree*uint64(stat.Bsize))
-	log.Printf("Used Disk Space: %d", stat.Blocks*uint64(stat.Bsize)-stat.Bfree*uint64(stat.Bsize))
+	log.Printf("Total Disk Space: %d", stat.Blocks*uint64(stat.Bsize)/1048576)
+	log.Printf("Avail Disk Space: %d", stat.Bavail*uint64(stat.Bsize/1048576))
+	log.Printf("Free Disk Space: %d", stat.Bfree*uint64(stat.Bsize)/1048576)
+	log.Printf("Used Disk Space: %d", stat.Blocks*uint64(stat.Bsize)/1048576-stat.Bfree*uint64(stat.Bsize)/1048576)
 
 	if err != nil {
 		return 0, err

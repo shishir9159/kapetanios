@@ -2,11 +2,135 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
+
+type ClusterConfiguration struct {
+	ApiServer struct {
+		ExtraArgs []struct {
+			Arg string `yaml:"arg"`
+		}
+		ExtraVolumes []struct {
+			HostPath  string `yaml:"hostPath"`
+			MountPath string `yaml:"mountPath"`
+			Name      string `yaml:"name"`
+			ReadOnly  string `yaml:"readOnly"`
+		}
+		TimeoutForControlPlane string `yaml:"timeoutForControlPlane"`
+	}
+	ApiVersion           string `yaml:"apiVersion"`
+	CertificatesDir      string `yaml:"certificatesDir"`
+	ClusterName          string `yaml:"clusterName"`
+	ControlPlaneEndpoint string `yaml:"controlPlaneEndpoint"`
+	ControllerManager    string `yaml:"controllerManager"`
+	DNS                  string `yaml:"dns"`
+	ETCD                 struct {
+		External struct {
+			CaFile    string `json:"caFile"`
+			CertFile  string `json:"certFile"`
+			KeyFile   string `json:"keyFile"`
+			Endpoints []struct {
+				Endpoint string `json:"endpoint"`
+			}
+		}
+	}
+	ImageRepository   string `yaml:"imageRepository"`
+	Kind              string `yaml:"kind"`
+	KubernetesVersion string `yaml:"kubernetesVersion"`
+	Networking        struct {
+		DnsDomains    string `yaml:"dnsDomains"`
+		ServiceSubnet string `yaml:"serviceSubnet"`
+	}
+	Scheduler string `yaml:"scheduler"`
+}
+
+//    apiServer:
+//      extraArgs:
+//        audit-log-maxage: "7"
+//        audit-log-path: /var/log/k8_audit.log
+//        audit-policy-file: /etc/kubernetes/audit-policy.yaml
+//        authorization-mode: Node,RBAC
+//        enable-admission-plugins: ResourceQuota,AlwaysPullImages,DefaultStorageClass
+//        max-mutating-requests-inflight: "500"
+//        max-requests-inflight: "2000"
+//      extraVolumes:
+//      - hostPath: /etc/kubernetes/audit-policy.yaml
+//        mountPath: /etc/kubernetes/audit-policy.yaml
+//        name: audit-policy
+//        readOnly: true
+//      - hostPath: /var/log/
+//        mountPath: /var/log/
+//        name: audit-log
+//      timeoutForControlPlane: 4m0s
+//    apiVersion: kubeadm.k8s.io/v1beta3
+//    certificatesDir: /etc/kubernetes/pki
+//    clusterName: kubernetes
+//    controlPlaneEndpoint: 10.0.0.3:6443
+//    controllerManager: {}
+//    dns: {}
+//    etcd:
+//      external:
+//        caFile: /etc/kubernetes/pki/etcd-ca.pem
+//        certFile: /etc/kubernetes/pki/etcd.cert
+//        endpoints:
+//        - https://5.161.64.103:2379
+//        - https://5.161.248.112:2379
+//        - https://5.161.67.249:2379
+//        keyFile: /etc/kubernetes/pki/etcd.key
+//    imageRepository: registry.k8s.io
+//    kind: ClusterConfiguration
+//    kubernetesVersion: v1.26.15
+//    networking:
+//      dnsDomain: cluster.local
+//      serviceSubnet: 10.96.0.0/12
+//    scheduler: {}
+
+//root@shihab-node-1:~/kapetanios# cat /etc/kubernetes/kubeadm-config.yaml
+//apiVersion: kubeadm.k8s.io/v1beta2
+//kind: InitConfiguration
+//nodeRegistration:
+//  criSocket: "unix:///run/containerd/containerd.sock"
+//localAPIEndpoint:
+//  advertiseAddress: 10.0.0.3
+//  bindPort: 6443
+//
+//---
+//apiVersion: kubeadm.k8s.io/v1beta2
+//kind: ClusterConfiguration
+//kubernetesVersion: stable
+//controlPlaneEndpoint: 10.0.0.3
+//apiServer:
+//  extraArgs:
+//    enable-admission-plugins:  ResourceQuota,AlwaysPullImages,DefaultStorageClass
+//    max-mutating-requests-inflight: "500"
+//    max-requests-inflight: "2000"
+//    audit-log-path: /var/log/k8_audit.log
+//    audit-policy-file: /etc/kubernetes/audit-policy.yaml
+//    audit-log-maxage: "7"
+//  extraVolumes:
+//    - name: audit-policy
+//      hostPath: /etc/kubernetes/audit-policy.yaml
+//      mountPath: /etc/kubernetes/audit-policy.yaml
+//      readOnly: true
+//    - name: audit-log
+//      hostPath: /var/log/
+//      mountPath: /var/log/
+//      readOnly: false
+//etcd:
+//  external:
+//     endpoints:
+//       - https://5.161.64.103:2379
+//       - https://5.161.248.112:2379
+//       - https://5.161.67.249:2379
+//     caFile: /etc/kubernetes/pki/etcd-ca.pem
+//     certFile: /etc/kubernetes/pki/etcd.cert
+//     keyFile: /etc/kubernetes/pki/etcd.key
+
+//---
 
 // store certificate validity
 // check number of nodes
@@ -37,7 +161,18 @@ func populatingConfigMap(c Controller) error {
 
 	// ClusterConfiguration stores the kubeadm-config as a file in the configmap
 
-	configSlice := strings.Split(cm.Data["ClusterConfiguration"], "\n")
+	yamlFile := cm.Data["ClusterConfiguration"]
+
+	// to get the etcd address, start reading
+	// from endpoints till "- https://"
+	// get caFile,
+
+	err = yaml.Unmarshal(yamlFile, &config)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Value: %#v\n", config.Firewall_network_rules)
 
 	for index, config := range configSlice {
 		log.Info(zap.Int("index", index),
