@@ -251,11 +251,6 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 	//c.log.Info("", zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
 	//c.log.Info("", zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
 
-	fmt.Println("check 1 ", clusterConfiguration.ETCD)
-	fmt.Printf("check 2 %s", clusterConfiguration.ETCD)
-	fmt.Println("check 3 ", clusterConfiguration.ETCD.External)
-	fmt.Printf("check 4 %s", clusterConfiguration.ETCD.External)
-
 	return &etcdCluster, nil
 }
 
