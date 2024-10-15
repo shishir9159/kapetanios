@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -33,9 +32,9 @@ type ClusterConfiguration struct {
 	DNS                  map[string]string `yaml:"dns"`
 	ETCD                 struct {
 		External struct {
+			Endpoints []string `json:"endpoints"`
 			CAFile    string   `json:"caFile"`
 			CertFile  string   `json:"certFile"`
-			Endpoints []string `json:"endpoints"`
 			KeyFile   string   `json:"keyFile"`
 		} `yaml:"external"`
 	} `yaml:"etcd"`
@@ -136,8 +135,6 @@ type ClusterConfiguration struct {
 // TODO:
 //  fetch localAPIEndpoint: advertiseAddress
 //  store certificate validity
-//  check number of nodes
-//  checking if the necessary files exist
 
 func removeTabsAndShiftWhitespaces(s string) string {
 
@@ -197,23 +194,23 @@ func populatingConfigMap(c Controller) error {
 
 	err = yaml.Unmarshal([]byte(yamlFile), &clusterConfiguration)
 	if err != nil {
-		log.Error("error parsing the kubeadm-config yaml file", zap.Error(err))
+		c.log.Error("error parsing the kubeadm-config yaml file", zap.Error(err))
 	}
 
 	//fmt.Println(clusterConfiguration)
 
-	//log.Info(zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
-	//log.Info(zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
-	//log.Info(zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
-	//log.Info(zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
+	c.log.Info("", zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
+	c.log.Info("", zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
+	c.log.Info("", zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
+	c.log.Info("", zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
 
-	//for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
-	//	log.Info(zap.Int("index", index),
-	//		zap.String("endpoint", removeTabsAndShiftWhitespaces(endpoint)))
-	//}
-	//fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
-	//fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
-	//fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
+	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
+		c.log.Info("", zap.Int("index", index),
+			zap.String("endpoint", removeTabsAndShiftWhitespaces(endpoint)))
+	}
+	fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
+	fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
+	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
 
 	return nil
 }
