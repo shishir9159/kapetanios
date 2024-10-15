@@ -8,8 +8,18 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"os"
 	"regexp"
 )
+
+type ETCD struct {
+	External struct {
+		Endpoints []string `json:"endpoints"`
+		CAFile    string   `json:"caFile"`
+		CertFile  string   `json:"certFile"`
+		KeyFile   string   `json:"keyFile"`
+	} `yaml:"external"`
+}
 
 type ClusterConfiguration struct {
 	ApiServer struct {
@@ -30,18 +40,11 @@ type ClusterConfiguration struct {
 	ControlPlaneEndpoint string            `yaml:"controlPlaneEndpoint"`
 	ControllerManager    map[string]string `yaml:"controllerManager"`
 	DNS                  map[string]string `yaml:"dns"`
-	ETCD                 struct {
-		External struct {
-			Endpoints []string `json:"endpoints"`
-			CAFile    string   `json:"caFile"`
-			CertFile  string   `json:"certFile"`
-			KeyFile   string   `json:"keyFile"`
-		} `yaml:"external"`
-	} `yaml:"etcd"`
-	ImageRepository   string `yaml:"imageRepository"`
-	Kind              string `yaml:"kind"`
-	KubernetesVersion string `yaml:"kubernetesVersion"`
-	Networking        struct {
+	ETCD                 ETCD              `yaml:"etcd"`
+	ImageRepository      string            `yaml:"imageRepository"`
+	Kind                 string            `yaml:"kind"`
+	KubernetesVersion    string            `yaml:"kubernetesVersion"`
+	Networking           struct {
 		DnsDomains    string `yaml:"dnsDomains"`
 		ServiceSubnet string `yaml:"serviceSubnet"`
 	} `yaml:"networking"`
@@ -175,15 +178,28 @@ func validatingNodesState(c Controller, label string) error {
 }
 
 // TODO:
+//  refactor this duplicated code to the internal
+
+func Exists(filePath string) bool {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+// TODO:
 //  save certDir to configMap
 
-func populatingConfigMap(c Controller) error {
+func populatingConfigMap(c Controller) (*ETCD, error) {
+
+	etcdCluster := ETCD{}
 
 	cm, err := c.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
 
 	if err != nil {
 		c.log.Error("error fetching the kubeadm-config from the kube-system namespace", zap.Error(err))
-		return err
+		return &etcdCluster, err
 	}
 
 	// ClusterConfiguration stores the kubeadm-config as a file in the configmap
@@ -197,7 +213,34 @@ func populatingConfigMap(c Controller) error {
 		c.log.Error("error parsing the kubeadm-config yaml file", zap.Error(err))
 	}
 
-	//fmt.Println(clusterConfiguration)
+	etcdCluster = clusterConfiguration.ETCD
+
+	if etcdCluster.External.CAFile == "" {
+		//	TODO:
+		//	 check if the file exists
+		//   throw permission errors
+		if Exists("/etc/kubernetes/pki/etcd-ca.pem") {
+			return &etcdCluster, fmt.Errorf("etcd ca doesn't exist or read permission error")
+		}
+	}
+
+	if etcdCluster.External.CertFile == "" {
+		//	TODO:
+		//	 check if the file exists
+		//   throw permission errors
+		if Exists("/etc/kubernetes/pki/etcd.cert") {
+			return &etcdCluster, fmt.Errorf("etcd cert doesn't exist or read permission error")
+		}
+	}
+
+	if etcdCluster.External.KeyFile == "" {
+		//	TODO:
+		//	 check if the file exists
+		//   throw permission errors
+		if Exists("/etc/kubernetes/pki/etcd.key") {
+			return &etcdCluster, fmt.Errorf("etcd key file doesn't exist or read permission error")
+		}
+	}
 
 	c.log.Info("", zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
 	c.log.Info("", zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
@@ -208,19 +251,24 @@ func populatingConfigMap(c Controller) error {
 		c.log.Info("", zap.Int("index", index),
 			zap.String("endpoint", removeTabsAndShiftWhitespaces(endpoint)))
 	}
+
 	fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
 	fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
 	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
 
-	return nil
+	return &etcdCluster, nil
 }
 
 func InitialSetup(c Controller) {
 
-	err := populatingConfigMap(c)
+	etcdCluster, err := populatingConfigMap(c)
 	if err != nil {
 		c.log.Error("error populating config", zap.Error(err))
 	}
+
+	// TODO:
+	//  return the etcdCluster
+	fmt.Println(etcdCluster)
 
 	err = validatingNodesState(c, "certs")
 	if err != nil {
