@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
 	"path/filepath"
@@ -16,36 +13,8 @@ import (
 )
 
 func getK8sConfigsDir() string {
-	//	will be called after getKubeadmFileLocation
-	// default:	/etc/kubernetes/pki
 
 	// etcd certs and nodes info
-	//etcd:
-	//  external:
-	//    caFile: /etc/kubernetes/pki/etcd-ca.pem
-	//    certFile: /etc/kubernetes/pki/etcd.cert
-	//    endpoints:
-	//    - https://5.161.64.103:2379
-	//    - https://5.161.248.112:2379
-	//    - https://5.161.67.249:2379
-	//    keyFile: /etc/kubernetes/pki/etcd.key
-	//kubernetesVersion
-
-	// format Data:map[string]string{ClusterConfiguration
-
-	client, err := orchestration.NewClient()
-	if err != nil {
-		fmt.Printf("Error creating Kubernetes client: %v\n", err)
-		return "/etc/kubernetes/"
-		//return "/etc/kubernetes/pki"
-	}
-
-	// todo: should be relocated to lighthouse agent
-	cm, err := client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
-
-	if err != nil {
-		fmt.Printf("Error getting kubeadm-config: %v\n", cm)
-	}
 
 	return "/etc/kubernetes/"
 
@@ -266,6 +235,17 @@ func etcdBackup() {
 
 }
 
+// It would not be optimal to get the list of files
+// from the CopyDirectory, so a separate function parse
+// through them again. Small repetition wins over complexity.
+func fileChecklistValidation(backupDir string) []string {
+
+	// todo:
+	//  fileList
+
+	return []string{""}
+}
+
 // todo:
 //  compression enabled copy
 
@@ -284,6 +264,12 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 	// Copy Recursively
 	err = CopyDirectory(kubernetesConfigDir, backupDir)
 	if err != nil {
+		c.log.Error("Failed to take backups",
+			zap.Error(err))
+	}
+
+	failedCopyFiles := fileChecklistValidation(backupDir)
+	if len(failedCopyFiles) != 0 {
 		c.log.Error("Failed to take backups",
 			zap.Error(err))
 	}

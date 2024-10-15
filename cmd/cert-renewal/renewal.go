@@ -18,10 +18,10 @@ func Renew(c Controller) error {
 		return err
 	}
 
-	//	//    cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	//  cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 
 	// whereis kubeadm
-	//"/usr/local/bin/kubeadm certs renew scheduler.conf"
+	// "/usr/local/bin/kubeadm certs renew scheduler.conf"
 	// it is assumed that kubeadm exist otherwise, cert validity wouldn't have work
 
 	cmd := exec.Command("/usr/bin/kubeadm", "certs", "renew", "all", "--config=/etc/kubernetes/kubeadm-config.yaml")

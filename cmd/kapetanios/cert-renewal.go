@@ -39,6 +39,11 @@ func Cert(namespace string) {
 			zap.Error(err))
 	}
 
+	// TODO:
+	//  Controller Definition need to be moved with the
+	//  initial Setup and making sure there exists only one
+	InitialSetup(c)
+
 	roleName := "certs"
 	matchLabels := map[string]string{"assigned-node-role-certs.kubernetes.io": roleName}
 
