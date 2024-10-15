@@ -5,7 +5,6 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
 	"strings"
 )
 
@@ -38,17 +37,7 @@ func populatingConfigMap(c Controller) error {
 
 	// ClusterConfiguration stores the kubeadm-config as a file in the configmap
 
-	file, err := os.ReadFile(cm.Data["ClusterConfiguration"])
-
-	if err != nil {
-		c.log.Error("Error reading kubeadm-config as a file: ",
-			zap.String("ClusterConfiguration", cm.Data["ClusterConfiguration"]),
-			zap.Error(err))
-
-		return nil
-	}
-
-	configSlice := strings.Split(string(file), "\n")
+	configSlice := strings.Split(cm.Data["ClusterConfiguration"], "\n")
 
 	for index, config := range configSlice {
 		log.Info(zap.Int("index", index),
