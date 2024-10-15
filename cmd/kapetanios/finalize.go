@@ -57,6 +57,8 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 
 func RestartRemainingComponents(c Controller, namespace string) error {
 
+	c.log.Debug("entered restart remaining components")
+
 	roleName := "etcd"
 	matchLabels := map[string]string{"assigned-node-role-etcd.kubernetes.io": roleName}
 
@@ -71,14 +73,16 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 	renewalMinionManager := orchestration.NewMinions(c.client)
 
+	c.log.Debug("listing etcd nodes")
+
 	etcdNodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
-		c.log.Error("error listing etcdNodes",
+		c.log.Error("error listing etcd nodes",
 			zap.Error(err))
 	}
 
 	if len(etcdNodes.Items) == 0 {
-		c.log.Error("no etcd etcdNodes found",
+		c.log.Error("no etcd etcd nodes found",
 			zap.Error(err))
 		// TODO:
 		//  create new error
@@ -87,7 +91,7 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 	certNodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), certsNodeQueryListOptions)
 	if err != nil {
-		c.log.Error("error listing cert etcdNodes",
+		c.log.Error("error listing cert nodes",
 			zap.Error(err))
 	}
 
@@ -113,7 +117,8 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 		nodes = append(nodes, etcdNode.Name)
 	}
 
-	fmt.Println(nodes)
+	c.log.Debug("listing all compliment set of nodes",
+		zap.String("nodes[0]", nodes[0]))
 
 	for index, node := range nodes {
 

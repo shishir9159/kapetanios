@@ -19,6 +19,9 @@ spec:
         - image: quay.io/klovercloud/kapetanios:latest
           imagePullPolicy: Always
           name: kapetanios
+          envFrom:
+            - configMapRef:
+                name: kapetanios
           ports:
             - containerPort: 80
               name: kapetanios

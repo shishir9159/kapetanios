@@ -242,19 +242,19 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 		}
 	}
 
-	c.log.Info("", zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
-	c.log.Info("", zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
-	c.log.Info("", zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
-	c.log.Info("", zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
-
-	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
-		c.log.Info("", zap.Int("index", index),
-			zap.String("endpoint", removeTabsAndShiftWhitespaces(endpoint)))
+	if len(etcdCluster.External.Endpoints) == 0 {
+		return &etcdCluster, fmt.Errorf("no externl etcd endpoints provided")
 	}
 
-	fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
-	fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
-	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
+	//c.log.Info("", zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
+	//c.log.Info("", zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
+	//c.log.Info("", zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
+	//c.log.Info("", zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
+
+	fmt.Println("check 1 ", clusterConfiguration.ETCD)
+	fmt.Printf("check 2 %s", clusterConfiguration.ETCD)
+	fmt.Println("check 3 ", clusterConfiguration.ETCD.External)
+	fmt.Printf("check 4 %s", clusterConfiguration.ETCD.External)
 
 	return &etcdCluster, nil
 }

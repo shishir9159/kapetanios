@@ -69,6 +69,15 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 				{
 					Name:  "certs-renewal",
 					Image: image,
+					EnvFrom: []corev1.EnvFromSource{
+						{
+							ConfigMapRef: &corev1.ConfigMapEnvSource{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: "kapetanios",
+								},
+							},
+						},
+					},
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: &[]bool{true}[0],
 					},
