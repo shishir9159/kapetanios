@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"regexp"
 )
 
 type ClusterConfiguration struct {
@@ -32,8 +33,8 @@ type ClusterConfiguration struct {
 		External struct {
 			CAFile    string   `json:"caFile"`
 			CertFile  string   `json:"certFile"`
-			KeyFile   string   `json:"keyFile"`
 			Endpoints []string `json:"endpoints"`
+			KeyFile   string   `json:"keyFile"`
 		} `yaml:"external"`
 	} `yaml:"etcd"`
 	ImageRepository   string `yaml:"imageRepository"`
@@ -135,6 +136,14 @@ type ClusterConfiguration struct {
 // save certDir to configMap
 // checking if the necessary files exist
 
+func removeTabsAndShiftWhitespaces(s string) string {
+	// Regular expression to match tabs and shift whitespaces
+	re := regexp.MustCompile(`[\t\s]+`)
+
+	// Replace matched characters with an empty string
+	return re.ReplaceAllString(s, "")
+}
+
 func populatingConfigMap(c Controller) error {
 
 	cm, err := c.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
@@ -157,14 +166,14 @@ func populatingConfigMap(c Controller) error {
 
 	fmt.Println(clusterConfiguration)
 
-	log.Info(zap.String("kubernetesVersion", clusterConfiguration.KubernetesVersion))
-	log.Info(zap.String("caFile", clusterConfiguration.ETCD.External.CAFile))
-	log.Info(zap.String("certFile", clusterConfiguration.ETCD.External.CertFile))
-	log.Info(zap.String("keyFile", clusterConfiguration.ETCD.External.KeyFile))
+	log.Info(zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
+	log.Info(zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
+	log.Info(zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
+	log.Info(zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
 
 	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
 		log.Info(zap.Int("index", index),
-			zap.String("endpoint", endpoint))
+			zap.String("endpoint", removeTabsAndShiftWhitespaces(endpoint)))
 	}
 	fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
 	fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
