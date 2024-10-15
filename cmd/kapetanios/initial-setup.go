@@ -24,9 +24,9 @@ type ClusterConfiguration struct {
 	ApiVersion           string            `yaml:"apiVersion"`
 	CertificatesDir      string            `yaml:"certificatesDir"`
 	ClusterName          string            `yaml:"clusterName"`
-	ControlPlaneEndpoint map[string]string `yaml:"controlPlaneEndpoint"`
+	ControlPlaneEndpoint string            `yaml:"controlPlaneEndpoint"`
 	ControllerManager    map[string]string `yaml:"controllerManager"`
-	DNS                  string            `yaml:"dns"`
+	DNS                  map[string]string `yaml:"dns"`
 	ETCD                 struct {
 		External struct {
 			CaFile   string   `json:"caFile"`
@@ -42,7 +42,7 @@ type ClusterConfiguration struct {
 		DnsDomains    string `yaml:"dnsDomains"`
 		ServiceSubnet string `yaml:"serviceSubnet"`
 	}
-	Scheduler string `yaml:"scheduler"`
+	Scheduler map[string]string `yaml:"scheduler"`
 }
 
 //    apiServer:
