@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"log"
 	"syscall"
@@ -31,7 +32,13 @@ func getStorage(path string) (int64, error) {
 
 func PrerequisitesForCertRenewal(log *zap.Logger) error {
 
-	// available disk space
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		log.Fatal("Failed to create chroot on /host",
+			zap.Error(err))
+		return err
+	}
+
 	freeSpace, err := getStorage("/opt/")
 
 	if err != nil {
@@ -41,7 +48,7 @@ func PrerequisitesForCertRenewal(log *zap.Logger) error {
 
 	// TODO:
 	if freeSpace != 0 {
-		log.Info("available free space in the /opt/ directory", zap.Int64("freeSpace in MB: ", freeSpace/1048576))
+		log.Info("available free space in the /opt/ directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
 	}
 
 	// TODO:
@@ -56,11 +63,18 @@ func PrerequisitesForCertRenewal(log *zap.Logger) error {
 
 	// TODO:
 	if freeSpace != 0 {
-		log.Info("available free space in the /var/lib/etcd directory", zap.Int64("freeSpace in MB: ", freeSpace/1048576))
+		log.Info("available free space in the /var/lib/etcd directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
 	}
 
 	//	etcd status
 	//
+
+	if err = changedRoot(); err != nil {
+		log.Fatal("Failed to exit from the updated root",
+			zap.Error(err))
+
+		return err
+	}
 
 	return nil
 }

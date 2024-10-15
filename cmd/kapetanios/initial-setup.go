@@ -155,18 +155,19 @@ func populatingConfigMap(c Controller) error {
 		log.Error("error parsing the kubeadm-config yaml file", zap.Error(err))
 	}
 
+	fmt.Println(clusterConfiguration)
+
 	log.Info(zap.String("kubernetesVersion", clusterConfiguration.KubernetesVersion))
 	log.Info(zap.String("caFile", clusterConfiguration.ETCD.External.CaFile))
 	log.Info(zap.String("certFile", clusterConfiguration.ETCD.External.CertFile))
 	log.Info(zap.String("keyFile", clusterConfiguration.ETCD.External.KeyFile))
 
-	fmt.Println("check 1", clusterConfiguration.KubernetesVersion)
-	fmt.Println("check 2", clusterConfiguration.ETCD.External.CaFile)
-
 	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoint {
 		log.Info(zap.Int("index", index),
 			zap.String("endpoint", endpoint))
 	}
+	fmt.Println("check 1", clusterConfiguration.KubernetesVersion)
+	fmt.Println("check 2", clusterConfiguration.ETCD.External.CaFile)
 	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoint[0])
 
 	return nil
