@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -146,7 +145,7 @@ type ClusterConfiguration struct {
 //    - https://5.161.248.112:2379
 //    - https://5.161.67.249:2379
 //    keyFile: /etc/kubernetes/pki/etcd.key
-//kubernetesVersion
+//
 
 // format Data:map[string]string{ClusterConfiguration
 
@@ -163,20 +162,21 @@ func populatingConfigMap(c Controller) error {
 
 	yamlFile := cm.Data["ClusterConfiguration"]
 
-	// to get the etcd address, start reading
-	// from endpoints till "- https://"
-	// get caFile,
+	clusterConfiguration := ClusterConfiguration{}
 
-	err = yaml.Unmarshal(yamlFile, &config)
+	err = yaml.Unmarshal([]byte(yamlFile), &clusterConfiguration)
 	if err != nil {
-		panic(err)
+		log.Error("error parsing the kubeadm-config yaml file", zap.Error(err))
 	}
 
-	fmt.Printf("Value: %#v\n", config.Firewall_network_rules)
+	log.Info(zap.String("kubernetesVersion", clusterConfiguration.KubernetesVersion))
+	log.Info(zap.String("caFile", clusterConfiguration.ETCD.External.CaFile))
+	log.Info(zap.String("certFile", clusterConfiguration.ETCD.External.CertFile))
+	log.Info(zap.String("keyFile", clusterConfiguration.ETCD.External.KeyFile))
 
-	for index, config := range configSlice {
+	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
 		log.Info(zap.Int("index", index),
-			zap.String("config", config))
+			zap.String("endpoint", endpoint.Endpoint))
 	}
 
 	return nil
