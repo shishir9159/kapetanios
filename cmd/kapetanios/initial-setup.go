@@ -172,9 +172,9 @@ func populatingConfigMap(c Controller) error {
 	log.Info(zap.String("certFile", clusterConfiguration.ETCD.External.CertFile))
 	log.Info(zap.String("keyFile", clusterConfiguration.ETCD.External.KeyFile))
 
-	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
+	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoint {
 		log.Info(zap.Int("index", index),
-			zap.String("endpoint", endpoint.Endpoint))
+			zap.String("endpoint", endpoint))
 	}
 
 	return nil
