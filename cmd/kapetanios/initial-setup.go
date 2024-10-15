@@ -18,9 +18,9 @@ type ClusterConfiguration struct {
 			MountPath string `yaml:"mountPath"`
 			Name      string `yaml:"name"`
 			ReadOnly  string `yaml:"readOnly"`
-		}
+		} `yaml:"extraVolumes"`
 		TimeoutForControlPlane string `yaml:"timeoutForControlPlane"`
-	}
+	} `yaml:"apiServer"`
 	ApiVersion           string            `yaml:"apiVersion"`
 	CertificatesDir      string            `yaml:"certificatesDir"`
 	ClusterName          string            `yaml:"clusterName"`
@@ -33,15 +33,15 @@ type ClusterConfiguration struct {
 			CertFile string   `json:"certFile"`
 			KeyFile  string   `json:"keyFile"`
 			Endpoint []string `json:"endpoint"`
-		}
-	}
+		} `yaml:"external"`
+	} `yaml:"etcd"`
 	ImageRepository   string `yaml:"imageRepository"`
 	Kind              string `yaml:"kind"`
 	KubernetesVersion string `yaml:"kubernetesVersion"`
 	Networking        struct {
 		DnsDomains    string `yaml:"dnsDomains"`
 		ServiceSubnet string `yaml:"serviceSubnet"`
-	}
+	} `yaml:"networking"`
 	Scheduler map[string]string `yaml:"scheduler"`
 }
 
@@ -133,19 +133,6 @@ type ClusterConfiguration struct {
 // check number of nodes
 // save certDir to configMap
 // checking if the necessary files exist
-
-//etcd:
-//  external:
-//    caFile: /etc/kubernetes/pki/etcd-ca.pem
-//    certFile: /etc/kubernetes/pki/etcd.cert
-//    endpoints:
-//    - https://5.161.64.103:2379
-//    - https://5.161.248.112:2379
-//    - https://5.161.67.249:2379
-//    keyFile: /etc/kubernetes/pki/etcd.key
-//
-
-// format Data:map[string]string{ClusterConfiguration
 
 func populatingConfigMap(c Controller) error {
 
