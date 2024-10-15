@@ -21,20 +21,18 @@ type ClusterConfiguration struct {
 		}
 		TimeoutForControlPlane string `yaml:"timeoutForControlPlane"`
 	}
-	ApiVersion           string `yaml:"apiVersion"`
-	CertificatesDir      string `yaml:"certificatesDir"`
-	ClusterName          string `yaml:"clusterName"`
-	ControlPlaneEndpoint string `yaml:"controlPlaneEndpoint"`
-	ControllerManager    string `yaml:"controllerManager"`
-	DNS                  string `yaml:"dns"`
+	ApiVersion           string            `yaml:"apiVersion"`
+	CertificatesDir      string            `yaml:"certificatesDir"`
+	ClusterName          string            `yaml:"clusterName"`
+	ControlPlaneEndpoint map[string]string `yaml:"controlPlaneEndpoint"`
+	ControllerManager    map[string]string `yaml:"controllerManager"`
+	DNS                  string            `yaml:"dns"`
 	ETCD                 struct {
 		External struct {
-			CaFile    string `json:"caFile"`
-			CertFile  string `json:"certFile"`
-			KeyFile   string `json:"keyFile"`
-			Endpoints []struct {
-				Endpoint string `json:"endpoint"`
-			}
+			CaFile   string   `json:"caFile"`
+			CertFile string   `json:"certFile"`
+			KeyFile  string   `json:"keyFile"`
+			Endpoint []string `json:"endpoint"`
 		}
 	}
 	ImageRepository   string `yaml:"imageRepository"`
