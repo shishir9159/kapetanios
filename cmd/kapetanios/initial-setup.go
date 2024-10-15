@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -159,10 +160,14 @@ func populatingConfigMap(c Controller) error {
 	log.Info(zap.String("certFile", clusterConfiguration.ETCD.External.CertFile))
 	log.Info(zap.String("keyFile", clusterConfiguration.ETCD.External.KeyFile))
 
+	fmt.Printf("check 1 %s", clusterConfiguration.KubernetesVersion)
+	fmt.Printf("check 2 %s", clusterConfiguration.ETCD.External.CaFile)
+
 	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoint {
 		log.Info(zap.Int("index", index),
 			zap.String("endpoint", endpoint))
 	}
+	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoint[0])
 
 	return nil
 }
