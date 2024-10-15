@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+//  kubeadm kubeconfig --help
+//  export KUBECONFIG=$HOME/.kube/config
+//  kubeadm kubeconfig user --org system:nodes --client-name system:node:$(hostname) --config=/etc/kubernetes/kubeadm/kubeadm-config.yaml > /etc/kubernetes/kubelet.conf.new
+
 ///usr/local/bin/kubeadm certs renew
 
 func Renew(c Controller) error {

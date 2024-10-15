@@ -131,11 +131,13 @@ type ClusterConfiguration struct {
 //     certFile: /etc/kubernetes/pki/etcd.cert
 //     keyFile: /etc/kubernetes/pki/etcd.key
 
-//---
+//---------------------------------------------------
 
-// store certificate validity
-// check number of nodes
-// checking if the necessary files exist
+// TODO:
+//  fetch localAPIEndpoint: advertiseAddress
+//  store certificate validity
+//  check number of nodes
+//  checking if the necessary files exist
 
 func removeTabsAndShiftWhitespaces(s string) string {
 

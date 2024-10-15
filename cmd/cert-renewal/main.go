@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	backupCount = 7
+	backupCount            = 7
+	overRideUserKubeConfig = 0
 )
 
 type Controller struct {
@@ -59,6 +60,8 @@ func main() {
 			zap.Error(err))
 	}
 
+	GrpcClient(c.log)
+
 	//step 3. Restarting pods to work with the updated certificates
 	err = Restart(c)
 	if err != nil {
@@ -66,5 +69,11 @@ func main() {
 			zap.Error(err))
 	}
 
-	GrpcClient(c.log)
+	if overRideUserKubeConfig != 0 {
+		err = Copy("/etc/kubernetes/admin.conf", "/root/.kube/config")
+		if err != nil {
+			c.log.Error("failed to pass kubernetes admin privilege to the root user",
+				zap.Error(err))
+		}
+	}
 }
