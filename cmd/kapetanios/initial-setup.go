@@ -166,8 +166,8 @@ func populatingConfigMap(c Controller) error {
 		log.Info(zap.Int("index", index),
 			zap.String("endpoint", endpoint))
 	}
-	fmt.Println("check 1", clusterConfiguration.KubernetesVersion)
-	fmt.Println("check 2", clusterConfiguration.ETCD.External.CAFile)
+	fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
+	fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
 	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
 
 	return nil
