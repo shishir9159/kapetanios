@@ -79,8 +79,8 @@ func Cert(namespace string) {
 				zap.Int("index", index),
 				zap.Error(er))
 
-			return
 			//return er
+			return
 		}
 
 		c.log.Info("Cert Renewal pod created",

@@ -8,19 +8,34 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"syscall"
 )
 
 func getK8sConfigsDir() string {
 
-	// etcd certs and nodes info
-
+	// TODO:
+	//  read from the configmap populated
+	//  by lighthouse manager
 	return "/etc/kubernetes/"
+}
 
-	// convert the cm to a file and read from the yaml file
-	//var certsDir string = cm.BinaryData // certificatesDir
+func renameBackupDirectories(glob []string) error {
 
+	for _, dir := range glob {
+		index, err := strconv.Atoi(dir[11:])
+		if err != nil {
+			return err
+		}
+
+		err = os.Rename(dir, dir[11:]+strconv.Itoa(index+1))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern string) (int, error) {
@@ -31,19 +46,34 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		log.Println(err)
 	}
 
-	if len(glob) >= backupCount {
-		// increment the indices
-		//sort.Slice(s, func(i, j int) bool {
-		//		if s[i][:2] != s[j][:2] {
-		//			return s[i] < s[j]
-		//		}
-		//		ii, _ := strconv.Atoi(s[i][2:])
-		//		jj, _ := strconv.Atoi(s[j][2:])
-		//		return ii < jj
-		//	})
+	if len(glob) == 0 {
+		return 1, nil
 	}
 
-	return len(glob) + 1, nil
+	// natural sorting assumes the
+	// backupDirPattern is of 11 letters
+	sort.Slice(glob, func(i, j int) bool {
+		if glob[i][:11] != glob[j][:11] {
+			return glob[i] < glob[j]
+		}
+		ii, _ := strconv.Atoi(glob[i][11:])
+		jj, _ := strconv.Atoi(glob[j][11:])
+		return ii < jj
+	})
+
+	if len(glob) >= backupCount {
+		er := removeDirectory(glob[backupCount-1])
+		if er != nil {
+			return 0, er
+		}
+	}
+
+	err = renameBackupDirectories(glob)
+	if err != nil {
+		return 0, err
+	}
+
+	return 1, nil
 }
 
 // checkList:
@@ -195,6 +225,12 @@ func Copy(srcFile, dstFile string) error {
 }
 
 func removeDirectory(dirPath string) error {
+
+	err := os.RemoveAll(dirPath)
+	if err != nil {
+		return fmt.Errorf("failed to remove directory recursively: %w", err)
+	}
+
 	return nil
 }
 

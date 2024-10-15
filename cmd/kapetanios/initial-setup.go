@@ -6,7 +6,9 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"regexp"
 )
 
@@ -133,16 +135,48 @@ type ClusterConfiguration struct {
 
 // store certificate validity
 // check number of nodes
-// save certDir to configMap
 // checking if the necessary files exist
 
 func removeTabsAndShiftWhitespaces(s string) string {
-	// Regular expression to match tabs and shift whitespaces
-	re := regexp.MustCompile(`[\t\s<\nil>]+`)
 
-	// Replace matched characters with an empty string
+	// Regular expression to match tabs and shift whitespaces
+	re := regexp.MustCompile(`[\x00-\x1F\x7F\t\s<\nil>]+`)
 	return re.ReplaceAllString(s, "")
+
 }
+
+func validatingNodesState(c Controller, label string) error {
+
+	roleName := label
+	matchLabels := map[string]string{"assigned-node-role-" + label + "certs.kubernetes.io": roleName}
+
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
+	if err != nil {
+		c.log.Error("failed to list "+label+" nodes to validate", zap.Error(err))
+		return err
+	} else if nodes.Size() == 0 {
+		c.log.Error("nodes for "+label+" are not labeled", zap.Error(err))
+		return err
+	}
+
+	for _, node := range nodes.Items {
+		if node.Status.Phase != corev1.NodeRunning {
+			c.log.Error("node related to the operation is not running",
+				zap.String("nodeName", node.Name))
+			return fmt.Errorf("node %s is in the %s state", node.Name, node.Status.Phase)
+		}
+	}
+
+	return nil
+}
+
+// TODO:
+//  save certDir to configMap
 
 func populatingConfigMap(c Controller) error {
 
@@ -164,20 +198,20 @@ func populatingConfigMap(c Controller) error {
 		log.Error("error parsing the kubeadm-config yaml file", zap.Error(err))
 	}
 
-	fmt.Println(clusterConfiguration)
+	//fmt.Println(clusterConfiguration)
 
-	log.Info(zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
-	log.Info(zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
-	log.Info(zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
-	log.Info(zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
+	//log.Info(zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
+	//log.Info(zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
+	//log.Info(zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
+	//log.Info(zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
 
-	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
-		log.Info(zap.Int("index", index),
-			zap.String("endpoint", removeTabsAndShiftWhitespaces(endpoint)))
-	}
-	fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
-	fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
-	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
+	//for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
+	//	log.Info(zap.Int("index", index),
+	//		zap.String("endpoint", removeTabsAndShiftWhitespaces(endpoint)))
+	//}
+	//fmt.Println("check 1 ", clusterConfiguration.KubernetesVersion)
+	//fmt.Println("check 2 ", clusterConfiguration.ETCD.External.CAFile)
+	//fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
 
 	return nil
 }
@@ -188,4 +222,15 @@ func InitialSetup(c Controller) {
 	if err != nil {
 		c.log.Error("error populating config", zap.Error(err))
 	}
+
+	err = validatingNodesState(c, "certs")
+	if err != nil {
+		c.log.Error("error validating master node labels", zap.Error(err))
+	}
+
+	err = validatingNodesState(c, "etcd")
+	if err != nil {
+		c.log.Error("error validating etcd node labels", zap.Error(err))
+	}
+
 }

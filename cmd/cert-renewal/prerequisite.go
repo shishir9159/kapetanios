@@ -7,6 +7,9 @@ import (
 	"syscall"
 )
 
+// todo:
+//  move to internal/ cluster health check
+
 // check if localAPIEndpoint is not same across the nodes
 
 // todo:
