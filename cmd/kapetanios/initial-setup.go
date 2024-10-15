@@ -30,10 +30,10 @@ type ClusterConfiguration struct {
 	DNS                  map[string]string `yaml:"dns"`
 	ETCD                 struct {
 		External struct {
-			CaFile   string   `json:"caFile"`
-			CertFile string   `json:"certFile"`
-			KeyFile  string   `json:"keyFile"`
-			Endpoint []string `json:"endpoint"`
+			CAFile    string   `json:"caFile"`
+			CertFile  string   `json:"certFile"`
+			KeyFile   string   `json:"keyFile"`
+			Endpoints []string `json:"endpoints"`
 		} `yaml:"external"`
 	} `yaml:"etcd"`
 	ImageRepository   string `yaml:"imageRepository"`
@@ -158,17 +158,17 @@ func populatingConfigMap(c Controller) error {
 	fmt.Println(clusterConfiguration)
 
 	log.Info(zap.String("kubernetesVersion", clusterConfiguration.KubernetesVersion))
-	log.Info(zap.String("caFile", clusterConfiguration.ETCD.External.CaFile))
+	log.Info(zap.String("caFile", clusterConfiguration.ETCD.External.CAFile))
 	log.Info(zap.String("certFile", clusterConfiguration.ETCD.External.CertFile))
 	log.Info(zap.String("keyFile", clusterConfiguration.ETCD.External.KeyFile))
 
-	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoint {
+	for index, endpoint := range clusterConfiguration.ETCD.External.Endpoints {
 		log.Info(zap.Int("index", index),
 			zap.String("endpoint", endpoint))
 	}
 	fmt.Println("check 1", clusterConfiguration.KubernetesVersion)
-	fmt.Println("check 2", clusterConfiguration.ETCD.External.CaFile)
-	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoint[0])
+	fmt.Println("check 2", clusterConfiguration.ETCD.External.CAFile)
+	fmt.Printf("check 3 %s", clusterConfiguration.ETCD.External.Endpoints[0])
 
 	return nil
 }
