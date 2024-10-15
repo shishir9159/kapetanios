@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -93,6 +94,9 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 	matchFlag := false
 	var nodes []string
 
+	fmt.Println(certNodes)
+	fmt.Println(etcdNodes)
+
 	for _, etcdNode := range etcdNodes.Items {
 		for _, certNode := range certNodes.Items {
 			if etcdNode.Name == certNode.Name {
@@ -108,6 +112,8 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 		nodes = append(nodes, etcdNode.Name)
 	}
+
+	fmt.Println(nodes)
 
 	for index, node := range nodes {
 

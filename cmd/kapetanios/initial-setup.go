@@ -138,7 +138,7 @@ type ClusterConfiguration struct {
 
 func removeTabsAndShiftWhitespaces(s string) string {
 	// Regular expression to match tabs and shift whitespaces
-	re := regexp.MustCompile(`[\t\s]+`)
+	re := regexp.MustCompile(`[\t\s<\nil>]+`)
 
 	// Replace matched characters with an empty string
 	return re.ReplaceAllString(s, "")
