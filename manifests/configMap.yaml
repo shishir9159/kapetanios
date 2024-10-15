@@ -5,7 +5,6 @@ metadata:
 data:
   # kv format
   key: "value"
-  $actual-config-file$: "name.properties"
 
   # file format
   name.properties: |
