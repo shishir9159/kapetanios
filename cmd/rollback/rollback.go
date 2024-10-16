@@ -15,6 +15,13 @@ import (
 
 // kubelet error scraping
 
+func getK8sCertsDir() string {
+
+	// read from the configMap environment variable
+
+	return "/etc/kubernetes/pki"
+}
+
 func getK8sConfigsDir() string {
 
 	// TODO:
@@ -301,6 +308,7 @@ func fileChecklistValidation(backupDir string) []string {
 
 func Rollback() error {
 
+	certsDir := getK8sCertsDir()
 	kubeConfigs := getK8sConfigFiles()
 	k8sConfigsDir := getK8sConfigsDir()
 	backupDir, err := getLatestBackupDir()
@@ -317,6 +325,14 @@ func Rollback() error {
 		if er != nil {
 			return er
 		}
+	}
+
+	// TODO:
+	//  make sure override works
+	//  or should I rename new and old
+	er := CopyDirectory(backupDir+"/pki/", certsDir)
+	if er != nil {
+		return er
 	}
 
 	return nil
