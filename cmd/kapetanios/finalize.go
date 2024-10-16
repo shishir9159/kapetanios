@@ -2,18 +2,16 @@ package main
 
 import (
 	"context"
-
 	"fmt"
+
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-// excluded etcd servers to be restarted
-// etcd, kubelet, control plane component status check
 // TODO:
-//  etcd-restart
+//  etcd, kubelet, control plane component status check
 
 func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string) error {
 
@@ -42,6 +40,15 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 		}
 	}
 
+	// TODO:
+	//  handle the scenario:
+	//  {"level":"error","ts":1729066140.2577364,"caller":"kapetanios/cert-renewal.go:95","msg":"error
+	//  restarting pods for certificate renewal","error":"Get
+	//  \"https://10.96.0.1:443/api/v1/namespaces/kube-system/pods?fieldSelector=spec.nodeName%3Dshihab-node-1&labelSelector=tier%3Dcontrol-plane\":
+	//  dial tcp 10.96.0.1:443: connect: connection refused - error from a previous
+	//  attempt: read tcp 10.0.2.29:37980->10.96.0.1:443: read: connection reset by
+	//  peer","stacktrace":"main.Cert\n\t/app/cmd/kapetanios/cert-renewal.go:95"}
+
 	go func() {
 		// todo: instead of the first minion, count the number of minions in switch case
 		er := orchestration.Informer(c.client.Clientset(), c.ctx, c.log, len(minions.Items), listOptions)
@@ -58,8 +65,6 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 
 func RestartRemainingComponents(c Controller, namespace string) error {
 
-	c.log.Debug("entered restart remaining components")
-
 	roleName := "etcd"
 	matchLabels := map[string]string{"assigned-node-role-etcd.kubernetes.io": roleName}
 
@@ -74,8 +79,6 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 	renewalMinionManager := orchestration.NewMinions(c.client)
 
-	c.log.Debug("listing etcd nodes")
-
 	etcdNodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
 		c.log.Error("error listing etcd nodes",
@@ -83,11 +86,9 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 	}
 
 	if len(etcdNodes.Items) == 0 {
-		c.log.Error("no etcd etcd nodes found",
+		c.log.Error("no etcd nodes found",
 			zap.Error(err))
-		// TODO:
-		//  create new error
-		return nil
+		return fmt.Errorf("no etcd nodes found by querying with label")
 	}
 
 	certNodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), certsNodeQueryListOptions)
@@ -98,9 +99,6 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 	matchFlag := false
 	var nodes []string
-
-	fmt.Println(certNodes)
-	fmt.Println(etcdNodes)
 
 	for _, etcdNode := range etcdNodes.Items {
 		for _, certNode := range certNodes.Items {
@@ -117,9 +115,6 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 		nodes = append(nodes, etcdNode.Name)
 	}
-
-	c.log.Debug("listing all compliment set of nodes",
-		zap.String("nodes[0]", nodes[0]))
 
 	for index, node := range nodes {
 

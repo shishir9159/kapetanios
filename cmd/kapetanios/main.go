@@ -29,6 +29,8 @@ func minorUpgrade(c *fiber.Ctx) error {
 
 func rollback(c *fiber.Ctx) error {
 
+	go Rollback(certRenewalNamespace)
+
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 

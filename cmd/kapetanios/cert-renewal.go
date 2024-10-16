@@ -101,14 +101,10 @@ func Cert(namespace string) {
 		}
 	}
 
-	c.log.Debug("entering restartRemainingComponent")
-
 	err = RestartRemainingComponents(c, "default")
 	if err != nil {
 		c.log.Error("error restarting renewal components", zap.Error(err))
 	}
-
-	c.log.Info("entering grpc server")
 
 	CertGrpc(c.log)
 }
