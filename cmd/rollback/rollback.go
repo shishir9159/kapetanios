@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/shishir9159/kapetanios/utils"
 	"io"
 	"log"
 	"os"
@@ -255,6 +256,12 @@ func overRideValidation(lastModifiedBeforeRollback time.Time) {
 
 func Rollback() error {
 
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		fmt.Println("Failed to create chroot on /host")
+		return err
+	}
+
 	certsDir := getK8sCertsDir()
 	kubeConfigs := getK8sConfigFiles()
 	k8sConfigsDir := getK8sConfigsDir()
@@ -290,6 +297,11 @@ func Rollback() error {
 	}
 
 	overRideValidation(stat.ModTime())
+
+	if err = changedRoot(); err != nil {
+		log.Println("Failed to exit from the updated root")
+		return err
+	}
 
 	return nil
 }
