@@ -33,11 +33,11 @@ func (s *server) StatusUpdate(_ context.Context, in *pb.CreateRequest) (*pb.Crea
 	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
 }
 
-func CertGrpc(l *zap.Logger) {
+func CertGrpc(log *zap.Logger) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		l.Error("failed to listen", zap.Error(err))
+		log.Error("failed to listen", zap.Error(err))
 	}
 	s := grpc.NewServer()
 
@@ -45,8 +45,9 @@ func CertGrpc(l *zap.Logger) {
 	reflection.Register(s)
 	pb.RegisterRenewalServer(s, &server{})
 
-	l.Info("sever listening")
+	log.Info("sever listening")
 	if er := s.Serve(lis); er != nil {
-		l.Error("failed to serve", zap.Error(er))
+
+		log.Error("failed to serve", zap.Error(er))
 	}
 }

@@ -124,7 +124,9 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/etcd-restart", roleName, node)
+		//descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/etcd-restart", roleName, node)
+
+		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/systemctl-permit:v0.4", roleName, node)
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods this logic need to be in the orchestration too
