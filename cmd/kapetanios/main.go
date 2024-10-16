@@ -22,17 +22,29 @@ func certRenewal(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 
+func minorUpgrade(c *fiber.Ctx) error {
+
+	return c.JSON(fiber.Map{"status": http.StatusOK})
+}
+
+func rollback(c *fiber.Ctx) error {
+
+	return c.JSON(fiber.Map{"status": http.StatusOK})
+}
+
 func setupRoutes(app *fiber.App) {
 
 	//api := app.Group("/cert", logger.New())
 	//minorUpgrade := app.Group("minor-upgrade")
 
-	app.Get("/swagger", swagger.HandlerDefault)
+	app.Get("/minor-upgrade", minorUpgrade)
 	app.Get("/renewal", certRenewal)
+	app.Get("/rollback", rollback)
+	app.Get("/swagger", swagger.HandlerDefault)
+
 	//api.Group("")
 	//	.SetupRoutes(cert)
 	//	.SetupRoutes(minorUpgrade)
-
 }
 
 // decide if you need a separate router folder or not. more like you are gonna need it
@@ -79,8 +91,9 @@ func main() {
 		return
 	}
 
-	// minor upgrade
-
-	//	what happens when lighthouse fails in the middle of the cert renewal process?
+	//	what happens to the current state
+	//	when lighthouse fails in the middle
+	//	of the cert renewal process
+	//
 
 }

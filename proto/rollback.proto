@@ -1,0 +1,21 @@
+syntax = "proto3";
+option go_package = "github.com/shishir9159/kapetanios/proto";
+
+message CreateRequest {
+  bool prerequisiteCheckSuccess = 1;
+  bool rollbackSuccess = 2;
+  bool restartSuccess = 3;
+  uint32 retryAttempt = 4;
+  string err = 5;
+  string log = 6;
+}
+
+message CreateResponse {
+  bool proceedNextStep = 1;
+  bool skipRetryCurrentStep = 2;
+  bool terminateApplication = 3;
+}
+
+service Renewal {
+  rpc StatusUpdate(CreateRequest) returns (CreateResponse);
+}

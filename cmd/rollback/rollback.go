@@ -1,4 +1,4 @@
-package rollback
+package main
 
 import (
 	"fmt"
