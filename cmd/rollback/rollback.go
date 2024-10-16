@@ -244,6 +244,7 @@ func fileChecklistValidation(backupDir string) []string {
 func overRideValidation(lastModifiedBeforeRollback time.Time) {
 	stat, err := os.Stat("/etc/kubernetes/pki")
 	if err != nil {
+		fmt.Println("/etc/kubernetes/pki doesn't exist")
 		return
 	}
 
