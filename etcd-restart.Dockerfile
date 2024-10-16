@@ -1,4 +1,4 @@
 FROM debian:bookworm-slim
-RUN apt update -y && apt install -y systemd
+RUN apt update -y
 # redirect errors
-CMD ["/bin/bash ","-c", "chroot /host /usr/bin/systemctl restart etcd"]
+CMD ["/bin/sh ","-c", "chroot /host /usr/bin/systemctl restart etcd"]
