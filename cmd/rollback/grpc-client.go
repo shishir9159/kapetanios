@@ -44,7 +44,6 @@ func GrpcClient(log *zap.Logger) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	// TODO: refactor with renewal in the proto definitions
 	rpc, err := c.StatusUpdate(ctx,
 		&pb.CreateRequest{
 			BackupSuccess:  true,

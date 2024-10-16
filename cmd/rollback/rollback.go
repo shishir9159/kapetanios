@@ -299,7 +299,7 @@ func fileChecklistValidation(backupDir string) []string {
 	return []string{""}
 }
 
-func Rollout() error {
+func Rollback() error {
 
 	kubeConfigs := getK8sConfigFiles()
 	k8sConfigsDir := getK8sConfigsDir()
@@ -310,11 +310,11 @@ func Rollout() error {
 	}
 
 	for _, kubeConfigFile := range kubeConfigs {
-		// make sure override works
-		// or should I rename new and old
+		// TODO:
+		//  make sure override works
+		//  or should I rename new and old
 		er := Copy(backupDir+kubeConfigFile, k8sConfigsDir+kubeConfigFile)
 		if er != nil {
-			log.Println(er)
 			return er
 		}
 	}

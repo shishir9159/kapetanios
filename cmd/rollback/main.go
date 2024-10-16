@@ -20,7 +20,7 @@ func main() {
 
 	//zap.ReplaceGlobals(logger)
 
-	// replace zap with zerolog
+	// replace zap with zeroLog
 
 	c := Controller{
 		ctx: context.Background(),
@@ -35,21 +35,16 @@ func main() {
 		}
 	}(logger)
 
-	//err = PrerequisitesForRollback(c.log)
-	//if err != nil {
-	//	c.log.Error("the cluster didn't meet the condition for rollback",
-	//		zap.Error(err))
-	//}
+	// err = PrerequisitesForRollback(c.log)
+	// if err != nil {
+	//  	c.log.Error("the cluster didn't meet the condition for rollback",
+	//	 	zap.Error(err))
+	// }
 
-	//	step 1. Backup directories
-	err = BackupCertificatesKubeConfigs(c, backupCount)
-	if err != nil {
-		c.log.Error("failed to backup certificates and kubeConfigs",
-			zap.Error(err))
-	}
+	//	step 1. replacing the last generated configs with
+	//  the latest backups would cause the cert renewal rollback
 
-	//	step 2. Kubeadm certs renew all
-	err = Renew(c)
+	err = Rollback()
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))
