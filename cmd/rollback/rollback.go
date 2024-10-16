@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"syscall"
 	"time"
@@ -74,55 +73,28 @@ func renameBackupDirectories(glob []string) error {
 func getLatestBackupDir() (string, error) {
 
 	baseDir := "/opt/klovercloud/"
-	backupDirPattern := "k8s-backup-"
-	//certsBackupDirPattern := "certs-backup-"
+	latestBackup := "k8s-backup-1"
+	backupDirectory := filepath.Join(baseDir, latestBackup)
 
-	if dfi, err := os.Stat(baseDir); err != nil {
+	if baseDirFileInfo, err := os.Stat(baseDir); err != nil {
 		if os.IsNotExist(err) {
 			log.Println(baseDir, "backup directory for certificates doesn't exist")
-			if er := CreateIfNotExists(baseDir, 0755); er != nil {
-				log.Println(er)
-				return "", er
-			}
-		} else if !dfi.IsDir() {
+			return "", fmt.Errorf("backup directory for certificate doesn't exist")
+		} else if !baseDirFileInfo.IsDir() {
+			// remove the file and create a directory
+		}
+		//  Todo:
+		//	  is the er in the inner scope relative to the outer err
+	} else if backupDirFileInfo, er := os.Stat(backupDirectory); er != nil {
+		if os.IsNotExist(er) {
+			log.Println(baseDir, "backups for certificates and kubeConfigs don't exist")
+			return "", fmt.Errorf("no backup found")
+		} else if !backupDirFileInfo.IsDir() {
 			// remove the file and create a directory
 		}
 	}
 
-	// TO-DO: handle possible permission errors for file copy
-	//if err != nil {
-	//	return ""
-	//}
-
-	//	if sfi, err := os.Stat(baseDir); os.IsNotExist(err) {
-	//		fmt.Println(baseDir, "creating backup directory for certificates")
-	//		if err := CreateIfNotExists(baseDir, 0755); err != nil {
-	//			return "", err
-	//		}
-	//	}
-
-	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
-	if err != nil {
-		log.Println(err)
-		return "", err
-	}
-
-	if len(glob) == 0 {
-		return "", fmt.Errorf("no backup exists")
-	}
-
-	// natural sorting assumes the
-	// backupDirPattern is of 11 letters
-	sort.Slice(glob, func(i, j int) bool {
-		if glob[i][:11] != glob[j][:11] {
-			return glob[i] < glob[j]
-		}
-		ii, _ := strconv.Atoi(glob[i][11:])
-		jj, _ := strconv.Atoi(glob[j][11:])
-		return ii < jj
-	})
-
-	return glob[0], nil
+	return backupDirectory, nil
 }
 
 func CopyDirectory(src, dest string) error {
@@ -300,7 +272,9 @@ func Rollback() error {
 		// TODO:
 		//  make sure override works
 		//  or should I rename new and old
-		er := Copy(backupDir+kubeConfigFile, k8sConfigsDir+kubeConfigFile)
+		srcFile := filepath.Join(backupDir, kubeConfigFile)
+		destFile := filepath.Join(k8sConfigsDir, kubeConfigFile)
+		er := Copy(srcFile, destFile)
 		if er != nil {
 			return er
 		}

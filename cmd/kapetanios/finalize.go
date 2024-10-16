@@ -10,6 +10,14 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+func scrapLogs() {
+
+}
+
+func removeCompleted() {
+
+}
+
 // TODO:
 //  etcd, kubelet, control plane component status check
 
