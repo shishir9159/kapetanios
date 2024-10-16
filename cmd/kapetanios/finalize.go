@@ -126,6 +126,8 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 		// service account, cluster role binding
 		//descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/etcd-restart", roleName, node)
 
+		// TODO:
+		//  Update the Dockerfile
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/systemctl-permit:v0.4", roleName, node)
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
