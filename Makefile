@@ -36,6 +36,11 @@ etcd-restart:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
 	docker build -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile .; docker push quay.io/klovercloud/etcd-restart:latest;
 
+.PHONY: rollback
+rollback:
+	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
+	docker build -t quay.io/klovercloud/rollback:latest -f rollback.Dockerfile .; docker push quay.io/klovercloud/rollback:latest;
+
 #### Deploy ####
 deploy:
 	@printf $(COLOR) "Deploying kapetanios in Kubernetes..."
