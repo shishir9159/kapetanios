@@ -114,5 +114,5 @@ func Rollback(namespace string) {
 
 	c.log.Info("entering grpc server")
 
-	CertGrpc(c.log)
+	RollbackGrpc(c.log)
 }

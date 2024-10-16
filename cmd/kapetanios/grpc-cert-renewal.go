@@ -45,7 +45,7 @@ func CertGrpc(log *zap.Logger) {
 	reflection.Register(s)
 	pb.RegisterRenewalServer(s, &server{})
 
-	log.Info("sever listening")
+	log.Info("cert renewal sever listening")
 	if er := s.Serve(lis); er != nil {
 
 		log.Error("failed to serve", zap.Error(er))
