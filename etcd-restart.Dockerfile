@@ -1,4 +1,4 @@
 FROM debian:bookworm-slim
-RUN apt update -y
+COPY scripts/etcd-restart.sh .
 # redirect errors
-CMD ["/bin/sh ","-c", "chroot /host /usr/bin/systemctl restart etcd"]
+CMD ["./etcd-restart.sh"]
