@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 // TODO: REFACTOR REFACTOR REFACTOR
@@ -59,44 +60,6 @@ func renameBackupDirectories(glob []string) error {
 	}
 
 	return nil
-}
-
-func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern string) (int, error) {
-
-	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
-	if err != nil {
-
-		log.Println(err)
-	}
-
-	if len(glob) == 0 {
-		return 1, nil
-	}
-
-	// natural sorting assumes the
-	// backupDirPattern is of 11 letters
-	sort.Slice(glob, func(i, j int) bool {
-		if glob[i][:11] != glob[j][:11] {
-			return glob[i] < glob[j]
-		}
-		ii, _ := strconv.Atoi(glob[i][11:])
-		jj, _ := strconv.Atoi(glob[j][11:])
-		return ii < jj
-	})
-
-	if len(glob) >= backupCount {
-		er := removeDirectory(glob[backupCount-1])
-		if er != nil {
-			return 0, er
-		}
-	}
-
-	err = renameBackupDirectories(glob)
-	if err != nil {
-		return 0, err
-	}
-
-	return 1, nil
 }
 
 // checkList:
@@ -306,6 +269,17 @@ func fileChecklistValidation(backupDir string) []string {
 	return []string{""}
 }
 
+func overRideValidation(lastModifiedBeforeRollback time.Time) {
+	stat, err := os.Stat("/etc/kubernetes/pki")
+	if err != nil {
+		return
+	}
+
+	if stat.ModTime() == lastModifiedBeforeRollback {
+		fmt.Printf("last modification time difference %d", stat.ModTime().Unix()-lastModifiedBeforeRollback.Unix())
+	}
+}
+
 func Rollback() error {
 
 	certsDir := getK8sCertsDir()
@@ -313,6 +287,11 @@ func Rollback() error {
 	k8sConfigsDir := getK8sConfigsDir()
 	backupDir, err := getLatestBackupDir()
 
+	if err != nil {
+		return err
+	}
+
+	stat, err := os.Stat("/etc/kubernetes/pki")
 	if err != nil {
 		return err
 	}
@@ -334,6 +313,8 @@ func Rollback() error {
 	if er != nil {
 		return er
 	}
+
+	overRideValidation(stat.ModTime())
 
 	return nil
 }

@@ -64,13 +64,13 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 	if len(glob) >= backupCount {
 		er := removeDirectory(glob[backupCount-1])
 		if er != nil {
-			return 0, er
+			return 1, er
 		}
 	}
 
 	err = renameBackupDirectories(glob)
 	if err != nil {
-		return 0, err
+		return 1, err
 	}
 
 	return 1, nil
