@@ -43,12 +43,15 @@ func Cleanup(namespace string) {
 
 	minions, err := c.client.Clientset().CoreV1().Pods(namespace).List(context.Background(), listOptions)
 	if err != nil {
-		c.log.Error("error listing nodes",
+		c.log.Error("error listing pods",
 			zap.Error(err))
 	}
 
+	c.log.Info("pods",
+		zap.String("minions.Items", minions.Items[0].Name))
+
 	if len(minions.Items) == 0 {
-		c.log.Error("no master nodes found",
+		c.log.Error("no completed minions found",
 			zap.Error(err))
 	}
 
