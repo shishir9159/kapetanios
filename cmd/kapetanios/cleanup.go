@@ -52,8 +52,13 @@ func Cleanup(namespace string) {
 			zap.Error(err))
 	}
 
+	deletePolicy := metav1.DeletePropagationForeground
+
 	for _, minion := range minions.Items {
-		er := c.client.Clientset().CoreV1().Pods("kube-system").Delete(c.ctx, minion.Name, metav1.DeleteOptions{})
+		er := c.client.Clientset().CoreV1().Pods(namespace).Delete(c.ctx, minion.Name, metav1.DeleteOptions{
+			GracePeriodSeconds: &[]int64{3}[0],
+			PropagationPolicy:  &deletePolicy,
+		})
 		if er != nil {
 			c.log.Info("failed to delete minion:",
 				zap.String("minion name:", minion.Name),
