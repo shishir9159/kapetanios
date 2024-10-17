@@ -22,6 +22,13 @@ func certRenewal(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 
+func cleanup(c *fiber.Ctx) error {
+
+	go Cleanup(certRenewalNamespace)
+
+	return c.JSON(fiber.Map{"status": http.StatusOK})
+}
+
 func minorUpgrade(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"status": http.StatusOK})
@@ -41,6 +48,7 @@ func setupRoutes(app *fiber.App) {
 
 	app.Get("/minor-upgrade", minorUpgrade)
 	app.Get("/renewal", certRenewal)
+	app.Get("/cleanup", cleanup)
 	app.Get("/rollback", rollback)
 	app.Get("/swagger", swagger.HandlerDefault)
 
