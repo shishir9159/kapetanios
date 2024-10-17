@@ -21,6 +21,9 @@ func removeCompleted() {
 // TODO:
 //  etcd, kubelet, control plane component status check
 
+// DeleteAndMonitor
+// Need to be spliced up
+
 func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string) error {
 
 	// TODO:

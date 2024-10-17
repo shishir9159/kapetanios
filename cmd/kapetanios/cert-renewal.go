@@ -63,6 +63,7 @@ func Cert(namespace string) {
 	if len(nodes.Items) == 0 {
 		c.log.Error("no master nodes found",
 			zap.Error(err))
+		//	return err or call grpc
 	}
 
 	for index, node := range nodes.Items {

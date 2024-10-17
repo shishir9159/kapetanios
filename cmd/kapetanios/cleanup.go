@@ -6,7 +6,6 @@ import (
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"time"
 )
 
 func Cleanup(namespace string) {
@@ -19,7 +18,6 @@ func Cleanup(namespace string) {
 		}
 	}(logger)
 
-	// refactor
 	client, err := orchestration.NewClient()
 
 	c := Controller{
@@ -33,72 +31,44 @@ func Cleanup(namespace string) {
 			zap.Error(err))
 	}
 
-	// TODO:
-	//  Controller Definition need to be moved with the
-	//  initial Setup and making sure there exists only one
-	InitialSetup(c)
-
-	roleName := "certs"
-	matchLabels := map[string]string{"assigned-node-role-certs.kubernetes.io": roleName}
+	matchLabels := map[string]string{
+		"assigned-node-role-certs.kubernetes.io": "certs",
+		"assigned-node-role-etcd.kubernetes.io":  "etcd",
+	}
 
 	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	renewalMinionManager := orchestration.NewMinions(client)
-
-	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
+	minions, err := c.client.Clientset().CoreV1().Pods(namespace).List(context.Background(), listOptions)
 	if err != nil {
 		c.log.Error("error listing nodes",
 			zap.Error(err))
 	}
 
-	if len(nodes.Items) == 0 {
+	if len(minions.Items) == 0 {
 		c.log.Error("no master nodes found",
 			zap.Error(err))
 	}
 
-	for index, node := range nodes.Items {
-
-		// namespace should only be included after the consideration for the existing
-		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", roleName, node.Name)
-
-		// kubectl get event --namespace default --field-selector involvedObject.name=minions
-		// how many pods this logic need to be in the orchestration too
-		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
+	for _, minion := range minions.Items {
+		er := c.client.Clientset().CoreV1().Pods("kube-system").Delete(c.ctx, minion.Name, metav1.DeleteOptions{})
 		if er != nil {
-			c.log.Error("Cert Renewal pod creation failed: ",
-				zap.Int("index", index),
+			c.log.Info("failed to delete minion:",
+				zap.String("minion name:", minion.Name),
 				zap.Error(er))
-
-			//return er
-			return
-		}
-
-		c.log.Info("Cert Renewal pod created",
-			zap.Int("index", index),
-			zap.String("pod_name", minion.Name))
-
-		// todo: wait for request for restart from the minions
-		time.Sleep(5 * time.Second)
-
-		er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
-		if er != nil {
-			c.log.Error("error restarting pods for certificate renewal",
-				zap.Error(er))
-
-			//retry logic
-			//return er
-			break
 		}
 	}
 
-	err = RestartRemainingComponents(c, "default")
-	if err != nil {
-		c.log.Error("error restarting renewal components", zap.Error(err))
-	}
+	go func() {
+		// todo: instead of the first minion, count the number of minions in switch case
+		er := orchestration.Informer(c.client.Clientset(), c.ctx, c.log, len(minions.Items), listOptions)
+		if er != nil {
+			c.log.Error("watcher error from minion restart",
+				zap.Error(er))
+		}
+	}()
 
-	CertGrpc(c.log)
+	//	return err
 }
