@@ -33,7 +33,8 @@ func Cleanup(namespace string) {
 	}
 
 	matchLabels := map[string]string{
-		"assigned-node-role-certs.kubernetes.io": "certs",
+		//"assigned-node-role-certs.kubernetes.io": "certs",
+		"app": "certs",
 	}
 
 	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
@@ -57,7 +58,8 @@ func Cleanup(namespace string) {
 	}
 
 	secondMatchLabels := map[string]string{
-		"assigned-node-role-certs.kubernetes.io": "certs",
+		//"assigned-node-role-etcd.kubernetes.io": "etcd",
+		"app": "etcd",
 	}
 
 	labelSelector = metav1.LabelSelector{MatchLabels: secondMatchLabels}
