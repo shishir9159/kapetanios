@@ -75,7 +75,11 @@ func main() {
 			zap.Error(err))
 	}
 
-	err = Upgade()
+	c.log.Info("diff for upgrade plan",
+		zap.String("diff", diff))
+
+	// upgradeSuccess
+	_, err = Upgade(c.log, version)
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))
@@ -83,10 +87,4 @@ func main() {
 
 	GrpcClient(c.log)
 
-	//step 3. Restarting pods to work with the updated certificates
-	err = Restart(c)
-	if err != nil {
-		c.log.Error("failed to restart kubernetes components after certificate renewal",
-			zap.Error(err))
-	}
 }
