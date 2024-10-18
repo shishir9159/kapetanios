@@ -15,13 +15,7 @@ import "go.uber.org/zap"
 //[upgrade/versions] Target version: v1.26.15
 //[upgrade/versions] Latest version in the v1.26 series: v1.26.15
 
-func UpgradePlan(log *zap.Logger) {
+func UpgradePlan(log *zap.Logger, version string) (string, error) {
 
-	// TODO:
-	//  Check which versions are available to upgrade to and
-	//  validate whether your current cluster is upgradeable
-
-	log.Info("")
-
-	return
+	return "", nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
+	//"github.com/rs/zerolog/log"
 )
 
 type Controller struct {
@@ -52,9 +53,11 @@ func main() {
 
 	}
 
-	// if available version fails or works,
-	// check if that matches with upgradePlane
-	// if the latest is selected
+	// TODO:
+	//  if available version fails or works,
+	//  check if that matches with upgradePlane
+	//  if the latest is selected
+
 	upgradePlan, err := UpgradePlan(c.log, version)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
@@ -66,22 +69,11 @@ func main() {
 			zap.Error(err))
 	}
 
-	var s string
-
-	diff, err := Diff(c.log, s)
+	diff, err := Diff(c.log, upgradePlan)
 	if err != nil {
 		c.log.Error("failed to get diff",
 			zap.Error(err))
 	}
-
-	// err = PrerequisitesForRollback(c.log)
-	// if err != nil {
-	//  	c.log.Error("the cluster didn't meet the condition for rollback",
-	//	 	zap.Error(err))
-	// }
-
-	//	step 1. replacing the last generated configs with
-	//  the latest backups would cause the cert renewal rollback
 
 	err = Upgade()
 	if err != nil {
