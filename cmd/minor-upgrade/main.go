@@ -33,9 +33,36 @@ func main() {
 		}
 	}(logger)
 
-	upgradePlan, err := UpgradePlan(c.log)
+	err = Prerequisites()
+	if err != nil {
+
+	}
+
+	availableVersion, err := AvailableVersions()
+
+	if len(availableVersion) == 0 {
+		c.log.Fatal("no available versions for minor upgrade",
+			zap.Error(err))
+	}
+
+	latest := false
+	version := ""
+
+	if latest {
+
+	}
+
+	// if available version fails or works,
+	// check if that matches with upgradePlane
+	// if the latest is selected
+	upgradePlan, err := UpgradePlan(c.log, version)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
+			zap.Error(err))
+	}
+
+	if err != nil {
+		c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
 			zap.Error(err))
 	}
 
@@ -56,7 +83,7 @@ func main() {
 	//	step 1. replacing the last generated configs with
 	//  the latest backups would cause the cert renewal rollback
 
-	err = Rollback()
+	err = Upgade()
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))

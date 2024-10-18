@@ -1,9 +1,13 @@
 syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
+message PrerequisiteCheck {
+
+}
+
 message CreateUpgradeRequest {
   bool prerequisiteCheckSuccess = 1;
-  bool rollbackSuccess = 2;
+  bool upgradeSuccess = 2;
   bool restartSuccess = 3;
   uint32 retryAttempt = 4;
   string err = 5;
