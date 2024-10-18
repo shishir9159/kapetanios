@@ -13,6 +13,7 @@ GOVERSION := 'go1.23.1'
 protogen:
 	@printf $(COLOR) "Generating gRPC code"
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/cert-renewal.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/rollback.proto
 go-protogen:
 	@printf $(COLOR) "Generating gRPC code after installing protoc with go install"
@@ -20,7 +21,9 @@ go-protogen:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	export PATH="$PATH:$(go env GOPATH)/bin"
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/cert-renewal.proto
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/rollback.proto;
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/rollback.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
+
 clean:
 	@printf $(COLOR) "Removing built binaries with the build directory..."
 	rm -rf ./build
@@ -45,6 +48,12 @@ etcd-restart:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile
  	docker push quay.io/klovercloud/etcd-restart:latest
+
+.PHONY: minor-upgrade
+minor-upgrade:
+	@printf $(COLOR) "Building docker image for minor-upgrade minions and pushing it to the registry..."
+	docker build . -t quay.io/klovercloud/minor-upgrade:latest -f minor-upgrade.Dockerfile
+	docker push quay.io/klovercloud/minor-upgrade:latest
 
 .PHONY: rollback
 rollback:

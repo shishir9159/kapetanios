@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-func Cleanup(namespace string) {
+func Cleanup(namespace string) error {
 
 	logger, err := zap.NewProduction()
 	defer func(logger *zap.Logger) {
@@ -33,7 +33,6 @@ func Cleanup(namespace string) {
 	}
 
 	matchLabels := map[string]string{
-		//"assigned-node-role-certs.kubernetes.io": "certs",
 		"app": "certs",
 	}
 
@@ -46,19 +45,18 @@ func Cleanup(namespace string) {
 
 	pods, err := c.client.Clientset().CoreV1().Pods(namespace).List(context.Background(), listOptions)
 	if err != nil {
-		c.log.Error("error listing pods",
+		c.log.Error("error listing minions for certificate renewals",
 			zap.Error(err))
+		return err
 	}
 
 	minions = pods.Items
 
 	if len(minions) == 0 {
-		c.log.Error("no completed minions found",
-			zap.Error(err))
+		c.log.Error("no completed minions found")
 	}
 
 	secondMatchLabels := map[string]string{
-		//"assigned-node-role-etcd.kubernetes.io": "etcd",
 		"app": "etcd",
 	}
 
@@ -69,8 +67,13 @@ func Cleanup(namespace string) {
 
 	pods, err = c.client.Clientset().CoreV1().Pods(namespace).List(context.Background(), listOptions)
 	if err != nil {
-		c.log.Error("error listing pods",
+		c.log.Error("error listing minions for etcd cleanup",
 			zap.Error(err))
+		return err
+	}
+
+	if len(pods.Items) == 0 {
+		c.log.Info("no completed minions found")
 	}
 
 	minions = append(minions, pods.Items...)
@@ -89,5 +92,5 @@ func Cleanup(namespace string) {
 		}
 	}
 
-	//	return err
+	return nil
 }
