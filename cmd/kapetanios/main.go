@@ -31,6 +31,8 @@ func cleanup(c *fiber.Ctx) error {
 
 func minorUpgrade(c *fiber.Ctx) error {
 
+	go MinorUpgrade()
+
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 

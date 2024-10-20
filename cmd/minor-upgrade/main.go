@@ -19,7 +19,8 @@ func main() {
 		fmt.Println(err)
 	}
 
-	// replace zap with zeroLog
+	// TODO:
+	//  replace zap with zeroLog
 
 	c := Controller{
 		ctx: context.Background(),
@@ -33,6 +34,8 @@ func main() {
 				zap.Error(er))
 		}
 	}(logger)
+
+	// kernel version compatibility
 
 	err = Prerequisites()
 	if err != nil {
@@ -79,12 +82,11 @@ func main() {
 		zap.String("diff", diff))
 
 	// upgradeSuccess
-	_, err = Upgade(c.log, version)
+	_, err = Upgrade(c.log, version)
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))
 	}
 
 	GrpcClient(c.log)
-
 }

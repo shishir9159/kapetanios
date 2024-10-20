@@ -17,5 +17,9 @@ import "go.uber.org/zap"
 
 func UpgradePlan(log *zap.Logger, version string) (string, error) {
 
+	// TODO:
+	//  show the changelog of the version by fetching
+	//  https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v12715
+
 	return "", nil
 }

@@ -5,7 +5,7 @@ import (
 	"os/exec"
 )
 
-func Diff(log *zap.Logger, s string) (string, error) {
+func Diff(log *zap.Logger, version string) (string, error) {
 
 	// upgrade plan to list available upgrade options
 	// --config is not necessary as it is saved in the cm
@@ -30,5 +30,5 @@ func Diff(log *zap.Logger, s string) (string, error) {
 	//	kubeadm upgrade node (name) [version] --dry-run
 	//
 
-	return s, nil
+	return diff, nil
 }
