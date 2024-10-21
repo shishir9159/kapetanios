@@ -2,9 +2,9 @@ package main
 
 func Prerequisites() error {
 
-	// TODO: how to know the current node is etcd?
+	// TODO: how to know the current node is etcd with clientSet?
 	//  	- etcd cluster from the cm
-	//			- how to get the hostname and ip address
+	//		- how to get the hostname and ip address
 	// check if external etcd running if it's an etcd node
 
 	// TODO:

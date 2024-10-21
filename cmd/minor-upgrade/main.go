@@ -81,6 +81,9 @@ func main() {
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
+	c.log.Info("diff for upgrade plan",
+		zap.String("diff", diff))
+
 	// upgradeSuccess
 	_, err = Upgrade(c.log, version)
 	if err != nil {

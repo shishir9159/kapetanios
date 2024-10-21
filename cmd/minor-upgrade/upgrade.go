@@ -4,10 +4,14 @@ import "go.uber.org/zap"
 
 func Upgrade(log *zap.Logger, version string) (bool, error) {
 
-	// example.com.node-restriction.kubernetes.io/
-	// "minor-upgrade-restriction."
+	// The NodeRestriction admission plugin
+	// prevents the kubelet from setting or modifying labels
+	// with a node-restriction.kubernetes.io/ prefix.
 
-	// Primary node to be upgraded first
+	// example.com.node-restriction.kubernetes.io/
+	// role := "minor-upgrade-restriction"
+
+	// control-plane nodes are to be upgraded first
 
 	return false, nil
 }
