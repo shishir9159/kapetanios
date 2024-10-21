@@ -42,7 +42,7 @@ func main() {
 
 	}
 
-	availableVersion, err := AvailableVersions()
+	availableVersion, err := availableVersions(c.log)
 
 	if len(availableVersion) == 0 {
 		c.log.Fatal("no available versions for minor upgrade",

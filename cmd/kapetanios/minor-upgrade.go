@@ -20,19 +20,10 @@ func drainAndCordonNode(c Controller, node *corev1.Node) error {
 		IgnoreAllDaemonSets:             true,
 		DeleteEmptyDirData:              true,
 		SkipWaitForDeleteTimeoutSeconds: 30,
-		Timeout:                         5 * time.Minute,
+		Timeout:                         2 * time.Minute,
 		GracePeriodSeconds:              10,
 		Out:                             os.Stdout,
 		ErrOut:                          os.Stderr,
-	}
-
-	// TODO: add namespace in the controller itself
-
-	options := metav1.ApplyOptions{
-		TypeMeta:     metav1.TypeMeta{},
-		DryRun:       nil,
-		Force:        false,
-		FieldManager: "",
 	}
 
 	err := drain.RunCordonOrUncordon(drainer, node, true)
@@ -124,6 +115,8 @@ func MinorUpgrade(namespace string) {
 	//  refactor
 	client, err := orchestration.NewClient()
 
+	// TODO: add mutex
+	// TODO: add namespace in the controller itself
 	c := Controller{
 		client: client,
 		ctx:    context.Background(),
@@ -188,7 +181,10 @@ func MinorUpgrade(namespace string) {
 			},
 		}
 
-		err = drain(c, node)
+		// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
+		//  then those Pods might be scheduled to the node you have drained.
+
+		err = drainAndCordonNode(c, &node)
 		if err != nil {
 			c.log.Error("failed to drain node",
 				zap.String("node name:", node.Name),
@@ -197,12 +193,7 @@ func MinorUpgrade(namespace string) {
 
 		addTaint(&node)
 
-		err = uncordon(&node)
-		if err != nil {
-			c.log.Error("failed to uncordon node",
-				zap.String("node name:", node.Name),
-				zap.Error(err))
-		}
+		err = drain.RunCordonOrUncordon(&drain.Helper{}, &node, false)
 
 		// TODO:
 		//  if the pod doesn't schedule, check for taint
