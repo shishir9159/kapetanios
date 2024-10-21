@@ -16,43 +16,62 @@ func drain(node corev1.Node) error {
 
 func removeTaint(node *corev1.Node) {
 
-	if node.Spec.Taints != nil {
-		//	TODO: what if there are multiple taints
+	taints := node.Spec.Taints
 
+	if len(taints) == 0 {
+		return
 	}
 
-	node.Spec.Taints = []corev1.Taint{
-		{
-			Key:    "minor-upgrade-running",
-			Value:  "processing",
-			Effect: "NoSchedule",
-		},
+	taintToRemove := corev1.Taint{
+		Key:    "minor-upgrade-running",
+		Value:  "processing",
+		Effect: corev1.TaintEffectNoSchedule,
 	}
 
-	taint = []corev1.Taint{
-		{
-			Key:    "minor-upgrade-running",
-			Value:  "processing",
-			Effect: "NoSchedule",
-		},
+	newTaints := []corev1.Taint{taintToRemove}
+
+	for _, taint := range taints {
+		if taint.MatchTaint(&taintToRemove) {
+			continue
+		}
+
+		newTaints = append(newTaints, taint)
 	}
 
+	node.Spec.Taints = newTaints
 }
 
-func taint(node *corev1.Node) {
+func addTaint(node *corev1.Node) {
 
-	if node.Spec.Taints != nil {
-		//	TODO: what if there are multiple taints
+	taints := node.Spec.Taints
 
+	// TODO: declare as a struct maybe?
+	taintToAdd := corev1.Taint{
+		Key:    "minor-upgrade-running",
+		Value:  "processing",
+		Effect: corev1.TaintEffectNoSchedule,
 	}
 
-	node.Spec.Taints = []corev1.Taint{
-		{
-			Key:    "minor-upgrade-running",
-			Value:  "processing",
-			Effect: "NoSchedule",
-		},
+	newTaints := []corev1.Taint{taintToAdd}
+
+	if len(taints) != 0 {
+		for _, taint := range taints {
+			if taint.MatchTaint(&taintToAdd) {
+				return
+			}
+
+			newTaints = append(newTaints, taint)
+		}
+
+		return
 	}
+
+	node.Spec.Taints = newTaints
+}
+
+func uncordon(node *corev1.Node) error {
+
+	return nil
 }
 
 // be careful about the different version across
@@ -102,8 +121,8 @@ func MinorUpgrade(namespace string) {
 
 	if len(nodes.Items) == 0 {
 		c.log.Error("no nodes found",
+			//	return err or call grpc
 			zap.Error(err))
-		//	return err or call grpc
 	}
 
 	for index, node := range nodes.Items {
@@ -147,9 +166,9 @@ func MinorUpgrade(namespace string) {
 				zap.Error(err))
 		}
 
-		taint(&node)
+		addTaint(&node)
 
-		err = Uncordon()
+		err = uncordon(&node)
 		if err != nil {
 			c.log.Error("failed to uncordon node",
 				zap.String("node name:", node.Name),
@@ -159,6 +178,13 @@ func MinorUpgrade(namespace string) {
 		// TODO:
 		//  if the pod doesn't schedule, check for taint
 		//  check for all pod related event with informer
+
+		// TODO: monitor the node status with watch
+
+		// TODO: monitor the pod restart after upgrade
+		//  All containers are restarted after upgrade, because the container spec hash value is changed
+		//		just monitor the NODES before creating minion, no need to restart
+		//RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
@@ -179,20 +205,6 @@ func MinorUpgrade(namespace string) {
 
 		removeTaint(&node)
 	}
-
-	err = RestartRemainingComponents(c, "default")
-	if err != nil {
-		c.log.Error("error restarting renewal components", zap.Error(err))
-	}
-
-	//step 3. no need to Restart pods to adopt with the upgrade
-
-	//
-
-	// TODO: monitor the pod restart after upgrade
-	//  All containers are restarted after upgrade, because the container spec hash value is changed
-	//		just monitor the NODES before creating minion, no need to restart
-	//RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 }
 
 //  ToDo:

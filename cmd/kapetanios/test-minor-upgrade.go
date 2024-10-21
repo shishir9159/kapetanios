@@ -6,18 +6,74 @@ import (
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"time"
 )
 
-func testDrain(node string) error {
-
-	return nil
-}
-
-func testTaint(node string) error {
-
-	return nil
-}
+//func drain(node corev1.Node) error {
+//
+//	return nil
+//}
+//
+//func removeTaint(node *corev1.Node) {
+//
+//	taints := node.Spec.Taints
+//
+//	if len(taints) == 0 {
+//		return
+//	}
+//
+//	taintToRemove := corev1.Taint{
+//		Key:    "minor-upgrade-running",
+//		Value:  "processing",
+//		Effect: corev1.TaintEffectNoSchedule,
+//	}
+//
+//	newTaints := []corev1.Taint{taintToRemove}
+//
+//	for _, taint := range taints {
+//		if taint.MatchTaint(&taintToRemove) {
+//			continue
+//		}
+//
+//		newTaints = append(newTaints, taint)
+//	}
+//
+//	node.Spec.Taints = newTaints
+//}
+//
+//func addTaint(node *corev1.Node) {
+//
+//	taints := node.Spec.Taints
+//
+//	// TODO: declare as a struct maybe?
+//	taintToAdd := corev1.Taint{
+//		Key:    "minor-upgrade-running",
+//		Value:  "processing",
+//		Effect: corev1.TaintEffectNoSchedule,
+//	}
+//
+//	newTaints := []corev1.Taint{taintToAdd}
+//
+//	if len(taints) != 0 {
+//		for _, taint := range taints {
+//			if taint.MatchTaint(&taintToAdd) {
+//				return
+//			}
+//
+//			newTaints = append(newTaints, taint)
+//		}
+//
+//		return
+//	}
+//
+//	node.Spec.Taints = newTaints
+//}
+//
+//func uncordon(node *corev1.Node) error {
+//
+//	return nil
+//}
 
 // be careful about the different version across
 // the nodes
@@ -36,8 +92,6 @@ func TestMinorUpgrade(namespace string) {
 		}
 	}(logger)
 
-	// TODO:
-	//  refactor
 	client, err := orchestration.NewClient()
 
 	c := Controller{
@@ -51,13 +105,19 @@ func TestMinorUpgrade(namespace string) {
 			zap.Error(err))
 	}
 
-	roleName := "minor-upgrade"
+	roleName := "node-2-for-test"
+
+	// TODO: add the label to node 2
+	matchLabels := map[string]string{"assigned-node-role.kubernetes.io": roleName}
+
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
 
 	renewalMinionManager := orchestration.NewMinions(client)
 
-	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
-
-	// TODO: sort with control-plane role, error no master nodes found
+	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 
 	if err != nil {
 		c.log.Error("error listing nodes",
@@ -66,8 +126,8 @@ func TestMinorUpgrade(namespace string) {
 
 	if len(nodes.Items) == 0 {
 		c.log.Error("no nodes found",
+			//	return err or call grpc
 			zap.Error(err))
-		//	return err or call grpc
 	}
 
 	for index, node := range nodes.Items {
@@ -96,27 +156,40 @@ func TestMinorUpgrade(namespace string) {
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{
-				Key:               "",
-				Operator:          "",
-				Value:             "",
-				Effect:            "",
+				Key:               "minor-upgrade-running",
+				Operator:          "Equal",
+				Value:             "processing",
+				Effect:            "NoSchedule",
 				TolerationSeconds: &[]int64{3}[0],
 			},
 		}
 
-		err = drain("")
+		err = drain(node)
 		if err != nil {
 			c.log.Error("failed to drain node",
-				zap.String("node name:", ""),
+				zap.String("node name:", node.Name),
 				zap.Error(err))
 		}
 
-		err = taint("")
+		addTaint(&node)
+
+		err = uncordon(&node)
 		if err != nil {
-			c.log.Error("failed to taint node",
-				zap.String("node name:", ""),
+			c.log.Error("failed to uncordon node",
+				zap.String("node name:", node.Name),
 				zap.Error(err))
 		}
+
+		// TODO:
+		//  if the pod doesn't schedule, check for taint
+		//  check for all pod related event with informer
+
+		// TODO: monitor the node status with watch
+
+		// TODO: monitor the pod restart after upgrade
+		//  All containers are restarted after upgrade, because the container spec hash value is changed
+		//		just monitor the NODES before creating minion, no need to restart
+		//RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
@@ -134,21 +207,9 @@ func TestMinorUpgrade(namespace string) {
 
 		// todo: wait for request for restart from the minions
 		time.Sleep(5 * time.Second)
+
+		removeTaint(&node)
 	}
-
-	err = RestartRemainingComponents(c, "default")
-	if err != nil {
-		c.log.Error("error restarting renewal components", zap.Error(err))
-	}
-
-	//step 3. no need to Restart pods to adopt with the upgrade
-
-	//
-
-	// TODO: monitor the pod restart after upgrade
-	//  All containers are restarted after upgrade, because the container spec hash value is changed
-	//		just monitor the NODES before creating minion, no need to restart
-	//RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 }
 
 //  ToDo:
