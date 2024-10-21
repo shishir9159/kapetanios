@@ -111,7 +111,7 @@ func TestMinorUpgrade(namespace string) {
 				zap.Error(err))
 		}
 
-		err = Taint("")
+		err = taint("")
 		if err != nil {
 			c.log.Error("failed to taint node",
 				zap.String("node name:", ""),

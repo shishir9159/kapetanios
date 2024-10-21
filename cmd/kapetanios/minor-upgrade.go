@@ -14,14 +14,7 @@ func Drain(node string) error {
 	return nil
 }
 
-func Taint(node *corev1.Node) {
-
-	// Do I really need the copy?
-	updatedNode := node.DeepCopy()
-
-	// TODO:
-	//  if the pod doesn't schedule, check for taint
-	//  check for all pod related event with informer
+func removeTaint(node *corev1.Node) {
 
 	if node.Spec.Taints != nil {
 		//	TODO: what if there are multiple taints
@@ -30,14 +23,29 @@ func Taint(node *corev1.Node) {
 
 	taint := []corev1.Taint{
 		{
-			Key:    "",
-			Value:  "",
+			Key:    "minor-upgrade-running",
+			Value:  "processing",
 			Effect: "NoSchedule",
 		},
 	}
 
-	updatedNode.Spec.Taints = taint
+	node.Spec.Taints = taint
+}
 
+func taint(node *corev1.Node) {
+
+	if node.Spec.Taints != nil {
+		//	TODO: what if there are multiple taints
+
+	}
+
+	node.Spec.Taints = []corev1.Taint{
+		{
+			Key:    "minor-upgrade-running",
+			Value:  "processing",
+			Effect: "NoSchedule",
+		},
+	}
 }
 
 // be careful about the different version across
@@ -117,9 +125,9 @@ func MinorUpgrade(namespace string) {
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{
-				Key:               "",
+				Key:               "minor-upgrade-running",
 				Operator:          "",
-				Value:             "",
+				Value:             "processing",
 				Effect:            "",
 				TolerationSeconds: &[]int64{3}[0],
 			},
@@ -132,12 +140,11 @@ func MinorUpgrade(namespace string) {
 				zap.Error(err))
 		}
 
-		err = Taint("")
-		if err != nil {
-			c.log.Error("failed to taint node",
-				zap.String("node name:", ""),
-				zap.Error(err))
-		}
+		taint(&node)
+
+		// TODO:
+		//  if the pod doesn't schedule, check for taint
+		//  check for all pod related event with informer
 
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
