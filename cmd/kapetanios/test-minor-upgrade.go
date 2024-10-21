@@ -9,35 +9,14 @@ import (
 	"time"
 )
 
-func Drain(node string) error {
+func testDrain(node string) error {
 
 	return nil
 }
 
-func Taint(node *corev1.Node) {
+func testTaint(node string) error {
 
-	// Do I really need the copy?
-	updatedNode := node.DeepCopy()
-
-	// TODO:
-	//  if the pod doesn't schedule, check for taint
-	//  check for all pod related event with informer
-
-	if node.Spec.Taints != nil {
-		//	TODO: what if there are multiple taints
-
-	}
-
-	taint := []corev1.Taint{
-		{
-			Key:    "",
-			Value:  "",
-			Effect: "NoSchedule",
-		},
-	}
-
-	updatedNode.Spec.Taints = taint
-
+	return nil
 }
 
 // be careful about the different version across
@@ -47,7 +26,7 @@ func Taint(node *corev1.Node) {
 
 // TODO: run only in the second node
 
-func MinorUpgrade(namespace string) {
+func TestMinorUpgrade(namespace string) {
 
 	logger, err := zap.NewProduction()
 	defer func(logger *zap.Logger) {
