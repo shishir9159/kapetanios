@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"time"
 )
 
@@ -24,7 +24,7 @@ func Taint(node string) error {
 
 // TODO: for testing purposes, try the current version
 
-func MinorUpgrade() {
+func MinorUpgrade(namespace string) {
 
 	logger, err := zap.NewProduction()
 	defer func(logger *zap.Logger) {
@@ -51,22 +51,19 @@ func MinorUpgrade() {
 
 	roleName := "minor-upgrade"
 
-	matchLabels := map[string]string{}
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	}
-
 	renewalMinionManager := orchestration.NewMinions(client)
 
-	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
+	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
+
+	// TODO: sort with control-plane role, error no master nodes found
+
 	if err != nil {
 		c.log.Error("error listing nodes",
 			zap.Error(err))
 	}
 
 	if len(nodes.Items) == 0 {
-		c.log.Error("no master nodes found",
+		c.log.Error("no nodes found",
 			zap.Error(err))
 		//	return err or call grpc
 	}
@@ -75,13 +72,53 @@ func MinorUpgrade() {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", roleName, node.Name)
+		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node.Name)
 
-		// kubectl get event --namespace default --field-selector involvedObject.name=minions
-		// how many pods this logic need to be in the orchestration too
+		// TODO: instead of pod monitoring for creation, monitor for successful restarts
+		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
+		//  if er != nil {
+		//  	c.log.Error("error restarting pods for certificate renewal",
+		//	    	zap.Error(er))
+		//	  //retry logic
+		//	 // return er
+		//	 break
+		//  }
+
+		// TODO: drain add node selector or something,
+		//   add the same thing on the necessary pods(except for ds)
+
+		//  TODO: after the pod is scheduled
+		//   must first drain the node
+		//   if failed, must be tainted again to
+		//   schedule nodes
+
+		descriptor.Spec.Tolerations = []corev1.Toleration{
+			{
+				Key:               "",
+				Operator:          "",
+				Value:             "",
+				Effect:            "",
+				TolerationSeconds: &[]int64{3}[0],
+			},
+		}
+
+		err = Drain("")
+		if err != nil {
+			c.log.Error("failed to drain node",
+				zap.String("node name:", ""),
+				zap.Error(err))
+		}
+
+		err = Taint("")
+		if err != nil {
+			c.log.Error("failed to taint node",
+				zap.String("node name:", ""),
+				zap.Error(err))
+		}
+
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			c.log.Error("Cert Renewal pod creation failed: ",
+			c.log.Error("minor upgrade pod creation failed: ",
 				zap.Int("index", index),
 				zap.Error(er))
 
@@ -89,49 +126,17 @@ func MinorUpgrade() {
 			return
 		}
 
-		c.log.Info("Cert Renewal pod created",
+		c.log.Info("minor upgrade pod created",
 			zap.Int("index", index),
 			zap.String("pod_name", minion.Name))
 
 		// todo: wait for request for restart from the minions
 		time.Sleep(5 * time.Second)
-
-		er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
-		if er != nil {
-			c.log.Error("error restarting pods for certificate renewal",
-				zap.Error(er))
-
-			//retry logic
-			//return er
-			break
-		}
 	}
 
 	err = RestartRemainingComponents(c, "default")
 	if err != nil {
 		c.log.Error("error restarting renewal components", zap.Error(err))
-	}
-
-	// TODO: drain add node selector or something,
-	//   add the same thing on the necessary pods(except for ds)
-
-	//  TODO: after the pod is scheduled
-	//   must first drain the node
-	//   if failed, must be tainted again to
-	//   schedule nodes
-
-	err = Drain("")
-	if err != nil {
-		c.log.Error("failed to drain node",
-			zap.String("node name:", ""),
-			zap.Error(err))
-	}
-
-	err = Taint("")
-	if err != nil {
-		c.log.Error("failed to taint node",
-			zap.String("node name:", ""),
-			zap.Error(err))
 	}
 
 	//step 3. no need to Restart pods to adopt with the upgrade

@@ -12,7 +12,8 @@ import (
 
 var (
 	// TODO: or should it be klovercloud with additional service accounts?
-	certRenewalNamespace = "default"
+	certRenewalNamespace  = "default"
+	minorUpgradeNamespace = "default"
 )
 
 func certRenewal(c *fiber.Ctx) error {
@@ -31,7 +32,7 @@ func cleanup(c *fiber.Ctx) error {
 
 func minorUpgrade(c *fiber.Ctx) error {
 
-	go MinorUpgrade()
+	go MinorUpgrade(minorUpgradeNamespace)
 
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
