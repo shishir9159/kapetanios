@@ -9,6 +9,8 @@ import (
 // be careful about the different version across
 // the nodes
 
+// TODO: for testing purposes, try the current version
+
 func MinorUpgrade() {
 
 	logger, err := zap.NewProduction()
