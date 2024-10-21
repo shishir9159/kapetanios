@@ -104,7 +104,7 @@ func TestMinorUpgrade(namespace string) {
 			},
 		}
 
-		err = Drain("")
+		err = drain("")
 		if err != nil {
 			c.log.Error("failed to drain node",
 				zap.String("node name:", ""),

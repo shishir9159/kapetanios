@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func Drain(node string) error {
+func drain(node corev1.Node) error {
 
 	return nil
 }
@@ -21,7 +21,7 @@ func removeTaint(node *corev1.Node) {
 
 	}
 
-	taint := []corev1.Taint{
+	node.Spec.Taints = []corev1.Taint{
 		{
 			Key:    "minor-upgrade-running",
 			Value:  "processing",
@@ -29,7 +29,14 @@ func removeTaint(node *corev1.Node) {
 		},
 	}
 
-	node.Spec.Taints = taint
+	taint = []corev1.Taint{
+		{
+			Key:    "minor-upgrade-running",
+			Value:  "processing",
+			Effect: "NoSchedule",
+		},
+	}
+
 }
 
 func taint(node *corev1.Node) {
@@ -126,21 +133,28 @@ func MinorUpgrade(namespace string) {
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{
 				Key:               "minor-upgrade-running",
-				Operator:          "",
+				Operator:          "Equal",
 				Value:             "processing",
-				Effect:            "",
+				Effect:            "NoSchedule",
 				TolerationSeconds: &[]int64{3}[0],
 			},
 		}
 
-		err = Drain("")
+		err = drain(node)
 		if err != nil {
 			c.log.Error("failed to drain node",
-				zap.String("node name:", ""),
+				zap.String("node name:", node.Name),
 				zap.Error(err))
 		}
 
 		taint(&node)
+
+		err = Uncordon()
+		if err != nil {
+			c.log.Error("failed to uncordon node",
+				zap.String("node name:", node.Name),
+				zap.Error(err))
+		}
 
 		// TODO:
 		//  if the pod doesn't schedule, check for taint
@@ -162,6 +176,8 @@ func MinorUpgrade(namespace string) {
 
 		// todo: wait for request for restart from the minions
 		time.Sleep(5 * time.Second)
+
+		removeTaint(&node)
 	}
 
 	err = RestartRemainingComponents(c, "default")
