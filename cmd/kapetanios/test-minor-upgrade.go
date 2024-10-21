@@ -10,78 +10,6 @@ import (
 	"time"
 )
 
-//func drain(node corev1.Node) error {
-//
-//	return nil
-//}
-//
-//func removeTaint(node *corev1.Node) {
-//
-//	taints := node.Spec.Taints
-//
-//	if len(taints) == 0 {
-//		return
-//	}
-//
-//	taintToRemove := corev1.Taint{
-//		Key:    "minor-upgrade-running",
-//		Value:  "processing",
-//		Effect: corev1.TaintEffectNoSchedule,
-//	}
-//
-//	newTaints := []corev1.Taint{taintToRemove}
-//
-//	for _, taint := range taints {
-//		if taint.MatchTaint(&taintToRemove) {
-//			continue
-//		}
-//
-//		newTaints = append(newTaints, taint)
-//	}
-//
-//	node.Spec.Taints = newTaints
-//}
-//
-//func addTaint(node *corev1.Node) {
-//
-//	taints := node.Spec.Taints
-//
-//	// TODO: declare as a struct maybe?
-//	taintToAdd := corev1.Taint{
-//		Key:    "minor-upgrade-running",
-//		Value:  "processing",
-//		Effect: corev1.TaintEffectNoSchedule,
-//	}
-//
-//	newTaints := []corev1.Taint{taintToAdd}
-//
-//	if len(taints) != 0 {
-//		for _, taint := range taints {
-//			if taint.MatchTaint(&taintToAdd) {
-//				return
-//			}
-//
-//			newTaints = append(newTaints, taint)
-//		}
-//
-//		return
-//	}
-//
-//	node.Spec.Taints = newTaints
-//}
-//
-//func uncordon(node *corev1.Node) error {
-//
-//	return nil
-//}
-
-// be careful about the different version across
-// the nodes
-
-// TODO: for testing purposes, try the current version
-
-// TODO: run only in the second node
-
 func TestMinorUpgrade(namespace string) {
 
 	logger, err := zap.NewProduction()
@@ -136,24 +64,6 @@ func TestMinorUpgrade(namespace string) {
 		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node.Name)
 
-		// TODO: instead of pod monitoring for creation, monitor for successful restarts
-		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
-		//  if er != nil {
-		//  	c.log.Error("error restarting pods for certificate renewal",
-		//	    	zap.Error(er))
-		//	  //retry logic
-		//	 // return er
-		//	 break
-		//  }
-
-		// TODO: drain add node selector or something,
-		//   add the same thing on the necessary pods(except for ds)
-
-		//  TODO: after the pod is scheduled
-		//   must first drain the node
-		//   if failed, must be tainted again to
-		//   schedule nodes
-
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{
 				Key:               "minor-upgrade-running",
@@ -164,7 +74,7 @@ func TestMinorUpgrade(namespace string) {
 			},
 		}
 
-		err = drain(node)
+		err = drain(c, node)
 		if err != nil {
 			c.log.Error("failed to drain node",
 				zap.String("node name:", node.Name),

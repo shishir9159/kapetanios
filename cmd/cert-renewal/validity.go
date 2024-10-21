@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// WARNING: for externally managed being true
+
 var (
 	certPeriodValidationMutex  sync.Mutex
 	certPeriodValidationCached = map[string]struct{}{}

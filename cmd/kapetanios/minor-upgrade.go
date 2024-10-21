@@ -6,10 +6,44 @@ import (
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubectl/pkg/drain"
+	"os"
 	"time"
 )
 
-func drain(node corev1.Node) error {
+func drainAndCordonNode(c Controller, node *corev1.Node) error {
+
+	drainer := &drain.Helper{
+		Client:                          c.client.Clientset(),
+		DisableEviction:                 true,
+		Force:                           true, // TODO: should it be Force eviction?
+		IgnoreAllDaemonSets:             true,
+		DeleteEmptyDirData:              true,
+		SkipWaitForDeleteTimeoutSeconds: 30,
+		Timeout:                         5 * time.Minute,
+		GracePeriodSeconds:              10,
+		Out:                             os.Stdout,
+		ErrOut:                          os.Stderr,
+	}
+
+	// TODO: add namespace in the controller itself
+
+	options := metav1.ApplyOptions{
+		TypeMeta:     metav1.TypeMeta{},
+		DryRun:       nil,
+		Force:        false,
+		FieldManager: "",
+	}
+
+	err := drain.RunCordonOrUncordon(drainer, node, true)
+	if err != nil {
+
+	}
+
+	err = drain.RunNodeDrain(drainer, node.Name)
+	if err != nil {
+
+	}
 
 	return nil
 }
@@ -67,11 +101,6 @@ func addTaint(node *corev1.Node) {
 	}
 
 	node.Spec.Taints = newTaints
-}
-
-func uncordon(node *corev1.Node) error {
-
-	return nil
 }
 
 // be careful about the different version across
@@ -159,7 +188,7 @@ func MinorUpgrade(namespace string) {
 			},
 		}
 
-		err = drain(node)
+		err = drain(c, node)
 		if err != nil {
 			c.log.Error("failed to drain node",
 				zap.String("node name:", node.Name),
