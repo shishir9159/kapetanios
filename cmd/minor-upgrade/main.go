@@ -49,11 +49,16 @@ func main() {
 			zap.Error(err))
 	}
 
+	// todo: include in the testing
+	current := true
 	latest := false
 	version := ""
 
-	if latest {
+	if current {
+		//version = kubernetesVersion
+	}
 
+	if latest {
 	}
 
 	// TODO:
