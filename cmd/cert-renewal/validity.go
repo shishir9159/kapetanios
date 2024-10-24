@@ -8,6 +8,17 @@ import (
 	"time"
 )
 
+// TODO: validity check only pods
+
+// TODO: if "externally managed" value shows yes
+//  suggestions:
+//  step 1. cordon, drain, delete: kubectl drain <node-name> --ignore-daemonsets --delete-local-data; kubectl delete node <node-name>
+//  step 2. kubeadm token create --print-join-command --config /etc/kubernetes/kubeadm/kubeadm-config.yaml
+//  step 3. kubeadm init phase upload-certs --upload-certs --config /etc/kubernetes/kubeadm/kubeadm-config.yaml
+//  step 4. kubeadm join <master-node>:6443 --token <23-characters-long-token>
+//    --discovery-token-ca-cert-hash sha256:<64-characters-long-token> --control-plane --certificate-key
+//   <64-characters-long-certificate-from-the-output-of-step-3> --apiserver-advertise-address <master-node-ip> --v=14
+
 // WARNING: for externally managed being true
 
 var (
