@@ -69,11 +69,16 @@ func Rollback(namespace string) {
 			zap.Error(err))
 	}
 
+	// TODO: refactor this part to orchestrator
+
 	for index, node := range nodes.Items {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/rollback", roleName, node.Name)
+
+		// TODO: if etcd exists in the node (check by IP)
+		//  add environment value to restart etcd or not
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods this logic need to be in the orchestration too

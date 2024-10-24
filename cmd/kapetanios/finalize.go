@@ -127,11 +127,16 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 		nodes = append(nodes, etcdNode.Name)
 	}
 
+	// TODO: refactor this part to orchestrator
+
 	for index, node := range nodes {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/etcd-restart", roleName, node)
+
+		// TODO: if etcd exists in the node (check by IP)
+		//  add environment value to restart etcd or not
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods this logic need to be in the orchestration too

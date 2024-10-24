@@ -97,9 +97,12 @@ func addTaint(node *corev1.Node) {
 // be careful about the different version across
 // the nodes
 
-// TODO: for testing purposes, try the current version
+// TODO: https://v1-27.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#recovering-from-a-failure-state
+func recovery(namespace string) {
 
-// TODO: run only in the second node
+}
+
+// TODO: for testing purposes, try the current version
 
 func MinorUpgrade(namespace string) {
 
@@ -146,6 +149,8 @@ func MinorUpgrade(namespace string) {
 			//	return err or call grpc
 			zap.Error(err))
 	}
+
+	// TODO: refactor this part to orchestrator
 
 	for index, node := range nodes.Items {
 
@@ -223,6 +228,8 @@ func MinorUpgrade(namespace string) {
 		// todo: wait for request for restart from the minions
 		time.Sleep(5 * time.Second)
 
+		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
+		//   check if previously listed pods are all successfully restarted before untainted
 		removeTaint(&node)
 	}
 }

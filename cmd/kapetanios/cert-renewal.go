@@ -67,6 +67,8 @@ func Cert(namespace string) {
 		//	return err or call grpc
 	}
 
+	// TODO: refactor this part to orchestrator
+
 	for index, node := range nodes.Items {
 
 		// namespace should only be included after the consideration for the existing
