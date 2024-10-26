@@ -19,6 +19,8 @@ import (
 //    --discovery-token-ca-cert-hash sha256:<64-characters-long-token> --control-plane --certificate-key
 //   <64-characters-long-certificate-from-the-output-of-step-3> --apiserver-advertise-address <master-node-ip> --v=14
 
+// should it be with certs renewal and minor-upgrade?
+
 // WARNING: for externally managed being true
 
 var (
