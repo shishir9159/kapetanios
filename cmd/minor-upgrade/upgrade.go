@@ -104,7 +104,11 @@ func Upgrade(log *zap.Logger, version string) (bool, error) {
 	}
 
 	// TODO: get the version number from the upgrade plan
-	k8sVersion := "v" + version[:-3]
+	k8sVersion := "v" + version[:6]
+
+	// TODO: Same as the first control plane node but use
+	//  kubeadm upgrade node
+	//  (get this info from an environment value)
 
 	// TODO: certificate-renewal boolean
 	cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+k8sVersion+" --certificate-renewal=false -y")
@@ -161,17 +165,56 @@ func Upgrade(log *zap.Logger, version string) (bool, error) {
 	//		return false, err
 	//	}
 
-	cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+version+" --certificate-renewal=false -y")
+	cmd = exec.Command("/bin/bash", "-c", "apt-mark unhold kubelet kubectl && apt-get update && apt-get install -y kubelet="+version+" kubectl="+version+" && apt-mark hold kubelet kubectl")
 	err = cmd.Run()
 
-	// TODO: Same as the first control plane node but use
-	//  sudo kubeadm upgrade node
-	//  (get this info from an environment value)
+	// TODO: process the output
+	// kubectl was already not on hold.
+	//Hit:1 https://mirror.hetzner.com/ubuntu/packages jammy InRelease
+	//Hit:2 https://mirror.hetzner.com/ubuntu/packages jammy-updates InRelease
+	//Hit:3 https://mirror.hetzner.com/ubuntu/packages jammy-backports InRelease
+	//Hit:4 https://mirror.hetzner.com/ubuntu/security jammy-security InRelease
+	//Hit:5 https://download.docker.com/linux/ubuntu jammy InRelease
+	//Hit:6 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  InRelease
+	//Reading package lists... Done
+	//Reading package lists... Done
+	//Building dependency tree... Done
+	//Reading state information... Done
+	//The following packages will be upgraded:
+	//  kubectl kubelet
+	//2 upgraded, 0 newly installed, 0 to remove and 1 not upgraded.
+	//Need to get 30.6 MB of archives.
+	//After this operation, 12.3 kB of additional disk space will be used.
+	//Get:1 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubectl 1.26.5-1.1 [10.1 MB]
+	//Get:2 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubelet 1.26.5-1.1 [20.5 MB]
+	//Fetched 30.6 MB in 2s (15.3 MB/s)
+	//(Reading database ... 82511 files and directories currently installed.)
+	//Preparing to unpack .../kubectl_1.26.5-1.1_amd64.deb ...
+	//Unpacking kubectl (1.26.5-1.1) over (1.26.4-1.1) ...
+	//Preparing to unpack .../kubelet_1.26.5-1.1_amd64.deb ...
+	//Unpacking kubelet (1.26.5-1.1) over (1.26.4-1.1) ...
+	//Setting up kubectl (1.26.5-1.1) ...
+	//Setting up kubelet (1.26.5-1.1) ...
+	//Scanning processes...
+	//Scanning candidates...
+	//Scanning linux images...
+	//
+	//Restarting services...
+	// systemctl restart kubelet.service
+	//
+	//No containers need to be restarted.
+	//
+	//No user sessions are running outdated binaries.
+	//
+	//No VM guests are running outdated hypervisor (qemu) binaries on this host.
 
 	// NOTE: Usage of the --config flag of kubeadm upgrade with kubeadm configuration
 	// API types with the purpose of reconfiguring the cluster is not recommended and
 	// can have unexpected results. Follow the steps in Reconfiguring a kubeadm
 	// cluster instead: https://v1-27.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-reconfigure/
+
+	// TODO: sudo systemctl daemon-reload
+	//  sudo systemctl restart kubelet
 
 	if err = changedRoot(); err != nil {
 		log.Fatal("Failed to exit from the updated root",
