@@ -204,6 +204,11 @@ func MinorUpgrade(namespace string) {
 		err = drain.RunCordonOrUncordon(&drain.Helper{}, &node, false)
 
 		// TODO:
+		//  check for pods stuck in the terminating state
+		//  if any pods other than the whitelisted ones are still in the node,
+		//  force delete
+
+		// TODO:
 		//  if the pod doesn't schedule, check for taint
 		//  check for all pod related event with informer
 

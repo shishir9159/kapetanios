@@ -29,6 +29,41 @@ func Upgrade(log *zap.Logger, version string) (bool, error) {
 	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold kubeadm && apt-get update && apt-get install -y kubeadm="+version+" && apt-mark hold kubeadm")
 	err = cmd.Run()
 
+	// TODO: possible output format
+	//kubeadm was already not on hold.
+	//Hit:1 https://mirror.hetzner.com/ubuntu/packages jammy InRelease
+	//Hit:2 https://mirror.hetzner.com/ubuntu/packages jammy-updates InRelease
+	//Hit:3 https://mirror.hetzner.com/ubuntu/packages jammy-backports InRelease
+	//Hit:4 https://mirror.hetzner.com/ubuntu/security jammy-security InRelease
+	//Hit:5 https://download.docker.com/linux/ubuntu jammy InRelease
+	//Hit:6 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  InRelease
+	//Reading package lists... Done
+	//Reading package lists... Done
+	//Building dependency tree... Done
+	//Reading state information... Done
+	//The following packages will be upgraded:
+	//  kubeadm
+	//1 upgraded, 0 newly installed, 0 to remove and 2 not upgraded.
+	//Need to get 9,746 kB of archives.
+	//After this operation, 4,096 B of additional disk space will be used.
+	//Get:1 https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v1.26/deb  kubeadm 1.26.5-1.1 [9,746 kB]
+	//Fetched 9,746 kB in 2s (4,044 kB/s)
+	//(Reading database ... 82511 files and directories currently installed.)
+	//Preparing to unpack .../kubeadm_1.26.5-1.1_amd64.deb ...
+	//Unpacking kubeadm (1.26.5-1.1) over (1.26.4-1.1) ...
+	//Setting up kubeadm (1.26.5-1.1) ...
+	//Scanning processes...
+	//Scanning linux images...
+	//
+	//No services need to be restarted.
+	//
+	//No containers need to be restarted.
+	//
+	//No user sessions are running outdated binaries.
+	//
+	//No VM guests are running outdated hypervisor (qemu) binaries on this host.
+	//kubeadm set on hold.
+
 	time.Sleep(4 * time.Second)
 	if err != nil {
 		log.Error("Failed to install kubeadm",

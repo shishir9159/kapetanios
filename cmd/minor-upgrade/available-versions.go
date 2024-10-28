@@ -30,7 +30,7 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 
 	// TODO: detect redhat, and run: yum list --showduplicates kubeadm --disableexcludes=kubernetes
 
-	cmd = exec.Command("/bin/bash", "-c", "apt-cache madison kubeadm")
+	cmd = exec.Command("/bin/bash", "-c", "apt-cache madison kubeadm | awk '{ print $3 }'")
 	//wait.PollUntilContextTimeout()
 
 	err = cmd.Run()

@@ -89,6 +89,9 @@ func main() {
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
+	// TODO:
+	//  --certificate-renewal=false
+
 	// upgradeSuccess
 	_, err = Upgrade(c.log, version)
 	if err != nil {

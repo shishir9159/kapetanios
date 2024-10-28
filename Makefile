@@ -13,6 +13,7 @@ GOVERSION := 'go1.23.1'
 protogen:
 	@printf $(COLOR) "Generating gRPC code"
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/cert-renewal.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/cert-expiration.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/rollback.proto
 go-protogen:
@@ -36,6 +37,12 @@ kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/kapetanios:latest
 	docker push quay.io/klovercloud/kapetanios:latest
+
+.PHONY: cert-expiration
+cert-expiration:
+	@printf $(COLOR) "Building docker image for cert-expiration minions and pushing it to the registry..."
+	docker build . -t quay.io/klovercloud/certs-expiration:latest -f certs-expiration.Dockerfile
+ 	docker push quay.io/klovercloud/certs-expiration:latest
 
 .PHONY: cert-renewal
 cert-renewal:
