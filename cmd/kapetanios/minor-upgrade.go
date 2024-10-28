@@ -2,15 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubectl/pkg/drain"
 	"os"
-	"sort"
-	"sync"
 	"time"
 )
 
@@ -105,43 +102,7 @@ func recovery(namespace string) {
 
 }
 
-func next() {
-		current := util.MustParseSemantic(current)
-		target := util.MustParseSemantic(desired)
-		var nextMinor uint
-		if target.Minor() == current.Minor() {
-			nextMinor = current.Minor()
-		} else {
-			nextMinor = current.Minor() + 1
-		}
-
-		if nextMinor == target.Minor() {
-			if _, ok := files.FileSha256["kubeadm"]["amd64"][desired]; !ok {
-				return "", errors.Errorf("the target  %s is not supported", desired)
-			}
-			return desired, nil
-		} else {
-			nextPatchList := make([]int, 0)
-			for supportStr := range files.FileSha256["kubeadm"]["amd64"] {
-				support := util.MustParseSemantic(supportStr)
-				if support.Minor() == nextMinor {
-					nextPatchList = append(nextPatchList, int(support.Patch()))
-				}
-			}
-			sort.Ints(nextPatchList)
-
-			next := current.WithMinor(nextMinor)
-			if len(nextPatchList) == 0 {
-				return "", errors.Errorf("Kubernetes minor  v%d.%d.x is not supported", next.Major(), next.Minor())
-			}
-			next = next.WithPatch(uint(nextPatchList[len(nextPatchList)-1]))
-
-			return fmt.Sprintf("v%s", next.String()), nil
-		}
-	}
-}
-
-// TODO: for testing purposes, try the current 
+// TODO: for testing purposes, try the current
 
 func MinorUpgrade(namespace string) {
 
@@ -167,7 +128,6 @@ func MinorUpgrade(namespace string) {
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
-
 
 	if err != nil {
 		c.log.Error("error creating kubernetes client",
