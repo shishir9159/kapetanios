@@ -6,10 +6,12 @@ import (
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"sync"
 	"time"
 )
 
 type Controller struct {
+	mu     sync.Mutex
 	client *orchestration.Client
 	ctx    context.Context
 	log    *zap.Logger

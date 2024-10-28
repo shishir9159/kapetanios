@@ -22,7 +22,9 @@ func Upgrade(log *zap.Logger, version string) (bool, error) {
 		return false, err
 	}
 
-	// Copy Recursively
+	//var Stdin io.Reader
+	//var Stdout io.Writer
+	//var Stderr io.Writer
 
 	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold kubeadm && apt-get update && apt-get install -y kubeadm="+version+" && apt-mark hold kubeadm")
 	err = cmd.Run()
