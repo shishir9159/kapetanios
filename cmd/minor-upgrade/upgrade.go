@@ -103,17 +103,66 @@ func Upgrade(log *zap.Logger, version string) (bool, error) {
 		return false, err
 	}
 
-	// kubeadm version
+	// TODO: get the version number from the upgrade plan
+	k8sVersion := "v" + version[:-3]
 
-	//cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply v1.27.x")
-	//err = cmd.Run()
+	// TODO: certificate-renewal boolean
+	cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+k8sVersion+" --certificate-renewal=false -y")
+	err = cmd.Run()
+	//[upgrade/config] Making sure the configuration is correct:
+	//[upgrade/config] Reading configuration from the cluster...
+	//[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+	//[preflight] Running pre-flight checks.
+	//[upgrade] Running cluster health checks
+	//[upgrade/version] You have chosen to change the cluster version to "v1.26.5"
+	//[upgrade/versions] Cluster version: v1.26.15
+	//[upgrade/versions] kubeadm version: v1.26.5
+	//[upgrade/prepull] Pulling images required for setting up a Kubernetes cluster
+	//[upgrade/prepull] This might take a minute or two, depending on the speed of your internet connection
+	//[upgrade/prepull] You can also perform this action in beforehand using 'kubeadm config images pull'
+	//[upgrade/apply] Upgrading your Static Pod-hosted control plane to version "v1.26.5" (timeout: 5m0s)...
+	//[upgrade/staticpods] Writing new Static Pod manifests to "/etc/kubernetes/tmp/kubeadm-upgraded-manifests2320749046"
+	//[upgrade/staticpods] Preparing for "kube-apiserver" upgrade
+	//[upgrade/staticpods] Moved new manifest to "/etc/kubernetes/manifests/kube-apiserver.yaml" and backed up old manifest to "/etc/kubernetes/tmp/kubeadm-backup-manifests-2024-10-28-13-56-36/kube-apiserver.yaml"
+	//[upgrade/staticpods] Waiting for the kubelet to restart the component
+	//[upgrade/staticpods] This might take a minute or longer depending on the component/version gap (timeout 5m0s)
+	//[apiclient] Found 1 Pods for label selector component=kube-apiserver
+	//[upgrade/staticpods] Component "kube-apiserver" upgraded successfully!
+	//[upgrade/staticpods] Preparing for "kube-controller-manager" upgrade
+	//[upgrade/staticpods] Moved new manifest to "/etc/kubernetes/manifests/kube-controller-manager.yaml" and backed up old manifest to "/etc/kubernetes/tmp/kubeadm-backup-manifests-2024-10-28-13-56-36/kube-controller-manager.yaml"
+	//[upgrade/staticpods] Waiting for the kubelet to restart the component
+	//[upgrade/staticpods] This might take a minute or longer depending on the component/version gap (timeout 5m0s)
+	//[apiclient] Found 1 Pods for label selector component=kube-controller-manager
+	//[upgrade/staticpods] Component "kube-controller-manager" upgraded successfully!
+	//[upgrade/staticpods] Preparing for "kube-scheduler" upgrade
+	//[upgrade/staticpods] Moved new manifest to "/etc/kubernetes/manifests/kube-scheduler.yaml" and backed up old manifest to "/etc/kubernetes/tmp/kubeadm-backup-manifests-2024-10-28-13-56-36/kube-scheduler.yaml"
+	//[upgrade/staticpods] Waiting for the kubelet to restart the component
+	//[upgrade/staticpods] This might take a minute or longer depending on the component/version gap (timeout 5m0s)
+	//[apiclient] Found 1 Pods for label selector component=kube-scheduler
+	//[upgrade/staticpods] Component "kube-scheduler" upgraded successfully!
+	//[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+	//[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
+	//[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+	//[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
+	//[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+	//[bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+	//[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+	//[addons] Applied essential addon: CoreDNS
+	//[addons] Applied essential addon: kube-proxy
+	//
+	//[upgrade/successful] SUCCESS! Your cluster was upgraded to "v1.26.5". Enjoy!
+	//
+	//[upgrade/kubelet] Now that your control plane is upgraded, please proceed with upgrading your kubelets if you haven't already done so.
 
-	//ime.Sleep(4 * time.Second)
+	//time.Sleep(4 * time.Second)
 	//	if err != nil {
 	//		log.Error("Failed to upgrade kubeadm",
 	//			zap.Error(err))
 	//		return false, err
 	//	}
+
+	cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+version+" --certificate-renewal=false -y")
+	err = cmd.Run()
 
 	// TODO: Same as the first control plane node but use
 	//  sudo kubeadm upgrade node
