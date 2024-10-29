@@ -111,7 +111,7 @@ func Upgrade(log *zap.Logger, version string) (bool, error) {
 	//  (get this info from an environment value)
 
 	// TODO: certificate-renewal boolean
-	cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+k8sVersion+" --certificate-renewal=false -y")
+	cmd = exec.Command("/bin/bash", "-c", "DEBIAN_FRONTEND=noninteractive kubeadm upgrade apply "+k8sVersion+" --certificate-renewal=false -y")
 	err = cmd.Run()
 	//[upgrade/config] Making sure the configuration is correct:
 	//[upgrade/config] Reading configuration from the cluster...
