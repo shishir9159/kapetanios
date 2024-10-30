@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"io"
 	"os"
 	"os/exec"
 	"time"
@@ -97,8 +99,12 @@ func k8sComponentsUpgrade(log *zap.Logger, k8sComponents string, version string)
 			zap.Error(err))
 		return false, err
 	}
+	var stdoutBuf, stderrBuf bytes.Buffer
 
-	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' && apt-mark hold kubeadm")
+	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' && apt-mark hold kubeadm")
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
 	err = cmd.Run()
 
 	if err != nil {

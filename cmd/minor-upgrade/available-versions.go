@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -58,14 +59,12 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 		zap.String("outStr", outStr),
 		zap.String("errStr", errStr))
 
+	availableVersionSlice := strings.Split(outStr, "\n")
+
 	if err = changedRoot(); err != nil {
 		log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
 
-	// TODO:
-	//  Check for kubernetes repo if no version is found
-	//  disableexclude
-
-	return nil, nil
+	return availableVersionSlice, nil
 }

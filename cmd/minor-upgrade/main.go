@@ -44,7 +44,7 @@ func main() {
 	availableVersion, err := availableVersions(c.log)
 
 	if len(availableVersion) == 0 {
-		c.log.Error("no available versions for minor upgrade",
+		c.log.Fatal("no available versions for minor upgrade",
 			zap.Error(err))
 	}
 
@@ -72,7 +72,7 @@ func main() {
 
 	kubeadmUpgrade, err := k8sComponentsUpgrade(c.log, "kubeadm", version)
 	if err != nil {
-		c.log.Error("failed to get upgrade plan",
+		c.log.Error("failed to get upgrade kubeadm",
 			zap.Error(err))
 	}
 
