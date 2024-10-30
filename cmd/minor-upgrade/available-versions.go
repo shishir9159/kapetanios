@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -16,9 +17,9 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 		return nil, err
 	}
 
-	// Copy Recursively
-
 	cmd := exec.Command("/bin/bash", "-c", "apt update -y")
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
 	err = cmd.Run()
 
 	time.Sleep(4 * time.Second)

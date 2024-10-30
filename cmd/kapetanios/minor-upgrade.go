@@ -102,9 +102,7 @@ func recovery(namespace string) {
 
 }
 
-// TODO: for testing purposes, try the current
-
-// TODO: reorder everything
+// TODO: for testing purposes, try the current master node 1
 
 func MinorUpgrade(namespace string) {
 

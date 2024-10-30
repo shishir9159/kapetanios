@@ -30,5 +30,7 @@ func Diff(log *zap.Logger, version string) (string, error) {
 	//	kubeadm upgrade node (name) [version] --dry-run
 	//
 
+	diff := ""
+
 	return diff, nil
 }

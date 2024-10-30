@@ -35,8 +35,7 @@ func main() {
 		}
 	}(logger)
 
-	// kernel version compatibility
-
+	// TODO:
 	err = Prerequisites()
 	if err != nil {
 
@@ -49,10 +48,15 @@ func main() {
 			zap.Error(err))
 	}
 
+	if err != nil {
+		c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
+			zap.Error(err))
+	}
+
 	// todo: include in the testing
 	current := true
 	latest := false
-	version := ""
+	version := "1.26.5-1.1"
 
 	if current {
 		//version = kubernetesVersion
@@ -66,18 +70,23 @@ func main() {
 	//  check if that matches with upgradePlane
 	//  if the latest is selected
 
-	upgradePlan, err := UpgradePlan(c.log, version)
+	kubeadmUpgrade, err := k8sComponentsUpgrade(c.log, "kubeadm", version)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
 
+	if !kubeadmUpgrade {
+
+	}
+
+	plan, err := upgradePlan(c.log)
 	if err != nil {
-		c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
+		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
 
-	diff, err := Diff(c.log, upgradePlan)
+	diff, err := Diff(c.log, plan)
 	if err != nil {
 		c.log.Error("failed to get diff",
 			zap.Error(err))
@@ -86,18 +95,38 @@ func main() {
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
-	c.log.Info("diff for upgrade plan",
-		zap.String("diff", diff))
+	k8sUpgrade, err := clusterUpgrade(c.log, version)
+	if err != nil {
+		c.log.Error("failed to get upgrade plan",
+			zap.Error(err))
+	}
+
+	if !k8sUpgrade {
+
+	}
+
+	kubeletUpgrade, err := k8sComponentsUpgrade(c.log, "kubelet", version)
+	if err != nil {
+		c.log.Error("failed to get upgrade plan",
+			zap.Error(err))
+	}
+
+	if kubeletUpgrade {
+		// TODO: sudo systemctl daemon-reload
+		//  sudo systemctl restart kubelet
+	}
+
+	kubectlUpgrade, err := k8sComponentsUpgrade(c.log, "kubectl", version)
+	if err != nil {
+		c.log.Error("failed to get upgrade plan",
+			zap.Error(err))
+	}
+
+	if kubectlUpgrade {
+	}
 
 	// TODO:
 	//  --certificate-renewal=false
-
-	// upgradeSuccess
-	_, err = Upgrade(c.log, version)
-	if err != nil {
-		c.log.Error("failed to renew certificates and kubeConfigs",
-			zap.Error(err))
-	}
 
 	GrpcClient(c.log)
 }
