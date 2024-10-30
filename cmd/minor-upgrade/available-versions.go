@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"io"
 	"os"
 	"os/exec"
 	"time"
@@ -31,7 +33,12 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 
 	// TODO: detect redhat, and run: yum list --showduplicates kubeadm --disableexcludes=kubernetes
 
-	cmd.Args = append([]string{cmd.Path}, "-c apt-cache madison kubeadm | awk '{ print $3 }'")
+	cmd = exec.Command("/bin/bash", "-c", "apt-cache madison kubeadm | awk '{ print $3 }'")
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
 	//wait.PollUntilContextTimeout()
 
 	err = cmd.Run()
@@ -45,6 +52,11 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 			zap.Error(err))
 		return nil, err
 	}
+
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info("outString and errString",
+		zap.String("outStr", outStr),
+		zap.String("errStr", errStr))
 
 	if err = changedRoot(); err != nil {
 		log.Fatal("Failed to exit from the updated root",
