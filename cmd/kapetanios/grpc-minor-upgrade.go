@@ -24,8 +24,6 @@ type minorUpgradeServer struct {
 
 // StatusUpdate implements proto.Upgrade
 func (s *minorUpgradeServer) StatusUpdate(_ context.Context, in *pb.CreateUpgradeRequest) (*pb.CreateUpgradeResponse, error) {
-	log.Printf("Received backup sucess: %v", in.GetBackupSuccess())
-	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
 	log.Printf("Received restart sucess: %v", in.GetRestartSuccess())
 	log.Printf("Received retry attempt: %d", in.GetRetryAttempt())
 	log.Printf("Received log: %v", in.GetLog())
@@ -43,7 +41,7 @@ func MinorUpgradeGrpc(log *zap.Logger) {
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterRenewalServer(s, &minorUpgradeServer{})
+	//pb.RegisterRenewalServer(s, &minorUpgradeServer{})
 
 	log.Info("upgrade sever listening")
 	if er := s.Serve(lis); er != nil {
