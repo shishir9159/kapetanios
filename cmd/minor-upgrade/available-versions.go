@@ -31,12 +31,10 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 
 	// TODO: detect redhat, and run: yum list --showduplicates kubeadm --disableexcludes=kubernetes
 
-	cmdTry := exec.Command("/bin/bash", "-c", "apt-cache madison kubeadm | awk '{ print $3 }'")
-	cmdTry.Stderr = os.Stderr
-	cmdTry.Stdout = os.Stdout
+	cmd.Args = append([]string{cmd.Path}, "-c apt-cache madison kubeadm | awk '{ print $3 }'")
 	//wait.PollUntilContextTimeout()
 
-	err = cmdTry.Run()
+	err = cmd.Run()
 	// output delimiter is " | "
 	// extract second and the third column
 
