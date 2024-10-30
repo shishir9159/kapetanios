@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
@@ -59,7 +60,9 @@ func removeTaint(node *corev1.Node) {
 		Effect: corev1.TaintEffectNoSchedule,
 	}
 
-	newTaints := []corev1.Taint{taintToRemove}
+	fmt.Println(taints)
+
+	var newTaints []corev1.Taint
 
 	for _, taint := range taints {
 		if taint.MatchTaint(&taintToRemove) {
@@ -75,6 +78,8 @@ func removeTaint(node *corev1.Node) {
 func addTaint(node *corev1.Node) {
 
 	taints := node.Spec.Taints
+
+	fmt.Println(taints)
 
 	// TODO: declare as a struct maybe?
 	taintToAdd := corev1.Taint{
@@ -96,6 +101,8 @@ func addTaint(node *corev1.Node) {
 
 		return
 	}
+
+	fmt.Println(newTaints)
 
 	node.Spec.Taints = newTaints
 }
