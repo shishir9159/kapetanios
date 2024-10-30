@@ -7,7 +7,7 @@ COPY . ./
 RUN go build -C ./cmd/kapetanios -o main
 
 FROM debian:bookworm-slim
-RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN set -x && apt-get update && apt-get install -y \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 

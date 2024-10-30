@@ -104,6 +104,8 @@ func recovery(namespace string) {
 
 // TODO: for testing purposes, try the current
 
+// TODO: reorder everything
+
 func MinorUpgrade(namespace string) {
 
 	logger, err := zap.NewProduction()
