@@ -11,7 +11,7 @@ import (
 )
 
 type Controller struct {
-	mu     *sync.Mutex
+	mu     sync.Mutex
 	client *orchestration.Client
 	ctx    context.Context
 	log    *zap.Logger
