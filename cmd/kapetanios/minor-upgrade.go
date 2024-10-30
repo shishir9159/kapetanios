@@ -14,7 +14,7 @@ import (
 func drainAndCordonNode(c Controller, node *corev1.Node) error {
 
 	drainer := &drain.Helper{
-		Ctx:                             context.Background(),
+		Ctx:                             context.TODO(),
 		Client:                          c.client.Clientset(),
 		DisableEviction:                 true,
 		Force:                           true, // TODO: should it be Force eviction?
