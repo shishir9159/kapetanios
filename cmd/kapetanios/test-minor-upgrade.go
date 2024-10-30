@@ -78,11 +78,10 @@ func TestMinorUpgrade(namespace string) {
 
 	descriptor.Spec.Tolerations = []corev1.Toleration{
 		{
-			Key:               "minor-upgrade-running",
-			Operator:          "Equal",
-			Value:             "processing",
-			Effect:            "NoSchedule",
-			TolerationSeconds: &[]int64{3}[0],
+			Key:      "minor-upgrade-running",
+			Operator: "Equal",
+			Value:    "processing",
+			Effect:   "NoSchedule",
 		},
 	}
 
