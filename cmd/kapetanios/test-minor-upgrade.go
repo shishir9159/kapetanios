@@ -85,6 +85,8 @@ func TestMinorUpgrade(namespace string) {
 		},
 	}
 
+	descriptor.Spec.HostNetwork = true
+
 	// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
 	//  then those Pods might be scheduled to the node you have drained.
 

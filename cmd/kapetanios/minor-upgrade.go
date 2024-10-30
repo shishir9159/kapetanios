@@ -13,7 +13,7 @@ import (
 
 func drainAndCordonNode(c Controller, node *corev1.Node) error {
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Minute)
 	defer cancel()
 
 	drainer := &drain.Helper{
@@ -24,7 +24,7 @@ func drainAndCordonNode(c Controller, node *corev1.Node) error {
 		IgnoreAllDaemonSets:             true,
 		DeleteEmptyDirData:              true,
 		SkipWaitForDeleteTimeoutSeconds: 30,
-		Timeout:                         2 * time.Minute,
+		Timeout:                         3 * time.Minute,
 		GracePeriodSeconds:              10,
 		Out:                             os.Stdout,
 		ErrOut:                          os.Stderr,
