@@ -86,6 +86,9 @@ func main() {
 			zap.Error(err))
 	}
 
+	// TODO: refactor
+	plan = "v1.26.6"
+
 	diff, err := Diff(c.log, plan)
 	if err != nil {
 		c.log.Error("failed to get diff",

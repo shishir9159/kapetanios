@@ -99,6 +99,7 @@ func k8sComponentsUpgrade(log *zap.Logger, k8sComponents string, version string)
 			zap.Error(err))
 		return false, err
 	}
+
 	var stdoutBuf, stderrBuf bytes.Buffer
 
 	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' && apt-mark hold kubeadm")
@@ -113,8 +114,18 @@ func k8sComponentsUpgrade(log *zap.Logger, k8sComponents string, version string)
 		return false, err
 	}
 
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info("outString and errString",
+		zap.String("outStr", outStr),
+		zap.String("errStr", errStr))
+
 	cmd = exec.Command("/bin/bash", "-c", "kubeadm version")
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+
 	err = cmd.Run()
+	outStr = string(stdoutBuf.Bytes())
+	log.Info("outString kubeadm version",
+		zap.String("outStr", outStr))
 
 	time.Sleep(4 * time.Second)
 	if err != nil {
