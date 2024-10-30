@@ -215,7 +215,6 @@ func upgradePlan(log *zap.Logger) (string, error) {
 	if err != nil {
 		log.Error("Failed to get kubeadm upgrade plan",
 			zap.Error(err))
-		return "", err
 	}
 
 	//  W1018 10:00:57.703527  599279 common.go:84] your configuration file uses a deprecated API spec: "kubeadm.k8s.io/v1beta2". Please use 'kubeadm config migrate --old-config old.yaml --new-config new.yaml', which will write the new, similar spec using a newer API version.
@@ -241,7 +240,7 @@ func upgradePlan(log *zap.Logger) (string, error) {
 			zap.Error(err))
 	}
 
-	return "", nil
+	return "", err
 }
 
 // TODO: process the output for kubectl and kubelet
