@@ -13,11 +13,8 @@ import (
 
 func drainAndCordonNode(c Controller, node *corev1.Node) error {
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Minute)
-	defer cancel()
-
 	drainer := &drain.Helper{
-		Ctx:                             ctx,
+		Ctx:                             c.ctx,
 		Client:                          c.client.Clientset(),
 		DisableEviction:                 true,
 		Force:                           true, // TODO: should it be Force eviction?

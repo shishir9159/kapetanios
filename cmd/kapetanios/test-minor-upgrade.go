@@ -6,7 +6,6 @@ import (
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubectl/pkg/drain"
 	"time"
 )
 
@@ -27,7 +26,7 @@ func TestMinorUpgrade(namespace string) {
 	// TODO: add namespace in the controller itself
 	c := Controller{
 		client: client,
-		ctx:    context.Background(),
+		ctx:    context.TODO(),
 		log:    logger,
 	}
 
@@ -43,7 +42,7 @@ func TestMinorUpgrade(namespace string) {
 
 	renewalMinionManager := orchestration.NewMinions(client)
 
-	nodes, err := c.client.Clientset().CoreV1().Nodes().Get(context.Background(), "shihab-node-1", metav1.GetOptions{})
+	nodes, err := c.client.Clientset().CoreV1().Nodes().Get(c.ctx, "shihab-node-1", metav1.GetOptions{})
 
 	// TODO: sort with control-plane role, error no master nodes found
 
@@ -81,9 +80,11 @@ func TestMinorUpgrade(namespace string) {
 			Key:      "minor-upgrade-running",
 			Operator: "Equal",
 			Value:    "processing",
-			Effect:   "NoSchedule",
+			// ---------
+			Effect: "NoSchedule",
 		},
 	}
+	// ----------
 
 	descriptor.Spec.HostNetwork = true
 
@@ -91,6 +92,9 @@ func TestMinorUpgrade(namespace string) {
 	//  then those Pods might be scheduled to the node you have drained.
 
 	// TODO: force drain boolean
+
+	c.log.Info("cordoning and draining node",
+		zap.String("node name", nodes.Name))
 
 	err = drainAndCordonNode(c, nodes)
 	if err != nil {
@@ -133,9 +137,27 @@ func TestMinorUpgrade(namespace string) {
 	//pod/coredns-787d4945fb-stk4w evicted
 	//pod/ingress-nginx-controller-5dcc84f655-pvdcc evicted
 
+	c.log.Info("tainting node",
+		zap.String("node name", nodes.Name))
+
 	addTaint(nodes)
 
-	err = drain.RunCordonOrUncordon(&drain.Helper{}, nodes, false)
+	// TODO: refactor
+	//drainer := &drain.Helper{
+	//	Ctx:                             c.ctx,
+	//	Client:                          c.client.Clientset(),
+	//	DisableEviction:                 true,
+	//	Force:                           true, // TODO: should it be Force eviction?
+	//	IgnoreAllDaemonSets:             true,
+	//	DeleteEmptyDirData:              true,
+	//	SkipWaitForDeleteTimeoutSeconds: 30,
+	//	Timeout:                         3 * time.Minute,
+	//	GracePeriodSeconds:              10,
+	//	Out:                             os.Stdout,
+	//	ErrOut:                          os.Stderr,
+	//}
+	//
+	//err = drain.RunCordonOrUncordon(drainer, nodes, false)
 
 	// TODO:
 	//  check for pods stuck in the terminating state
@@ -165,7 +187,7 @@ func TestMinorUpgrade(namespace string) {
 	c.log.Info("minor upgrade pod created",
 		zap.String("pod_name", minion.Name))
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(25 * time.Second)
 
 	// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 	//   check if previously listed pods are all successfully restarted before untainted
