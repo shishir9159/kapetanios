@@ -29,12 +29,17 @@ func drainAndCordonNode(c Controller, node *corev1.Node) error {
 
 	err := drain.RunCordonOrUncordon(drainer, node, true)
 	if err != nil {
+		c.log.Error("error cordoning node",
+			zap.String("node", node.Name),
+			zap.Error(err))
 
 	}
 
 	err = drain.RunNodeDrain(drainer, node.Name)
 	if err != nil {
-
+		c.log.Error("error draining node",
+			zap.String("node", node.Name),
+			zap.Error(err))
 	}
 
 	return nil
