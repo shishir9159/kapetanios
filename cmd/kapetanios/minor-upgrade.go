@@ -60,6 +60,7 @@ func removeTaint(node *corev1.Node) {
 		Effect: corev1.TaintEffectNoSchedule,
 	}
 
+	fmt.Println("removeTaint")
 	fmt.Println(taints)
 
 	var newTaints []corev1.Taint
@@ -72,12 +73,16 @@ func removeTaint(node *corev1.Node) {
 		newTaints = append(newTaints, taint)
 	}
 
+	fmt.Println(newTaints)
+
 	node.Spec.Taints = newTaints
 }
 
 func addTaint(node *corev1.Node) {
 
 	taints := node.Spec.Taints
+
+	fmt.Println("addTaint")
 
 	fmt.Println(taints)
 
