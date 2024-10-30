@@ -44,7 +44,7 @@ func main() {
 	availableVersion, err := availableVersions(c.log)
 
 	if len(availableVersion) == 0 {
-		c.log.Fatal("no available versions for minor upgrade",
+		c.log.Error("no available versions for minor upgrade",
 			zap.Error(err))
 	}
 
