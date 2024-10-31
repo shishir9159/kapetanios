@@ -161,6 +161,8 @@ func MinorUpgradeFirstRun(namespace string) {
 
 	// assuming there's only one instance of pod
 	kapetaniosNode := kapetaniosPod.Items[0].Spec.NodeName
+	c.log.Info("kapetanios node",
+		zap.String("kapetanios node", kapetaniosNode))
 
 	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
 
@@ -218,6 +220,9 @@ func MinorUpgradeFirstRun(namespace string) {
 
 			configMap.Data["TargetedVersion"] = targetedVersion
 			configMap.Data["NodesToBeUpgraded"] = strings.Join(nodeNames, ";")
+
+			c.log.Info("nodes to be upgraded",
+				zap.String("node to be", strings.Join(nodeNames, ";")))
 		}
 
 		// namespace should only be included after the consideration for the existing
