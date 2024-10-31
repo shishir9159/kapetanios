@@ -23,7 +23,7 @@ func Prerequisites(namespace string) {
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			logger.Fatal("error syncing logger before application terminates", zap.Error(err))
+			logger.Info("error syncing logger before application terminates", zap.Error(err))
 		}
 	}(logger)
 
