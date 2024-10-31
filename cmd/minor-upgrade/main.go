@@ -115,8 +115,7 @@ func main() {
 	}
 
 	if !kubeletUpgrade {
-		// TODO: sudo systemctl daemon-reload
-		//  sudo systemctl restart kubelet
+
 	}
 
 	err = restartKubelet(c)

@@ -32,9 +32,9 @@ func cleanup(c *fiber.Ctx) error {
 
 func minorUpgrade(c *fiber.Ctx) error {
 
-	go TestMinorUpgrade(minorUpgradeNamespace)
+	go MinorUpgradeFirstRun(minorUpgradeNamespace)
 
-	//go MinorUpgrade(minorUpgradeNamespace)
+	//go MinorUpgradeFirstRun(minorUpgradeNamespace)
 
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }

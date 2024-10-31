@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: kapetanios
 data:
+  kubernetesVersion: ""
+
   # kv format
   key: "value"
 

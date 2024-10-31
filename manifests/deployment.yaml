@@ -15,6 +15,7 @@ spec:
         app: kapetanios
     spec:
       containers:
+# TODO: update maxSurge value to keep max one instance
 # TODO: update the image name in readme
         - image: quay.io/klovercloud/kapetanios:latest
           imagePullPolicy: Always

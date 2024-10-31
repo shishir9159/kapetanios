@@ -12,6 +12,9 @@ import (
 
 func clusterUpgrade(log *zap.Logger, version string) (bool, error) {
 
+	firstNode := os.Getenv("FIRST_NODE_TO_BE_UPGRADED")
+	certRenewal := os.Getenv("CERTIFICATE_RENEWAL")
+
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		log.Error("Failed to create chroot on /host",
@@ -27,10 +30,15 @@ func clusterUpgrade(log *zap.Logger, version string) (bool, error) {
 	//  (get this info from an environment value)
 
 	// TODO: certificate-renewal boolean
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+k8sVersion+" --certificate-renewal=false -y")
-	err = cmd.Run()
+	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade node --certificate-renewal="+certRenewal+" -y")
+
+	if firstNode == "true" {
+		cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+k8sVersion+" --certificate-renewal="+certRenewal+" -y")
+	}
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
+
+	err = cmd.Run()
 	//[upgrade/config] Making sure the configuration is correct:
 	//[upgrade/config] Reading configuration from the cluster...
 	//[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
