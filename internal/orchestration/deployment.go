@@ -89,28 +89,36 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 					},
 					// ToDo:
 					//  make them available in debug mode
-					//Env: []corev1.EnvVar{
-					//	{
-					//		Name:  "GRPC_DNS_RESOLVER",
-					//		Value: "native",
-					//	},
-					//	{
-					//		Name:  "GRPC_GO_LOG_SEVERITY_LEVEL",
-					//		Value: "INFO",
-					//	},
-					//	{
-					//		Name:  "GRPC_GO_LOG_VERBOSITY_LEVEL",
-					//		Value: "99",
-					//	},
-					//	{
-					//		Name:  "GRPC_TRACE",
-					//		Value: "all",
-					//	},
-					//	{
-					//		Name:  "GODEBUG",
-					//		Value: "http2debug=2",
-					//	},
-					//},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "DEBIAN_FRONTEND",
+							Value: "noninteractive",
+						},
+						{
+							Name:  "NEEDRESTART_MODE",
+							Value: "a",
+						},
+						//	{
+						//		Name:  "GRPC_DNS_RESOLVER",
+						//		Value: "native",
+						//	},
+						//	{
+						//		Name:  "GRPC_GO_LOG_SEVERITY_LEVEL",
+						//		Value: "INFO",
+						//	},
+						//	{
+						//		Name:  "GRPC_GO_LOG_VERBOSITY_LEVEL",
+						//		Value: "99",
+						//	},
+						//	{
+						//		Name:  "GRPC_TRACE",
+						//		Value: "all",
+						//	},
+						//	{
+						//		Name:  "GODEBUG",
+						//		Value: "http2debug=2",
+						//	},
+					},
 				},
 			},
 			DNSPolicy:     corev1.DNSClusterFirst,

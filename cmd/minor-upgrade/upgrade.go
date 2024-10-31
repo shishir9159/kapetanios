@@ -102,7 +102,7 @@ func k8sComponentsUpgrade(log *zap.Logger, k8sComponents string, version string)
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 
-	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' && apt-mark hold kubeadm")
+	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' && apt-mark hold "+k8sComponents)
 	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
@@ -211,7 +211,6 @@ func upgradePlan(log *zap.Logger) (string, error) {
 	// to do so will cause kubeadm upgrade apply to exit with an error and not
 	// perform an upgrade.
 
-	time.Sleep(4 * time.Second)
 	if err != nil {
 		log.Error("Failed to get kubeadm upgrade plan",
 			zap.Error(err))

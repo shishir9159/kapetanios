@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"os"
 	"os/exec"
 )
 
@@ -21,19 +22,21 @@ func Diff(log *zap.Logger, version string) (string, error) {
 	// --config is not necessary as it is saved in the cm
 
 	//kubeadm upgrade diff to see the changes
-	cmd := exec.Command("kubeadm", "upgrade diff "+version+" --config /etc/kubernetes/kubeadm-config.yaml")
+	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade diff "+version+" --config /etc/kubernetes/kubeadm-config.yaml")
 	//cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
 	//cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+
 	// TODO:
 	//  try combinedOutput and revert back later
-	out, err := cmd.CombinedOutput()
+	//out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Info("cmd.Run() failed with",
 			zap.Error(err))
 	}
-	log.Info("combined output",
-		zap.String("output", string(out)))
 
 	// list all the node names
 	// and sort the list from the smallest worker node by resources

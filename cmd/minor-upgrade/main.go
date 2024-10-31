@@ -41,9 +41,9 @@ func main() {
 
 	}
 
-	availableVersion, err := availableVersions(c.log)
+	availableVersionList, err := availableVersions(c.log)
 
-	if len(availableVersion) == 0 {
+	if len(availableVersionList) == 0 {
 		c.log.Fatal("no available versions for minor upgrade",
 			zap.Error(err))
 	}
@@ -54,11 +54,11 @@ func main() {
 	}
 
 	// todo: include in the testing
-	current := true
+	testing := false
 	latest := false
-	version := "1.26.5-1.1"
+	version := "1.26.6-1.1"
 
-	if current {
+	if testing {
 		//version = kubernetesVersion
 	}
 
@@ -114,10 +114,12 @@ func main() {
 			zap.Error(err))
 	}
 
-	if kubeletUpgrade {
+	if !kubeletUpgrade {
 		// TODO: sudo systemctl daemon-reload
 		//  sudo systemctl restart kubelet
 	}
+
+	err = restartKubelet(c)
 
 	kubectlUpgrade, err := k8sComponentsUpgrade(c.log, "kubectl", version)
 	if err != nil {
@@ -125,7 +127,9 @@ func main() {
 			zap.Error(err))
 	}
 
+	// TODO: refactor into internal
 	if kubectlUpgrade {
+
 	}
 
 	// TODO:
