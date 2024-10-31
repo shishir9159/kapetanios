@@ -32,7 +32,7 @@ func cleanup(c *fiber.Ctx) error {
 
 func minorUpgrade(c *fiber.Ctx) error {
 
-	TestMinorUpgrade(minorUpgradeNamespace)
+	go TestMinorUpgrade(minorUpgradeNamespace)
 
 	//go MinorUpgrade(minorUpgradeNamespace)
 

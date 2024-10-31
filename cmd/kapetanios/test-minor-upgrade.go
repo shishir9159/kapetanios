@@ -192,4 +192,6 @@ func TestMinorUpgrade(namespace string) {
 	// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 	//   check if previously listed pods are all successfully restarted before untainted
 	removeTaint(nodes)
+
+	c.log.Info("after tainting")
 }
