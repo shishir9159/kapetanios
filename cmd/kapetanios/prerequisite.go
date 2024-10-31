@@ -48,12 +48,13 @@ func Prerequisites(namespace string) {
 
 	configMapName := "kapetanios"
 
-	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.TODO(), configMapName, metav1.GetOptions{})
+	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
 		c.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
 
+	c.log.Info("after fetching configmap")
 	targetedVersion := configMap.Data["TargetedVersion"]
 	nodesToBeUpgraded := configMap.Data["NodesToBeUpgraded"]
 
