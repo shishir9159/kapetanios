@@ -4,6 +4,9 @@ metadata:
   name: kapetanios
 data:
   kubernetesVersion: ""
+  TargetedVersion: ""
+  NodesToBeUpgraded: ""
+
 
   # kv format
   key: "value"
