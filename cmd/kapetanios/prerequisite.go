@@ -58,7 +58,7 @@ func Prerequisites(namespace string) {
 	nodesToBeUpgraded := configMap.Data["NodesToBeUpgraded"]
 
 	if targetedVersion != "" && nodesToBeUpgraded != "" {
-		LastDance(namespace)
+		LastDance(c, nodesToBeUpgraded, namespace)
 		configMap.Data["TargetedVersion"] = ""
 		configMap.Data["NodesToBeUpgraded"] = ""
 	}
