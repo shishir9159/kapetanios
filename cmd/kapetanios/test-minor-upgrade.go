@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubectl/pkg/drain"
 	"time"
 )
 
@@ -81,7 +82,8 @@ func TestMinorUpgrade(namespace string) {
 			Operator: "Equal",
 			Value:    "processing",
 			// ---------
-			Effect: "NoSchedule",
+
+			Effect: corev1.TaintEffectNoSchedule,
 		},
 	}
 	// ----------
@@ -141,6 +143,17 @@ func TestMinorUpgrade(namespace string) {
 		zap.String("node name", nodes.Name))
 
 	addTaint(nodes)
+
+	err = drain.RunCordonOrUncordon(&drain.Helper{
+		Ctx:    c.ctx,
+		Client: c.client.Clientset(),
+	}, nodes, false)
+
+	if err != nil {
+		c.log.Error("error uncordoning the node",
+			zap.String("node name", nodes.Name),
+			zap.Error(err))
+	}
 
 	// TODO: refactor
 	//drainer := &drain.Helper{

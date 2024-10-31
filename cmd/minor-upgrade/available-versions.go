@@ -61,6 +61,9 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 
 	availableVersionSlice := strings.Split(outStr, "\n")
 
+	// TODO:
+	//  sort them based on the delimiter "." and "-'
+
 	if err = changedRoot(); err != nil {
 		log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))

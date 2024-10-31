@@ -71,7 +71,7 @@ func removeTaint(node *corev1.Node) {
 			fmt.Println(taint.MatchTaint(&taintToRemove))
 			continue
 		}
-		fmt.Println("didint' match taint")
+		fmt.Println("didn't match taint")
 		newTaints = append(newTaints, taint)
 	}
 
@@ -204,7 +204,7 @@ func MinorUpgrade(namespace string) {
 				Key:      "minor-upgrade-running",
 				Operator: "Equal",
 				Value:    "processing",
-				Effect:   "NoSchedule",
+				Effect:   corev1.TaintEffectNoSchedule,
 				//TolerationSeconds: &[]int64{3}[0],
 			},
 		}
@@ -257,7 +257,16 @@ func MinorUpgrade(namespace string) {
 
 		addTaint(&node)
 
-		err = drain.RunCordonOrUncordon(&drain.Helper{}, &node, false)
+		err = drain.RunCordonOrUncordon(&drain.Helper{
+			Ctx:    c.ctx,
+			Client: c.client.Clientset(),
+		}, &node, false)
+
+		if err != nil {
+			c.log.Error("error uncordoning the node",
+				zap.String("node name", node.Name),
+				zap.Error(err))
+		}
 
 		// TODO:
 		//  check for pods stuck in the terminating state
