@@ -67,9 +67,11 @@ func removeTaint(node *corev1.Node) {
 
 	for _, taint := range taints {
 		if taint.MatchTaint(&taintToRemove) {
+			fmt.Println("matchtaint")
+			fmt.Println(taint.MatchTaint(&taintToRemove))
 			continue
 		}
-
+		fmt.Println("didint' match taint")
 		newTaints = append(newTaints, taint)
 	}
 
