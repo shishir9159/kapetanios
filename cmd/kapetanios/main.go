@@ -101,6 +101,8 @@ func main() {
 	// setup routes
 	setupRoutes(app)
 
+	Prerequisites()
+
 	err = app.Listen(":80")
 	if err != nil {
 		return

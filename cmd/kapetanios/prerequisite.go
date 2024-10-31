@@ -6,5 +6,8 @@ package main
 // if the nodes match with the expectations
 
 func Prerequisites() {
+	//if cm shows updated nodes to a certain value
+	//	 and desired kubernetesVersion exists on the cm,
+	//   then, call the minor upgrade
 
 }

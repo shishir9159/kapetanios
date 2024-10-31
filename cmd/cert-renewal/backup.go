@@ -49,7 +49,6 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 	if len(glob) == 0 {
 		return 1, nil
 	}
-
 	// natural sorting assumes the
 	// backupDirPattern is of 11 letters
 	sort.Slice(glob, func(i, j int) bool {
