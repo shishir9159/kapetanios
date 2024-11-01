@@ -159,6 +159,11 @@ func MinorUpgradeFirstRun(namespace string) {
 
 	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
 
+	for _, no := range nodes.Items {
+		c.log.Info("nodes",
+			zap.String("nodes", no.ObjectMeta.Name))
+	}
+
 	// TODO: wouldn't work on one master node where lighthouse is scheduled
 	// TODO: possible error, lighthouse can be on a master node, that would be mistakenly upgraded at the last
 
@@ -174,6 +179,11 @@ func MinorUpgradeFirstRun(namespace string) {
 		}
 		return false
 	})
+
+	for _, no := range nodes.Items {
+		c.log.Info("nodes",
+			zap.String("nodes", no.ObjectMeta.Name))
+	}
 
 	if err != nil {
 		c.log.Error("error listing nodes",
@@ -192,6 +202,10 @@ func MinorUpgradeFirstRun(namespace string) {
 	// TODO: refactor this part to orchestrator
 
 	for index, node := range nodes.Items {
+
+		c.log.Info("condition",
+			zap.String("node.ObjectMeta.Name", node.ObjectMeta.Name),
+			zap.Bool("node.ObjectMeta.Name == kapetaniosNode", node.ObjectMeta.Name == kapetaniosNode))
 
 		if node.ObjectMeta.Name == kapetaniosNode {
 
