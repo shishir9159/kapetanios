@@ -62,5 +62,11 @@ func Prerequisites(namespace string) {
 		LastDance(c, nodesToBeUpgraded, namespace)
 		configMap.Data["TargetedVersion"] = ""
 		configMap.Data["NodesToBeUpgraded"] = ""
+
+		_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+		if er != nil {
+			c.log.Error("error updating configMap",
+				zap.Error(er))
+		}
 	}
 }

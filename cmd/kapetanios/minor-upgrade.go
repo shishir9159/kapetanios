@@ -228,6 +228,12 @@ func MinorUpgradeFirstRun(namespace string) {
 			configMap.Data["TargetedVersion"] = targetedVersion
 			configMap.Data["NodesToBeUpgraded"] = strings.Join(nodeNames, ";")
 
+			_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+			if er != nil {
+				c.log.Error("error updating configMap",
+					zap.Error(er))
+			}
+
 			c.log.Info("nodes to be upgraded",
 				zap.String("node to be", strings.Join(nodeNames, ";")))
 		}
