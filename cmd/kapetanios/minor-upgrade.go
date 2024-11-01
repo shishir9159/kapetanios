@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
@@ -80,10 +79,6 @@ func addTaint(node *corev1.Node) {
 
 	taints := node.Spec.Taints
 
-	fmt.Println("addTaint")
-
-	fmt.Println(taints)
-
 	// TODO: declare as a struct maybe?
 	taintToAdd := corev1.Taint{
 		Key:    "minor-upgrade-running",
@@ -104,8 +99,6 @@ func addTaint(node *corev1.Node) {
 
 		return
 	}
-
-	fmt.Println(newTaints)
 
 	node.Spec.Taints = newTaints
 }
@@ -200,7 +193,7 @@ func MinorUpgradeFirstRun(namespace string) {
 
 	for index, node := range nodes.Items {
 
-		if node.Name == kapetaniosNode {
+		if node.ObjectMeta.Name == kapetaniosNode {
 
 			configMapName := "kapetanios"
 			// refactor this hardcoded part
