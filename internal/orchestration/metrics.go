@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
+	"time"
 )
 
 // PodMetricsList : PodMetricsList
@@ -38,6 +39,10 @@ type PodMetricsList struct {
 
 func getMetrics(clientset *kubernetes.Clientset, pods *PodMetricsList) error {
 	data, err := clientset.RESTClient().Get().AbsPath("apis/metrics.k8s.io/v1beta1/pods").DoRaw(context.Background())
+
+	client, err := metricsv.NewForConfig(config)
+	podMetricsList, err := clientset.MetricsV1beta1().PodMetricses("").List(metav1.ListOptions{})
+
 	if err != nil {
 		return err
 	}

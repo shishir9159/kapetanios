@@ -55,13 +55,13 @@ func Prerequisites(namespace string) {
 	}
 
 	c.log.Info("after fetching configmap")
-	targetedVersion := configMap.Data["TargetedVersion"]
-	nodesToBeUpgraded := configMap.Data["NodesToBeUpgraded"]
+	targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
+	nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
 
 	if targetedVersion != "" && nodesToBeUpgraded != "" {
 		LastDance(c, nodesToBeUpgraded, namespace)
-		configMap.Data["TargetedVersion"] = ""
-		configMap.Data["NodesToBeUpgraded"] = ""
+		configMap.Data["TARGETED_K8S_VERSION"] = ""
+		configMap.Data["NODES_TO_BE_UPGRADED"] = ""
 
 		_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
 		if er != nil {

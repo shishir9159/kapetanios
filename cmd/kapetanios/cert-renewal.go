@@ -11,10 +11,11 @@ import (
 )
 
 type Controller struct {
-	mu     sync.Mutex
-	client *orchestration.Client
-	ctx    context.Context
-	log    *zap.Logger
+	mu        sync.Mutex
+	client    *orchestration.Client
+	namespace string
+	ctx       context.Context
+	log       *zap.Logger
 }
 
 func Cert(namespace string) {
@@ -32,9 +33,10 @@ func Cert(namespace string) {
 	client, err := orchestration.NewClient()
 
 	c := Controller{
-		client: client,
-		ctx:    context.Background(),
-		log:    logger,
+		client:    client,
+		ctx:       context.Background(),
+		log:       logger,
+		namespace: namespace,
 	}
 
 	if err != nil {

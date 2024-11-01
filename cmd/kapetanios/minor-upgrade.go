@@ -225,8 +225,8 @@ func MinorUpgradeFirstRun(namespace string) {
 				nodeNames = append(nodeNames, no.Name)
 			}
 
-			configMap.Data["TargetedVersion"] = targetedVersion
-			configMap.Data["NodesToBeUpgraded"] = strings.Join(nodeNames, ";")
+			configMap.Data["TARGETED_K8S_VERSION"] = targetedVersion
+			configMap.Data["NODES_TO_BE_UPGRADED"] = strings.Join(nodeNames, ";")
 
 			_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
 			if er != nil {

@@ -10,14 +10,15 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 type ETCD struct {
 	External struct {
-		Endpoints []string `json:"endpoints"`
-		CAFile    string   `json:"caFile"`
-		CertFile  string   `json:"certFile"`
-		KeyFile   string   `json:"keyFile"`
+		Endpoints []string `yaml:"endpoints"`
+		CAFile    string   `yaml:"caFile"`
+		CertFile  string   `yaml:"certFile"`
+		KeyFile   string   `yaml:"keyFile"`
 	} `yaml:"external"`
 }
 
@@ -51,93 +52,8 @@ type ClusterConfiguration struct {
 	Scheduler map[string]string `yaml:"scheduler"`
 }
 
-//    apiServer:
-//      extraArgs:
-//        audit-log-maxage: "7"
-//        audit-log-path: /var/log/k8_audit.log
-//        audit-policy-file: /etc/kubernetes/audit-policy.yaml
-//        authorization-mode: Node,RBAC
-//        enable-admission-plugins: ResourceQuota,AlwaysPullImages,DefaultStorageClass
-//        max-mutating-requests-inflight: "500"
-//        max-requests-inflight: "2000"
-//      extraVolumes:
-//      - hostPath: /etc/kubernetes/audit-policy.yaml
-//        mountPath: /etc/kubernetes/audit-policy.yaml
-//        name: audit-policy
-//        readOnly: true
-//      - hostPath: /var/log/
-//        mountPath: /var/log/
-//        name: audit-log
-//      timeoutForControlPlane: 4m0s
-//    apiVersion: kubeadm.k8s.io/v1beta3
-//    certificatesDir: /etc/kubernetes/pki
-//    clusterName: kubernetes
-//    controlPlaneEndpoint: 10.0.0.3:6443
-//    controllerManager: {}
-//    dns: {}
-//    etcd:
-//      external:
-//        caFile: /etc/kubernetes/pki/etcd-ca.pem
-//        certFile: /etc/kubernetes/pki/etcd.cert
-//        endpoints:
-//        - https://5.161.64.103:2379
-//        - https://5.161.248.112:2379
-//        - https://5.161.67.249:2379
-//        keyFile: /etc/kubernetes/pki/etcd.key
-//    imageRepository: registry.k8s.io
-//    kind: ClusterConfiguration
-//    kubernetesVersion: v1.26.15
-//    networking:
-//      dnsDomain: cluster.local
-//      serviceSubnet: 10.96.0.0/12
-//    scheduler: {}
-
-//root@shihab-node-1:~/kapetanios# cat /etc/kubernetes/kubeadm-config.yaml
-//apiVersion: kubeadm.k8s.io/v1beta2
-//kind: InitConfiguration
-//nodeRegistration:
-//  criSocket: "unix:///run/containerd/containerd.sock"
-//localAPIEndpoint:
-//  advertiseAddress: 10.0.0.3
-//  bindPort: 6443
-//
-//---
-//apiVersion: kubeadm.k8s.io/v1beta2
-//kind: ClusterConfiguration
-//kubernetesVersion: stable
-//controlPlaneEndpoint: 10.0.0.3
-//apiServer:
-//  extraArgs:
-//    enable-admission-plugins:  ResourceQuota,AlwaysPullImages,DefaultStorageClass
-//    max-mutating-requests-inflight: "500"
-//    max-requests-inflight: "2000"
-//    audit-log-path: /var/log/k8_audit.log
-//    audit-policy-file: /etc/kubernetes/audit-policy.yaml
-//    audit-log-maxage: "7"
-//  extraVolumes:
-//    - name: audit-policy
-//      hostPath: /etc/kubernetes/audit-policy.yaml
-//      mountPath: /etc/kubernetes/audit-policy.yaml
-//      readOnly: true
-//    - name: audit-log
-//      hostPath: /var/log/
-//      mountPath: /var/log/
-//      readOnly: false
-//etcd:
-//  external:
-//     endpoints:
-//       - https://5.161.64.103:2379
-//       - https://5.161.248.112:2379
-//       - https://5.161.67.249:2379
-//     caFile: /etc/kubernetes/pki/etcd-ca.pem
-//     certFile: /etc/kubernetes/pki/etcd.cert
-//     keyFile: /etc/kubernetes/pki/etcd.key
-
-//---------------------------------------------------
-
 // TODO:
 //  fetch localAPIEndpoint: advertiseAddress
-//  store certificate validity
 
 func removeTabsAndShiftWhitespaces(s string) string {
 
@@ -203,7 +119,6 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 	}
 
 	// ClusterConfiguration stores the kubeadm-config as a file in the configmap
-
 	yamlFile := cm.Data["ClusterConfiguration"]
 
 	clusterConfiguration := ClusterConfiguration{}
@@ -246,10 +161,28 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 		return &etcdCluster, fmt.Errorf("no externl etcd endpoints provided")
 	}
 
-	//c.log.Info("", zap.String("kubernetesVersion", removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)))
-	//c.log.Info("", zap.String("caFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)))
-	//c.log.Info("", zap.String("certFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)))
-	//c.log.Info("", zap.String("keyFile", removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)))
+	configMapName := "kapetanios"
+
+	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	if er != nil {
+		c.log.Error("error fetching the configMap",
+			zap.Error(er))
+	}
+
+	configMap.Data["KUBERNETES_VERSION"] = removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)
+	configMap.Data["ETCD_CA_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)
+	configMap.Data["ETCD_CERT_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)
+	configMap.Data["ETCD_KEY_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)
+
+	for index, endpoint := range etcdCluster.External.Endpoints {
+		configMap.Data["ETCD_NODE_"+strconv.Itoa(index+1)] = endpoint
+	}
+
+	_, er = c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+	if er != nil {
+		c.log.Error("error updating configMap",
+			zap.Error(er))
+	}
 
 	return &etcdCluster, nil
 }
