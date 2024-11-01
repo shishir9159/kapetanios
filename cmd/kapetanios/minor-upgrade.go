@@ -486,6 +486,12 @@ func LastDance(c Controller, nodes string, namespace string) {
 			return
 		}
 
+		er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions)
+		if er != nil {
+			c.log.Error("watcher error from minion restart",
+				zap.Error(er))
+		}
+
 		c.log.Info("minor upgrade pod created",
 			zap.Int("index", index),
 			zap.String("pod name", minion.Name))

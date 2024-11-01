@@ -118,7 +118,20 @@ func main() {
 
 	}
 
-	err = restartKubelet(c)
+	err = restartComponent(c, "kubelet")
+	if err != nil {
+		c.log.Error("failed to restart kubelet",
+			zap.Error(err))
+	}
+
+	//etcdNode := os.Getenv("ETCD_NODE")
+	//if etcdNode == "true" {
+	//	err = restartComponent(c, "etcd")
+	//	if err != nil {
+	//		c.log.Error("failed to restart etcd",
+	//			zap.Error(err))
+	//	}
+	//}
 
 	kubectlUpgrade, err := k8sComponentsUpgrade(c.log, "kubectl", version)
 	if err != nil {
@@ -133,6 +146,8 @@ func main() {
 
 	// TODO:
 	//  --certificate-renewal=false
+
+	// TODO: check
 
 	GrpcClient(c.log)
 }

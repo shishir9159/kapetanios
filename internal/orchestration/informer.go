@@ -33,7 +33,7 @@ func onDelete(obj interface{}) {
 	fmt.Printf("POD DELETED: %s/%s", pod.Namespace, pod.Name)
 }
 
-func SharedInformer(client *kubernetes.Clientset) error {
+func NodeInformer(client *kubernetes.Clientset) error {
 
 	//labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"component": "kube-scheduler"}}
 	//listOptions := metav1.ListOptions{

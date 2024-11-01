@@ -13,7 +13,7 @@ import (
 
 // TODO: check kubelet status and view the service logs with journalctl -xeu kubelet
 
-func restartKubelet(c Controller) error {
+func restartComponent(c Controller, component string) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -22,7 +22,7 @@ func restartKubelet(c Controller) error {
 	}
 
 	// refactor into two
-	cmd := exec.Command("/bin/bash", "-c", "systemctl daemon-reload && systemctl restart kubelet")
+	cmd := exec.Command("/bin/bash", "-c", "systemctl daemon-reload && systemctl restart "+component)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 
