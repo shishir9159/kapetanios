@@ -40,7 +40,7 @@ func ValidateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
 	return nil
 }
 
-func CheckCertificateValidity(baseName string, cert *x509.Certificate) {
+func CheckCertificateValidity(baseName string, cert *x509.Certificate) (string, error) {
 	certPeriodValidationMutex.Lock()
 	defer certPeriodValidationMutex.Unlock()
 	if _, exists := certPeriodValidationCached[baseName]; exists {

@@ -33,7 +33,7 @@ func getStorage(path string) (int64, error) {
 	return int64(stat.Bfree) * stat.Bsize, nil
 }
 
-func PrerequisitesForCertRenewal(log *zap.Logger) error {
+func NodeHealth(log *zap.Logger) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {

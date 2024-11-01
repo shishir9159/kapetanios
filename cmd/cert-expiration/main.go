@@ -33,11 +33,13 @@ func main() {
 		}
 	}(logger)
 
-	err = PrerequisitesForCertRenewal(c.log)
+	err = NodeHealth(c.log)
 	if err != nil {
 		c.log.Error("failed to get cluster health status",
 			zap.Error(err))
 	}
+
+	expirationDate, err = CheckCertificateValidity()
 
 	GrpcClient(c.log)
 
