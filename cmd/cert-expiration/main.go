@@ -39,7 +39,10 @@ func main() {
 			zap.Error(err))
 	}
 
-	expirationDate, err = CheckCertificateValidity()
+	expirationDate, daysRemaining, err := certExpiration(c.log)
+	c.log.Info("checking certificate expiration date",
+		zap.String("expirationDate", expirationDate.String()),
+		zap.String("daysRemaining", daysRemaining.String()))
 
 	GrpcClient(c.log)
 

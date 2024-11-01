@@ -1,9 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"crypto/x509"
 	"fmt"
+	"github.com/shishir9159/kapetanios/utils"
+	"go.uber.org/zap"
+	"io"
 	"log"
+	"os"
+	"os/exec"
 	"sync"
 	"time"
 )
@@ -28,7 +34,7 @@ var (
 	certPeriodValidationCached = map[string]struct{}{}
 )
 
-func ValidateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
+func validateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
 	period := fmt.Sprintf("NotBefore: %v, NotAfter: %v", cert.NotBefore, cert.NotAfter)
 	now := time.Now().Add(offset)
 	if now.Before(cert.NotBefore) {
@@ -40,7 +46,7 @@ func ValidateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
 	return nil
 }
 
-func CheckCertificateValidity(baseName string, cert *x509.Certificate) (string, error) {
+func checkCertificateValidity(baseName string, cert *x509.Certificate) {
 	certPeriodValidationMutex.Lock()
 	defer certPeriodValidationMutex.Unlock()
 	if _, exists := certPeriodValidationCached[baseName]; exists {
@@ -48,7 +54,58 @@ func CheckCertificateValidity(baseName string, cert *x509.Certificate) (string, 
 	}
 	certPeriodValidationCached[baseName] = struct{}{}
 
-	if err := ValidateCertPeriod(cert, 0); err != nil {
+	if err := validateCertPeriod(cert, 0); err != nil {
 		log.Println(fmt.Errorf("WARNING: could not validate bounds for certificate %s: %v", baseName, err))
 	}
+}
+
+func certExpiration(log *zap.Logger) (time.Time, time.Time, error) {
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		log.Error("Failed to create chroot on /host",
+			zap.Error(err))
+		return time.Time{}, time.Time{}, err
+	}
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+
+	cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration --config /etc/kubernetes/kubeadm-config.yaml")
+	err = cmd.Run()
+
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
+	err = cmd.Run()
+
+	// TODO: format the following
+	//CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
+	//admin.conf                 Oct 18, 2025 04:31 UTC   350d            ca                      no
+	//apiserver                  Oct 18, 2025 04:31 UTC   350d            ca                      no
+	//apiserver-kubelet-client   Oct 18, 2025 04:31 UTC   350d            ca                      no
+	//controller-manager.conf    Oct 18, 2025 04:31 UTC   350d            ca                      no
+	//front-proxy-client         Oct 18, 2025 04:31 UTC   350d            front-proxy-ca          no
+	//scheduler.conf             Oct 18, 2025 04:31 UTC   350d            ca                      no
+	//
+	//CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
+	//ca                      May 27, 2034 13:31 UTC   9y              no
+	//front-proxy-ca          May 27, 2034 13:31 UTC   9y              no
+
+	if err != nil {
+		log.Error("Failed to check cert expiration date",
+			zap.Error(err))
+		return time.Time{}, time.Time{}, err
+	}
+
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info("outString and errString",
+		zap.String("outStr", outStr),
+		zap.String("errStr", errStr))
+
+	if err = changedRoot(); err != nil {
+		log.Fatal("Failed to exit from the updated root",
+			zap.Error(err))
+	}
+
+	return time.Time{}, time.Time{}, err
+
 }

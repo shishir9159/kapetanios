@@ -50,6 +50,12 @@ cert-renewal:
 	docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile
  	docker push quay.io/klovercloud/certs-renewal:latest
 
+.PHONY: etcd-migration
+etcd-migration:
+	@printf $(COLOR) "Building docker image for etcd-migration minions and pushing it to the registry..."
+	docker build . -t quay.io/klovercloud/etcd-migration:latest -f etcd-migration.Dockerfile
+ 	docker push quay.io/klovercloud/etcd-migration:latest
+
 .PHONY: etcd-restart
 etcd-restart:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
