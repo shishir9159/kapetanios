@@ -391,11 +391,21 @@ func MinorUpgradeFirstRun(namespace string) {
 			zap.Int("index", index),
 			zap.String("pod name", minion.Name))
 
-		// todo: wait for request for restart from the minions
-		time.Sleep(25 * time.Second)
+		labelSelector = metav1.LabelSelector{MatchLabels: map[string]string{"app": "minor-upgrade"}}
+
+		listOptions = metav1.ListOptions{
+			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+		}
+
+		er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions)
+		if er != nil {
+			c.log.Error("watcher error from minion restart",
+				zap.Error(er))
+		}
 
 		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 		//   check if previously listed pods are all successfully restarted before untainted
+
 		removeTaint(&node)
 	}
 }
@@ -484,12 +494,6 @@ func LastDance(c Controller, nodes string, namespace string) {
 
 			//return er
 			return
-		}
-
-		er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions)
-		if er != nil {
-			c.log.Error("watcher error from minion restart",
-				zap.Error(er))
 		}
 
 		c.log.Info("minor upgrade pod created",
