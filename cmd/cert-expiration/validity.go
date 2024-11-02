@@ -27,8 +27,6 @@ import (
 
 // should it be with certs renewal and minor-upgrade?
 
-// WARNING: for externally managed being true
-
 var (
 	certPeriodValidationMutex  sync.Mutex
 	certPeriodValidationCached = map[string]struct{}{}
