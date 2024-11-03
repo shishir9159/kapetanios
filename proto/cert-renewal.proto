@@ -48,7 +48,6 @@ message CreateResponse {
 }
 
 service Prerequisites {
-  rpc ClusterHealthChecking(PrerequisiteCheckReport) returns (CreateResponse);
 }
 
 service Backup {
@@ -56,5 +55,8 @@ service Backup {
 }
 
 service Renewal {
+  rpc ClusterHealthChecking(PrerequisiteCheckReport) returns (CreateResponse);
+  rpc BackupUpdate(BackupStatus) returns (CreateResponse);
+  rpc RenewalUpdate(RenewalStatus) returns (CreateResponse);
   rpc StatusUpdate(CreateRequest) returns (CreateResponse);
 }

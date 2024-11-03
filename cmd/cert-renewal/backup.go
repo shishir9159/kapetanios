@@ -315,19 +315,22 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 			zap.Error(err))
 	}
 
-	rpc, err := connection.ClusterHealthChecking(c.ctx,
+	rpc, err := connection.BackupUpdate(c.ctx,
 		&pb.BackupStatus{
-			EtcdBackup:              true,
-			KubeConfigBackup:        true,
-			FileChecklistValidation: true,
-
-			Err: "",
+			EtcdBackup:              false,
+			KubeConfigBackup:        false,
+			FileChecklistValidation: false,
+			Err:                     "",
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err),
-			zap.Bool("etcd backup", rpc.G))
+		c.log.Error("could not send status update: ", zap.Error(err))
 	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return err
 }

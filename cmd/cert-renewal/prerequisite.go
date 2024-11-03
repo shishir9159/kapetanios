@@ -80,14 +80,14 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) erro
 		return err
 	}
 
-	rpc, err := connection.StatusUpdate(c.ctx,
-		&pb.CreateRequest{
-			BackupSuccess:  true,
-			RenewalSuccess: true,
-			RetryAttempt:   0,
-			RestartSuccess: true,
-			Log:            "",
-			Err:            "",
+	rpc, err := connection.ClusterHealthChecking(c.ctx,
+		&pb.PrerequisiteCheckReport{
+			EtcdStatus:             true,
+			ExternallyManagedCerts: false,
+			EtcdDirFreeSpace:       0,
+			KubeDirFreeSpace:       0,
+			LocalAPIEndpoint:       "",
+			Err:                    "",
 		})
 
 	if err != nil {

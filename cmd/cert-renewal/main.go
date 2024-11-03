@@ -89,7 +89,7 @@ func main() {
 	}
 
 	//	step 2. Kubeadm certs renew all
-	err = Renew(c)
+	err = Renew(c, connection)
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))
@@ -98,7 +98,7 @@ func main() {
 	GrpcClient(c.log)
 
 	//step 3. Restarting pods to work with the updated certificates
-	err = Restart(c)
+	err = Restart(c, connection)
 	if err != nil {
 		c.log.Error("failed to restart kubernetes components after certificate renewal",
 			zap.Error(err))

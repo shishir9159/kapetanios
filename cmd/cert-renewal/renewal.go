@@ -1,6 +1,7 @@
 package main
 
 import (
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"os/exec"
@@ -14,7 +15,7 @@ import (
 
 ///usr/local/bin/kubeadm certs renew
 
-func Renew(c Controller) error {
+func Renew(c Controller, connection pb.RenewalClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -43,6 +44,25 @@ func Renew(c Controller) error {
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	rpc, err := connection.BackupUpdate(c.ctx,
+		&pb.BackupStatus{
+			EtcdBackup:              false,
+			KubeConfigBackup:        false,
+			FileChecklistValidation: false,
+			Err:                     "",
+		})
+
+	rpc, err := connection.Re
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return err
 }
