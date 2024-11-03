@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 )
@@ -95,9 +96,13 @@ func certExpiration(log *zap.Logger) (time.Time, time.Time, error) {
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+
+	checkingSubstr := strings.Contains(outStr, "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED")
+
 	log.Info("outString and errString",
 		zap.String("outStr", outStr),
-		zap.String("errStr", errStr))
+		zap.String("errStr", errStr),
+		zap.Bool("checkingSubstr", checkingSubstr))
 
 	if err = changedRoot(); err != nil {
 		log.Fatal("Failed to exit from the updated root",
