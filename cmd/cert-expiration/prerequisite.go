@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2/log"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
@@ -88,10 +87,10 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 		})
 
 	if err != nil {
-		log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ", zap.Error(err))
 	}
 
-	log.Info("Status Update",
+	c.log.Info("Status Update",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()))
 

@@ -101,6 +101,8 @@ func clusterUpgrade(log *zap.Logger, version string) (bool, error) {
 
 func k8sComponentsUpgrade(log *zap.Logger, k8sComponents string, version string) (bool, error) {
 
+	//-----// TODO: kernel version compatibility
+
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		log.Error("Failed to create chroot on /host",

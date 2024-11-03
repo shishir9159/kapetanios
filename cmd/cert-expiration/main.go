@@ -70,12 +70,10 @@ func main() {
 			zap.Error(err))
 	}
 
-	expirationDate, daysRemaining, err := certExpiration(c.log)
+	expirationDate, daysRemaining, err := certExpiration(c, connection)
 	c.log.Info("checking certificate expiration date",
 		zap.String("expirationDate", expirationDate.String()),
 		zap.String("daysRemaining", daysRemaining.String()))
-
-	GrpcClient(c.log)
 
 	//step 3. Restarting pods to work with the updated certificates
 

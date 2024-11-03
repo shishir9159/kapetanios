@@ -1,22 +1,51 @@
 syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
-message PrerequisiteCheck {
-  bool availableSpace = 1;
-// todo: try from the lighthouse agent
-  bool etcdStatus = 2;
-  uint64 availableStorage = 3;
+message PrerequisitesMinorUpgrade {
+  bool etcdStatus = 1;
+  uint64 storageAvailability = 2;
+  string err = 3;
+}
+
+message AvailableVersions {
+  repeated string version = 1;
+  string err = 2;
+}
+
+message UpgradeCompatibility {
+  bool osCompatibility = 1;
+  string diff = 2;
+  string err = 3;
+}
+
+message kubeadmUpgrade {
+  bool kubeadmUpgradeSuccess = 1;
+  string log = 2;
+  string err = 3;
+}
+
+message upgradePlan {
+  bool kubeadmUpgradeSuccess = 1;
+  string clusterVersion = 2;
+  string log = 3;
+  string err = 4;
+}
+
+// version
+
+message clusterUpgradeRequest {
 
 }
 
-message CreateUpgradeRequest {
+message clusterUpgrade {
   bool prerequisiteCheckSuccess = 1;
   bool upgradeSuccess = 2;
   bool restartSuccess = 3;
   uint32 retryAttempt = 4;
-  string err = 5;
-  string log = 6;
+  string log = 5;
+  string err = 6;
 }
+
 
 message CreateUpgradeResponse {
   bool proceedNextStep = 1;
@@ -25,5 +54,4 @@ message CreateUpgradeResponse {
 }
 
 service Upgrade {
-  rpc StatusUpdate(CreateUpgradeRequest) returns (CreateUpgradeResponse);
 }

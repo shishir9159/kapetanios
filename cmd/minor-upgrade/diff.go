@@ -9,7 +9,7 @@ import (
 	"os/exec"
 )
 
-func Diff(log *zap.Logger, version string) (string, error) {
+func compatibility(log *zap.Logger, version string) (string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -42,6 +42,8 @@ func Diff(log *zap.Logger, version string) (string, error) {
 		log.Info("cmd.Run() failed with",
 			zap.Error(err))
 	}
+
+	// TODO: OS compatibility
 
 	// list all the node names
 	// and sort the list from the smallest worker node by resources

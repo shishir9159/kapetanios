@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"crypto/x509"
+
 	"fmt"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
@@ -58,10 +60,10 @@ func checkCertificateValidity(baseName string, cert *x509.Certificate) {
 	}
 }
 
-func certExpiration(log *zap.Logger) (time.Time, time.Time, error) {
+func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time.Time, error) {
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		log.Error("Failed to create chroot on /host",
+		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
 		return time.Time{}, time.Time{}, err
 	}
@@ -90,7 +92,7 @@ func certExpiration(log *zap.Logger) (time.Time, time.Time, error) {
 	//front-proxy-ca          May 27, 2034 13:31 UTC   9y              no
 
 	if err != nil {
-		log.Error("Failed to check cert expiration date",
+		c.log.Error("Failed to check cert expiration date",
 			zap.Error(err))
 		return time.Time{}, time.Time{}, err
 	}
@@ -99,16 +101,15 @@ func certExpiration(log *zap.Logger) (time.Time, time.Time, error) {
 
 	checkingSubstr := strings.Contains(outStr, "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED")
 
-	log.Info("outString and errString",
+	c.log.Info("outString and errString",
 		zap.String("outStr", outStr),
 		zap.String("errStr", errStr),
 		zap.Bool("checkingSubstr", checkingSubstr))
 
 	if err = changedRoot(); err != nil {
-		log.Fatal("Failed to exit from the updated root",
+		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
 
 	return time.Time{}, time.Time{}, err
-
 }

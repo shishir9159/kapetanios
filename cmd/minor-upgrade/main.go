@@ -2,9 +2,18 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"time"
 	//"github.com/rs/zerolog/log"
+)
+
+var (
+	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 )
 
 type Controller struct {
@@ -13,6 +22,9 @@ type Controller struct {
 }
 
 func main() {
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	logger, err := zap.NewProduction()
 	if err != nil {
@@ -23,7 +35,7 @@ func main() {
 	//  replace zap with zeroLog
 
 	c := Controller{
-		ctx: context.Background(),
+		ctx: ctx,
 		log: logger,
 	}
 
@@ -35,7 +47,24 @@ func main() {
 		}
 	}(logger)
 
-	// TODO:
+	flag.Parse()
+
+	// Set up a connection to the server.
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		c.log.Error("did not connect", zap.Error(err))
+	}
+	//grpc.WithDisableServiceConfig()
+	defer func(conn *grpc.ClientConn) {
+		er := conn.Close()
+		if er != nil {
+			c.log.Error("failed to close the grpc connection",
+				zap.Error(er))
+		}
+	}(conn)
+
+	connection := pb.NewRenewalClient(conn)
+
 	err = Prerequisites()
 	if err != nil {
 
@@ -70,6 +99,18 @@ func main() {
 	//  check if that matches with upgradePlane
 	//  if the latest is selected
 
+	// TODO: refactor
+	plan := "v1.26.6"
+
+	diff, err := compatibility(c.log, plan)
+	if err != nil {
+		c.log.Error("failed to get diff",
+			zap.Error(err))
+	}
+
+	c.log.Info("diff for upgrade plan",
+		zap.String("diff", diff))
+
 	kubeadmUpgrade, err := k8sComponentsUpgrade(c.log, "kubeadm", version)
 	if err != nil {
 		c.log.Error("failed to get upgrade kubeadm",
@@ -80,23 +121,13 @@ func main() {
 
 	}
 
-	plan, err := upgradePlan(c.log)
+	plain, err := upgradePlan(c.log)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
 
-	// TODO: refactor
-	plan = "v1.26.6"
-
-	diff, err := Diff(c.log, plan)
-	if err != nil {
-		c.log.Error("failed to get diff",
-			zap.Error(err))
-	}
-
-	c.log.Info("diff for upgrade plan",
-		zap.String("diff", diff))
+	fmt.Println(plain)
 
 	k8sUpgrade, err := clusterUpgrade(c.log, version)
 	if err != nil {
@@ -133,21 +164,9 @@ func main() {
 	//	}
 	//}
 
-	kubectlUpgrade, err := k8sComponentsUpgrade(c.log, "kubectl", version)
+	_, err = k8sComponentsUpgrade(c.log, "kubectl", version)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
-
-	// TODO: refactor into internal
-	if kubectlUpgrade {
-
-	}
-
-	// TODO:
-	//  --certificate-renewal=false
-
-	// TODO: check
-
-	GrpcClient(c.log)
 }
