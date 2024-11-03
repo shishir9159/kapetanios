@@ -32,15 +32,6 @@ message RestartStatus {
   string err = 5;
 }
 
-message CreateRequest {
-  bool backupSuccess = 1;
-  bool renewalSuccess = 2;
-  bool restartSuccess = 3;
-  uint32 retryAttempt = 4;
-  string err = 5;
-  string log = 6;
-}
-
 message CreateResponse {
   bool proceedNextStep = 1;
   bool skipRetryCurrentStep = 2;
@@ -59,5 +50,4 @@ service Renewal {
   rpc BackupUpdate(BackupStatus) returns (CreateResponse);
   rpc RenewalUpdate(RenewalStatus) returns (CreateResponse);
   rpc RestartUpdate(RestartStatus) returns (CreateResponse);
-  rpc StatusUpdate(CreateRequest) returns (CreateResponse);
 }

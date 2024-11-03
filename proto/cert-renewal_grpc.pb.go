@@ -184,6 +184,7 @@ const (
 	Renewal_ClusterHealthChecking_FullMethodName = "/Renewal/ClusterHealthChecking"
 	Renewal_BackupUpdate_FullMethodName          = "/Renewal/BackupUpdate"
 	Renewal_RenewalUpdate_FullMethodName         = "/Renewal/RenewalUpdate"
+	Renewal_RestartUpdate_FullMethodName         = "/Renewal/RestartUpdate"
 	Renewal_StatusUpdate_FullMethodName          = "/Renewal/StatusUpdate"
 )
 
@@ -194,6 +195,7 @@ type RenewalClient interface {
 	ClusterHealthChecking(ctx context.Context, in *PrerequisiteCheckReport, opts ...grpc.CallOption) (*CreateResponse, error)
 	BackupUpdate(ctx context.Context, in *BackupStatus, opts ...grpc.CallOption) (*CreateResponse, error)
 	RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*CreateResponse, error)
+	RestartUpdate(ctx context.Context, in *RestartStatus, opts ...grpc.CallOption) (*CreateResponse, error)
 	StatusUpdate(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 }
 
@@ -235,6 +237,16 @@ func (c *renewalClient) RenewalUpdate(ctx context.Context, in *RenewalStatus, op
 	return out, nil
 }
 
+func (c *renewalClient) RestartUpdate(ctx context.Context, in *RestartStatus, opts ...grpc.CallOption) (*CreateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateResponse)
+	err := c.cc.Invoke(ctx, Renewal_RestartUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *renewalClient) StatusUpdate(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateResponse)
@@ -252,6 +264,7 @@ type RenewalServer interface {
 	ClusterHealthChecking(context.Context, *PrerequisiteCheckReport) (*CreateResponse, error)
 	BackupUpdate(context.Context, *BackupStatus) (*CreateResponse, error)
 	RenewalUpdate(context.Context, *RenewalStatus) (*CreateResponse, error)
+	RestartUpdate(context.Context, *RestartStatus) (*CreateResponse, error)
 	StatusUpdate(context.Context, *CreateRequest) (*CreateResponse, error)
 	mustEmbedUnimplementedRenewalServer()
 }
@@ -271,6 +284,9 @@ func (UnimplementedRenewalServer) BackupUpdate(context.Context, *BackupStatus) (
 }
 func (UnimplementedRenewalServer) RenewalUpdate(context.Context, *RenewalStatus) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenewalUpdate not implemented")
+}
+func (UnimplementedRenewalServer) RestartUpdate(context.Context, *RestartStatus) (*CreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RestartUpdate not implemented")
 }
 func (UnimplementedRenewalServer) StatusUpdate(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StatusUpdate not implemented")
@@ -350,6 +366,24 @@ func _Renewal_RenewalUpdate_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Renewal_RestartUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestartStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RenewalServer).RestartUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Renewal_RestartUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RenewalServer).RestartUpdate(ctx, req.(*RestartStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Renewal_StatusUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRequest)
 	if err := dec(in); err != nil {
@@ -386,6 +420,10 @@ var Renewal_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenewalUpdate",
 			Handler:    _Renewal_RenewalUpdate_Handler,
+		},
+		{
+			MethodName: "RestartUpdate",
+			Handler:    _Renewal_RestartUpdate_Handler,
 		},
 		{
 			MethodName: "StatusUpdate",

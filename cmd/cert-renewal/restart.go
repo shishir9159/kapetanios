@@ -51,11 +51,12 @@ func Restart(c Controller, connection pb.RenewalClient) error {
 	}
 
 	rpc, err := connection.RestartUpdate(c.ctx,
-		&pb.RenewalStatus{
-			RenewalSuccess:          false,
-			KubeConfigBackup:        false,
-			FileChecklistValidation: false,
-			Err:                     "",
+		&pb.RestartStatus{
+			EtcdRestart:    false,
+			KubeletRestart: false,
+			EtcdError:      "",
+			KubeletError:   "",
+			Err:            "",
 		})
 
 	if err != nil {
