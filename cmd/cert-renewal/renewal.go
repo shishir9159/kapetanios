@@ -45,15 +45,13 @@ func Renew(c Controller, connection pb.RenewalClient) error {
 			zap.Error(err))
 	}
 
-	rpc, err := connection.BackupUpdate(c.ctx,
-		&pb.BackupStatus{
-			EtcdBackup:              false,
+	rpc, err := connection.RenewalUpdate(c.ctx,
+		&pb.RenewalStatus{
+			RenewalSuccess:          false,
 			KubeConfigBackup:        false,
 			FileChecklistValidation: false,
 			Err:                     "",
 		})
-
-	rpc, err := connection.Re
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))

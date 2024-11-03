@@ -183,6 +183,7 @@ var Backup_ServiceDesc = grpc.ServiceDesc{
 const (
 	Renewal_ClusterHealthChecking_FullMethodName = "/Renewal/ClusterHealthChecking"
 	Renewal_BackupUpdate_FullMethodName          = "/Renewal/BackupUpdate"
+	Renewal_RenewalUpdate_FullMethodName         = "/Renewal/RenewalUpdate"
 	Renewal_StatusUpdate_FullMethodName          = "/Renewal/StatusUpdate"
 )
 
@@ -192,6 +193,7 @@ const (
 type RenewalClient interface {
 	ClusterHealthChecking(ctx context.Context, in *PrerequisiteCheckReport, opts ...grpc.CallOption) (*CreateResponse, error)
 	BackupUpdate(ctx context.Context, in *BackupStatus, opts ...grpc.CallOption) (*CreateResponse, error)
+	RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*CreateResponse, error)
 	StatusUpdate(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 }
 
@@ -223,6 +225,16 @@ func (c *renewalClient) BackupUpdate(ctx context.Context, in *BackupStatus, opts
 	return out, nil
 }
 
+func (c *renewalClient) RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*CreateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateResponse)
+	err := c.cc.Invoke(ctx, Renewal_RenewalUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *renewalClient) StatusUpdate(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateResponse)
@@ -239,6 +251,7 @@ func (c *renewalClient) StatusUpdate(ctx context.Context, in *CreateRequest, opt
 type RenewalServer interface {
 	ClusterHealthChecking(context.Context, *PrerequisiteCheckReport) (*CreateResponse, error)
 	BackupUpdate(context.Context, *BackupStatus) (*CreateResponse, error)
+	RenewalUpdate(context.Context, *RenewalStatus) (*CreateResponse, error)
 	StatusUpdate(context.Context, *CreateRequest) (*CreateResponse, error)
 	mustEmbedUnimplementedRenewalServer()
 }
@@ -255,6 +268,9 @@ func (UnimplementedRenewalServer) ClusterHealthChecking(context.Context, *Prereq
 }
 func (UnimplementedRenewalServer) BackupUpdate(context.Context, *BackupStatus) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BackupUpdate not implemented")
+}
+func (UnimplementedRenewalServer) RenewalUpdate(context.Context, *RenewalStatus) (*CreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenewalUpdate not implemented")
 }
 func (UnimplementedRenewalServer) StatusUpdate(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StatusUpdate not implemented")
@@ -316,6 +332,24 @@ func _Renewal_BackupUpdate_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Renewal_RenewalUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenewalStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RenewalServer).RenewalUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Renewal_RenewalUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RenewalServer).RenewalUpdate(ctx, req.(*RenewalStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Renewal_StatusUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRequest)
 	if err := dec(in); err != nil {
@@ -348,6 +382,10 @@ var Renewal_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BackupUpdate",
 			Handler:    _Renewal_BackupUpdate_Handler,
+		},
+		{
+			MethodName: "RenewalUpdate",
+			Handler:    _Renewal_RenewalUpdate_Handler,
 		},
 		{
 			MethodName: "StatusUpdate",

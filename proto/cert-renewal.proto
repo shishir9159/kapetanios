@@ -58,5 +58,6 @@ service Renewal {
   rpc ClusterHealthChecking(PrerequisiteCheckReport) returns (CreateResponse);
   rpc BackupUpdate(BackupStatus) returns (CreateResponse);
   rpc RenewalUpdate(RenewalStatus) returns (CreateResponse);
+  rpc RestartUpdate(RestartStatus) returns (CreateResponse);
   rpc StatusUpdate(CreateRequest) returns (CreateResponse);
 }
