@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
@@ -284,7 +285,7 @@ func fileChecklistValidation(backupDir string) []string {
 // todo:
 //  compression enabled copy
 
-func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
+func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.RenewalClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -312,6 +313,20 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int) error {
 	if err = changedRoot(); err != nil {
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
+	}
+
+	rpc, err := connection.ClusterHealthChecking(c.ctx,
+		&pb.BackupStatus{
+			EtcdBackup:              true,
+			KubeConfigBackup:        true,
+			FileChecklistValidation: true,
+
+			Err: "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err),
+			zap.Bool("etcd backup", rpc.G))
 	}
 
 	return err

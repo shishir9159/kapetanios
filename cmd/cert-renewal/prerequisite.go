@@ -1,9 +1,10 @@
 package main
 
 import (
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
-	"log"
+
 	"syscall"
 )
 
@@ -21,10 +22,10 @@ func getStorage(path string) (int64, error) {
 	var stat syscall.Statfs_t
 	err := syscall.Statfs(path, &stat)
 
-	log.Printf("Total Disk Space: %d", stat.Blocks*uint64(stat.Bsize)/1048576)
-	log.Printf("Avail Disk Space: %d", stat.Bavail*uint64(stat.Bsize/1048576))
-	log.Printf("Free Disk Space: %d", stat.Bfree*uint64(stat.Bsize)/1048576)
-	log.Printf("Used Disk Space: %d", stat.Blocks*uint64(stat.Bsize)/1048576-stat.Bfree*uint64(stat.Bsize)/1048576)
+	//log.Printf("Total Disk Space: %d", stat.Blocks*uint64(stat.Bsize)/1048576)
+	//log.Printf("Avail Disk Space: %d", stat.Bavail*uint64(stat.Bsize/1048576))
+	//log.Printf("Free Disk Space: %d", stat.Bfree*uint64(stat.Bsize)/1048576)
+	//log.Printf("Used Disk Space: %d", stat.Blocks*uint64(stat.Bsize)/1048576-stat.Bfree*uint64(stat.Bsize)/1048576)
 
 	if err != nil {
 		return 0, err
@@ -33,11 +34,11 @@ func getStorage(path string) (int64, error) {
 	return int64(stat.Bfree) * stat.Bsize, nil
 }
 
-func PrerequisitesForCertRenewal(log *zap.Logger) error {
+func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		log.Fatal("Failed to create chroot on /host",
+		c.log.Fatal("Failed to create chroot on /host",
 			zap.Error(err))
 		return err
 	}
@@ -45,13 +46,13 @@ func PrerequisitesForCertRenewal(log *zap.Logger) error {
 	freeSpace, err := getStorage("/opt/")
 
 	if err != nil {
-		log.Error("Failed to get storage space for /opt/ directory", zap.Error(err))
+		c.log.Error("Failed to get storage space for /opt/ directory", zap.Error(err))
 		return err
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		log.Info("available free space in the /opt/ directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		c.log.Info("available free space in the /opt/ directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
 	}
 
 	// TODO:
@@ -60,24 +61,43 @@ func PrerequisitesForCertRenewal(log *zap.Logger) error {
 	freeSpace, err = getStorage("/var/lib/")
 
 	if err != nil {
-		log.Error("Failed to get storage space for /var/lib/etcd directory", zap.Error(err))
+		c.log.Error("Failed to get storage space for /var/lib/etcd directory", zap.Error(err))
 		return err
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		log.Info("available free space in the /var/lib/etcd directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		c.log.Info("available free space in the /var/lib/etcd directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
 	}
 
 	//	etcd status
 	//
 
 	if err = changedRoot(); err != nil {
-		log.Fatal("Failed to exit from the updated root",
+		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 
 		return err
 	}
+
+	rpc, err := connection.StatusUpdate(c.ctx,
+		&pb.CreateRequest{
+			BackupSuccess:  true,
+			RenewalSuccess: true,
+			RetryAttempt:   0,
+			RestartSuccess: true,
+			Log:            "",
+			Err:            "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Status Update",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return nil
 }
