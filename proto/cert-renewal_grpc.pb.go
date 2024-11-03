@@ -18,185 +18,21 @@ import (
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
 
-// PrerequisitesClient is the client API for Prerequisites service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type PrerequisitesClient interface {
-}
-
-type prerequisitesClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewPrerequisitesClient(cc grpc.ClientConnInterface) PrerequisitesClient {
-	return &prerequisitesClient{cc}
-}
-
-// PrerequisitesServer is the server API for Prerequisites service.
-// All implementations must embed UnimplementedPrerequisitesServer
-// for forward compatibility.
-type PrerequisitesServer interface {
-	mustEmbedUnimplementedPrerequisitesServer()
-}
-
-// UnimplementedPrerequisitesServer must be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedPrerequisitesServer struct{}
-
-func (UnimplementedPrerequisitesServer) mustEmbedUnimplementedPrerequisitesServer() {}
-func (UnimplementedPrerequisitesServer) testEmbeddedByValue()                       {}
-
-// UnsafePrerequisitesServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to PrerequisitesServer will
-// result in compilation errors.
-type UnsafePrerequisitesServer interface {
-	mustEmbedUnimplementedPrerequisitesServer()
-}
-
-func RegisterPrerequisitesServer(s grpc.ServiceRegistrar, srv PrerequisitesServer) {
-	// If the following call pancis, it indicates UnimplementedPrerequisitesServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&Prerequisites_ServiceDesc, srv)
-}
-
-// Prerequisites_ServiceDesc is the grpc.ServiceDesc for Prerequisites service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Prerequisites_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Prerequisites",
-	HandlerType: (*PrerequisitesServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "proto/cert-renewal.proto",
-}
-
-const (
-	Backup_ClusterHealthChecking_FullMethodName = "/Backup/ClusterHealthChecking"
-)
-
-// BackupClient is the client API for Backup service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type BackupClient interface {
-	ClusterHealthChecking(ctx context.Context, in *PrerequisiteCheckReport, opts ...grpc.CallOption) (*CreateResponse, error)
-}
-
-type backupClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewBackupClient(cc grpc.ClientConnInterface) BackupClient {
-	return &backupClient{cc}
-}
-
-func (c *backupClient) ClusterHealthChecking(ctx context.Context, in *PrerequisiteCheckReport, opts ...grpc.CallOption) (*CreateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
-	err := c.cc.Invoke(ctx, Backup_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// BackupServer is the server API for Backup service.
-// All implementations must embed UnimplementedBackupServer
-// for forward compatibility.
-type BackupServer interface {
-	ClusterHealthChecking(context.Context, *PrerequisiteCheckReport) (*CreateResponse, error)
-	mustEmbedUnimplementedBackupServer()
-}
-
-// UnimplementedBackupServer must be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedBackupServer struct{}
-
-func (UnimplementedBackupServer) ClusterHealthChecking(context.Context, *PrerequisiteCheckReport) (*CreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
-}
-func (UnimplementedBackupServer) mustEmbedUnimplementedBackupServer() {}
-func (UnimplementedBackupServer) testEmbeddedByValue()                {}
-
-// UnsafeBackupServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to BackupServer will
-// result in compilation errors.
-type UnsafeBackupServer interface {
-	mustEmbedUnimplementedBackupServer()
-}
-
-func RegisterBackupServer(s grpc.ServiceRegistrar, srv BackupServer) {
-	// If the following call pancis, it indicates UnimplementedBackupServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&Backup_ServiceDesc, srv)
-}
-
-func _Backup_ClusterHealthChecking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PrerequisiteCheckReport)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackupServer).ClusterHealthChecking(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Backup_ClusterHealthChecking_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackupServer).ClusterHealthChecking(ctx, req.(*PrerequisiteCheckReport))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Backup_ServiceDesc is the grpc.ServiceDesc for Backup service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Backup_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Backup",
-	HandlerType: (*BackupServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "ClusterHealthChecking",
-			Handler:    _Backup_ClusterHealthChecking_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/cert-renewal.proto",
-}
-
 const (
 	Renewal_ClusterHealthChecking_FullMethodName = "/Renewal/ClusterHealthChecking"
 	Renewal_BackupUpdate_FullMethodName          = "/Renewal/BackupUpdate"
 	Renewal_RenewalUpdate_FullMethodName         = "/Renewal/RenewalUpdate"
 	Renewal_RestartUpdate_FullMethodName         = "/Renewal/RestartUpdate"
-	Renewal_StatusUpdate_FullMethodName          = "/Renewal/StatusUpdate"
 )
 
 // RenewalClient is the client API for Renewal service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RenewalClient interface {
-	ClusterHealthChecking(ctx context.Context, in *PrerequisiteCheckReport, opts ...grpc.CallOption) (*CreateResponse, error)
+	ClusterHealthChecking(ctx context.Context, in *PrerequisitesRenewal, opts ...grpc.CallOption) (*CreateResponse, error)
 	BackupUpdate(ctx context.Context, in *BackupStatus, opts ...grpc.CallOption) (*CreateResponse, error)
 	RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*CreateResponse, error)
 	RestartUpdate(ctx context.Context, in *RestartStatus, opts ...grpc.CallOption) (*CreateResponse, error)
-	StatusUpdate(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 }
 
 type renewalClient struct {
@@ -207,7 +43,7 @@ func NewRenewalClient(cc grpc.ClientConnInterface) RenewalClient {
 	return &renewalClient{cc}
 }
 
-func (c *renewalClient) ClusterHealthChecking(ctx context.Context, in *PrerequisiteCheckReport, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *renewalClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesRenewal, opts ...grpc.CallOption) (*CreateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateResponse)
 	err := c.cc.Invoke(ctx, Renewal_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
@@ -247,25 +83,14 @@ func (c *renewalClient) RestartUpdate(ctx context.Context, in *RestartStatus, op
 	return out, nil
 }
 
-func (c *renewalClient) StatusUpdate(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
-	err := c.cc.Invoke(ctx, Renewal_StatusUpdate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // RenewalServer is the server API for Renewal service.
 // All implementations must embed UnimplementedRenewalServer
 // for forward compatibility.
 type RenewalServer interface {
-	ClusterHealthChecking(context.Context, *PrerequisiteCheckReport) (*CreateResponse, error)
+	ClusterHealthChecking(context.Context, *PrerequisitesRenewal) (*CreateResponse, error)
 	BackupUpdate(context.Context, *BackupStatus) (*CreateResponse, error)
 	RenewalUpdate(context.Context, *RenewalStatus) (*CreateResponse, error)
 	RestartUpdate(context.Context, *RestartStatus) (*CreateResponse, error)
-	StatusUpdate(context.Context, *CreateRequest) (*CreateResponse, error)
 	mustEmbedUnimplementedRenewalServer()
 }
 
@@ -276,7 +101,7 @@ type RenewalServer interface {
 // pointer dereference when methods are called.
 type UnimplementedRenewalServer struct{}
 
-func (UnimplementedRenewalServer) ClusterHealthChecking(context.Context, *PrerequisiteCheckReport) (*CreateResponse, error) {
+func (UnimplementedRenewalServer) ClusterHealthChecking(context.Context, *PrerequisitesRenewal) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
 }
 func (UnimplementedRenewalServer) BackupUpdate(context.Context, *BackupStatus) (*CreateResponse, error) {
@@ -287,9 +112,6 @@ func (UnimplementedRenewalServer) RenewalUpdate(context.Context, *RenewalStatus)
 }
 func (UnimplementedRenewalServer) RestartUpdate(context.Context, *RestartStatus) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RestartUpdate not implemented")
-}
-func (UnimplementedRenewalServer) StatusUpdate(context.Context, *CreateRequest) (*CreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StatusUpdate not implemented")
 }
 func (UnimplementedRenewalServer) mustEmbedUnimplementedRenewalServer() {}
 func (UnimplementedRenewalServer) testEmbeddedByValue()                 {}
@@ -313,7 +135,7 @@ func RegisterRenewalServer(s grpc.ServiceRegistrar, srv RenewalServer) {
 }
 
 func _Renewal_ClusterHealthChecking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PrerequisiteCheckReport)
+	in := new(PrerequisitesRenewal)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -325,7 +147,7 @@ func _Renewal_ClusterHealthChecking_Handler(srv interface{}, ctx context.Context
 		FullMethod: Renewal_ClusterHealthChecking_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RenewalServer).ClusterHealthChecking(ctx, req.(*PrerequisiteCheckReport))
+		return srv.(RenewalServer).ClusterHealthChecking(ctx, req.(*PrerequisitesRenewal))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -384,24 +206,6 @@ func _Renewal_RestartUpdate_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Renewal_StatusUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RenewalServer).StatusUpdate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Renewal_StatusUpdate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RenewalServer).StatusUpdate(ctx, req.(*CreateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Renewal_ServiceDesc is the grpc.ServiceDesc for Renewal service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -424,10 +228,6 @@ var Renewal_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RestartUpdate",
 			Handler:    _Renewal_RestartUpdate_Handler,
-		},
-		{
-			MethodName: "StatusUpdate",
-			Handler:    _Renewal_StatusUpdate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

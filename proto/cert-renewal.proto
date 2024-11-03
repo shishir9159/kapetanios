@@ -1,7 +1,7 @@
 syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
-message PrerequisiteCheckReport {
+message PrerequisitesRenewal {
   bool etcdStatus = 1;
   bool externallyManagedCerts = 2;
   int64 etcdDirFreeSpace = 3;
@@ -38,15 +38,8 @@ message CreateResponse {
   bool terminateApplication = 3;
 }
 
-service Prerequisites {
-}
-
-service Backup {
-  rpc ClusterHealthChecking(PrerequisiteCheckReport) returns (CreateResponse);
-}
-
 service Renewal {
-  rpc ClusterHealthChecking(PrerequisiteCheckReport) returns (CreateResponse);
+  rpc ClusterHealthChecking(PrerequisitesRenewal) returns (CreateResponse);
   rpc BackupUpdate(BackupStatus) returns (CreateResponse);
   rpc RenewalUpdate(RenewalStatus) returns (CreateResponse);
   rpc RestartUpdate(RestartStatus) returns (CreateResponse);

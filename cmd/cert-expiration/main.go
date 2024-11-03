@@ -2,8 +2,18 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	"github.com/gofiber/fiber/v2/log"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"time"
+)
+
+var (
+	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 )
 
 type Controller struct {
@@ -13,6 +23,9 @@ type Controller struct {
 
 func main() {
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
 	logger, err := zap.NewProduction()
 	if err != nil {
 		fmt.Println(err)
@@ -21,7 +34,7 @@ func main() {
 	//zap.ReplaceGlobals(logger)
 
 	c := Controller{
-		ctx: context.Background(),
+		ctx: ctx,
 		log: logger,
 	}
 
@@ -33,7 +46,25 @@ func main() {
 		}
 	}(logger)
 
-	err = NodeHealth(c.log)
+	flag.Parse()
+
+	// Set up a connection to the server.
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error("did not connect", zap.Error(err))
+	}
+	//grpc.WithDisableServiceConfig()
+	defer func(conn *grpc.ClientConn) {
+		er := conn.Close()
+		if er != nil {
+			log.Error("failed to close the grpc connection",
+				zap.Error(er))
+		}
+	}(conn)
+
+	connection := pb.NewValidityClient(conn)
+
+	err = NodeHealth(c, connection)
 	if err != nil {
 		c.log.Error("failed to get cluster health status",
 			zap.Error(err))
