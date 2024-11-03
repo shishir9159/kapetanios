@@ -81,7 +81,7 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) erro
 	}
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
-		&pb.PrerequisiteCheckReport{
+		&pb.PrerequisitesRenewal{
 			EtcdStatus:             true,
 			ExternallyManagedCerts: false,
 			EtcdDirFreeSpace:       0,

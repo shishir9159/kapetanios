@@ -7,26 +7,26 @@ message PrerequisitesExpiration {
   string err = 3;
 }
 
-
 message Expiration {
-  bool externallyManaged = 1;
-  bool validCertificate = 2;
-
-
+  bool validCertificate = 1;
+  repeated Certificate certificate = 2;
+  repeated CertificateAuthority certificateAuthority = 3;
 }
 
-//CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
-//admin.conf                 Oct 18, 2025 04:31 UTC   350d            ca                      no
-//apiserver                  Oct 18, 2025 04:31 UTC   350d            ca                      no
-//apiserver-kubelet-client   Oct 18, 2025 04:31 UTC   350d            ca                      no
-//controller-manager.conf    Oct 18, 2025 04:31 UTC   350d            ca                      no
-//front-proxy-client         Oct 18, 2025 04:31 UTC   350d            front-proxy-ca          no
-//scheduler.conf             Oct 18, 2025 04:31 UTC   350d            ca                      no
-//
-//CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
-//ca                      May 27, 2034 13:31 UTC   9y              no
-//front-proxy-ca          May 27, 2034 13:31 UTC   9y              no
+message Certificate {
+  string name = 1;
+  string expires = 2;
+  string residualTime = 3;
+  string certificateAuthority = 4;
+  string externallyManaged = 5;
+}
 
+message CertificateAuthority {
+  string name = 1;
+  string expires = 2;
+  string residualTime = 3;
+  string externallyManaged = 4;
+}
 
 message CreateResponse {
   bool received = 1;
