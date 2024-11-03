@@ -3,15 +3,33 @@ option go_package = "github.com/shishir9159/kapetanios/proto";
 
 message PrerequisiteCheckReport {
   bool etcdStatus = 1;
-  int64 etcdDirFreeSpace = 2;
-  int64 kubeDirFreeSpace = 3;
-  string localAPIEndpoint = 4;
-  string err = 5;
+  bool externallyManagedCerts = 2;
+  int64 etcdDirFreeSpace = 3;
+  int64 kubeDirFreeSpace = 4;
+  string localAPIEndpoint = 5;
+  string err = 6;
 }
 
 message BackupStatus {
-  bool kubeConfigBackup = 1;
+  bool etcdBackup = 1;
+  bool kubeConfigBackup = 2;
+  bool fileChecklistValidation = 3;
+  string err = 4;
+}
 
+message RenewalStatus {
+  bool renewalSuccess = 1;
+  bool kubeConfigBackup = 2;
+  bool fileChecklistValidation = 3;
+  string err = 4;
+}
+
+message RestartStatus {
+  bool etcdRestart = 1;
+  bool kubeletRestart = 2;
+  string etcdError = 3;
+  string kubeletError = 4;
+  string err = 5;
 }
 
 message CreateRequest {
