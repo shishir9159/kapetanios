@@ -104,6 +104,10 @@ func main() {
 	Prerequisites(minorUpgradeNamespace)
 
 	err = app.Listen(":80")
+
+	s := MinorUpgradeGrpc()
+	s.Stop()
+
 	if err != nil {
 		return
 	}

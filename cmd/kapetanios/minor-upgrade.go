@@ -361,8 +361,6 @@ func MinorUpgradeFirstRun(namespace string) {
 				zap.Error(err))
 		}
 
-		s := MinorUpgradeGrpc(c.log)
-
 		// TODO:
 		//  check for pods stuck in the terminating state
 		//  if any pods other than the whitelisted ones are still in the node,
@@ -408,7 +406,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 		//   check if previously listed pods are all successfully restarted before untainted
 
-		s.Stop()
 		removeTaint(&node)
 	}
 }

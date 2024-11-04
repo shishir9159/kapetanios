@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
@@ -109,11 +108,11 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-func MinorUpgradeGrpc(log *zap.Logger) *grpc.Server {
+func MinorUpgradeGrpc() *grpc.Server {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Error("failed to listen", zap.Error(err))
+		log.Println("failed to listen", err)
 	}
 	s := grpc.NewServer()
 
@@ -121,9 +120,9 @@ func MinorUpgradeGrpc(log *zap.Logger) *grpc.Server {
 	reflection.Register(s)
 	pb.RegisterMinorUpgradeServer(s, &minorUpgradeServer{})
 
-	log.Info("upgrade sever listening")
+	log.Println("upgrade sever listening")
 	if er := s.Serve(lis); er != nil {
-		log.Error("failed to serve", zap.Error(er))
+		log.Println("failed to serve", er)
 	}
 
 	return s

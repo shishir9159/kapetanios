@@ -58,6 +58,8 @@ func Prerequisites(namespace string) {
 	targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
 	nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
 
+	s := MinorUpgradeGrpc()
+
 	if targetedVersion != "" && nodesToBeUpgraded != "" {
 		LastDance(c, nodesToBeUpgraded, namespace)
 		configMap.Data["TARGETED_K8S_VERSION"] = ""
@@ -69,4 +71,6 @@ func Prerequisites(namespace string) {
 				zap.Error(er))
 		}
 	}
+
+	s.Stop()
 }
