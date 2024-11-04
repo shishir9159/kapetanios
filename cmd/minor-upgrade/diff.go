@@ -28,31 +28,34 @@ func compatibility(c Controller, version string, connection pb.MinorUpgradeClien
 
 	//kubeadm upgrade diff to see the changes
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade diff "+version+" --config /etc/kubernetes/kubeadm-config.yaml")
-	//cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
-	//cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
 	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
 	err = cmd.Run()
 
-	// TODO:
-	//  try combinedOutput and revert back later
-	//out, err := cmd.CombinedOutput()
 	if err != nil {
 		c.log.Info("cmd.Run() failed with",
 			zap.Error(err))
 	}
 
 	// TODO: OS compatibility
-
-	// list all the node names
-	// and sort the list from the smallest worker node by resources
-	// if it works successfully in the worker nodes, work on the master nodes
-	//	--certificate-renewal=false
-	//	kubeadm upgrade node (name) [version] --dry-run
-
 	diff, _ := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+
+	//var dryRunStdoutBuf, dryRunStderrBuf bytes.Buffer
+	//
+	////kubeadm upgrade diff to see the changes
+	//cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade diff "+version+" --config /etc/kubernetes/kubeadm-config.yaml")
+	//
+	//cmd.Stdout = io.MultiWriter(os.Stdout, &dryRunStdoutBuf)
+	//cmd.Stderr = io.MultiWriter(os.Stderr, &dryRunStderrBuf)
+	//
+	//err = cmd.Run()
+	//
+	//if err != nil {
+	//	c.log.Info("cmd.Run() failed with",
+	//		zap.Error(err))
+	//}
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal("Failed to exit from the updated root",
@@ -61,10 +64,12 @@ func compatibility(c Controller, version string, connection pb.MinorUpgradeClien
 
 	rpc, err := connection.ClusterCompatibility(c.ctx,
 		&pb.UpgradeCompatibility{
-			OsCompatibility: false,
-			Diff:            "",
+			OsCompatibility: true,
+			Diff:            diff,
 			Err:             "",
 		})
+
+	//	TODO: kubeadm upgrade node (name) [version] --dry-run
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))

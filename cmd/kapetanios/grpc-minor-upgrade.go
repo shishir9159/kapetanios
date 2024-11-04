@@ -4,13 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	pb "github.com/shishir9159/kapetanios/proto"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
-	"time"
-
-	pb "github.com/shishir9159/kapetanios/proto"
-	"google.golang.org/grpc"
 )
 
 //var (
@@ -109,25 +107,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-// gracefulStop attempts to gracefully stop the gRPC server with a timeout
-func gracefulStop(grpcServer *grpc.Server) {
-	stopCh := make(chan struct{})
-	go func() {
-		grpcServer.GracefulStop()
-		close(stopCh)
-	}()
-
-	// Wait for graceful stop or force stop after timeout
-	select {
-	case <-stopCh:
-		log.Println("gRPC server stopped gracefully.")
-	case <-time.After(5 * time.Second): // Adjust the timeout as needed
-		log.Println("Graceful stop timed out. Forcing stop.")
-		grpcServer.Stop()
-	}
-}
-
-func MinorUpgradeGrpc(ctx context.Context) {
+func MinorUpgradeGrpc() {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
@@ -141,17 +121,10 @@ func MinorUpgradeGrpc(ctx context.Context) {
 
 	log.Println("upgrade sever listening")
 
-	go func() {
-		if er := s.Serve(lis); er != nil {
-			log.Println("failed to serve", er)
-		}
-	}()
-
-	// Block until the context is canceled (indicating shutdown)
-	<-ctx.Done()
+	err = s.Serve(lis)
+	if err != nil {
+		log.Println("failed to serve", err)
+	}
 
 	log.Println("Shutting down gRPC server...")
-
-	// Gracefully stop the gRPC server with a timeout
-	gracefulStop(s)
 }

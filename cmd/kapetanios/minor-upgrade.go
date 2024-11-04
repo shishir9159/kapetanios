@@ -167,6 +167,8 @@ func MinorUpgradeFirstRun(namespace string) {
 	// TODO: wouldn't work on one master node where lighthouse is scheduled
 	// TODO: possible error, lighthouse can be on a master node, that would be mistakenly upgraded at the last
 
+	//	// and sort the list from the smallest worker node by resources
+
 	sort.Slice(nodes.Items, func(i, j int) bool {
 		if nodes.Items[i].Name == kapetaniosNode {
 			return false
