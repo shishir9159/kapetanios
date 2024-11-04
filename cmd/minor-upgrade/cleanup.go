@@ -1,6 +1,7 @@
 package main
 
 import (
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"os"
@@ -13,7 +14,7 @@ import (
 
 // TODO: check kubelet status and view the service logs with journalctl -xeu kubelet
 
-func restartComponent(c Controller, component string) error {
+func restartComponent(c Controller, component string, connection pb.UpgradeClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {

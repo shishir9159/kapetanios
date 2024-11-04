@@ -65,12 +65,12 @@ func main() {
 
 	connection := pb.NewRenewalClient(conn)
 
-	err = Prerequisites()
+	err = Prerequisites(c, connection)
 	if err != nil {
 
 	}
 
-	availableVersionList, err := availableVersions(c.log)
+	availableVersionList, err := availableVersions(c, connection)
 
 	if len(availableVersionList) == 0 {
 		c.log.Fatal("no available versions for minor upgrade",
@@ -102,7 +102,7 @@ func main() {
 	// TODO: refactor
 	plan := "v1.26.6"
 
-	diff, err := compatibility(c.log, plan)
+	diff, err := compatibility(c, plan, connection)
 	if err != nil {
 		c.log.Error("failed to get diff",
 			zap.Error(err))
@@ -111,7 +111,7 @@ func main() {
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
-	kubeadmUpgrade, err := k8sComponentsUpgrade(c.log, "kubeadm", version)
+	kubeadmUpgrade, err := k8sComponentsUpgrade(c, "kubeadm", version)
 	if err != nil {
 		c.log.Error("failed to get upgrade kubeadm",
 			zap.Error(err))

@@ -30,7 +30,10 @@ func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRe
 	log.Printf("Received retry attempt: %s", in.GetLocalAPIEndpoint())
 	log.Printf("Received error: %v", in.GetErr())
 
-	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
+	return &pb.CreateResponse{
+		ProceedNextStep:      true,
+		SkipRetryCurrentStep: true,
+	}, nil
 }
 
 // BackupUpdate implements proto.Renewal
@@ -40,7 +43,10 @@ func (s *server) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.Creat
 	log.Printf("Received restart sucess: %v", in.GetFileChecklistValidation())
 	log.Printf("Received error: %v", in.GetErr())
 
-	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
+	return &pb.CreateResponse{
+		ProceedNextStep:      true,
+		SkipRetryCurrentStep: true,
+	}, nil
 }
 
 // RenewalUpdate implements proto.Renewal
@@ -51,7 +57,10 @@ func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.Cre
 	log.Printf("Received retry attempt: %d", in.GetFileChecklistValidation())
 	log.Printf("Received error: %v", in.GetErr())
 
-	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
+	return &pb.CreateResponse{
+		ProceedNextStep:      true,
+		SkipRetryCurrentStep: true,
+	}, nil
 }
 
 // RestartUpdate implements proto.Renewal
@@ -62,7 +71,10 @@ func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.Cre
 	log.Printf("Received retry attempt: %s", in.GetKubeletError())
 	log.Printf("Received error: %v", in.GetErr())
 
-	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
+	return &pb.CreateResponse{
+		ProceedNextStep:      true,
+		SkipRetryCurrentStep: true,
+	}, nil
 }
 
 func CertGrpc(log *zap.Logger) {

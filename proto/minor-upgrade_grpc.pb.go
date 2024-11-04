@@ -7,10 +7,7 @@
 package proto
 
 import (
-	context "context"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -18,15 +15,10 @@ import (
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
 
-const (
-	Upgrade_StatusUpdate_FullMethodName = "/Upgrade/StatusUpdate"
-)
-
 // UpgradeClient is the client API for Upgrade service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UpgradeClient interface {
-	StatusUpdate(ctx context.Context, in *CreateUpgradeRequest, opts ...grpc.CallOption) (*CreateUpgradeResponse, error)
 }
 
 type upgradeClient struct {
@@ -37,21 +29,10 @@ func NewUpgradeClient(cc grpc.ClientConnInterface) UpgradeClient {
 	return &upgradeClient{cc}
 }
 
-func (c *upgradeClient) StatusUpdate(ctx context.Context, in *CreateUpgradeRequest, opts ...grpc.CallOption) (*CreateUpgradeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateUpgradeResponse)
-	err := c.cc.Invoke(ctx, Upgrade_StatusUpdate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // UpgradeServer is the server API for Upgrade service.
 // All implementations must embed UnimplementedUpgradeServer
 // for forward compatibility.
 type UpgradeServer interface {
-	StatusUpdate(context.Context, *CreateUpgradeRequest) (*CreateUpgradeResponse, error)
 	mustEmbedUnimplementedUpgradeServer()
 }
 
@@ -62,9 +43,6 @@ type UpgradeServer interface {
 // pointer dereference when methods are called.
 type UnimplementedUpgradeServer struct{}
 
-func (UnimplementedUpgradeServer) StatusUpdate(context.Context, *CreateUpgradeRequest) (*CreateUpgradeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StatusUpdate not implemented")
-}
 func (UnimplementedUpgradeServer) mustEmbedUnimplementedUpgradeServer() {}
 func (UnimplementedUpgradeServer) testEmbeddedByValue()                 {}
 
@@ -86,36 +64,13 @@ func RegisterUpgradeServer(s grpc.ServiceRegistrar, srv UpgradeServer) {
 	s.RegisterService(&Upgrade_ServiceDesc, srv)
 }
 
-func _Upgrade_StatusUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateUpgradeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UpgradeServer).StatusUpdate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Upgrade_StatusUpdate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UpgradeServer).StatusUpdate(ctx, req.(*CreateUpgradeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Upgrade_ServiceDesc is the grpc.ServiceDesc for Upgrade service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Upgrade_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Upgrade",
 	HandlerType: (*UpgradeServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "StatusUpdate",
-			Handler:    _Upgrade_StatusUpdate_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/minor-upgrade.proto",
+	Methods:     []grpc.MethodDesc{},
+	Streams:     []grpc.StreamDesc{},
+	Metadata:    "proto/minor-upgrade.proto",
 }

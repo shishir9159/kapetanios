@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"github.com/gofiber/fiber/v2/log"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
@@ -9,7 +11,7 @@ import (
 	"os/exec"
 )
 
-func compatibility(log *zap.Logger, version string) (string, error) {
+func compatibility(c Controller, version string, connection pb.UpgradeClient) (string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {

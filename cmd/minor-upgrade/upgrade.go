@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"github.com/gofiber/fiber/v2/log"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
@@ -10,7 +12,7 @@ import (
 	"time"
 )
 
-func clusterUpgrade(log *zap.Logger, version string) (bool, error) {
+func clusterUpgrade(c Controller, version string, connection pb.UpgradeClient) (bool, error) {
 
 	firstNode := os.Getenv("FIRST_NODE_TO_BE_UPGRADED")
 	certRenewal := os.Getenv("CERTIFICATE_RENEWAL")
@@ -99,7 +101,7 @@ func clusterUpgrade(log *zap.Logger, version string) (bool, error) {
 	return true, nil
 }
 
-func k8sComponentsUpgrade(log *zap.Logger, k8sComponents string, version string) (bool, error) {
+func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, connection pb.UpgradeClient) (bool, error) {
 
 	//-----// TODO: kernel version compatibility
 
@@ -193,7 +195,7 @@ func k8sComponentsUpgrade(log *zap.Logger, k8sComponents string, version string)
 //No VM guests are running outdated hypervisor (qemu) binaries on this host.
 //kubeadm set on hold.
 
-func upgradePlan(log *zap.Logger) (string, error) {
+func upgradePlan(c Controller, connection pb.UpgradeClient) (string, error) {
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		log.Error("Failed to create chroot on /host",

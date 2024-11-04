@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
@@ -11,11 +12,11 @@ import (
 	"time"
 )
 
-func availableVersions(log *zap.Logger) ([]string, error) {
+func availableVersions(c Controller, connection pb.UpgradeClient) ([]string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		log.Error("Failed to create chroot on /host",
+		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
 		return nil, err
 	}
@@ -27,7 +28,7 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 
 	time.Sleep(4 * time.Second)
 	if err != nil {
-		log.Error("Failed to update vm",
+		c.log.Error("Failed to update vm",
 			zap.Error(err))
 		return nil, err
 	}
@@ -49,13 +50,13 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 	// TODO: return output
 
 	if err != nil {
-		log.Error("Failed to list available versions",
+		c.log.Error("Failed to list available versions",
 			zap.Error(err))
 		return nil, err
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	log.Info("outString and errString",
+	c.log.Info("outString and errString",
 		zap.String("outStr", outStr),
 		zap.String("errStr", errStr))
 
@@ -65,7 +66,7 @@ func availableVersions(log *zap.Logger) ([]string, error) {
 	//  sort them based on the delimiter "." and "-'
 
 	if err = changedRoot(); err != nil {
-		log.Fatal("Failed to exit from the updated root",
+		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
 
