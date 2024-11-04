@@ -21,8 +21,8 @@ type rollbackServer struct {
 	pb.RollbackServer
 }
 
-// Prerequisite implements proto.Renewal
-func (s *rollbackServer) Prerequisite(_ context.Context, in *pb.PrerequisitesRollback) (*pb.CreateResponse, error) {
+// Prerequisites implements proto.Renewal
+func (s *rollbackServer) Prerequisites(_ context.Context, in *pb.PrerequisitesRollback) (*pb.CreateResponse, error) {
 	log.Printf("received prerequisite check status: %v", in.GetBackupExists())
 	log.Printf("received renewal sucess: %v", in.GetBackupExists())
 	log.Printf("Received error: %v", in.GetErr())
@@ -35,7 +35,7 @@ func (s *rollbackServer) Prerequisite(_ context.Context, in *pb.PrerequisitesRol
 }
 
 // RollbackUpdate implements proto.Renewal
-func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus) (*pb.CreateResponse, error) {
+func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus) (*pb.Finalizer, error) {
 	log.Printf("received prerequisite check status: %v", in.GetPrerequisitesCheckSuccess())
 	log.Printf("received renewal sucess: %v", in.GetRollbackSuccess())
 	log.Printf("received prerequisite check status: %v", in.GetRestartSuccess())
@@ -43,10 +43,8 @@ func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus
 	log.Printf("received prerequisite check status: %v", in.GetLog())
 	log.Printf("Received error: %v", in.GetErr())
 
-	return &pb.CreateResponse{
-		ProceedNextStep:      true,
-		SkipRetryCurrentStep: true,
-		TerminateApplication: true,
+	return &pb.Finalizer{
+		ResponseReceived: true,
 	}, nil
 }
 

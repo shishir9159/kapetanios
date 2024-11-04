@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
+	"go.uber.org/zap"
 	"io"
 	"log"
 	"os"
@@ -254,11 +256,11 @@ func overRideValidation(lastModifiedBeforeRollback time.Time) {
 	}
 }
 
-func Rollback() error {
+func Rollback(c Controller, connection pb.RollbackClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		fmt.Println("Failed to create chroot on /host")
+		c.log.Info("Failed to create chroot on /host")
 		return err
 	}
 
@@ -299,9 +301,28 @@ func Rollback() error {
 	overRideValidation(stat.ModTime())
 
 	if err = changedRoot(); err != nil {
-		log.Println("Failed to exit from the updated root")
+		c.log.Info("Failed to exit from the updated root")
 		return err
 	}
+
+	rpc, err := connection.RollbackUpdate(c.ctx,
+		&pb.RollbackStatus{
+			PrerequisitesCheckSuccess: false,
+			RollbackSuccess:           false,
+			RestartSuccess:            false,
+			RetryAttempt:              0,
+			Log:                       "",
+			Err:                       "",
+		})
+
+	if err != nil {
+
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Status Update",
+		zap.Bool("next step", rpc.Ge),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()))
 
 	return nil
 }

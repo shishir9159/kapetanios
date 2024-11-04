@@ -22,11 +22,19 @@ message CreateResponse {
   bool terminateApplication = 3;
 }
 
+message RestartStatus {
+  bool etcdRestartSuccess= 1;
+  bool kubeletRestartSuccess = 2;
+  string log = 3;
+  string err = 4;
+}
+
 message Finalizer {
   bool responseReceived = 1;
 }
 
 service Rollback {
   rpc Prerequisites(PrerequisitesRollback) returns (CreateResponse);
-  rpc RollbackUpdate(RollbackStatus) returns (Finalizer);
+  rpc RollbackUpdate(RollbackStatus) returns (CreateResponse);
+  rpc Restarts(RestartStatus) returns (Finalizer);
 }

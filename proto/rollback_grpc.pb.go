@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RollbackClient interface {
 	Prerequisites(ctx context.Context, in *PrerequisitesRollback, opts ...grpc.CallOption) (*CreateResponse, error)
-	RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*CreateResponse, error)
+	RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*Finalizer, error)
 }
 
 type rollbackClient struct {
@@ -49,9 +49,9 @@ func (c *rollbackClient) Prerequisites(ctx context.Context, in *PrerequisitesRol
 	return out, nil
 }
 
-func (c *rollbackClient) RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *rollbackClient) RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*Finalizer, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(Finalizer)
 	err := c.cc.Invoke(ctx, Rollback_RollbackUpdate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (c *rollbackClient) RollbackUpdate(ctx context.Context, in *RollbackStatus,
 // for forward compatibility.
 type RollbackServer interface {
 	Prerequisites(context.Context, *PrerequisitesRollback) (*CreateResponse, error)
-	RollbackUpdate(context.Context, *RollbackStatus) (*CreateResponse, error)
+	RollbackUpdate(context.Context, *RollbackStatus) (*Finalizer, error)
 	mustEmbedUnimplementedRollbackServer()
 }
 
@@ -78,7 +78,7 @@ type UnimplementedRollbackServer struct{}
 func (UnimplementedRollbackServer) Prerequisites(context.Context, *PrerequisitesRollback) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Prerequisites not implemented")
 }
-func (UnimplementedRollbackServer) RollbackUpdate(context.Context, *RollbackStatus) (*CreateResponse, error) {
+func (UnimplementedRollbackServer) RollbackUpdate(context.Context, *RollbackStatus) (*Finalizer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RollbackUpdate not implemented")
 }
 func (UnimplementedRollbackServer) mustEmbedUnimplementedRollbackServer() {}
