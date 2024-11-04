@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"github.com/gofiber/fiber/v2/log"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
@@ -19,7 +18,7 @@ func clusterUpgrade(c Controller, version string, connection pb.UpgradeClient) (
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		log.Error("Failed to create chroot on /host",
+		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
 		return false, err
 	}
@@ -94,7 +93,7 @@ func clusterUpgrade(c Controller, version string, connection pb.UpgradeClient) (
 	//	}
 
 	if err = changedRoot(); err != nil {
-		log.Fatal("Failed to exit from the updated root",
+		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
 
@@ -107,7 +106,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		log.Error("Failed to create chroot on /host",
+		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
 		return false, err
 	}
@@ -121,13 +120,13 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	err = cmd.Run()
 
 	if err != nil {
-		log.Error("Failed to install kubeadm",
+		c.log.Error("Failed to install kubeadm",
 			zap.Error(err))
 		return false, err
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	log.Info("outString and errString",
+	c.log.Info("outString and errString",
 		zap.String("outStr", outStr),
 		zap.String("errStr", errStr))
 
@@ -136,19 +135,19 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 
 	err = cmd.Run()
 	outStr = string(stdoutBuf.Bytes())
-	log.Info("outString kubeadm version",
+	c.log.Info("outString kubeadm version",
 		zap.String("outStr", outStr))
 
 	time.Sleep(4 * time.Second)
 	if err != nil {
-		log.Error("Failed to get kubeadm version",
+		c.log.Error("Failed to get kubeadm version",
 			zap.Error(err))
 		// TODO: check updated kubeadm version
 		//  return false, err
 	}
 
 	if err = changedRoot(); err != nil {
-		log.Fatal("Failed to exit from the updated root",
+		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
 
@@ -198,7 +197,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 func upgradePlan(c Controller, connection pb.UpgradeClient) (string, error) {
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		log.Error("Failed to create chroot on /host",
+		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
 	}
 
@@ -224,7 +223,7 @@ func upgradePlan(c Controller, connection pb.UpgradeClient) (string, error) {
 	// perform an upgrade.
 
 	if err != nil {
-		log.Error("Failed to get kubeadm upgrade plan",
+		c.log.Error("Failed to get kubeadm upgrade plan",
 			zap.Error(err))
 	}
 
@@ -247,7 +246,7 @@ func upgradePlan(c Controller, connection pb.UpgradeClient) (string, error) {
 	//[upgrade/versions] Latest version in the v1.26 series: v1.26.15
 
 	if err = changedRoot(); err != nil {
-		log.Fatal("Failed to exit from the updated root",
+		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
 

@@ -35,11 +35,11 @@ func main() {
 		}
 	}(logger)
 
-	// err = PrerequisitesForRollback(c.log)
-	// if err != nil {
-	//  	c.log.Error("the cluster didn't meet the condition for rollback",
-	//	 	zap.Error(err))
-	// }
+	err = prerequisite(c, connection)
+	if err != nil {
+		c.log.Error("the cluster didn't meet the condition for rollback",
+			zap.Error(err))
+	}
 
 	//	step 1. replacing the last generated configs with
 	//  the latest backups would cause the cert renewal rollback

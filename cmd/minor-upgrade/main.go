@@ -111,7 +111,7 @@ func main() {
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
-	kubeadmUpgrade, err := k8sComponentsUpgrade(c, "kubeadm", version)
+	kubeadmUpgrade, err := k8sComponentsUpgrade(c, "kubeadm", version, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade kubeadm",
 			zap.Error(err))
@@ -121,7 +121,7 @@ func main() {
 
 	}
 
-	plain, err := upgradePlan(c.log)
+	plain, err := upgradePlan(c, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
@@ -129,7 +129,7 @@ func main() {
 
 	fmt.Println(plain)
 
-	k8sUpgrade, err := clusterUpgrade(c.log, version)
+	k8sUpgrade, err := clusterUpgrade(c, version, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
@@ -139,7 +139,7 @@ func main() {
 
 	}
 
-	kubeletUpgrade, err := k8sComponentsUpgrade(c.log, "kubelet", version)
+	kubeletUpgrade, err := k8sComponentsUpgrade(c, "kubelet", version, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
@@ -149,22 +149,16 @@ func main() {
 
 	}
 
-	err = restartComponent(c, "kubelet")
+	err = restartComponent(c, "kubelet", connection)
 	if err != nil {
 		c.log.Error("failed to restart kubelet",
 			zap.Error(err))
 	}
 
-	//etcdNode := os.Getenv("ETCD_NODE")
-	//if etcdNode == "true" {
-	//	err = restartComponent(c, "etcd")
-	//	if err != nil {
-	//		c.log.Error("failed to restart etcd",
-	//			zap.Error(err))
-	//	}
-	//}
+	// TODO: etcd node restart based
+	//  on condition
 
-	_, err = k8sComponentsUpgrade(c.log, "kubectl", version)
+	_, err = k8sComponentsUpgrade(c, "kubectl", version, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"github.com/gofiber/fiber/v2/log"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
@@ -15,7 +14,7 @@ func compatibility(c Controller, version string, connection pb.UpgradeClient) (s
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		log.Error("Failed to create chroot on /host",
+		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
 		return "", err
 	}
@@ -41,7 +40,7 @@ func compatibility(c Controller, version string, connection pb.UpgradeClient) (s
 	//  try combinedOutput and revert back later
 	//out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Info("cmd.Run() failed with",
+		c.log.Info("cmd.Run() failed with",
 			zap.Error(err))
 	}
 
@@ -56,7 +55,7 @@ func compatibility(c Controller, version string, connection pb.UpgradeClient) (s
 	diff, _ := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
 	if err = changedRoot(); err != nil {
-		log.Fatal("Failed to exit from the updated root",
+		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
 
