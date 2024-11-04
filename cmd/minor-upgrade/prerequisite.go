@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func Prerequisites(c Controller, connection pb.UpgradeClient) error {
+func Prerequisites(c Controller, connection pb.MinorUpgradeClient) error {
 
 	// TODO: how to know the current node is etcd with clientSet?
 	//  	- etcd cluster from the cm

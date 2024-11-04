@@ -7,9 +7,23 @@ message PrerequisitesMinorUpgrade {
   string err = 3;
 }
 
+message CreateUpgradeResponse {
+  bool proceedNextStep = 1;
+  bool skipRetryCurrentStep = 2;
+  bool terminateApplication = 3;
+}
+
 message AvailableVersions {
   repeated string version = 1;
   string err = 2;
+}
+
+message clusterUpgradeResponse {
+  bool proceedNextStep = 1;
+  bool skipRetryCurrentStep = 2;
+  bool terminateApplication = 3;
+  bool certificateRenewal = 4;
+  string version = 5;
 }
 
 message UpgradeCompatibility {
@@ -26,15 +40,9 @@ message kubeadmUpgrade {
 
 message upgradePlan {
   bool kubeadmUpgradeSuccess = 1;
-  string clusterVersion = 2;
+  string currentClusterVersion = 2;
   string log = 3;
   string err = 4;
-}
-
-// version
-
-message clusterUpgradeRequest {
-
 }
 
 message clusterUpgrade {
@@ -46,13 +54,9 @@ message clusterUpgrade {
   string err = 6;
 }
 
-message CreateUpgradeResponse {
-  bool proceedNextStep = 1;
-  bool skipRetryCurrentStep = 2;
-  bool terminateApplication = 3;
-}
 
-service Upgrade {
+service MinorUpgrade {
   rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (CreateUpgradeResponse);
-
+  rpc UpgradeVersionSelection(AvailableVersions) returns (clusterUpgradeResponse);
+  rpc UpgradeCompatibility(PrerequisitesMinorUpgrade) returns (CreateUpgradeResponse);
 }

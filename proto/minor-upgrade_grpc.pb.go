@@ -19,101 +19,101 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Upgrade_ClusterHealthChecking_FullMethodName = "/Upgrade/ClusterHealthChecking"
+	MinorUpgrade_ClusterHealthChecking_FullMethodName = "/MinorUpgrade/ClusterHealthChecking"
 )
 
-// UpgradeClient is the client API for Upgrade service.
+// MinorUpgradeClient is the client API for MinorUpgrade service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UpgradeClient interface {
+type MinorUpgradeClient interface {
 	ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*CreateUpgradeResponse, error)
 }
 
-type upgradeClient struct {
+type minorUpgradeClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUpgradeClient(cc grpc.ClientConnInterface) UpgradeClient {
-	return &upgradeClient{cc}
+func NewMinorUpgradeClient(cc grpc.ClientConnInterface) MinorUpgradeClient {
+	return &minorUpgradeClient{cc}
 }
 
-func (c *upgradeClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*CreateUpgradeResponse, error) {
+func (c *minorUpgradeClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*CreateUpgradeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateUpgradeResponse)
-	err := c.cc.Invoke(ctx, Upgrade_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UpgradeServer is the server API for Upgrade service.
-// All implementations must embed UnimplementedUpgradeServer
+// MinorUpgradeServer is the server API for MinorUpgrade service.
+// All implementations must embed UnimplementedMinorUpgradeServer
 // for forward compatibility.
-type UpgradeServer interface {
+type MinorUpgradeServer interface {
 	ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*CreateUpgradeResponse, error)
-	mustEmbedUnimplementedUpgradeServer()
+	mustEmbedUnimplementedMinorUpgradeServer()
 }
 
-// UnimplementedUpgradeServer must be embedded to have
+// UnimplementedMinorUpgradeServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedUpgradeServer struct{}
+type UnimplementedMinorUpgradeServer struct{}
 
-func (UnimplementedUpgradeServer) ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*CreateUpgradeResponse, error) {
+func (UnimplementedMinorUpgradeServer) ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*CreateUpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
 }
-func (UnimplementedUpgradeServer) mustEmbedUnimplementedUpgradeServer() {}
-func (UnimplementedUpgradeServer) testEmbeddedByValue()                 {}
+func (UnimplementedMinorUpgradeServer) mustEmbedUnimplementedMinorUpgradeServer() {}
+func (UnimplementedMinorUpgradeServer) testEmbeddedByValue()                      {}
 
-// UnsafeUpgradeServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UpgradeServer will
+// UnsafeMinorUpgradeServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MinorUpgradeServer will
 // result in compilation errors.
-type UnsafeUpgradeServer interface {
-	mustEmbedUnimplementedUpgradeServer()
+type UnsafeMinorUpgradeServer interface {
+	mustEmbedUnimplementedMinorUpgradeServer()
 }
 
-func RegisterUpgradeServer(s grpc.ServiceRegistrar, srv UpgradeServer) {
-	// If the following call pancis, it indicates UnimplementedUpgradeServer was
+func RegisterMinorUpgradeServer(s grpc.ServiceRegistrar, srv MinorUpgradeServer) {
+	// If the following call pancis, it indicates UnimplementedMinorUpgradeServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&Upgrade_ServiceDesc, srv)
+	s.RegisterService(&MinorUpgrade_ServiceDesc, srv)
 }
 
-func _Upgrade_ClusterHealthChecking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MinorUpgrade_ClusterHealthChecking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PrerequisitesMinorUpgrade)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UpgradeServer).ClusterHealthChecking(ctx, in)
+		return srv.(MinorUpgradeServer).ClusterHealthChecking(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Upgrade_ClusterHealthChecking_FullMethodName,
+		FullMethod: MinorUpgrade_ClusterHealthChecking_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UpgradeServer).ClusterHealthChecking(ctx, req.(*PrerequisitesMinorUpgrade))
+		return srv.(MinorUpgradeServer).ClusterHealthChecking(ctx, req.(*PrerequisitesMinorUpgrade))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Upgrade_ServiceDesc is the grpc.ServiceDesc for Upgrade service.
+// MinorUpgrade_ServiceDesc is the grpc.ServiceDesc for MinorUpgrade service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Upgrade_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Upgrade",
-	HandlerType: (*UpgradeServer)(nil),
+var MinorUpgrade_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "MinorUpgrade",
+	HandlerType: (*MinorUpgradeServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ClusterHealthChecking",
-			Handler:    _Upgrade_ClusterHealthChecking_Handler,
+			Handler:    _MinorUpgrade_ClusterHealthChecking_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

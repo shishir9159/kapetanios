@@ -63,7 +63,7 @@ func main() {
 		}
 	}(conn)
 
-	connection := pb.NewRenewalClient(conn)
+	connection := pb.NewMinorUpgradeClient(conn)
 
 	err = Prerequisites(c, connection)
 	if err != nil {
