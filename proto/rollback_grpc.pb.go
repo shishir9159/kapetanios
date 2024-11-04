@@ -21,14 +21,16 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Rollback_Prerequisites_FullMethodName  = "/Rollback/Prerequisites"
 	Rollback_RollbackUpdate_FullMethodName = "/Rollback/RollbackUpdate"
+	Rollback_Restarts_FullMethodName       = "/Rollback/Restarts"
 )
 
 // RollbackClient is the client API for Rollback service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RollbackClient interface {
-	Prerequisites(ctx context.Context, in *PrerequisitesRollback, opts ...grpc.CallOption) (*CreateResponse, error)
-	RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*Finalizer, error)
+	Prerequisites(ctx context.Context, in *PrerequisitesRollback, opts ...grpc.CallOption) (*RollbackResponse, error)
+	RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*RollbackResponse, error)
+	Restarts(ctx context.Context, in *RollbackRestartStatus, opts ...grpc.CallOption) (*RollbackFinalizer, error)
 }
 
 type rollbackClient struct {
@@ -39,9 +41,9 @@ func NewRollbackClient(cc grpc.ClientConnInterface) RollbackClient {
 	return &rollbackClient{cc}
 }
 
-func (c *rollbackClient) Prerequisites(ctx context.Context, in *PrerequisitesRollback, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *rollbackClient) Prerequisites(ctx context.Context, in *PrerequisitesRollback, opts ...grpc.CallOption) (*RollbackResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(RollbackResponse)
 	err := c.cc.Invoke(ctx, Rollback_Prerequisites_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -49,10 +51,20 @@ func (c *rollbackClient) Prerequisites(ctx context.Context, in *PrerequisitesRol
 	return out, nil
 }
 
-func (c *rollbackClient) RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*Finalizer, error) {
+func (c *rollbackClient) RollbackUpdate(ctx context.Context, in *RollbackStatus, opts ...grpc.CallOption) (*RollbackResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Finalizer)
+	out := new(RollbackResponse)
 	err := c.cc.Invoke(ctx, Rollback_RollbackUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rollbackClient) Restarts(ctx context.Context, in *RollbackRestartStatus, opts ...grpc.CallOption) (*RollbackFinalizer, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RollbackFinalizer)
+	err := c.cc.Invoke(ctx, Rollback_Restarts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +75,9 @@ func (c *rollbackClient) RollbackUpdate(ctx context.Context, in *RollbackStatus,
 // All implementations must embed UnimplementedRollbackServer
 // for forward compatibility.
 type RollbackServer interface {
-	Prerequisites(context.Context, *PrerequisitesRollback) (*CreateResponse, error)
-	RollbackUpdate(context.Context, *RollbackStatus) (*Finalizer, error)
+	Prerequisites(context.Context, *PrerequisitesRollback) (*RollbackResponse, error)
+	RollbackUpdate(context.Context, *RollbackStatus) (*RollbackResponse, error)
+	Restarts(context.Context, *RollbackRestartStatus) (*RollbackFinalizer, error)
 	mustEmbedUnimplementedRollbackServer()
 }
 
@@ -75,11 +88,14 @@ type RollbackServer interface {
 // pointer dereference when methods are called.
 type UnimplementedRollbackServer struct{}
 
-func (UnimplementedRollbackServer) Prerequisites(context.Context, *PrerequisitesRollback) (*CreateResponse, error) {
+func (UnimplementedRollbackServer) Prerequisites(context.Context, *PrerequisitesRollback) (*RollbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Prerequisites not implemented")
 }
-func (UnimplementedRollbackServer) RollbackUpdate(context.Context, *RollbackStatus) (*Finalizer, error) {
+func (UnimplementedRollbackServer) RollbackUpdate(context.Context, *RollbackStatus) (*RollbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RollbackUpdate not implemented")
+}
+func (UnimplementedRollbackServer) Restarts(context.Context, *RollbackRestartStatus) (*RollbackFinalizer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Restarts not implemented")
 }
 func (UnimplementedRollbackServer) mustEmbedUnimplementedRollbackServer() {}
 func (UnimplementedRollbackServer) testEmbeddedByValue()                  {}
@@ -138,6 +154,24 @@ func _Rollback_RollbackUpdate_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rollback_Restarts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RollbackRestartStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RollbackServer).Restarts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Rollback_Restarts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RollbackServer).Restarts(ctx, req.(*RollbackRestartStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Rollback_ServiceDesc is the grpc.ServiceDesc for Rollback service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var Rollback_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RollbackUpdate",
 			Handler:    _Rollback_RollbackUpdate_Handler,
+		},
+		{
+			MethodName: "Restarts",
+			Handler:    _Rollback_Restarts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

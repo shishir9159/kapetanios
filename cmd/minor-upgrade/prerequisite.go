@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	pb "github.com/shishir9159/kapetanios/proto"
+	"go.uber.org/zap"
 	"os"
 )
 
@@ -19,6 +20,24 @@ func Prerequisites(c Controller, connection pb.UpgradeClient) error {
 	} else if etcdNode == "true" {
 		return errors.New("ETCD_NODE environment variable set to be True")
 	}
+
+	rpc, err := connection.
+		BackupUpdate(c.ctx,
+			&pb.BackupStatus{
+				EtcdBackup:              false,
+				KubeConfigBackup:        false,
+				FileChecklistValidation: false,
+				Err:                     "",
+			})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return nil
 }

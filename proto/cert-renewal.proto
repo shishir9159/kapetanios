@@ -32,15 +32,19 @@ message RestartStatus {
   string err = 5;
 }
 
-message CreateResponse {
+message RenewalResponse {
   bool proceedNextStep = 1;
   bool skipRetryCurrentStep = 2;
   bool terminateApplication = 3;
 }
 
+message RenewalFinalizer {
+  bool responseReceived = 1;
+}
+
 service Renewal {
-  rpc ClusterHealthChecking(PrerequisitesRenewal) returns (CreateResponse);
-  rpc BackupUpdate(BackupStatus) returns (CreateResponse);
-  rpc RenewalUpdate(RenewalStatus) returns (CreateResponse);
-  rpc RestartUpdate(RestartStatus) returns (CreateResponse);
+  rpc ClusterHealthChecking(PrerequisitesRenewal) returns (RenewalResponse);
+  rpc BackupUpdate(BackupStatus) returns (RenewalResponse);
+  rpc RenewalUpdate(RenewalStatus) returns (RenewalResponse);
+  rpc RestartUpdate(RestartStatus) returns (RenewalFinalizer);
 }

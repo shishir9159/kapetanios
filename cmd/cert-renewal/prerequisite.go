@@ -91,7 +91,8 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) erro
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 	}
 
 	c.log.Info("Status Update",

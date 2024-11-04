@@ -7,7 +7,10 @@
 package proto
 
 import (
+	context "context"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -15,10 +18,15 @@ import (
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
 
+const (
+	Upgrade_ClusterHealthChecking_FullMethodName = "/Upgrade/ClusterHealthChecking"
+)
+
 // UpgradeClient is the client API for Upgrade service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UpgradeClient interface {
+	ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*CreateUpgradeResponse, error)
 }
 
 type upgradeClient struct {
@@ -29,10 +37,21 @@ func NewUpgradeClient(cc grpc.ClientConnInterface) UpgradeClient {
 	return &upgradeClient{cc}
 }
 
+func (c *upgradeClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*CreateUpgradeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateUpgradeResponse)
+	err := c.cc.Invoke(ctx, Upgrade_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UpgradeServer is the server API for Upgrade service.
 // All implementations must embed UnimplementedUpgradeServer
 // for forward compatibility.
 type UpgradeServer interface {
+	ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*CreateUpgradeResponse, error)
 	mustEmbedUnimplementedUpgradeServer()
 }
 
@@ -43,6 +62,9 @@ type UpgradeServer interface {
 // pointer dereference when methods are called.
 type UnimplementedUpgradeServer struct{}
 
+func (UnimplementedUpgradeServer) ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*CreateUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
+}
 func (UnimplementedUpgradeServer) mustEmbedUnimplementedUpgradeServer() {}
 func (UnimplementedUpgradeServer) testEmbeddedByValue()                 {}
 
@@ -64,13 +86,36 @@ func RegisterUpgradeServer(s grpc.ServiceRegistrar, srv UpgradeServer) {
 	s.RegisterService(&Upgrade_ServiceDesc, srv)
 }
 
+func _Upgrade_ClusterHealthChecking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrerequisitesMinorUpgrade)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UpgradeServer).ClusterHealthChecking(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Upgrade_ClusterHealthChecking_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UpgradeServer).ClusterHealthChecking(ctx, req.(*PrerequisitesMinorUpgrade))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Upgrade_ServiceDesc is the grpc.ServiceDesc for Upgrade service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Upgrade_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Upgrade",
 	HandlerType: (*UpgradeServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "proto/minor-upgrade.proto",
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ClusterHealthChecking",
+			Handler:    _Upgrade_ClusterHealthChecking_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "proto/minor-upgrade.proto",
 }

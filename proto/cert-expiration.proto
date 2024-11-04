@@ -28,11 +28,11 @@ message CertificateAuthority {
   string externallyManaged = 4;
 }
 
-message CreateResponse {
+message CertificateValidityResponse {
   bool received = 1;
 }
 
 service Validity {
-  rpc ClusterHealthChecking(PrerequisitesExpiration) returns (CreateResponse);
-  rpc ExpirationInfo(Expiration) returns (CreateResponse);
+  rpc ClusterHealthChecking(PrerequisitesExpiration) returns (CertificateValidityResponse);
+  rpc ExpirationInfo(Expiration) returns (CertificateValidityResponse);
 }

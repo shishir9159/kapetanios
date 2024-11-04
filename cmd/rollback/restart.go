@@ -1,6 +1,7 @@
 package main
 
 import (
+	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"os/exec"
@@ -25,7 +26,7 @@ func restartService(c Controller, component string) error {
 	return nil
 }
 
-func Restart(c Controller) error {
+func Restart(c Controller, connection pb.RollbackClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -49,6 +50,22 @@ func Restart(c Controller) error {
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	rpc, err := connection.Restarts(c.ctx,
+		&pb.RollbackRestartStatus{
+			EtcdRestart:    false,
+			KubeletRestart: false,
+			EtcdError:      "",
+			KubeletError:   "",
+			Err:            "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Status Update",
+		zap.Bool("response received", rpc.GetResponseReceived()))
 
 	return err
 }

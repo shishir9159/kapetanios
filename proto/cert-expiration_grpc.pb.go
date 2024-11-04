@@ -27,8 +27,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ValidityClient interface {
-	ClusterHealthChecking(ctx context.Context, in *PrerequisitesExpiration, opts ...grpc.CallOption) (*CreateResponse, error)
-	ExpirationInfo(ctx context.Context, in *Expiration, opts ...grpc.CallOption) (*CreateResponse, error)
+	ClusterHealthChecking(ctx context.Context, in *PrerequisitesExpiration, opts ...grpc.CallOption) (*CertificateValidityResponse, error)
+	ExpirationInfo(ctx context.Context, in *Expiration, opts ...grpc.CallOption) (*CertificateValidityResponse, error)
 }
 
 type validityClient struct {
@@ -39,9 +39,9 @@ func NewValidityClient(cc grpc.ClientConnInterface) ValidityClient {
 	return &validityClient{cc}
 }
 
-func (c *validityClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesExpiration, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *validityClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesExpiration, opts ...grpc.CallOption) (*CertificateValidityResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(CertificateValidityResponse)
 	err := c.cc.Invoke(ctx, Validity_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -49,9 +49,9 @@ func (c *validityClient) ClusterHealthChecking(ctx context.Context, in *Prerequi
 	return out, nil
 }
 
-func (c *validityClient) ExpirationInfo(ctx context.Context, in *Expiration, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *validityClient) ExpirationInfo(ctx context.Context, in *Expiration, opts ...grpc.CallOption) (*CertificateValidityResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(CertificateValidityResponse)
 	err := c.cc.Invoke(ctx, Validity_ExpirationInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -63,8 +63,8 @@ func (c *validityClient) ExpirationInfo(ctx context.Context, in *Expiration, opt
 // All implementations must embed UnimplementedValidityServer
 // for forward compatibility.
 type ValidityServer interface {
-	ClusterHealthChecking(context.Context, *PrerequisitesExpiration) (*CreateResponse, error)
-	ExpirationInfo(context.Context, *Expiration) (*CreateResponse, error)
+	ClusterHealthChecking(context.Context, *PrerequisitesExpiration) (*CertificateValidityResponse, error)
+	ExpirationInfo(context.Context, *Expiration) (*CertificateValidityResponse, error)
 	mustEmbedUnimplementedValidityServer()
 }
 
@@ -75,10 +75,10 @@ type ValidityServer interface {
 // pointer dereference when methods are called.
 type UnimplementedValidityServer struct{}
 
-func (UnimplementedValidityServer) ClusterHealthChecking(context.Context, *PrerequisitesExpiration) (*CreateResponse, error) {
+func (UnimplementedValidityServer) ClusterHealthChecking(context.Context, *PrerequisitesExpiration) (*CertificateValidityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
 }
-func (UnimplementedValidityServer) ExpirationInfo(context.Context, *Expiration) (*CreateResponse, error) {
+func (UnimplementedValidityServer) ExpirationInfo(context.Context, *Expiration) (*CertificateValidityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExpirationInfo not implemented")
 }
 func (UnimplementedValidityServer) mustEmbedUnimplementedValidityServer() {}

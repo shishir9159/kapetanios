@@ -64,9 +64,7 @@ func Restart(c Controller, connection pb.RenewalClient) error {
 	}
 
 	c.log.Info("Backup Status",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+		zap.Bool("finalizer", rpc.GetResponseReceived()))
 
 	return err
 }

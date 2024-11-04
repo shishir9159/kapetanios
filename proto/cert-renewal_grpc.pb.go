@@ -29,10 +29,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RenewalClient interface {
-	ClusterHealthChecking(ctx context.Context, in *PrerequisitesRenewal, opts ...grpc.CallOption) (*CreateResponse, error)
-	BackupUpdate(ctx context.Context, in *BackupStatus, opts ...grpc.CallOption) (*CreateResponse, error)
-	RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*CreateResponse, error)
-	RestartUpdate(ctx context.Context, in *RestartStatus, opts ...grpc.CallOption) (*CreateResponse, error)
+	ClusterHealthChecking(ctx context.Context, in *PrerequisitesRenewal, opts ...grpc.CallOption) (*RenewalResponse, error)
+	BackupUpdate(ctx context.Context, in *BackupStatus, opts ...grpc.CallOption) (*RenewalResponse, error)
+	RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*RenewalResponse, error)
+	RestartUpdate(ctx context.Context, in *RestartStatus, opts ...grpc.CallOption) (*RenewalFinalizer, error)
 }
 
 type renewalClient struct {
@@ -43,9 +43,9 @@ func NewRenewalClient(cc grpc.ClientConnInterface) RenewalClient {
 	return &renewalClient{cc}
 }
 
-func (c *renewalClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesRenewal, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *renewalClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesRenewal, opts ...grpc.CallOption) (*RenewalResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(RenewalResponse)
 	err := c.cc.Invoke(ctx, Renewal_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -53,9 +53,9 @@ func (c *renewalClient) ClusterHealthChecking(ctx context.Context, in *Prerequis
 	return out, nil
 }
 
-func (c *renewalClient) BackupUpdate(ctx context.Context, in *BackupStatus, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *renewalClient) BackupUpdate(ctx context.Context, in *BackupStatus, opts ...grpc.CallOption) (*RenewalResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(RenewalResponse)
 	err := c.cc.Invoke(ctx, Renewal_BackupUpdate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -63,9 +63,9 @@ func (c *renewalClient) BackupUpdate(ctx context.Context, in *BackupStatus, opts
 	return out, nil
 }
 
-func (c *renewalClient) RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *renewalClient) RenewalUpdate(ctx context.Context, in *RenewalStatus, opts ...grpc.CallOption) (*RenewalResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(RenewalResponse)
 	err := c.cc.Invoke(ctx, Renewal_RenewalUpdate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -73,9 +73,9 @@ func (c *renewalClient) RenewalUpdate(ctx context.Context, in *RenewalStatus, op
 	return out, nil
 }
 
-func (c *renewalClient) RestartUpdate(ctx context.Context, in *RestartStatus, opts ...grpc.CallOption) (*CreateResponse, error) {
+func (c *renewalClient) RestartUpdate(ctx context.Context, in *RestartStatus, opts ...grpc.CallOption) (*RenewalFinalizer, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateResponse)
+	out := new(RenewalFinalizer)
 	err := c.cc.Invoke(ctx, Renewal_RestartUpdate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -87,10 +87,10 @@ func (c *renewalClient) RestartUpdate(ctx context.Context, in *RestartStatus, op
 // All implementations must embed UnimplementedRenewalServer
 // for forward compatibility.
 type RenewalServer interface {
-	ClusterHealthChecking(context.Context, *PrerequisitesRenewal) (*CreateResponse, error)
-	BackupUpdate(context.Context, *BackupStatus) (*CreateResponse, error)
-	RenewalUpdate(context.Context, *RenewalStatus) (*CreateResponse, error)
-	RestartUpdate(context.Context, *RestartStatus) (*CreateResponse, error)
+	ClusterHealthChecking(context.Context, *PrerequisitesRenewal) (*RenewalResponse, error)
+	BackupUpdate(context.Context, *BackupStatus) (*RenewalResponse, error)
+	RenewalUpdate(context.Context, *RenewalStatus) (*RenewalResponse, error)
+	RestartUpdate(context.Context, *RestartStatus) (*RenewalFinalizer, error)
 	mustEmbedUnimplementedRenewalServer()
 }
 
@@ -101,16 +101,16 @@ type RenewalServer interface {
 // pointer dereference when methods are called.
 type UnimplementedRenewalServer struct{}
 
-func (UnimplementedRenewalServer) ClusterHealthChecking(context.Context, *PrerequisitesRenewal) (*CreateResponse, error) {
+func (UnimplementedRenewalServer) ClusterHealthChecking(context.Context, *PrerequisitesRenewal) (*RenewalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
 }
-func (UnimplementedRenewalServer) BackupUpdate(context.Context, *BackupStatus) (*CreateResponse, error) {
+func (UnimplementedRenewalServer) BackupUpdate(context.Context, *BackupStatus) (*RenewalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BackupUpdate not implemented")
 }
-func (UnimplementedRenewalServer) RenewalUpdate(context.Context, *RenewalStatus) (*CreateResponse, error) {
+func (UnimplementedRenewalServer) RenewalUpdate(context.Context, *RenewalStatus) (*RenewalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenewalUpdate not implemented")
 }
-func (UnimplementedRenewalServer) RestartUpdate(context.Context, *RestartStatus) (*CreateResponse, error) {
+func (UnimplementedRenewalServer) RestartUpdate(context.Context, *RestartStatus) (*RenewalFinalizer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RestartUpdate not implemented")
 }
 func (UnimplementedRenewalServer) mustEmbedUnimplementedRenewalServer() {}

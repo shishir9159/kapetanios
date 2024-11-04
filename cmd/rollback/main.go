@@ -81,8 +81,6 @@ func main() {
 			zap.Error(err))
 	}
 
-	GrpcClient(c.log)
-
 	//step 3. Restarting pods to work with the updated certificates
 	err = Restart(c, connection)
 	if err != nil {

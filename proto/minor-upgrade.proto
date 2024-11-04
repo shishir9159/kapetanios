@@ -46,7 +46,6 @@ message clusterUpgrade {
   string err = 6;
 }
 
-
 message CreateUpgradeResponse {
   bool proceedNextStep = 1;
   bool skipRetryCurrentStep = 2;
@@ -54,6 +53,6 @@ message CreateUpgradeResponse {
 }
 
 service Upgrade {
-
+  rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (CreateUpgradeResponse);
 
 }

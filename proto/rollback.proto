@@ -16,25 +16,26 @@ message RollbackStatus {
   string err = 6;
 }
 
-message CreateResponse {
+message RollbackResponse {
   bool proceedNextStep = 1;
   bool skipRetryCurrentStep = 2;
   bool terminateApplication = 3;
 }
 
-message RestartStatus {
-  bool etcdRestartSuccess= 1;
-  bool kubeletRestartSuccess = 2;
-  string log = 3;
-  string err = 4;
+message RollbackRestartStatus {
+  bool etcdRestart = 1;
+  bool kubeletRestart = 2;
+  string etcdError = 3;
+  string kubeletError = 4;
+  string err = 5;
 }
 
-message Finalizer {
+message RollbackFinalizer {
   bool responseReceived = 1;
 }
 
 service Rollback {
-  rpc Prerequisites(PrerequisitesRollback) returns (CreateResponse);
-  rpc RollbackUpdate(RollbackStatus) returns (CreateResponse);
-  rpc Restarts(RestartStatus) returns (Finalizer);
+  rpc Prerequisites(PrerequisitesRollback) returns (RollbackResponse);
+  rpc RollbackUpdate(RollbackStatus) returns (RollbackResponse);
+  rpc Restarts(RollbackRestartStatus) returns (RollbackFinalizer);
 }

@@ -316,12 +316,11 @@ func Rollback(c Controller, connection pb.RollbackClient) error {
 		})
 
 	if err != nil {
-
 		c.log.Error("could not send status update: ", zap.Error(err))
 	}
 
 	c.log.Info("Status Update",
-		zap.Bool("next step", rpc.Ge),
+		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()))
 
 	return nil
