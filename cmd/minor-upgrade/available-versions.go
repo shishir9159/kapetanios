@@ -72,7 +72,7 @@ func availableVersions(c Controller, connection pb.MinorUpgradeClient) ([]string
 
 	rpc, err := connection.UpgradeVersionSelection(c.ctx,
 		&pb.AvailableVersions{
-			Version: nil,
+			Version: availableVersionSlice,
 			Err:     "",
 		})
 
