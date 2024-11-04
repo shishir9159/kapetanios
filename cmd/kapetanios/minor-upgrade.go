@@ -299,6 +299,12 @@ func MinorUpgradeFirstRun(namespace string) {
 
 		descriptor.Spec.Containers[0].Env = env
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
+		// todo: query for the kube-dns ip
+		descriptor.Spec.DNSConfig = &corev1.PodDNSConfig{
+			Nameservers: []string{"10.96.0.10"},
+			Searches:    []string{"svc.cluster.local"},
+			//Options:     nil,
+		}
 
 		// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
 		//  then those Pods might be scheduled to the node you have drained.
