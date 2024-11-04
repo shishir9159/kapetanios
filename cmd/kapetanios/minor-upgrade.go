@@ -416,11 +416,13 @@ func MinorUpgradeFirstRun(namespace string) {
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		}
 
-		er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions)
-		if er != nil {
-			c.log.Error("watcher error from minion restart",
-				zap.Error(er))
-		}
+		time.Sleep(20 * time.Second)
+
+		//er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions)
+		//if er != nil {
+		//	c.log.Error("watcher error from minion restart",
+		//		zap.Error(er))
+		//}
 
 		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 		//   check if previously listed pods are all successfully restarted before untainted
