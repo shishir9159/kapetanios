@@ -21,14 +21,12 @@ func Prerequisites(c Controller, connection pb.MinorUpgradeClient) error {
 		return errors.New("ETCD_NODE environment variable set to be True")
 	}
 
-	rpc, err := connection.
-		BackupUpdate(c.ctx,
-			&pb.BackupStatus{
-				EtcdBackup:              false,
-				KubeConfigBackup:        false,
-				FileChecklistValidation: false,
-				Err:                     "",
-			})
+	rpc, err := connection.ClusterHealthChecking(c.ctx,
+		&pb.PrerequisitesMinorUpgrade{
+			EtcdStatus:          false,
+			StorageAvailability: 0,
+			Err:                 "",
+		})
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))

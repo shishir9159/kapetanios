@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func clusterUpgrade(c Controller, version string, connection pb.UpgradeClient) (bool, error) {
+func clusterUpgrade(c Controller, version string, connection pb.MinorUpgradeClient) (bool, error) {
 
 	firstNode := os.Getenv("FIRST_NODE_TO_BE_UPGRADED")
 	certRenewal := os.Getenv("CERTIFICATE_RENEWAL")
@@ -97,10 +97,27 @@ func clusterUpgrade(c Controller, version string, connection pb.UpgradeClient) (
 			zap.Error(err))
 	}
 
+	rpc, err := connection.ClusterUpgrade(c.ctx,
+		&pb.UpgradeStatus{
+			PrerequisiteCheckSuccess: false,
+			UpgradeSuccess:           false,
+			Log:                      "",
+			Err:                      "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+
 	return true, nil
 }
 
-func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, connection pb.UpgradeClient) (bool, error) {
+func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, connection pb.MinorUpgradeClient) (bool, error) {
 
 	//-----// TODO: kernel version compatibility
 
@@ -155,6 +172,23 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	//  Check for kubernetes repo if no version is found
 	//  disableexclude
 
+	rpc, err := connection.ClusterComponentUpgrade(c.ctx,
+		&pb.ComponentUpgradeStatus{
+			ComponentUpgradeSuccess: false,
+			Component:               "",
+			Log:                     "",
+			Err:                     "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+
 	return true, nil
 }
 
@@ -194,7 +228,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 //No VM guests are running outdated hypervisor (qemu) binaries on this host.
 //kubeadm set on hold.
 
-func upgradePlan(c Controller, connection pb.UpgradeClient) (string, error) {
+func upgradePlan(c Controller, connection pb.MinorUpgradeClient) (string, error) {
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
@@ -249,6 +283,22 @@ func upgradePlan(c Controller, connection pb.UpgradeClient) (string, error) {
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	rpc, err := connection.ClusterUpgradePlan(c.ctx,
+		&pb.UpgradePlan{
+			CurrentClusterVersion: "",
+			Log:                   "",
+			Err:                   "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return "", err
 }

@@ -19,14 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MinorUpgrade_ClusterHealthChecking_FullMethodName = "/MinorUpgrade/ClusterHealthChecking"
+	MinorUpgrade_ClusterHealthChecking_FullMethodName   = "/MinorUpgrade/ClusterHealthChecking"
+	MinorUpgrade_UpgradeVersionSelection_FullMethodName = "/MinorUpgrade/UpgradeVersionSelection"
+	MinorUpgrade_ClusterCompatibility_FullMethodName    = "/MinorUpgrade/ClusterCompatibility"
+	MinorUpgrade_ClusterComponentUpgrade_FullMethodName = "/MinorUpgrade/ClusterComponentUpgrade"
+	MinorUpgrade_ClusterUpgradePlan_FullMethodName      = "/MinorUpgrade/ClusterUpgradePlan"
+	MinorUpgrade_ClusterUpgrade_FullMethodName          = "/MinorUpgrade/ClusterUpgrade"
+	MinorUpgrade_ClusterStatus_FullMethodName           = "/MinorUpgrade/ClusterStatus"
 )
 
 // MinorUpgradeClient is the client API for MinorUpgrade service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MinorUpgradeClient interface {
-	ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*CreateUpgradeResponse, error)
+	ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*UpgradeResponse, error)
+	UpgradeVersionSelection(ctx context.Context, in *AvailableVersions, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error)
+	ClusterCompatibility(ctx context.Context, in *UpgradeCompatibility, opts ...grpc.CallOption) (*UpgradeResponse, error)
+	ClusterComponentUpgrade(ctx context.Context, in *ComponentUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
+	ClusterUpgradePlan(ctx context.Context, in *UpgradePlan, opts ...grpc.CallOption) (*UpgradeResponse, error)
+	ClusterUpgrade(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
+	ClusterStatus(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*MinorUpgradeFinalizer, error)
 }
 
 type minorUpgradeClient struct {
@@ -37,10 +49,70 @@ func NewMinorUpgradeClient(cc grpc.ClientConnInterface) MinorUpgradeClient {
 	return &minorUpgradeClient{cc}
 }
 
-func (c *minorUpgradeClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*CreateUpgradeResponse, error) {
+func (c *minorUpgradeClient) ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*UpgradeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateUpgradeResponse)
+	out := new(UpgradeResponse)
 	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterHealthChecking_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *minorUpgradeClient) UpgradeVersionSelection(ctx context.Context, in *AvailableVersions, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClusterUpgradeResponse)
+	err := c.cc.Invoke(ctx, MinorUpgrade_UpgradeVersionSelection_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *minorUpgradeClient) ClusterCompatibility(ctx context.Context, in *UpgradeCompatibility, opts ...grpc.CallOption) (*UpgradeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpgradeResponse)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterCompatibility_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *minorUpgradeClient) ClusterComponentUpgrade(ctx context.Context, in *ComponentUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpgradeResponse)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterComponentUpgrade_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *minorUpgradeClient) ClusterUpgradePlan(ctx context.Context, in *UpgradePlan, opts ...grpc.CallOption) (*UpgradeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpgradeResponse)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterUpgradePlan_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *minorUpgradeClient) ClusterUpgrade(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpgradeResponse)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterUpgrade_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *minorUpgradeClient) ClusterStatus(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*MinorUpgradeFinalizer, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MinorUpgradeFinalizer)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +123,13 @@ func (c *minorUpgradeClient) ClusterHealthChecking(ctx context.Context, in *Prer
 // All implementations must embed UnimplementedMinorUpgradeServer
 // for forward compatibility.
 type MinorUpgradeServer interface {
-	ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*CreateUpgradeResponse, error)
+	ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*UpgradeResponse, error)
+	UpgradeVersionSelection(context.Context, *AvailableVersions) (*ClusterUpgradeResponse, error)
+	ClusterCompatibility(context.Context, *UpgradeCompatibility) (*UpgradeResponse, error)
+	ClusterComponentUpgrade(context.Context, *ComponentUpgradeStatus) (*UpgradeResponse, error)
+	ClusterUpgradePlan(context.Context, *UpgradePlan) (*UpgradeResponse, error)
+	ClusterUpgrade(context.Context, *ClusterUpgradeStatus) (*UpgradeResponse, error)
+	ClusterStatus(context.Context, *ClusterUpgradeStatus) (*MinorUpgradeFinalizer, error)
 	mustEmbedUnimplementedMinorUpgradeServer()
 }
 
@@ -62,8 +140,26 @@ type MinorUpgradeServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMinorUpgradeServer struct{}
 
-func (UnimplementedMinorUpgradeServer) ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*CreateUpgradeResponse, error) {
+func (UnimplementedMinorUpgradeServer) ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*UpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
+}
+func (UnimplementedMinorUpgradeServer) UpgradeVersionSelection(context.Context, *AvailableVersions) (*ClusterUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpgradeVersionSelection not implemented")
+}
+func (UnimplementedMinorUpgradeServer) ClusterCompatibility(context.Context, *UpgradeCompatibility) (*UpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterCompatibility not implemented")
+}
+func (UnimplementedMinorUpgradeServer) ClusterComponentUpgrade(context.Context, *ComponentUpgradeStatus) (*UpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterComponentUpgrade not implemented")
+}
+func (UnimplementedMinorUpgradeServer) ClusterUpgradePlan(context.Context, *UpgradePlan) (*UpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterUpgradePlan not implemented")
+}
+func (UnimplementedMinorUpgradeServer) ClusterUpgrade(context.Context, *ClusterUpgradeStatus) (*UpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterUpgrade not implemented")
+}
+func (UnimplementedMinorUpgradeServer) ClusterStatus(context.Context, *ClusterUpgradeStatus) (*MinorUpgradeFinalizer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterStatus not implemented")
 }
 func (UnimplementedMinorUpgradeServer) mustEmbedUnimplementedMinorUpgradeServer() {}
 func (UnimplementedMinorUpgradeServer) testEmbeddedByValue()                      {}
@@ -104,6 +200,114 @@ func _MinorUpgrade_ClusterHealthChecking_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MinorUpgrade_UpgradeVersionSelection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AvailableVersions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MinorUpgradeServer).UpgradeVersionSelection(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MinorUpgrade_UpgradeVersionSelection_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MinorUpgradeServer).UpgradeVersionSelection(ctx, req.(*AvailableVersions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MinorUpgrade_ClusterCompatibility_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradeCompatibility)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MinorUpgradeServer).ClusterCompatibility(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MinorUpgrade_ClusterCompatibility_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MinorUpgradeServer).ClusterCompatibility(ctx, req.(*UpgradeCompatibility))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MinorUpgrade_ClusterComponentUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ComponentUpgradeStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MinorUpgradeServer).ClusterComponentUpgrade(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MinorUpgrade_ClusterComponentUpgrade_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MinorUpgradeServer).ClusterComponentUpgrade(ctx, req.(*ComponentUpgradeStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MinorUpgrade_ClusterUpgradePlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradePlan)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MinorUpgradeServer).ClusterUpgradePlan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MinorUpgrade_ClusterUpgradePlan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MinorUpgradeServer).ClusterUpgradePlan(ctx, req.(*UpgradePlan))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MinorUpgrade_ClusterUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClusterUpgradeStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MinorUpgradeServer).ClusterUpgrade(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MinorUpgrade_ClusterUpgrade_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MinorUpgradeServer).ClusterUpgrade(ctx, req.(*ClusterUpgradeStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MinorUpgrade_ClusterStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClusterUpgradeStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MinorUpgradeServer).ClusterStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MinorUpgrade_ClusterStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MinorUpgradeServer).ClusterStatus(ctx, req.(*ClusterUpgradeStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MinorUpgrade_ServiceDesc is the grpc.ServiceDesc for MinorUpgrade service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +318,30 @@ var MinorUpgrade_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClusterHealthChecking",
 			Handler:    _MinorUpgrade_ClusterHealthChecking_Handler,
+		},
+		{
+			MethodName: "UpgradeVersionSelection",
+			Handler:    _MinorUpgrade_UpgradeVersionSelection_Handler,
+		},
+		{
+			MethodName: "ClusterCompatibility",
+			Handler:    _MinorUpgrade_ClusterCompatibility_Handler,
+		},
+		{
+			MethodName: "ClusterComponentUpgrade",
+			Handler:    _MinorUpgrade_ClusterComponentUpgrade_Handler,
+		},
+		{
+			MethodName: "ClusterUpgradePlan",
+			Handler:    _MinorUpgrade_ClusterUpgradePlan_Handler,
+		},
+		{
+			MethodName: "ClusterUpgrade",
+			Handler:    _MinorUpgrade_ClusterUpgrade_Handler,
+		},
+		{
+			MethodName: "ClusterStatus",
+			Handler:    _MinorUpgrade_ClusterStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

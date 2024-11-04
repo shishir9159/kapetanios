@@ -111,42 +111,29 @@ func main() {
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
-	kubeadmUpgrade, err := k8sComponentsUpgrade(c, "kubeadm", version, connection)
+	_, err = k8sComponentsUpgrade(c, "kubeadm", version, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade kubeadm",
 			zap.Error(err))
-	}
-
-	if !kubeadmUpgrade {
 
 	}
 
-	plain, err := upgradePlan(c, connection)
+	_, err = upgradePlan(c, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
 
-	fmt.Println(plain)
-
-	k8sUpgrade, err := clusterUpgrade(c, version, connection)
+	_, err = clusterUpgrade(c, version, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
 
-	if !k8sUpgrade {
-
-	}
-
-	kubeletUpgrade, err := k8sComponentsUpgrade(c, "kubelet", version, connection)
+	_, err = k8sComponentsUpgrade(c, "kubelet", version, connection)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
-	}
-
-	if !kubeletUpgrade {
-
 	}
 
 	err = restartComponent(c, "kubelet", connection)
@@ -163,4 +150,6 @@ func main() {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
+
+	// TODO: sanityChecking & finalizer
 }

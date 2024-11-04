@@ -19,7 +19,7 @@ import (
 
 // server is used to implement proto.RenewalClient.
 type minorUpgradeServer struct {
-	pb.UpgradeServer
+	pb.MinorUpgradeServer
 }
 
 // StatusUpdate implements proto.Upgrade
@@ -41,7 +41,7 @@ func MinorUpgradeGrpc(log *zap.Logger) {
 
 	// in dev mode
 	reflection.Register(s)
-	//pb.RegisterRenewalServer(s, &minorUpgradeServer{})
+	pb.RegisterRenewalServer(s, &minorUpgradeServer{})
 
 	log.Info("upgrade sever listening")
 	if er := s.Serve(lis); er != nil {

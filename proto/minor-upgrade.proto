@@ -7,7 +7,7 @@ message PrerequisitesMinorUpgrade {
   string err = 3;
 }
 
-message CreateUpgradeResponse {
+message UpgradeResponse {
   bool proceedNextStep = 1;
   bool skipRetryCurrentStep = 2;
   bool terminateApplication = 3;
@@ -18,7 +18,7 @@ message AvailableVersions {
   string err = 2;
 }
 
-message clusterUpgradeResponse {
+message ClusterUpgradeResponse {
   bool proceedNextStep = 1;
   bool skipRetryCurrentStep = 2;
   bool terminateApplication = 3;
@@ -32,31 +32,46 @@ message UpgradeCompatibility {
   string err = 3;
 }
 
-message kubeadmUpgrade {
-  bool kubeadmUpgradeSuccess = 1;
-  string log = 2;
-  string err = 3;
-}
-
-message upgradePlan {
-  bool kubeadmUpgradeSuccess = 1;
-  string currentClusterVersion = 2;
+message ComponentUpgradeStatus {
+  bool componentUpgradeSuccess = 1;
+  string component = 2;
   string log = 3;
   string err = 4;
 }
 
-message clusterUpgrade {
-  bool prerequisiteCheckSuccess = 1;
-  bool upgradeSuccess = 2;
-  bool restartSuccess = 3;
-  uint32 retryAttempt = 4;
-  string log = 5;
-  string err = 6;
+message UpgradePlan {
+  string currentClusterVersion = 1;
+  string log = 2;
+  string err = 3;
 }
 
+message UpgradeStatus {
+  bool upgradeSuccess = 1;
+  string log = 2;
+  string err = 3;
+}
+
+message ComponentRestartStatus {
+  bool componentRestartSuccess = 1;
+  string component = 2;
+  string log = 3;
+  string err = 4;
+}
+
+message MinorUpgradeFinalizer {
+  bool responseReceived = 1;
+}
+
+// TODO: component field in the request and refactor
 
 service MinorUpgrade {
-  rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (CreateUpgradeResponse);
-  rpc UpgradeVersionSelection(AvailableVersions) returns (clusterUpgradeResponse);
-  rpc UpgradeCompatibility(PrerequisitesMinorUpgrade) returns (CreateUpgradeResponse);
+  rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (UpgradeResponse);
+  rpc UpgradeVersionSelection(AvailableVersions) returns (ClusterUpgradeResponse);
+  rpc ClusterCompatibility(UpgradeCompatibility) returns (UpgradeResponse);
+  rpc ClusterComponentUpgrade(ComponentUpgradeStatus) returns (UpgradeResponse);
+  rpc ClusterUpgradePlan(UpgradePlan) returns (UpgradeResponse);
+  rpc ClusterUpgrade(UpgradeStatus) returns(UpgradeResponse);
+  rpc ClusterComponentRestart(ComponentRestartStatus) returns(UpgradeResponse);
+
+//  rpc ClusterStatus(sanity_check) returns(MinorUpgradeFinalizer);
 }

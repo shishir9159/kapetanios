@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func compatibility(c Controller, version string, connection pb.UpgradeClient) (string, error) {
+func compatibility(c Controller, version string, connection pb.MinorUpgradeClient) (string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -58,6 +58,22 @@ func compatibility(c Controller, version string, connection pb.UpgradeClient) (s
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	rpc, err := connection.ClusterCompatibility(c.ctx,
+		&pb.UpgradeCompatibility{
+			OsCompatibility: false,
+			Diff:            "",
+			Err:             "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return diff, nil
 }

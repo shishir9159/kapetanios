@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func availableVersions(c Controller, connection pb.UpgradeClient) ([]string, error) {
+func availableVersions(c Controller, connection pb.MinorUpgradeClient) ([]string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -69,6 +69,23 @@ func availableVersions(c Controller, connection pb.UpgradeClient) ([]string, err
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	rpc, err := connection.UpgradeVersionSelection(c.ctx,
+		&pb.AvailableVersions{
+			Version: nil,
+			Err:     "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("available versions",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()),
+		zap.Bool("certificate renewal", rpc.GetCertificateRenewal()),
+		zap.String("version", rpc.Version))
 
 	return availableVersionSlice, nil
 }

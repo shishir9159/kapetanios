@@ -14,7 +14,7 @@ import (
 
 // TODO: check kubelet status and view the service logs with journalctl -xeu kubelet
 
-func restartComponent(c Controller, component string, connection pb.UpgradeClient) error {
+func restartComponent(c Controller, component string, connection pb.MinorUpgradeClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
