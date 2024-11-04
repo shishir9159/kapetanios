@@ -5,15 +5,12 @@ import (
 	"flag"
 	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 )
-
-//var (
-//	port = flag.Int("port", 50051, "The server port")
-//)
 
 // server is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
@@ -107,24 +104,28 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-func MinorUpgradeGrpc() {
+func MinorUpgradeGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Println("failed to listen", err)
+		log.Error("failed to listen",
+			zap.Error(err))
 	}
+
 	s := grpc.NewServer()
 
 	// in dev mode
 	reflection.Register(s)
 	pb.RegisterMinorUpgradeServer(s, &minorUpgradeServer{})
 
-	log.Println("upgrade sever listening")
+	log.Info("upgrade sever listening")
 
-	err = s.Serve(lis)
-	if err != nil {
-		log.Println("failed to serve", err)
+	log.Info("cert renewal sever listening")
+	if er := s.Serve(lis); er != nil {
+		log.Error("failed to serve", zap.Error(er))
 	}
 
-	log.Println("Shutting down gRPC server...")
+	ch <- s
+
+	log.Info("Shutting down gRPC server...")
 }

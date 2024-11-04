@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -382,6 +383,10 @@ func MinorUpgradeFirstRun(namespace string) {
 		//wg.Wait()
 		//c.log.Info("gRPC server has been gracefully stopped.")
 
+		ch := make(chan *grpc.Server, 1)
+
+		MinorUpgradeGrpc(c.log, ch)
+
 		// TODO:
 		//  check for pods stuck in the terminating state
 		//  if any pods other than the whitelisted ones are still in the node,
@@ -425,6 +430,11 @@ func MinorUpgradeFirstRun(namespace string) {
 		//	c.log.Error("watcher error from minion restart",
 		//		zap.Error(er))
 		//}
+
+		//s := <-ch
+		//s.Stop()
+
+		(<-ch).Stop()
 
 		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 		//   check if previously listed pods are all successfully restarted before untainted

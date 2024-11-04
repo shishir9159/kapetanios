@@ -101,8 +101,6 @@ func main() {
 	// setup routes
 	setupRoutes(app)
 
-	go MinorUpgradeGrpc()
-
 	Prerequisites(minorUpgradeNamespace)
 
 	err = app.Listen(":80")

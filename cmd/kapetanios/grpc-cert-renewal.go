@@ -91,7 +91,6 @@ func CertGrpc(log *zap.Logger) {
 
 	log.Info("cert renewal sever listening")
 	if er := s.Serve(lis); er != nil {
-
 		log.Error("failed to serve", zap.Error(er))
 	}
 }
