@@ -106,6 +106,7 @@ func clusterUpgrade(c Controller, version string, connection pb.MinorUpgradeClie
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
+		return false, err
 	}
 
 	c.log.Info("Backup Status",
@@ -181,6 +182,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
+		return false, err
 	}
 
 	c.log.Info("Backup Status",
@@ -292,6 +294,7 @@ func upgradePlan(c Controller, connection pb.MinorUpgradeClient) (string, error)
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
+		return "", err
 	}
 
 	c.log.Info("Backup Status",

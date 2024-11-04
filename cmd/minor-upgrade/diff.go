@@ -68,6 +68,7 @@ func compatibility(c Controller, version string, connection pb.MinorUpgradeClien
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
+		return "", err
 	}
 
 	c.log.Info("Backup Status",

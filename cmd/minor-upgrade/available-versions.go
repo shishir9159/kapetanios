@@ -78,6 +78,7 @@ func availableVersions(c Controller, connection pb.MinorUpgradeClient) ([]string
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
+		return availableVersionSlice, err
 	}
 
 	c.log.Info("available versions",

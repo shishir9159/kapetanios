@@ -30,6 +30,7 @@ func Prerequisites(c Controller, connection pb.MinorUpgradeClient) error {
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
+		return err
 	}
 
 	c.log.Info("Backup Status",

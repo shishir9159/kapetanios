@@ -9,12 +9,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/kubectl/pkg/drain"
 	"os"
-	"os/signal"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
-	"syscall"
 	"time"
 )
 
@@ -364,23 +361,24 @@ func MinorUpgradeFirstRun(namespace string) {
 				zap.Error(err))
 		}
 
-		ctxTermination, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-		defer stop()
-
-		var wg sync.WaitGroup
-
-		// Start the gRPC server in a separate goroutine
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			MinorUpgradeGrpc(ctxTermination)
-		}()
-
-		// Wait for the server goroutine to exit
-		<-ctxTermination.Done()
-		stop()
-		wg.Wait()
-		c.log.Info("gRPC server has been gracefully stopped.")
+		//TODO:
+		//ctxTermination, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		//defer stop()
+		//
+		//var wg sync.WaitGroup
+		//
+		//// Start the gRPC server in a separate goroutine
+		//wg.Add(1)
+		//go func() {
+		//	defer wg.Done()
+		//	MinorUpgradeGrpc(ctxTermination)
+		//}()
+		//
+		//// Wait for the server goroutine to exit
+		//<-ctxTermination.Done()
+		//stop()
+		//wg.Wait()
+		//c.log.Info("gRPC server has been gracefully stopped.")
 
 		// TODO:
 		//  check for pods stuck in the terminating state

@@ -50,6 +50,7 @@ func restartComponent(c Controller, component string, connection pb.MinorUpgrade
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
+		return err
 	}
 
 	c.log.Info("Backup Status",
@@ -57,5 +58,5 @@ func restartComponent(c Controller, component string, connection pb.MinorUpgrade
 		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return err
+	return nil
 }
