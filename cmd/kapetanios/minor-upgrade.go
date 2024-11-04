@@ -385,7 +385,7 @@ func MinorUpgradeFirstRun(namespace string) {
 
 		ch := make(chan *grpc.Server, 1)
 
-		MinorUpgradeGrpc(c.log, ch)
+		go MinorUpgradeGrpc(c.log, ch)
 
 		// TODO:
 		//  check for pods stuck in the terminating state
