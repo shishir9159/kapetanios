@@ -2,10 +2,11 @@ package main
 
 import (
 	"errors"
+	pb "github.com/shishir9159/kapetanios/proto"
 	"os"
 )
 
-func Prerequisites() error {
+func Prerequisites(c Controller, connection pb.UpgradeClient) error {
 
 	// TODO: how to know the current node is etcd with clientSet?
 	//  	- etcd cluster from the cm

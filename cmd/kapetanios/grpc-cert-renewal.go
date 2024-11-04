@@ -22,14 +22,46 @@ type server struct {
 	pb.RenewalServer
 }
 
-// StatusUpdate implements proto.Renewal
-func (s *server) StatusUpdate(_ context.Context, in *pb.CreateRequest) (*pb.CreateResponse, error) {
-	log.Printf("Received backup sucess: %v", in.GetBackupSuccess())
-	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
-	log.Printf("Received restart sucess: %v", in.GetRestartSuccess())
-	log.Printf("Received retry attempt: %d", in.GetRetryAttempt())
-	log.Printf("Received log: %v", in.GetLog())
+// ClusterHealthChecking implements proto.Renewal
+func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRenewal) (*pb.CreateResponse, error) {
+	log.Printf("Received backup sucess: %v", in.GetEtcdStatus())
+	log.Printf("Received renewal sucess: %v", in.GetExternallyManagedCerts())
+	log.Printf("Received restart sucess: %v", in.GetKubeDirFreeSpace())
+	log.Printf("Received retry attempt: %s", in.GetLocalAPIEndpoint())
 	log.Printf("Received error: %v", in.GetErr())
+
+	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
+}
+
+// BackupUpdate implements proto.Renewal
+func (s *server) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.CreateResponse, error) {
+	log.Printf("Received backup sucess: %v", in.GetEtcdBackup())
+	log.Printf("Received renewal sucess: %v", in.GetKubeConfigBackup())
+	log.Printf("Received restart sucess: %v", in.GetFileChecklistValidation())
+	log.Printf("Received error: %v", in.GetErr())
+
+	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
+}
+
+// RenewalUpdate implements proto.Renewal
+func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.CreateResponse, error) {
+
+	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
+	log.Printf("Received restart sucess: %v", in.GetKubeConfigBackup())
+	log.Printf("Received retry attempt: %d", in.GetFileChecklistValidation())
+	log.Printf("Received error: %v", in.GetErr())
+
+	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
+}
+
+// RestartUpdate implements proto.Renewal
+func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.CreateResponse, error) {
+	log.Printf("Received backup sucess: %v", in.GetEtcdRestart())
+	log.Printf("Received renewal sucess: %v", in.GetKubeletRestart())
+	log.Printf("Received restart sucess: %v", in.GetEtcdRestart())
+	log.Printf("Received retry attempt: %s", in.GetKubeletError())
+	log.Printf("Received error: %v", in.GetErr())
+
 	return &pb.CreateResponse{ProceedNextStep: true, SkipRetryCurrentStep: true}, nil
 }
 
