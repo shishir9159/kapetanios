@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 
@@ -22,16 +21,29 @@ type rollbackServer struct {
 	pb.RollbackServer
 }
 
-// StatusUpdate implements proto.Renewal
-func (s *rollbackServer) StatusUpdate(_ context.Context, in *pb.CreateRollbackRequest) (*pb.CreateRollbackResponse, error) {
-	log.Printf("received prerequisite check status: %v", in.GetPrerequisiteCheckSuccess())
-	log.Printf("received renewal sucess: %v", in.GetRollbackSuccess())
-	log.Printf("received restart sucess: %v", in.GetRestartSuccess())
-	log.Printf("received mumber of retry attempt: %d", in.GetRetryAttempt())
-	log.Printf("received log: %v", in.GetLog())
+// Prerequisite implements proto.Renewal
+func (s *rollbackServer) Prerequisite(_ context.Context, in *pb.PrerequisitesRollback) (*pb.CreateResponse, error) {
+	log.Printf("received prerequisite check status: %v", in.GetBackupExists())
+	log.Printf("received renewal sucess: %v", in.GetBackupExists())
 	log.Printf("Received error: %v", in.GetErr())
 
-	return &pb.CreateRollbackResponse{
+	return &pb.CreateResponse{
+		ProceedNextStep:      true,
+		SkipRetryCurrentStep: true,
+		TerminateApplication: true,
+	}, nil
+}
+
+// RollbackUpdate implements proto.Renewal
+func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus) (*pb.CreateResponse, error) {
+	log.Printf("received prerequisite check status: %v", in.GetPrerequisitesCheckSuccess())
+	log.Printf("received renewal sucess: %v", in.GetRollbackSuccess())
+	log.Printf("received prerequisite check status: %v", in.GetRestartSuccess())
+	log.Printf("received renewal sucess: %v", in.GetRetryAttempt())
+	log.Printf("received prerequisite check status: %v", in.GetLog())
+	log.Printf("Received error: %v", in.GetErr())
+
+	return &pb.CreateResponse{
 		ProceedNextStep:      true,
 		SkipRetryCurrentStep: true,
 		TerminateApplication: true,
@@ -47,7 +59,7 @@ func RollbackGrpc(log *zap.Logger) {
 	s := grpc.NewServer()
 
 	// in dev mode
-	reflection.Register(s)
+	//reflection.Register(s)
 	pb.RegisterRollbackServer(s, &rollbackServer{})
 
 	log.Info("rollback sever listening")
