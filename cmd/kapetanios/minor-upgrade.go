@@ -301,7 +301,7 @@ func MinorUpgradeFirstRun(namespace string) {
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 		// todo: query for the kube-dns ip
 		descriptor.Spec.DNSConfig = &corev1.PodDNSConfig{
-			Nameservers: []string{"10.96.0.10"},
+			Nameservers: []string{"10.96.0.1"},
 			Searches:    []string{"svc.cluster.local"},
 			//Options:     nil,
 		}
