@@ -25,7 +25,7 @@ const (
 	MinorUpgrade_ClusterComponentUpgrade_FullMethodName = "/MinorUpgrade/ClusterComponentUpgrade"
 	MinorUpgrade_ClusterUpgradePlan_FullMethodName      = "/MinorUpgrade/ClusterUpgradePlan"
 	MinorUpgrade_ClusterUpgrade_FullMethodName          = "/MinorUpgrade/ClusterUpgrade"
-	MinorUpgrade_ClusterStatus_FullMethodName           = "/MinorUpgrade/ClusterStatus"
+	MinorUpgrade_ClusterComponentRestart_FullMethodName = "/MinorUpgrade/ClusterComponentRestart"
 )
 
 // MinorUpgradeClient is the client API for MinorUpgrade service.
@@ -37,8 +37,8 @@ type MinorUpgradeClient interface {
 	ClusterCompatibility(ctx context.Context, in *UpgradeCompatibility, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterComponentUpgrade(ctx context.Context, in *ComponentUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterUpgradePlan(ctx context.Context, in *UpgradePlan, opts ...grpc.CallOption) (*UpgradeResponse, error)
-	ClusterUpgrade(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
-	ClusterStatus(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*MinorUpgradeFinalizer, error)
+	ClusterUpgrade(ctx context.Context, in *UpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
+	ClusterComponentRestart(ctx context.Context, in *ComponentRestartStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
 }
 
 type minorUpgradeClient struct {
@@ -99,7 +99,7 @@ func (c *minorUpgradeClient) ClusterUpgradePlan(ctx context.Context, in *Upgrade
 	return out, nil
 }
 
-func (c *minorUpgradeClient) ClusterUpgrade(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error) {
+func (c *minorUpgradeClient) ClusterUpgrade(ctx context.Context, in *UpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpgradeResponse)
 	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterUpgrade_FullMethodName, in, out, cOpts...)
@@ -109,10 +109,10 @@ func (c *minorUpgradeClient) ClusterUpgrade(ctx context.Context, in *ClusterUpgr
 	return out, nil
 }
 
-func (c *minorUpgradeClient) ClusterStatus(ctx context.Context, in *ClusterUpgradeStatus, opts ...grpc.CallOption) (*MinorUpgradeFinalizer, error) {
+func (c *minorUpgradeClient) ClusterComponentRestart(ctx context.Context, in *ComponentRestartStatus, opts ...grpc.CallOption) (*UpgradeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MinorUpgradeFinalizer)
-	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterStatus_FullMethodName, in, out, cOpts...)
+	out := new(UpgradeResponse)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterComponentRestart_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +128,8 @@ type MinorUpgradeServer interface {
 	ClusterCompatibility(context.Context, *UpgradeCompatibility) (*UpgradeResponse, error)
 	ClusterComponentUpgrade(context.Context, *ComponentUpgradeStatus) (*UpgradeResponse, error)
 	ClusterUpgradePlan(context.Context, *UpgradePlan) (*UpgradeResponse, error)
-	ClusterUpgrade(context.Context, *ClusterUpgradeStatus) (*UpgradeResponse, error)
-	ClusterStatus(context.Context, *ClusterUpgradeStatus) (*MinorUpgradeFinalizer, error)
+	ClusterUpgrade(context.Context, *UpgradeStatus) (*UpgradeResponse, error)
+	ClusterComponentRestart(context.Context, *ComponentRestartStatus) (*UpgradeResponse, error)
 	mustEmbedUnimplementedMinorUpgradeServer()
 }
 
@@ -155,11 +155,11 @@ func (UnimplementedMinorUpgradeServer) ClusterComponentUpgrade(context.Context, 
 func (UnimplementedMinorUpgradeServer) ClusterUpgradePlan(context.Context, *UpgradePlan) (*UpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterUpgradePlan not implemented")
 }
-func (UnimplementedMinorUpgradeServer) ClusterUpgrade(context.Context, *ClusterUpgradeStatus) (*UpgradeResponse, error) {
+func (UnimplementedMinorUpgradeServer) ClusterUpgrade(context.Context, *UpgradeStatus) (*UpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterUpgrade not implemented")
 }
-func (UnimplementedMinorUpgradeServer) ClusterStatus(context.Context, *ClusterUpgradeStatus) (*MinorUpgradeFinalizer, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClusterStatus not implemented")
+func (UnimplementedMinorUpgradeServer) ClusterComponentRestart(context.Context, *ComponentRestartStatus) (*UpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterComponentRestart not implemented")
 }
 func (UnimplementedMinorUpgradeServer) mustEmbedUnimplementedMinorUpgradeServer() {}
 func (UnimplementedMinorUpgradeServer) testEmbeddedByValue()                      {}
@@ -273,7 +273,7 @@ func _MinorUpgrade_ClusterUpgradePlan_Handler(srv interface{}, ctx context.Conte
 }
 
 func _MinorUpgrade_ClusterUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ClusterUpgradeStatus)
+	in := new(UpgradeStatus)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -285,25 +285,25 @@ func _MinorUpgrade_ClusterUpgrade_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: MinorUpgrade_ClusterUpgrade_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MinorUpgradeServer).ClusterUpgrade(ctx, req.(*ClusterUpgradeStatus))
+		return srv.(MinorUpgradeServer).ClusterUpgrade(ctx, req.(*UpgradeStatus))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MinorUpgrade_ClusterStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ClusterUpgradeStatus)
+func _MinorUpgrade_ClusterComponentRestart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ComponentRestartStatus)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MinorUpgradeServer).ClusterStatus(ctx, in)
+		return srv.(MinorUpgradeServer).ClusterComponentRestart(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MinorUpgrade_ClusterStatus_FullMethodName,
+		FullMethod: MinorUpgrade_ClusterComponentRestart_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MinorUpgradeServer).ClusterStatus(ctx, req.(*ClusterUpgradeStatus))
+		return srv.(MinorUpgradeServer).ClusterComponentRestart(ctx, req.(*ComponentRestartStatus))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -340,8 +340,8 @@ var MinorUpgrade_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MinorUpgrade_ClusterUpgrade_Handler,
 		},
 		{
-			MethodName: "ClusterStatus",
-			Handler:    _MinorUpgrade_ClusterStatus_Handler,
+			MethodName: "ClusterComponentRestart",
+			Handler:    _MinorUpgrade_ClusterComponentRestart_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

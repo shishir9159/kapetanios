@@ -40,5 +40,22 @@ func restartComponent(c Controller, component string, connection pb.MinorUpgrade
 			zap.Error(err))
 	}
 
+	rpc, err := connection.ClusterComponentRestart(c.ctx,
+		&pb.ComponentRestartStatus{
+			ComponentRestartSuccess: false,
+			Component:               component,
+			Log:                     "",
+			Err:                     "",
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+
 	return err
 }

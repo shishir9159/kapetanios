@@ -99,10 +99,9 @@ func clusterUpgrade(c Controller, version string, connection pb.MinorUpgradeClie
 
 	rpc, err := connection.ClusterUpgrade(c.ctx,
 		&pb.UpgradeStatus{
-			PrerequisiteCheckSuccess: false,
-			UpgradeSuccess:           false,
-			Log:                      "",
-			Err:                      "",
+			UpgradeSuccess: false,
+			Log:            "",
+			Err:            "",
 		})
 
 	if err != nil {
