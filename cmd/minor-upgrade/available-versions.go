@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
@@ -14,7 +15,7 @@ import (
 	"time"
 )
 
-func availableVersions(c Controller, connection pb.MinorUpgradeClient) ([]string, error) {
+func availableVersions(c Controller, connect pb.MinorUpgradeClient) ([]string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -86,7 +87,8 @@ func availableVersions(c Controller, connection pb.MinorUpgradeClient) ([]string
 		}
 	}(conn)
 
-	connection = pb.NewMinorUpgradeClient(conn)
+	fmt.Println(connect)
+	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.UpgradeVersionSelection(c.ctx,
 		&pb.AvailableVersions{
