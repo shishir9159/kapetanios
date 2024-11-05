@@ -106,7 +106,7 @@ func GrpcClient(log *zap.Logger) {
 
 func main() {
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
 
 	logger, err := zap.NewProduction()
