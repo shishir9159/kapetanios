@@ -80,21 +80,28 @@ func GrpcClient(log *zap.Logger) {
 	}(conn)
 
 	log.Info("3")
-	c := pb.NewRenewalClient(conn)
+	c := pb.NewMinorUpgradeClient(conn)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	log.Info("4")
 	defer cancel()
 
-	log.Info("5")
-	rpc, err := c.StatusUpdate(ctx, &pb.CreateRequest{BackupSuccess: true, RenewalSuccess: true, RestartSuccess: true, Log: "", Err: "s"})
+	rpc, err := c.ClusterHealthChecking(ctx,
+		&pb.PrerequisitesMinorUpgrade{
+			EtcdStatus:          false,
+			StorageAvailability: 0,
+			Err:                 "",
+		})
+
 	if err != nil {
 		log.Error("could not send status update: ", zap.Error(err))
 	}
 
-	log.Info("6")
-	log.Info("Status Update", zap.Bool("next step", rpc.GetProceedNextStep()), zap.Bool("retry", rpc.GetRetryCurrentStep()))
+	log.Info("Backup Status",
+		zap.Bool("next step", rpc.GetProceedNextStep()),
+		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 }
 
 func main() {

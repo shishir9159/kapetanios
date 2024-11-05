@@ -5,6 +5,8 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"os"
 	"os/exec"
@@ -69,6 +71,22 @@ func availableVersions(c Controller, connection pb.MinorUpgradeClient) ([]string
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	// Set up a connection to the server.
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		c.log.Error("did not connect", zap.Error(err))
+	}
+	//grpc.WithDisableServiceConfig()
+	defer func(conn *grpc.ClientConn) {
+		er := conn.Close()
+		if er != nil {
+			c.log.Error("failed to close the grpc connection",
+				zap.Error(er))
+		}
+	}(conn)
+
+	connection = pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.UpgradeVersionSelection(c.ctx,
 		&pb.AvailableVersions{
