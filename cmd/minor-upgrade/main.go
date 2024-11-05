@@ -194,7 +194,7 @@ func main() {
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
-	_, err = k8sComponentsUpgrade(c, "kubeadm", version, connection)
+	_, err = k8sComponentsUpgrade(c, "kubeadm", version, conn)
 	if err != nil {
 		c.log.Error("failed to get upgrade kubeadm",
 			zap.Error(err))
@@ -213,7 +213,7 @@ func main() {
 			zap.Error(err))
 	}
 
-	_, err = k8sComponentsUpgrade(c, "kubelet", version, connection)
+	_, err = k8sComponentsUpgrade(c, "kubelet", version, conn)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
@@ -228,7 +228,7 @@ func main() {
 	// TODO: etcd node restart based
 	//  on condition
 
-	_, err = k8sComponentsUpgrade(c, "kubectl", version, connection)
+	_, err = k8sComponentsUpgrade(c, "kubectl", version, conn)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))

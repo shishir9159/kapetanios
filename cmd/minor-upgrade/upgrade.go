@@ -5,6 +5,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"io"
 	"os"
 	"os/exec"
@@ -117,7 +118,7 @@ func clusterUpgrade(c Controller, version string, connection pb.MinorUpgradeClie
 	return true, nil
 }
 
-func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, connection pb.MinorUpgradeClient) (bool, error) {
+func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, conn *grpc.ClientConn) (bool, error) {
 
 	//-----// TODO: kernel version compatibility
 
@@ -172,6 +173,10 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	//  Check for kubernetes repo if no version is found
 	//  disableexclude
 
+	conn.ResetConnectBackoff()
+
+	connection := pb.NewMinorUpgradeClient(conn)
+
 	rpc, err := connection.ClusterComponentUpgrade(c.ctx,
 		&pb.ComponentUpgradeStatus{
 			ComponentUpgradeSuccess: false,
@@ -185,7 +190,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		return false, err
 	}
 
-	c.log.Info("Backup Status",
+	c.log.Info("reset connection back off",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
