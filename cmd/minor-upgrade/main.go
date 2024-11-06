@@ -64,18 +64,31 @@ func main() {
 	}(conn)
 
 	for i := 0; i < maxAttempts; i++ {
-		err = Prerequisites(c, conn)
+		skip, er := Prerequisites(c, conn)
+		if er != nil {
+			c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	var version string
+
+	for i := 0; i < maxAttempts; i++ {
+		var skip bool
+		skip, version, err = availableVersions(c, conn)
+
 		if err != nil {
 			c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
 				zap.Error(err))
 		}
-	}
 
-	availableVersionList, err := availableVersions(c, conn)
-
-	if len(availableVersionList) == 0 {
-		c.log.Fatal("no available versions for minor upgrade",
-			zap.Error(err))
+		if skip {
+			break
+		}
 	}
 
 	if err != nil {
@@ -86,7 +99,7 @@ func main() {
 	// todo: include in the testing
 	testing := false
 	latest := false
-	version := "1.26.6-1.1"
+	version = "1.26.6-1.1"
 
 	if testing {
 		//version = kubernetesVersion
@@ -101,29 +114,52 @@ func main() {
 	//  if the latest is selected
 
 	// TODO: refactor
-	plan := "v1.26.6"
+	//   plan := "v1.26.6"
 
-	diff, err := compatibility(c, plan, conn)
-	if err != nil {
-		c.log.Error("failed to get diff",
-			zap.Error(err))
+	var diff string
+	for i := 0; i < maxAttempts; i++ {
+		var skip bool
+		skip, diff, err = compatibility(c, "v1.26.6", conn)
+		if err != nil {
+			c.log.Error("failed to get diff",
+				zap.Error(err))
+		}
+
+		if skip {
+			break
+		}
 	}
 
 	c.log.Info("diff for upgrade plan",
 		zap.String("diff", diff))
 
-	_, err = k8sComponentsUpgrade(c, "kubeadm", version, conn)
-	if err != nil {
-		c.log.Error("failed to get upgrade kubeadm",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := k8sComponentsUpgrade(c, "kubeadm", version, conn)
+		if er != nil {
+			c.log.Error("failed to get upgrade kubeadm",
+				zap.Error(er))
+		}
 
+		if skip {
+			break
+		}
 	}
 
-	_, err = upgradePlan(c, conn)
-	if err != nil {
-		c.log.Error("failed to get upgrade plan",
-			zap.Error(err))
+	var plan string
+	for i := 0; i < maxAttempts; i++ {
+		var skip bool
+		skip, plan, err = upgradePlan(c, conn)
+		if err != nil {
+			c.log.Error("failed to get upgrade plan",
+				zap.Error(err))
+		}
+
+		if skip {
+			break
+		}
 	}
+
+	fmt.Println(plan)
 
 	_, err = clusterUpgrade(c, version, conn)
 	if err != nil {

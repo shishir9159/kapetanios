@@ -11,13 +11,13 @@ import (
 	"os/exec"
 )
 
-func compatibility(c Controller, version string, conn *grpc.ClientConn) (string, error) {
+func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
-		return "", err
+		return false, "", err
 	}
 
 	//var stdoutBuf, stderrBuf bytes.Buffer
@@ -38,6 +38,7 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (string,
 	if err != nil {
 		c.log.Info("cmd.Run() failed with",
 			zap.Error(err))
+		return false, "", err
 	}
 
 	// TODO: OS compatibility
@@ -70,20 +71,19 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (string,
 		&pb.UpgradeCompatibility{
 			OsCompatibility: true,
 			Diff:            diff,
-			Err:             "",
+			Err:             "", // TODO: check for nil pointer and return
 		})
 
 	//	TODO: kubeadm upgrade node (name) [version] --dry-run
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
-		return "", err
+		return false, "", err
 	}
 
 	c.log.Info("upgrade diff",
 		zap.Bool("proceed to the next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return diff, nil
+	return true, diff, nil
 }

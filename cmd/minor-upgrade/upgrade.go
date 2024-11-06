@@ -115,7 +115,6 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 
 	c.log.Info("Backup Status",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return true, nil
@@ -195,7 +194,6 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 
 	c.log.Info("reset connection back off",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return true, nil
@@ -237,11 +235,17 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 //No VM guests are running outdated hypervisor (qemu) binaries on this host.
 //kubeadm set on hold.
 
-func upgradePlan(c Controller, conn *grpc.ClientConn) (string, error) {
+func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
+
+	conn.ResetConnectBackoff()
+	connection := pb.NewMinorUpgradeClient(conn)
+	// send the error with the logs
+
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
+		return false, "", err
 	}
 
 	// TODO:
@@ -268,6 +272,7 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (string, error) {
 	if err != nil {
 		c.log.Error("Failed to get kubeadm upgrade plan",
 			zap.Error(err))
+		return false, "", err
 	}
 
 	//  W1018 10:00:57.703527  599279 common.go:84] your configuration file uses a deprecated API spec: "kubeadm.k8s.io/v1beta2". Please use 'kubeadm config migrate --old-config old.yaml --new-config new.yaml', which will write the new, similar spec using a newer API version.
@@ -293,10 +298,6 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (string, error) {
 			zap.Error(err))
 	}
 
-	conn.ResetConnectBackoff()
-
-	connection := pb.NewMinorUpgradeClient(conn)
-
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
 			CurrentClusterVersion: "",
@@ -306,15 +307,14 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (string, error) {
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
-		return "", err
+		return false, "", err
 	}
 
 	c.log.Info("Backup Status",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return "", err
+	return true, "", err
 }
 
 // TODO: process the output for kubectl and kubelet
