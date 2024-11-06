@@ -22,7 +22,6 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) error {
 		return errors.New("ETCD_NODE environment variable set to be True")
 	}
 
-	conn.ResetConnectBackoff()
 	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
@@ -37,7 +36,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) error {
 		return err
 	}
 
-	c.log.Info("Backup Status",
+	c.log.Info("prerequisite step response",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))

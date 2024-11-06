@@ -86,11 +86,11 @@ func availableVersions(c Controller, conn *grpc.ClientConn) ([]string, error) {
 	}
 
 	c.log.Info("available versions",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
+		zap.Bool("proceed to next step", rpc.GetProceedNextStep()),
+		zap.Bool("skip retrying current step", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()),
 		zap.Bool("certificate renewal", rpc.GetCertificateRenewal()),
-		zap.String("version", rpc.Version))
+		zap.String("fetch the version to upgrade", rpc.GetVersion()))
 
 	return availableVersionSlice, nil
 }

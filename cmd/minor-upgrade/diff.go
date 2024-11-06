@@ -80,8 +80,8 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (string,
 		return "", err
 	}
 
-	c.log.Info("Backup Status",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
+	c.log.Info("upgrade diff",
+		zap.Bool("proceed to the next step", rpc.GetProceedNextStep()),
 		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
