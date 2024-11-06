@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func clusterUpgrade(c Controller, version string, connection pb.MinorUpgradeClient) (bool, error) {
+func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, error) {
 
 	firstNode := os.Getenv("FIRST_NODE_TO_BE_UPGRADED")
 	certRenewal := os.Getenv("CERTIFICATE_RENEWAL")
@@ -97,6 +97,10 @@ func clusterUpgrade(c Controller, version string, connection pb.MinorUpgradeClie
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	conn.ResetConnectBackoff()
+
+	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.ClusterUpgrade(c.ctx,
 		&pb.UpgradeStatus{
@@ -234,7 +238,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 //No VM guests are running outdated hypervisor (qemu) binaries on this host.
 //kubeadm set on hold.
 
-func upgradePlan(c Controller, connection pb.MinorUpgradeClient) (string, error) {
+func upgradePlan(c Controller, conn *grpc.ClientConn) (string, error) {
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
@@ -289,6 +293,10 @@ func upgradePlan(c Controller, connection pb.MinorUpgradeClient) (string, error)
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	conn.ResetConnectBackoff()
+
+	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{

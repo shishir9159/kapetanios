@@ -4,6 +4,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"os"
 	"os/exec"
 )
@@ -14,7 +15,7 @@ import (
 
 // TODO: check kubelet status and view the service logs with journalctl -xeu kubelet
 
-func restartComponent(c Controller, component string, connection pb.MinorUpgradeClient) error {
+func restartComponent(c Controller, component string, conn *grpc.ClientConn) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -39,6 +40,9 @@ func restartComponent(c Controller, component string, connection pb.MinorUpgrade
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 	}
+
+	conn.ResetConnectBackoff()
+	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.ClusterComponentRestart(c.ctx,
 		&pb.ComponentRestartStatus{

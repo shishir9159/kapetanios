@@ -4,10 +4,11 @@ import (
 	"errors"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"os"
 )
 
-func Prerequisites(c Controller, connection pb.MinorUpgradeClient) error {
+func Prerequisites(c Controller, conn *grpc.ClientConn) error {
 
 	// TODO: how to know the current node is etcd with clientSet?
 	//  	- etcd cluster from the cm
@@ -20,6 +21,9 @@ func Prerequisites(c Controller, connection pb.MinorUpgradeClient) error {
 	} else if etcdNode == "true" {
 		return errors.New("ETCD_NODE environment variable set to be True")
 	}
+
+	conn.ResetConnectBackoff()
+	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesMinorUpgrade{

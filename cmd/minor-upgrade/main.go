@@ -146,14 +146,12 @@ func main() {
 		}
 	}(conn)
 
-	connection := pb.NewMinorUpgradeClient(conn)
-
-	err = Prerequisites(c, connection)
+	err = Prerequisites(c, conn)
 	if err != nil {
 
 	}
 
-	availableVersionList, err := availableVersions(c, connection)
+	availableVersionList, err := availableVersions(c, conn)
 
 	if len(availableVersionList) == 0 {
 		c.log.Fatal("no available versions for minor upgrade",
@@ -185,7 +183,7 @@ func main() {
 	// TODO: refactor
 	plan := "v1.26.6"
 
-	diff, err := compatibility(c, plan, connection)
+	diff, err := compatibility(c, plan, conn)
 	if err != nil {
 		c.log.Error("failed to get diff",
 			zap.Error(err))
@@ -201,13 +199,13 @@ func main() {
 
 	}
 
-	_, err = upgradePlan(c, connection)
+	_, err = upgradePlan(c, conn)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
 	}
 
-	_, err = clusterUpgrade(c, version, connection)
+	_, err = clusterUpgrade(c, version, conn)
 	if err != nil {
 		c.log.Error("failed to get upgrade plan",
 			zap.Error(err))
@@ -219,7 +217,7 @@ func main() {
 			zap.Error(err))
 	}
 
-	err = restartComponent(c, "kubelet", connection)
+	err = restartComponent(c, "kubelet", conn)
 	if err != nil {
 		c.log.Error("failed to restart kubelet",
 			zap.Error(err))
