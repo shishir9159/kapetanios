@@ -19,9 +19,22 @@ type minorUpgradeServer struct {
 
 // ClusterHealthChecking implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
+
+	var proceedNextStep, skipRetryCurrentStep, TerminateApplication = false, false, false
+
 	log.Printf("Received etcd status: %t", in.GetEtcdStatus())
 	log.Printf("Received storage availability: %v", in.GetStorageAvailability())
 	log.Printf("Received error: %v", in.GetErr())
+
+	if in.GetEtcdStatus() && in.GetStorageAvailability() >= 50 {
+		proceedNextStep = true
+		skipRetryCurrentStep = true
+	}
+
+	if in.GetErr() != "" {
+
+	}
+
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      false,
 		SkipRetryCurrentStep: false,

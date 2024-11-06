@@ -26,8 +26,8 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) error {
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesMinorUpgrade{
-			EtcdStatus:          false,
-			StorageAvailability: 0,
+			EtcdStatus:          true,
+			StorageAvailability: 50,
 			Err:                 "",
 		})
 

@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	maxAttempts = 3
+	addr        = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 )
 
 type Controller struct {
@@ -62,9 +63,12 @@ func main() {
 		}
 	}(conn)
 
-	err = Prerequisites(c, conn)
-	if err != nil {
-
+	for i := 0; i < maxAttempts; i++ {
+		err = Prerequisites(c, conn)
+		if err != nil {
+			c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
+				zap.Error(err))
+		}
 	}
 
 	availableVersionList, err := availableVersions(c, conn)
