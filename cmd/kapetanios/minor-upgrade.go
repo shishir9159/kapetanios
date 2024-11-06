@@ -430,7 +430,7 @@ func MinorUpgradeFirstRun(namespace string) {
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		}
 
-		time.Sleep(20 * time.Second)
+		time.Sleep(30 * time.Second)
 
 		//er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions)
 		//if er != nil {

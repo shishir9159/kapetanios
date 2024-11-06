@@ -99,7 +99,6 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	}
 
 	conn.ResetConnectBackoff()
-
 	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.ClusterUpgrade(c.ctx,
