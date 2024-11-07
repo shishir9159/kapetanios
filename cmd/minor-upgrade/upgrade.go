@@ -117,7 +117,7 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return true, nil
+	return rpc.GetProceedNextStep(), nil
 }
 
 func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, conn *grpc.ClientConn) (bool, error) {
@@ -196,7 +196,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return true, nil
+	return rpc.GetProceedNextStep(), nil
 }
 
 // TODO: parse kubeadm upgrade output
@@ -236,10 +236,6 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 //kubeadm set on hold.
 
 func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
-
-	conn.ResetConnectBackoff()
-	connection := pb.NewMinorUpgradeClient(conn)
-	// send the error with the logs
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -298,6 +294,10 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 			zap.Error(err))
 	}
 
+	conn.ResetConnectBackoff()
+	connection := pb.NewMinorUpgradeClient(conn)
+	// todo: send the error with the logs
+
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
 			CurrentClusterVersion: "",
@@ -314,7 +314,7 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return true, "", err
+	return rpc.GetProceedNextStep(), "", err
 }
 
 // TODO: process the output for kubectl and kubelet

@@ -85,5 +85,5 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 		zap.Bool("proceed to the next step", rpc.GetProceedNextStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return true, diff, nil
+	return rpc.GetProceedNextStep(), diff, nil
 }

@@ -97,5 +97,5 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		zap.Bool("certificate renewal", rpc.GetCertificateRenewal()),
 		zap.String("fetch the version to upgrade", rpc.GetVersion()))
 
-	return true, rpc.GetVersion(), nil
+	return rpc.GetProceedNextStep(), rpc.GetVersion(), nil
 }

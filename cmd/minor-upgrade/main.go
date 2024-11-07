@@ -161,31 +161,55 @@ func main() {
 
 	fmt.Println(plan)
 
-	_, err = clusterUpgrade(c, version, conn)
-	if err != nil {
-		c.log.Error("failed to get upgrade plan",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := clusterUpgrade(c, version, conn)
+		if er != nil {
+			c.log.Error("failed to get upgrade plan",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
-	_, err = k8sComponentsUpgrade(c, "kubelet", version, conn)
-	if err != nil {
-		c.log.Error("failed to get upgrade plan",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := k8sComponentsUpgrade(c, "kubelet", version, conn)
+		if er != nil {
+			c.log.Error("failed to get upgrade plan",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
-	err = restartComponent(c, "kubelet", conn)
-	if err != nil {
-		c.log.Error("failed to restart kubelet",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := restartComponent(c, "kubelet", conn)
+		if er != nil {
+			c.log.Error("failed to restart kubelet",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
 	// TODO: etcd node restart based
 	//  on condition
 
-	_, err = k8sComponentsUpgrade(c, "kubectl", version, conn)
-	if err != nil {
-		c.log.Error("failed to get upgrade plan",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := k8sComponentsUpgrade(c, "kubectl", version, conn)
+		if er != nil {
+			c.log.Error("failed to get upgrade plan",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
 	// TODO: sanityChecking & finalizer

@@ -15,12 +15,13 @@ import (
 
 // TODO: check kubelet status and view the service logs with journalctl -xeu kubelet
 
-func restartComponent(c Controller, component string, conn *grpc.ClientConn) error {
+func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Fatal("Failed to create chroot on /host",
 			zap.Error(err))
+		return false, err
 	}
 
 	// refactor into two
@@ -33,7 +34,7 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) err
 	if err != nil {
 		c.log.Error("Failed to restart kubelet",
 			zap.Error(err))
-		return err
+		return false, err
 	}
 
 	if err = changedRoot(); err != nil {
@@ -54,13 +55,12 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) err
 
 	if err != nil {
 		c.log.Error("could not send status update: ", zap.Error(err))
-		return err
+		return false, err
 	}
 
 	c.log.Info("Backup Status",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return nil
+	return rpc.GetProceedNextStep(), nil
 }
