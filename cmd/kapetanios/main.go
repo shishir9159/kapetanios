@@ -30,6 +30,13 @@ func cleanup(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 
+func expiration(c *fiber.Ctx) error {
+
+	go Expiration(certRenewalNamespace)
+
+	return c.JSON(fiber.Map{"status": http.StatusOK})
+}
+
 func minorUpgrade(c *fiber.Ctx) error {
 
 	go MinorUpgradeFirstRun(minorUpgradeNamespace)
@@ -51,9 +58,10 @@ func setupRoutes(app *fiber.App) {
 	//api := app.Group("/cert", logger.New())
 	//minorUpgrade := app.Group("minor-upgrade")
 
-	app.Get("/minor-upgrade", minorUpgrade)
 	app.Get("/renewal", certRenewal)
 	app.Get("/cleanup", cleanup)
+	app.Get("/expiration", expiration)
+	app.Get("/minor-upgrade", minorUpgrade)
 	app.Get("/rollback", rollback)
 	app.Get("/swagger", swagger.HandlerDefault)
 
@@ -103,15 +111,12 @@ func main() {
 
 	Prerequisites(minorUpgradeNamespace)
 
+	// prevent duplicate lighthouse instances
+
 	err = app.Listen(":80")
 
 	if err != nil {
 		return
 	}
-
-	//	what happens to the current state
-	//	when lighthouse fails in the middle
-	//	of the cert renewal process
-	//
 
 }

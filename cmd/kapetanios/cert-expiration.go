@@ -77,8 +77,7 @@ func Expiration(namespace string) {
 				zap.Int("index", index),
 				zap.Error(er))
 
-			// er
-			return
+			return // er
 		}
 
 		(<-ch).Stop()
