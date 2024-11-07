@@ -16,6 +16,17 @@ var (
 	backupCount = 7
 	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
 	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	//"name": [{"service": "grpc.examples.echo.Echo"}],
+	retryPolicy = `{
+		"methodConfig": [{
+		  "retryPolicy": {
+			  "MaxAttempts": 4,
+			  "InitialBackoff": ".01s",
+			  "MaxBackoff": ".01s",
+			  "BackoffMultiplier": 1.0,
+			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
+		  }
+		}]}`
 )
 
 type Controller struct {
@@ -33,9 +44,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	//zap.ReplaceGlobals(logger)
-
-	// replace zap with zerolog
+	// TODO: replace zap with zerolog
 
 	c := Controller{
 		ctx: ctx,
@@ -52,7 +61,7 @@ func main() {
 
 	flag.Parse()
 	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultServiceConfig(retryPolicy))
 	if err != nil {
 
 		c.log.Error("did not connect", zap.Error(err))
