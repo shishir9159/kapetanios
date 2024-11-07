@@ -35,7 +35,6 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 	if err != nil {
 		c.log.Error("Failed to restart kubelet",
 			zap.Error(err))
-		return false, err
 	}
 
 	if err = changedRoot(); err != nil {

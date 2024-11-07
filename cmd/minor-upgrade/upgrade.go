@@ -143,7 +143,6 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	if err != nil {
 		c.log.Error("Failed to install kubeadm",
 			zap.Error(err))
-		return false, err
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
@@ -271,7 +270,6 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	if err != nil {
 		c.log.Error("Failed to get kubeadm upgrade plan",
 			zap.Error(err))
-		return false, "", err
 	}
 
 	//  W1018 10:00:57.703527  599279 common.go:84] your configuration file uses a deprecated API spec: "kubeadm.k8s.io/v1beta2". Please use 'kubeadm config migrate --old-config old.yaml --new-config new.yaml', which will write the new, similar spec using a newer API version.
