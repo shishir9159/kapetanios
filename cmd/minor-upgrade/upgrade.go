@@ -193,7 +193,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		return false, err
 	}
 
-	c.log.Info("reset connection back off",
+	c.log.Info("cluster upgrade response",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 

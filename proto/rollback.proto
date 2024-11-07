@@ -1,10 +1,17 @@
 syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
+// TODO:
+
 message PrerequisitesRollback {
   bool backupExists = 1;
   bool spaceAvailability = 2;
   string err = 3;
+}
+
+message RollbackResponse {
+  bool proceedNextStep = 1;
+  bool terminateApplication = 3;
 }
 
 message RollbackStatus {
@@ -16,12 +23,6 @@ message RollbackStatus {
   string err = 6;
 }
 
-message RollbackResponse {
-  bool proceedNextStep = 1;
-  bool skipRetryCurrentStep = 2;
-  bool terminateApplication = 3;
-}
-
 message RollbackRestartStatus {
   bool etcdRestart = 1;
   bool kubeletRestart = 2;
@@ -30,6 +31,7 @@ message RollbackRestartStatus {
   string err = 5;
 }
 
+// TODO: retry?
 message RollbackFinalizer {
   bool responseReceived = 1;
 }

@@ -9,8 +9,8 @@ message PrerequisitesExpiration {
 
 message Expiration {
   bool validCertificate = 1;
-  repeated Certificate certificate = 2;
-  repeated CertificateAuthority certificateAuthority = 3;
+  repeated Certificate certificates = 2;
+  repeated CertificateAuthority certificateAuthorities = 3;
 }
 
 message Certificate {
