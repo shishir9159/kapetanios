@@ -50,9 +50,9 @@ func Renew(c Controller, connection pb.RenewalClient) (bool, error) {
 
 	rpc, err := connection.RenewalUpdate(c.ctx,
 		&pb.RenewalStatus{
-			RenewalSuccess:          false,
-			KubeConfigBackup:        false,
-			FileChecklistValidation: false,
+			RenewalSuccess:          true,
+			KubeConfigBackup:        true,
+			FileChecklistValidation: true,
 			Err:                     "",
 		})
 

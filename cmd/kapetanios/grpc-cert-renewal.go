@@ -27,7 +27,7 @@ func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRe
 
 	proceedNextStep, terminateApplication := false, false
 
-	if in.GetEtcdStatus() && in.GetKubeDirFreeSpace() > 50 {
+	if in.GetEtcdStatus() && in.GetKubeDirFreeSpace() >= 50 && in.GetKubeDirFreeSpace() >= 50 {
 		proceedNextStep = true
 	}
 
@@ -73,6 +73,10 @@ func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.Ren
 
 	proceedNextStep, terminateApplication := false, false
 
+	if in.GetRenewalSuccess() && in.GetKubeConfigBackup() && in.GetFileChecklistValidation() {
+		proceedNextStep = true
+	}
+
 	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
 	log.Printf("Received restart sucess: %v", in.GetKubeConfigBackup())
 	log.Printf("Received retry attempt: %d", in.GetFileChecklistValidation())
@@ -87,6 +91,16 @@ func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.Ren
 // RestartUpdate implements proto.Renewal
 func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.RenewalFinalizer, error) {
 
+	gracefullyShutDown, retryRestartingComponents := false, false
+
+	if in.GetEtcdRestart() && in.GetKubeletRestart() {
+		gracefullyShutDown = true
+	}
+
+	if in.GetErr() != "" {
+
+	}
+
 	log.Printf("Received backup sucess: %v", in.GetEtcdRestart())
 	log.Printf("Received renewal sucess: %v", in.GetKubeletRestart())
 	log.Printf("Received renewal sucess: %v", in.GetEtcdError())
@@ -96,8 +110,8 @@ func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.Ren
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalFinalizer{
-		GracefullyShutDown:        true,
-		RetryRestartingComponents: false,
+		GracefullyShutDown:        gracefullyShutDown,
+		RetryRestartingComponents: retryRestartingComponents,
 	}, nil
 }
 

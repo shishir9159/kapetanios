@@ -85,8 +85,8 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) (boo
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesRenewal{
 			EtcdStatus:             true,
-			ExternallyManagedCerts: false,
-			EtcdDirFreeSpace:       50, //TODO: realistic value
+			ExternallyManagedCerts: false, //TODO - process the output
+			EtcdDirFreeSpace:       50,    //TODO: realistic value
 			KubeDirFreeSpace:       50,
 			LocalAPIEndpoint:       "",
 			Err:                    "",

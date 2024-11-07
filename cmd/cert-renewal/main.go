@@ -76,7 +76,6 @@ func main() {
 	connection := pb.NewRenewalClient(conn)
 
 	for i := 0; i < maxAttempts; i++ {
-
 		skip, er := PrerequisitesForCertRenewal(c, connection)
 		if er != nil {
 			c.log.Error("failed to get cluster health status",

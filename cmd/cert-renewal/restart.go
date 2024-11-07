@@ -72,7 +72,8 @@ func Restart(c Controller, connection pb.RenewalClient) (bool, error) {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 	}
 
 	c.log.Info("server response",
