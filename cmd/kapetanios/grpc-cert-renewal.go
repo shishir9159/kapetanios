@@ -24,6 +24,9 @@ type server struct {
 
 // ClusterHealthChecking implements proto.Renewal
 func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRenewal) (*pb.RenewalResponse, error) {
+
+	proceedNextStep, terminateApplication := false, false
+
 	log.Printf("Received backup sucess: %v", in.GetEtcdStatus())
 	log.Printf("Received renewal sucess: %v", in.GetExternallyManagedCerts())
 	log.Printf("Received restart sucess: %v", in.GetKubeDirFreeSpace())

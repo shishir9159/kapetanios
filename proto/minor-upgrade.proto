@@ -4,7 +4,8 @@ option go_package = "github.com/shishir9159/kapetanios/proto";
 message PrerequisitesMinorUpgrade {
   bool etcdStatus = 1;
   uint64 storageAvailability = 2;
-  string err = 3;
+  string log = 3;
+  string err = 4;
 }
 
 message UpgradeResponse {
@@ -59,8 +60,6 @@ message ComponentRestartStatus {
 message MinorUpgradeFinalizer {
   bool responseReceived = 1;
 }
-
-// TODO: component field in the request and refactor
 
 service MinorUpgrade {
   rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (UpgradeResponse);

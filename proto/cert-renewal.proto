@@ -29,13 +29,13 @@ message RestartStatus {
   bool kubeletRestart = 2;
   string etcdError = 3;
   string kubeletError = 4;
-  string err = 5;
+  string log = 5;
+  string err = 6;
 }
 
 message RenewalResponse {
   bool proceedNextStep = 1;
-  bool skipRetryCurrentStep = 2;
-  bool terminateApplication = 3;
+  bool terminateApplication = 2;
 }
 
 message RenewalFinalizer {

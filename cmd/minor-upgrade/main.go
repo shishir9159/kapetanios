@@ -67,6 +67,7 @@ func main() {
 		skip, er := Prerequisites(c, conn)
 		if er != nil {
 			c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
+				zap.Int("attempt", i),
 				zap.Error(er))
 		}
 
@@ -83,6 +84,7 @@ func main() {
 
 		if err != nil {
 			c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
+				zap.Int("attempt", i),
 				zap.Error(err))
 		}
 
@@ -122,6 +124,7 @@ func main() {
 		skip, diff, err = compatibility(c, "v1.26.6", conn)
 		if err != nil {
 			c.log.Error("failed to get diff",
+				zap.Int("attempt", i),
 				zap.Error(err))
 		}
 
@@ -137,6 +140,7 @@ func main() {
 		skip, er := k8sComponentsUpgrade(c, "kubeadm", version, conn)
 		if er != nil {
 			c.log.Error("failed to get upgrade kubeadm",
+				zap.Int("attempt", i),
 				zap.Error(er))
 		}
 
@@ -151,6 +155,7 @@ func main() {
 		skip, plan, err = upgradePlan(c, conn)
 		if err != nil {
 			c.log.Error("failed to get upgrade plan",
+				zap.Int("attempt", i),
 				zap.Error(err))
 		}
 
@@ -165,6 +170,7 @@ func main() {
 		skip, er := clusterUpgrade(c, version, conn)
 		if er != nil {
 			c.log.Error("failed to get upgrade plan",
+				zap.Int("attempt", i),
 				zap.Error(er))
 		}
 
@@ -177,6 +183,7 @@ func main() {
 		skip, er := k8sComponentsUpgrade(c, "kubelet", version, conn)
 		if er != nil {
 			c.log.Error("failed to get upgrade plan",
+				zap.Int("attempt", i),
 				zap.Error(er))
 		}
 
@@ -189,6 +196,7 @@ func main() {
 		skip, er := restartComponent(c, "kubelet", conn)
 		if er != nil {
 			c.log.Error("failed to restart kubelet",
+				zap.Int("attempt", i),
 				zap.Error(er))
 		}
 
@@ -204,6 +212,7 @@ func main() {
 		skip, er := k8sComponentsUpgrade(c, "kubectl", version, conn)
 		if er != nil {
 			c.log.Error("failed to get upgrade plan",
+				zap.Int("attempt", i),
 				zap.Error(er))
 		}
 
