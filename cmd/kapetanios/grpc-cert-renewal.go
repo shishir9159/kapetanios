@@ -17,12 +17,12 @@ var (
 	port = flag.Int("port", 50051, "The server port")
 )
 
-// server is used to implement proto.RenewalClient.
+// server is used to implement proto.RenewalServer.
 type server struct {
 	pb.RenewalServer
 }
 
-// ClusterHealthChecking implements proto.Renewal
+// ClusterHealthChecking implements proto.RenewalServer
 func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRenewal) (*pb.RenewalResponse, error) {
 
 	proceedNextStep, terminateApplication := false, false
@@ -43,7 +43,7 @@ func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRe
 	}, nil
 }
 
-// BackupUpdate implements proto.Renewal
+// BackupUpdate implements proto.RenewalServer
 func (s *server) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.RenewalResponse, error) {
 
 	proceedNextStep, terminateApplication := false, false
@@ -68,7 +68,7 @@ func (s *server) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.Renew
 	}, nil
 }
 
-// RenewalUpdate implements proto.Renewal
+// RenewalUpdate implements proto.RenewalServer
 func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.RenewalResponse, error) {
 
 	proceedNextStep, terminateApplication := false, false
@@ -88,7 +88,7 @@ func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.Ren
 	}, nil
 }
 
-// RestartUpdate implements proto.Renewal
+// RestartUpdate implements proto.RenewalServer
 func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.RenewalFinalizer, error) {
 
 	gracefullyShutDown, retryRestartingComponents := false, false

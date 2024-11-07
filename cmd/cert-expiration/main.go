@@ -75,6 +75,4 @@ func main() {
 		zap.String("expirationDate", expirationDate.String()),
 		zap.String("daysRemaining", daysRemaining.String()))
 
-	//step 3. Restarting pods to work with the updated certificates
-
 }

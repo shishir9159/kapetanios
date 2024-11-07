@@ -17,7 +17,7 @@ type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
 }
 
-// ClusterHealthChecking implements proto.Upgrade
+// ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
 	var proceedNextStep, terminateApplication = false, false
@@ -40,7 +40,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	}, nil
 }
 
-// UpgradeVersionSelection implements proto.Upgrade
+// UpgradeVersionSelection implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
 	var proceedNextStep, terminateApplication = false, false
 
@@ -170,7 +170,7 @@ func MinorUpgradeGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
 	reflection.Register(s)
 	pb.RegisterMinorUpgradeServer(s, &minorUpgradeServer{})
 
-	log.Info("upgrade sever listening")
+	log.Info("upgrade server listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {

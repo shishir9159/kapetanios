@@ -13,12 +13,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-// expirationServer is used to implement proto.ExpirationClient.
+// expirationServer is used to implement proto.ValidityServer.
 type expirationServer struct {
-	pb.RenewalServer
+	pb.ValidityServer
 }
 
-// ClusterHealthChecking implements proto.Expiration
+// ClusterHealthChecking implements proto.ValidityServer
 func (s *expirationServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesExpiration) (*pb.CertificateValidityResponse, error) {
 
 	log.Printf("Received backup sucess: %v", in.GetEtcdStatus())
@@ -30,7 +30,7 @@ func (s *expirationServer) ClusterHealthChecking(_ context.Context, in *pb.Prere
 	}, nil
 }
 
-// ExpirationInfo implements proto.Expiration
+// ExpirationInfo implements proto.ValidityServer
 func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) (*pb.CertificateValidityResponse, error) {
 
 	if in.GetValidCertificate() {
@@ -50,34 +50,6 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	}, nil
 }
 
-// RestartUpdate implements proto.Expiration
-func (s *expirationServer) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.RenewalFinalizer, error) {
-
-	gracefullyShutDown, retryRestartingComponents := false, false
-
-	if in.GetEtcdRestart() && in.GetKubeletRestart() {
-		gracefullyShutDown = true
-	}
-
-	if in.GetErr() != "" {
-
-	}
-
-	log.Printf("Received backup sucess: %v", in.GetEtcdRestart())
-	log.Printf("Received renewal sucess: %v", in.GetKubeletRestart())
-	log.Printf("Received renewal sucess: %v", in.GetEtcdError())
-	log.Printf("Received retry attempt: %s", in.GetKubeletError())
-
-	// error occurring at the command execution
-	log.Printf("Received error: %v", in.GetErr())
-
-	return &pb.RenewalFinalizer{
-		GracefullyShutDown:        gracefullyShutDown,
-		RetryRestartingComponents: retryRestartingComponents,
-		OverrideUserKubeConfig:    true, //TODO: prompt
-	}, nil
-}
-
 func ExpirationGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -89,9 +61,9 @@ func ExpirationGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterRenewalServer(s, &expirationServer{})
+	pb.RegisterValidityServer(s, &expirationServer{})
 
-	log.Info("cert renewal sever listening")
+	log.Info("cert validity server listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
