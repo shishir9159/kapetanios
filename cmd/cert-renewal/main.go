@@ -18,8 +18,8 @@ const (
 var ()
 
 var (
+	maxAttempts            = 3
 	backupCount            = 7
-	maxProcedureRetries    = 5
 	overRideUserKubeConfig = 0
 	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
 	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
@@ -75,31 +75,56 @@ func main() {
 
 	connection := pb.NewRenewalClient(conn)
 
-	err = PrerequisitesForCertRenewal(c, connection)
-	if err != nil {
-		c.log.Error("failed to get cluster health status",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+
+		skip, er := PrerequisitesForCertRenewal(c, connection)
+		if er != nil {
+			c.log.Error("failed to get cluster health status",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
 	//	step 1. Backup directories
-	err = BackupCertificatesKubeConfigs(c, backupCount, connection)
-	if err != nil {
-		c.log.Error("failed to backup certificates and kubeConfigs",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := BackupCertificatesKubeConfigs(c, backupCount, connection)
+		if er != nil {
+			c.log.Error("failed to backup certificates and kubeConfigs",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
 	//	step 2. Kubeadm certs renew all
-	err = Renew(c, connection)
-	if err != nil {
-		c.log.Error("failed to renew certificates and kubeConfigs",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := Renew(c, connection)
+		if er != nil {
+			c.log.Error("failed to renew certificates and kubeConfigs",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
 	//step 3. Restarting pods to work with the updated certificates
-	err = Restart(c, connection)
-	if err != nil {
-		c.log.Error("failed to restart kubernetes components after certificate renewal",
-			zap.Error(err))
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := Restart(c, connection)
+		if er != nil {
+			c.log.Error("failed to restart kubernetes components after certificate renewal",
+				zap.Error(er))
+		}
+
+		if skip {
+			break
+		}
 	}
 
 	if overRideUserKubeConfig != 0 {

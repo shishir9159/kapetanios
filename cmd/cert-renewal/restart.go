@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
@@ -8,24 +9,32 @@ import (
 	"time"
 )
 
-func restartService(c Controller, component string) error {
+func restartService(c Controller, component string) (string, string, error) {
 
 	cmd := exec.Command("/bin/bash", "-c", "systemctl restart "+component)
 
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
 	err := cmd.Run()
+
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	c.log.Info("outString and errString",
+		zap.String("outStr", outStr),
+		zap.String("errStr", errStr))
 
 	time.Sleep(4 * time.Second)
 	if err != nil {
 		c.log.Error("Failed to restart service",
 			zap.String("component", component),
 			zap.Error(err))
-		return err
+		return string(stdoutBuf.Bytes()), string(stderrBuf.Bytes()), err
 	}
 
-	return nil
+	return string(stdoutBuf.Bytes()), string(stderrBuf.Bytes()), nil
 }
 
-func Restart(c Controller, connection pb.RenewalClient) error {
+func Restart(c Controller, connection pb.RenewalClient) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -33,13 +42,13 @@ func Restart(c Controller, connection pb.RenewalClient) error {
 			zap.Error(err))
 	}
 
-	err = restartService(c, "etcd")
+	etcdLog, etcdErr, err := restartService(c, "etcd")
 	if err != nil {
 		c.log.Error("Error restarting etcd: ",
 			zap.Error(err))
 	}
 
-	err = restartService(c, "kubelet")
+	kubeletLog, kubeletErr, err := restartService(c, "kubelet")
 	if err != nil {
 		c.log.Error("Error restarting kubelet: ",
 			zap.Error(err))
@@ -52,10 +61,13 @@ func Restart(c Controller, connection pb.RenewalClient) error {
 
 	rpc, err := connection.RestartUpdate(c.ctx,
 		&pb.RestartStatus{
-			EtcdRestart:    false,
-			KubeletRestart: false,
-			EtcdError:      "",
-			KubeletError:   "",
+			EtcdRestart:    true, //TODO:
+			KubeletRestart: true, //TODO:
+			EtcdLog:        etcdLog,
+			EtcdError:      etcdErr,
+			KubeletLog:     kubeletLog,
+			KubeletError:   kubeletErr,
+			Log:            "",
 			Err:            "",
 		})
 
@@ -63,8 +75,13 @@ func Restart(c Controller, connection pb.RenewalClient) error {
 		c.log.Error("could not send status update: ", zap.Error(err))
 	}
 
-	c.log.Info("Backup Status",
-		zap.Bool("finalizer", rpc.GetResponseReceived()))
+	c.log.Info("server response",
+		zap.Bool("finalizer", rpc.GetGracefullyShutDown()),
+		zap.Bool("retry", rpc.GetRetryRestartingComponents()))
 
-	return err
+	if rpc.GetRetryRestartingComponents() {
+		return false, err
+	}
+
+	return rpc.GetGracefullyShutDown(), nil
 }

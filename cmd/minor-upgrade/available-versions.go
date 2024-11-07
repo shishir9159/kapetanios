@@ -6,10 +6,8 @@ import (
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error) {
@@ -22,11 +20,12 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	}
 
 	cmd := exec.Command("/bin/bash", "-c", "apt update -y")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
 	err = cmd.Run()
 
-	time.Sleep(4 * time.Second)
 	if err != nil {
 		c.log.Error("Failed to update vm",
 			zap.Error(err))
@@ -37,10 +36,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 
 	cmd = exec.Command("/bin/bash", "-c", "apt-cache madison kubeadm | awk '{ print $3 }'")
 
-	var stdoutBuf, stderrBuf bytes.Buffer
-
-	cmd.Stdout = &stdoutBuf
-	cmd.Stderr = &stderrBuf
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	//wait.PollUntilContextTimeout()
 
@@ -48,12 +44,10 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	// output delimiter is " | "
 	// extract second and the third column
 
-	// TODO: return output
-
 	if err != nil {
 		c.log.Error("Failed to list available versions",
 			zap.Error(err))
-		return false, "", err
+		// TODO: refactor this to send the error : return false, "", err
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())

@@ -27,6 +27,10 @@ func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRe
 
 	proceedNextStep, terminateApplication := false, false
 
+	if in.GetEtcdStatus() && in.GetKubeDirFreeSpace() > 50 {
+		proceedNextStep = true
+	}
+
 	log.Printf("Received backup sucess: %v", in.GetEtcdStatus())
 	log.Printf("Received renewal sucess: %v", in.GetExternallyManagedCerts())
 	log.Printf("Received restart sucess: %v", in.GetKubeDirFreeSpace())
@@ -34,39 +38,55 @@ func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRe
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalResponse{
-		ProceedNextStep:      true,
-		SkipRetryCurrentStep: true,
+		ProceedNextStep:      proceedNextStep,
+		TerminateApplication: terminateApplication,
 	}, nil
 }
 
 // BackupUpdate implements proto.Renewal
 func (s *server) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.RenewalResponse, error) {
-	log.Printf("Received backup sucess: %v", in.GetEtcdBackup())
-	log.Printf("Received renewal sucess: %v", in.GetKubeConfigBackup())
+
+	proceedNextStep, terminateApplication := false, false
+
+	if in.GetEtcdBackupSuccess() && in.GetKubeConfigBackupSuccess() && in.GetFileChecklistValidation() {
+		proceedNextStep = true
+	}
+
+	if in.GetErr() != "" {
+		//	TODO: interaction and decide if to retry or terminate application
+		proceedNextStep = false
+	}
+
+	log.Printf("Received backup sucess: %v", in.GetEtcdBackupSuccess())
+	log.Printf("Received renewal sucess: %v", in.GetKubeConfigBackupSuccess())
 	log.Printf("Received restart sucess: %v", in.GetFileChecklistValidation())
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalResponse{
-		ProceedNextStep:      true,
-		SkipRetryCurrentStep: true,
+		ProceedNextStep:      proceedNextStep,
+		TerminateApplication: terminateApplication,
 	}, nil
 }
 
 // RenewalUpdate implements proto.Renewal
 func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.RenewalResponse, error) {
+
+	proceedNextStep, terminateApplication := false, false
+
 	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
 	log.Printf("Received restart sucess: %v", in.GetKubeConfigBackup())
 	log.Printf("Received retry attempt: %d", in.GetFileChecklistValidation())
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalResponse{
-		ProceedNextStep:      true,
-		SkipRetryCurrentStep: true,
+		ProceedNextStep:      proceedNextStep,
+		TerminateApplication: terminateApplication,
 	}, nil
 }
 
 // RestartUpdate implements proto.Renewal
 func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.RenewalFinalizer, error) {
+
 	log.Printf("Received backup sucess: %v", in.GetEtcdRestart())
 	log.Printf("Received renewal sucess: %v", in.GetKubeletRestart())
 	log.Printf("Received renewal sucess: %v", in.GetEtcdError())
@@ -76,7 +96,8 @@ func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.Ren
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalFinalizer{
-		ResponseReceived: true,
+		GracefullyShutDown:        true,
+		RetryRestartingComponents: false,
 	}, nil
 }
 

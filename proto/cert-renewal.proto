@@ -10,9 +10,14 @@ message PrerequisitesRenewal {
   string err = 6;
 }
 
+message RenewalResponse {
+  bool proceedNextStep = 1;
+  bool terminateApplication = 2;
+}
+
 message BackupStatus {
-  bool etcdBackup = 1;
-  bool kubeConfigBackup = 2;
+  bool etcdBackupSuccess = 1;
+  bool kubeConfigBackupSuccess = 2;
   bool fileChecklistValidation = 3;
   string err = 4;
 }
@@ -27,19 +32,17 @@ message RenewalStatus {
 message RestartStatus {
   bool etcdRestart = 1;
   bool kubeletRestart = 2;
-  string etcdError = 3;
-  string kubeletError = 4;
-  string log = 5;
-  string err = 6;
-}
-
-message RenewalResponse {
-  bool proceedNextStep = 1;
-  bool terminateApplication = 2;
+  string etcdLog = 3;
+  string etcdError = 4;
+  string kubeletLog = 5;
+  string kubeletError = 6;
+  string log = 7;
+  string err = 8;
 }
 
 message RenewalFinalizer {
-  bool responseReceived = 1;
+  bool gracefullyShutDown = 1;
+  bool retryRestartingComponents = 2;
 }
 
 service Renewal {

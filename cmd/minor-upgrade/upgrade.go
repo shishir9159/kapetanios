@@ -6,7 +6,6 @@ import (
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"io"
 	"os"
 	"os/exec"
 	"time"
@@ -16,6 +15,8 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 
 	firstNode := os.Getenv("FIRST_NODE_TO_BE_UPGRADED")
 	certRenewal := os.Getenv("CERTIFICATE_RENEWAL")
+
+	//	TODO: kubeadm upgrade node (name) [version] --dry-run
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -131,11 +132,10 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		return false, err
 	}
 
-	var stdoutBuf, stderrBuf bytes.Buffer
-
 	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' && apt-mark hold "+k8sComponents)
-	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
-	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
 
@@ -151,7 +151,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		zap.String("errStr", errStr))
 
 	cmd = exec.Command("/bin/bash", "-c", "kubeadm version")
-	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
 	outStr = string(stdoutBuf.Bytes())

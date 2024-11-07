@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
@@ -15,13 +16,13 @@ import (
 
 ///usr/local/bin/kubeadm certs renew
 
-func Renew(c Controller, connection pb.RenewalClient) error {
+func Renew(c Controller, connection pb.RenewalClient) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
-		return err
+		return false, err
 	}
 
 	//  cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
@@ -32,7 +33,9 @@ func Renew(c Controller, connection pb.RenewalClient) error {
 
 	cmd := exec.Command("/usr/bin/kubeadm", "certs", "renew", "all", "--config=/etc/kubernetes/kubeadm-config.yaml")
 
-	//    cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
 	err = cmd.Run()
 	if err != nil {
 		c.log.Error("Failed to renew certificates",
@@ -54,13 +57,13 @@ func Renew(c Controller, connection pb.RenewalClient) error {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 	}
 
 	c.log.Info("Backup Status",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return err
+	return rpc.GetProceedNextStep(), err
 }

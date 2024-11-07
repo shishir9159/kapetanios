@@ -34,20 +34,21 @@ func getStorage(path string) (int64, error) {
 	return int64(stat.Bfree) * stat.Bsize, nil
 }
 
-func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) error {
+func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Fatal("Failed to create chroot on /host",
 			zap.Error(err))
-		return err
+		return false, err
 	}
 
 	freeSpace, err := getStorage("/opt/")
 
 	if err != nil {
 		c.log.Error("Failed to get storage space for /opt/ directory", zap.Error(err))
-		return err
+		return false, err // TODO: fetch response to proceed or not
+		//	TODO: concatenate error string
 	}
 
 	// TODO:
@@ -62,7 +63,8 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) erro
 
 	if err != nil {
 		c.log.Error("Failed to get storage space for /var/lib/etcd directory", zap.Error(err))
-		return err
+		return false, err // TODO: fetch response to proceed or not
+		//	TODO: concatenate error string
 	}
 
 	// TODO:
@@ -77,15 +79,15 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) erro
 		c.log.Fatal("Failed to exit from the updated root",
 			zap.Error(err))
 
-		return err
+		return false, err
 	}
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesRenewal{
 			EtcdStatus:             true,
 			ExternallyManagedCerts: false,
-			EtcdDirFreeSpace:       0,
-			KubeDirFreeSpace:       0,
+			EtcdDirFreeSpace:       50, //TODO: realistic value
+			KubeDirFreeSpace:       50,
 			LocalAPIEndpoint:       "",
 			Err:                    "",
 		})
@@ -97,8 +99,7 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) erro
 
 	c.log.Info("Status Update",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return nil
+	return rpc.GetProceedNextStep(), nil
 }

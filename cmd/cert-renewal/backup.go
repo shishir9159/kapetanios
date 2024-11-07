@@ -285,13 +285,13 @@ func fileChecklistValidation(backupDir string) []string {
 // todo:
 //  compression enabled copy
 
-func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.RenewalClient) error {
+func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.RenewalClient) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Error("Failed to create chroot on /host",
 			zap.Error(err))
-		return err
+		return false, err
 	}
 
 	backupDir, err := getBackupDir(backupCount)
@@ -302,12 +302,14 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 	if err != nil {
 		c.log.Error("Failed to take backups",
 			zap.Error(err))
+		// todo: send the error the server: return false, err
 	}
 
 	failedCopyFiles := fileChecklistValidation(backupDir)
 	if len(failedCopyFiles) != 0 {
 		c.log.Error("Failed to take backups",
 			zap.Error(err))
+		// todo: send the error the server: return false, err
 	}
 
 	if err = changedRoot(); err != nil {
@@ -317,9 +319,9 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 
 	rpc, err := connection.BackupUpdate(c.ctx,
 		&pb.BackupStatus{
-			EtcdBackup:              false,
-			KubeConfigBackup:        false,
-			FileChecklistValidation: false,
+			EtcdBackupSuccess:       true,
+			KubeConfigBackupSuccess: true,
+			FileChecklistValidation: true,
 			Err:                     "",
 		})
 
@@ -329,8 +331,7 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 
 	c.log.Info("Backup Status",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()),
 		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
-	return err
+	return rpc.GetProceedNextStep(), err
 }
