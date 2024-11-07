@@ -44,8 +44,9 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
 	var proceedNextStep, terminateApplication = false, false
 
+	proceedNextStep = true
 	if in.GetErr() != "" {
-		proceedNextStep = true
+
 	}
 
 	log.Printf("Received k8s component version: %s", in.GetVersion())
@@ -64,8 +65,9 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	var proceedNextStep, terminateApplication = false, false
 
+	proceedNextStep = true
 	if in.GetErr() != "" {
-		proceedNextStep = true
+
 	}
 
 	log.Printf("Received os compatibility: %t", in.GetOsCompatibility())
@@ -83,8 +85,12 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	var proceedNextStep, terminateApplication = false, false
 
-	if in.GetComponentUpgradeSuccess() && in.GetErr() != "" {
+	if in.GetComponentUpgradeSuccess() {
 		proceedNextStep = true
+	}
+
+	if in.GetErr() != "" {
+
 	}
 
 	log.Printf("Received component upgrade status: %t", in.GetComponentUpgradeSuccess())
@@ -103,8 +109,9 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	var proceedNextStep, terminateApplication = false, false
 
+	proceedNextStep = true
 	if in.GetErr() != "" {
-		proceedNextStep = true
+
 	}
 
 	log.Printf("Received current cluster version: %s", in.GetCurrentClusterVersion())
@@ -122,8 +129,9 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	var proceedNextStep, terminateApplication = false, false
 
+	proceedNextStep = true
 	if in.GetErr() != "" {
-		proceedNextStep = true
+
 	}
 
 	log.Printf("Received cluster upgrade status: %t", in.GetUpgradeSuccess())
@@ -141,8 +149,9 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	var proceedNextStep, terminateApplication = false, false
 
+	proceedNextStep = true
 	if in.GetErr() != "" {
-		proceedNextStep = true
+
 	}
 
 	log.Printf("Received component upgraded status: %t", in.GetComponentRestartSuccess())
@@ -157,6 +166,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 }
 
 func MinorUpgradeGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
+
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
