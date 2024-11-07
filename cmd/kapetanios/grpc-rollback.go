@@ -12,12 +12,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-// server is used to implement proto.RenewalClient.
+// rollbackServer is used to implement proto.RollbackServer.
 type rollbackServer struct {
 	pb.RollbackServer
 }
 
-// Prerequisites implements proto.Renewal
+// Prerequisites implements proto.RollbackServer
 func (s *rollbackServer) Prerequisites(_ context.Context, in *pb.PrerequisitesRollback) (*pb.RollbackResponse, error) {
 	log.Printf("received prerequisite check status: %v", in.GetBackupExists())
 	log.Printf("received renewal sucess: %v", in.GetSpaceAvailability())
@@ -25,12 +25,11 @@ func (s *rollbackServer) Prerequisites(_ context.Context, in *pb.PrerequisitesRo
 
 	return &pb.RollbackResponse{
 		ProceedNextStep:      false,
-		SkipRetryCurrentStep: false,
 		TerminateApplication: false,
 	}, nil
 }
 
-// RollbackUpdate implements proto.Renewal
+// RollbackUpdate implements proto.RollbackServer
 func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus) (*pb.RollbackResponse, error) {
 	log.Printf("received prerequisite check status: %v", in.GetPrerequisitesCheckSuccess())
 	log.Printf("received renewal sucess: %v", in.GetRollbackSuccess())
@@ -41,7 +40,6 @@ func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus
 
 	return &pb.RollbackResponse{
 		ProceedNextStep:      false,
-		SkipRetryCurrentStep: false,
 		TerminateApplication: false,
 	}, nil
 }
