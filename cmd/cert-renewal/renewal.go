@@ -25,8 +25,6 @@ func Renew(c Controller, connection pb.RenewalClient) (bool, error) {
 		return false, err
 	}
 
-	//  cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-
 	// whereis kubeadm
 	// "/usr/local/bin/kubeadm certs renew scheduler.conf"
 	// it is assumed that kubeadm exist otherwise, cert validity wouldn't have work

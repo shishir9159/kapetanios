@@ -38,8 +38,9 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	if firstNode == "true" {
 		cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+k8sVersion+" --certificate-renewal="+certRenewal+" -y")
 	}
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
 	//[upgrade/config] Making sure the configuration is correct:
@@ -251,8 +252,10 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	// TODO: --certificate-renewal input from user, and by default should be true
 	// TODO: compare the upgrade plan before and after
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade plan --certificate-renewal=true")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
 	err = cmd.Run()
 
 	// This command checks that your cluster can be upgraded, and fetches the

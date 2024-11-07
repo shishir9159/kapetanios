@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"os"
 	"os/exec"
 )
 
@@ -26,8 +26,9 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 
 	// refactor into two
 	cmd := exec.Command("/bin/bash", "-c", "systemctl daemon-reload && systemctl restart "+component)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
 

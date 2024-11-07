@@ -8,9 +8,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
-	"io"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -68,13 +66,10 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		return time.Time{}, time.Time{}, err
 	}
 
-	var stdoutBuf, stderrBuf bytes.Buffer
-
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration --config /etc/kubernetes/kubeadm-config.yaml")
-	err = cmd.Run()
 
-	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
-	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
 
