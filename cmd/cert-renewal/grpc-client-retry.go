@@ -10,6 +10,10 @@ package main
 //	pb "google.golang.org/grpc/examples/features/proto/echo"
 //)
 //
+//const (
+//	defaultName = "cert-renewal"
+//)
+//
 //var (
 //	//addr        = flag.String("addr", "localhost:50052", "the address to connect to")
 //	retryPolicy = `{

@@ -34,7 +34,7 @@ func restartService(c Controller, component string) (string, string, error) {
 	return string(stdoutBuf.Bytes()), string(stderrBuf.Bytes()), nil
 }
 
-func Restart(c Controller, connection pb.RenewalClient) (bool, error) {
+func Restart(c Controller, connection pb.RenewalClient) (bool, bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -78,11 +78,12 @@ func Restart(c Controller, connection pb.RenewalClient) (bool, error) {
 
 	c.log.Info("server response",
 		zap.Bool("finalizer", rpc.GetGracefullyShutDown()),
+		zap.Bool("override existing user kube config", rpc.GetOverrideUserKubeConfig()),
 		zap.Bool("retry", rpc.GetRetryRestartingComponents()))
 
 	if rpc.GetRetryRestartingComponents() {
-		return false, err
+		return false, false, err
 	}
 
-	return rpc.GetGracefullyShutDown(), nil
+	return rpc.GetGracefullyShutDown(), rpc.GetOverrideUserKubeConfig(), nil
 }

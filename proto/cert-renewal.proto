@@ -42,7 +42,8 @@ message RestartStatus {
 
 message RenewalFinalizer {
   bool gracefullyShutDown = 1;
-  bool retryRestartingComponents = 2;
+  bool overrideUserKubeConfig = 2;
+  bool retryRestartingComponents = 3;
 }
 
 service Renewal {

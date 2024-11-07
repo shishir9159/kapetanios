@@ -112,6 +112,7 @@ func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.Ren
 	return &pb.RenewalFinalizer{
 		GracefullyShutDown:        gracefullyShutDown,
 		RetryRestartingComponents: retryRestartingComponents,
+		OverrideUserKubeConfig:    true, //TODO: prompt
 	}, nil
 }
 

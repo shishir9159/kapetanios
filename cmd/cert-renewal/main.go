@@ -11,16 +11,9 @@ import (
 	"time"
 )
 
-const (
-	defaultName = "cert-renewal"
-)
-
-var ()
-
 var (
-	maxAttempts            = 3
-	backupCount            = 7
-	overRideUserKubeConfig = 0
+	maxAttempts = 3
+	backupCount = 7
 	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
 	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 )
@@ -113,12 +106,15 @@ func main() {
 		}
 	}
 
+	var overrideUserKubeConfig bool
+
 	//step 3. Restarting pods to work with the updated certificates
 	for i := 0; i < maxAttempts; i++ {
-		skip, er := Restart(c, connection)
-		if er != nil {
+		var skip bool
+		skip, overrideUserKubeConfig, err = Restart(c, connection)
+		if err != nil {
 			c.log.Error("failed to restart kubernetes components after certificate renewal",
-				zap.Error(er))
+				zap.Error(err))
 		}
 
 		if skip {
@@ -126,7 +122,7 @@ func main() {
 		}
 	}
 
-	if overRideUserKubeConfig != 0 {
+	if overrideUserKubeConfig {
 		err = Copy("/etc/kubernetes/admin.conf", "/root/.kube/config")
 		if err != nil {
 			c.log.Error("failed to pass kubernetes admin privilege to the root user",
