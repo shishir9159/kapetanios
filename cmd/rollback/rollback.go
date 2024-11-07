@@ -321,7 +321,7 @@ func Rollback(c Controller, connection pb.RollbackClient) error {
 
 	c.log.Info("Status Update",
 		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()))
+		zap.Bool("terminate application", rpc.GetTerminateApplication()))
 
 	return nil
 }
