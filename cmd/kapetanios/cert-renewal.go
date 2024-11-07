@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sync"
@@ -79,6 +80,9 @@ func Cert(namespace string) {
 		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", roleName, node.Name)
 
+		ch := make(chan *grpc.Server, 1)
+		go CertGrpc(c.log, ch)
+
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods this logic need to be in the orchestration too
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
@@ -91,12 +95,14 @@ func Cert(namespace string) {
 			return
 		}
 
+		(<-ch).Stop()
+
 		c.log.Info("Cert Renewal pod created",
 			zap.Int("index", index),
 			zap.String("pod_name", minion.Name))
 
 		// todo: wait for request for restart from the minions
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 
 		er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 		if er != nil {
@@ -113,6 +119,4 @@ func Cert(namespace string) {
 	if err != nil {
 		c.log.Error("error restarting renewal components", zap.Error(err))
 	}
-
-	CertGrpc(c.log)
 }

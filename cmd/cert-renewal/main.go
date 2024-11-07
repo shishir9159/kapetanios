@@ -44,7 +44,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	// TODO: replace zap with zerolog
+	// TODO: replace zap with zeroLog
 
 	c := Controller{
 		ctx: ctx,

@@ -173,7 +173,6 @@ func MinorUpgradeGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
 	log.Info("upgrade sever listening")
 
 	ch <- s
-
 	if er := s.Serve(lis); er != nil {
 		log.Error("failed to serve", zap.Error(er))
 	}

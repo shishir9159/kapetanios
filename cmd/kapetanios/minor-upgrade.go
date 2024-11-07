@@ -309,8 +309,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
 		//  then those Pods might be scheduled to the node you have drained.
 
-		// TODO: force drain boolean
-
 		c.log.Info("cordoning and draining node",
 			zap.String("node name", node.Name))
 
@@ -437,9 +435,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		//	c.log.Error("watcher error from minion restart",
 		//		zap.Error(er))
 		//}
-
-		//s := <-ch
-		//s.Stop()
 
 		(<-ch).Stop()
 
