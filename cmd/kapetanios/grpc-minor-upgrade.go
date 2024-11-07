@@ -154,7 +154,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	}
 
-	log.Printf("Received component upgraded status: %t", in.GetComponentRestartSuccess())
+	log.Printf("Received component restart status: %t", in.GetComponentRestartSuccess())
 	log.Printf("for the component: %v", in.GetComponent())
 	log.Printf("Received log: %v", in.GetLog())
 	log.Printf("Received error: %v", in.GetErr())

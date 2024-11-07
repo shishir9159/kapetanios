@@ -111,8 +111,8 @@ func main() {
 
 	Prerequisites(minorUpgradeNamespace)
 
-	// prevent duplicate lighthouse instances
-
+	// TODO: prevent duplicate lighthouse instances
+	// TODO: websocket
 	err = app.Listen(":80")
 
 	if err != nil {

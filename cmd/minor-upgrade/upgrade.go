@@ -105,7 +105,7 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 
 	rpc, err := connection.ClusterUpgrade(c.ctx,
 		&pb.UpgradeStatus{
-			UpgradeSuccess: false,
+			UpgradeSuccess: true,
 			Log:            "",
 			Err:            "",
 		})

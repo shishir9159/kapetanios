@@ -47,7 +47,7 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 
 	rpc, err := connection.ClusterComponentRestart(c.ctx,
 		&pb.ComponentRestartStatus{
-			ComponentRestartSuccess: false,
+			ComponentRestartSuccess: true,
 			Component:               component,
 			Log:                     "",
 			Err:                     "",
