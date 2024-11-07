@@ -210,36 +210,37 @@ func MinorUpgradeFirstRun(namespace string) {
 			zap.String("node.ObjectMeta.Name", node.ObjectMeta.Name),
 			zap.Bool("node.ObjectMeta.Name == kapetaniosNode", node.ObjectMeta.Name == kapetaniosNode))
 
-		if node.ObjectMeta.Name == kapetaniosNode {
+		// for reliability purposes, do it for all the nodes
+		//if node.ObjectMeta.Name == kapetaniosNode {
 
-			configMapName := "kapetanios"
-			// refactor this hardcoded part
-			targetedVersion := "1.26.6-1.1"
+		configMapName := "kapetanios"
+		//  todo: refactor this hardcoded part
+		targetedVersion := "1.26.6-1.1"
 
-			configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.TODO(), configMapName, metav1.GetOptions{})
-			if er != nil {
-				c.log.Error("error fetching the configMap",
-					zap.Error(er))
-			}
-
-			var nodeNames []string
-
-			for _, no := range nodes.Items[index:] {
-				nodeNames = append(nodeNames, no.Name)
-			}
-
-			configMap.Data["TARGETED_K8S_VERSION"] = targetedVersion
-			configMap.Data["NODES_TO_BE_UPGRADED"] = strings.Join(nodeNames, ";")
-
-			_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
-			if er != nil {
-				c.log.Error("error updating configMap",
-					zap.Error(er))
-			}
-
-			c.log.Info("nodes to be upgraded",
-				zap.String("node to be", strings.Join(nodeNames, ";")))
+		configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.TODO(), configMapName, metav1.GetOptions{})
+		if er != nil {
+			c.log.Error("error fetching the configMap",
+				zap.Error(er))
 		}
+
+		var nodeNames []string
+
+		for _, no := range nodes.Items[index:] {
+			nodeNames = append(nodeNames, no.Name)
+		}
+
+		configMap.Data["TARGETED_K8S_VERSION"] = targetedVersion
+		configMap.Data["NODES_TO_BE_UPGRADED"] = strings.Join(nodeNames, ";")
+
+		_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+		if er != nil {
+			c.log.Error("error updating configMap",
+				zap.Error(er))
+		}
+
+		c.log.Info("nodes to be upgraded",
+			zap.String("node to be", strings.Join(nodeNames, ";")))
+		//}
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding

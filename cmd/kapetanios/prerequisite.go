@@ -55,6 +55,10 @@ func Prerequisites(namespace string) {
 	}
 
 	c.log.Info("after fetching configmap")
+
+	// TODO: to be foolproof check if the number of nodes the same
+	//  if that is the case, the first node consideration need to be taken
+
 	targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
 	nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
 
