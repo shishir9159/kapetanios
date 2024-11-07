@@ -389,7 +389,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		//c.log.Info("gRPC server has been gracefully stopped.")
 
 		ch := make(chan *grpc.Server, 1)
-
 		go MinorUpgradeGrpc(c.log, ch)
 
 		// TODO:
@@ -521,6 +520,9 @@ func LastDance(c Controller, nodes string, namespace string) {
 				zap.Error(err))
 		}
 
+		ch := make(chan *grpc.Server, 1)
+		go MinorUpgradeGrpc(c.log, ch)
+
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
 			c.log.Error("minor upgrade pod creation failed: ",
@@ -534,6 +536,8 @@ func LastDance(c Controller, nodes string, namespace string) {
 		c.log.Info("minor upgrade pod created",
 			zap.Int("index", index),
 			zap.String("pod name", minion.Name))
+
+		(<-ch).Stop()
 
 		removeTaint(no)
 	}
