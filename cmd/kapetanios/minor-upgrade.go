@@ -290,7 +290,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		if index == 0 {
 
 			firstNodeToUpgradeEnv := corev1.EnvVar{
-
 				Name:  "FIRST_NODE_TO_BE_UPGRADED",
 				Value: "true",
 			}
@@ -479,7 +478,6 @@ func LastDance(c Controller, nodes string, namespace string) {
 		certificateRenewal := false
 
 		certRenewalEnv := corev1.EnvVar{
-
 			Name:  "CERTIFICATE_RENEWAL",
 			Value: strconv.FormatBool(certificateRenewal),
 		}
@@ -541,6 +539,8 @@ func LastDance(c Controller, nodes string, namespace string) {
 		c.log.Info("minor upgrade pod created",
 			zap.Int("index", index),
 			zap.String("pod name", minion.Name))
+
+		time.Sleep(50 * time.Second)
 
 		(<-ch).Stop()
 
