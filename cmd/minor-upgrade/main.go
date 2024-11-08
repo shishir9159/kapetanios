@@ -101,7 +101,7 @@ func main() {
 	// todo: include in the testing
 	testing := false
 	latest := false
-	version = "1.26.6-1.1"
+	version = "1.26.7-1.1"
 
 	if testing {
 		//version = kubernetesVersion

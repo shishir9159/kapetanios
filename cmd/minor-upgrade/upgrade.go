@@ -182,8 +182,8 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	rpc, err := connection.ClusterComponentUpgrade(c.ctx,
 		&pb.ComponentUpgradeStatus{
 			ComponentUpgradeSuccess: true,
-			Component:               "",
-			Log:                     "",
+			Component:               k8sComponents,
+			Log:                     outStr,
 			Err:                     "",
 		})
 
