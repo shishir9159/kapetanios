@@ -485,8 +485,12 @@ func LastDance(c Controller, nodes string, namespace string) {
 		}
 
 		env := descriptor.Spec.Containers[0].Env
+
+		// todo: if the light house got restarted at the first node upgrade: edge case
+
 		env = append(env, certRenewalEnv)
 		descriptor.Spec.Containers[0].Env = env
+		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
 		no, err := c.client.Clientset().CoreV1().Nodes().Get(c.ctx, node, metav1.GetOptions{})
 		if err != nil {
