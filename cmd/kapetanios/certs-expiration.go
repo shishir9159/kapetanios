@@ -80,7 +80,7 @@ func Expiration(namespace string) {
 			return // er
 		}
 
-		time.Sleep(20 * time.Second)
+		time.Sleep(25 * time.Second)
 
 		(<-ch).Stop()
 
@@ -90,5 +90,4 @@ func Expiration(namespace string) {
 
 		// todo: wait for request for restart from the minions
 	}
-
 }
