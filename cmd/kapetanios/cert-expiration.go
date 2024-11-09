@@ -80,6 +80,8 @@ func Expiration(namespace string) {
 			return // er
 		}
 
+		time.Sleep(20 * time.Second)
+
 		(<-ch).Stop()
 
 		c.log.Info("Cert Expiration pod created",
@@ -87,7 +89,6 @@ func Expiration(namespace string) {
 			zap.String("pod_name", minion.Name))
 
 		// todo: wait for request for restart from the minions
-		time.Sleep(3 * time.Second)
 	}
 
 }
