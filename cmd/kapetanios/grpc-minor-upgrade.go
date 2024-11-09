@@ -6,6 +6,7 @@ import (
 	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
+	"golang.org/x/net/websocket"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
@@ -15,6 +16,7 @@ import (
 // server is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
+	conn *websocket.Conn
 }
 
 // ClusterHealthChecking implements proto.MinorUpgradeServer
