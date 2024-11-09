@@ -124,7 +124,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	var certificates []*pb.Certificate
 
 	for _, cert := range certs {
-		replaceConsecutiveSpaces(cert)
+		cert = replaceConsecutiveSpaces(cert)
 		fields := strings.Split(cert, "+")
 
 		certificate := pb.Certificate{
@@ -141,7 +141,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	var certificateAuthorities []*pb.CertificateAuthority
 
 	for _, ca := range caAuthorities {
-		replaceConsecutiveSpaces(ca)
+		ca = replaceConsecutiveSpaces(ca)
 		fields := strings.Split(ca, "+")
 
 		certificateAuthority := pb.CertificateAuthority{
