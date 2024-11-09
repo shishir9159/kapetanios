@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+var (
+	certificateRenewal = false
+)
+
 func drainAndCordonNode(c Controller, node *corev1.Node) error {
 
 	drainer := &drain.Helper{
@@ -276,7 +280,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		descriptor.Spec.HostNetwork = true
 
 		// TODO -- take input
-		certificateRenewal := false
 
 		certRenewalEnv := corev1.EnvVar{
 
