@@ -125,7 +125,9 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	for _, cert := range certs {
 		cert = replaceConsecutiveSpaces(cert)
+		fmt.Println(cert)
 		fields := strings.Split(cert, "+")
+		fmt.Println(fields)
 
 		certificate := pb.Certificate{
 			Name:                 fields[0],
