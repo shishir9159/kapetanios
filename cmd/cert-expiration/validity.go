@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/x509"
+	"regexp"
 	"strings"
 
 	"fmt"
@@ -32,6 +33,13 @@ var (
 	certPeriodValidationMutex  sync.Mutex
 	certPeriodValidationCached = map[string]struct{}{}
 )
+
+func replaceConsecutiveSpaces(s string) string {
+	// Regular expression to match two or more consecutive spaces
+	re := regexp.MustCompile(`\s{2,}`)
+	// Replace matches with "-"
+	return re.ReplaceAllString(s, "+")
+}
 
 func validateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
 	period := fmt.Sprintf("NotBefore: %v, NotAfter: %v", cert.NotBefore, cert.NotAfter)
@@ -101,18 +109,60 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	// todo: string operations
 
-	checkingSubstr := strings.Contains(outStr, "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED")
+	tillCertsSubstr := "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED\n"
+	tillCaAuthoritiesSubstr := "CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED\n"
+
+	indexCerts := strings.Index(outStr, tillCertsSubstr)
+	indexCaAuthorities := strings.Index(outStr, tillCaAuthoritiesSubstr)
+
+	certsString := outStr[indexCerts+len(tillCertsSubstr) : indexCaAuthorities]
+	caAuthoritiesString := outStr[indexCaAuthorities+len(tillCaAuthoritiesSubstr):]
+
+	certs := strings.Split(certsString, "\n")
+	caAuthorities := strings.Split(caAuthoritiesString, "\n")
+
+	var certificates []*pb.Certificate
+
+	for _, cert := range certs {
+		replaceConsecutiveSpaces(cert)
+		fields := strings.Split(cert, "+")
+
+		certificate := pb.Certificate{
+			Name:                 fields[0],
+			Expires:              fields[1],
+			ResidualTime:         fields[2],
+			CertificateAuthority: fields[3],
+			ExternallyManaged:    fields[4],
+		}
+
+		certificates = append(certificates, &certificate)
+	}
+
+	var certificateAuthorities []*pb.CertificateAuthority
+
+	for _, ca := range caAuthorities {
+		replaceConsecutiveSpaces(ca)
+		fields := strings.Split(ca, "+")
+
+		certificateAuthority := pb.CertificateAuthority{
+			Name:              fields[0],
+			Expires:           fields[1],
+			ResidualTime:      fields[2],
+			ExternallyManaged: fields[3],
+		}
+
+		certificateAuthorities = append(certificateAuthorities, &certificateAuthority)
+	}
 
 	c.log.Info("outString and errString",
 		zap.String("outStr", outStr),
-		zap.String("errStr", errStr),
-		zap.Bool("checkingSubstr", checkingSubstr))
+		zap.String("errStr", errStr))
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
 			ValidCertificate:       false,
-			Certificates:           nil,
-			CertificateAuthorities: nil,
+			Certificates:           certificates,
+			CertificateAuthorities: certificateAuthorities,
 		})
 
 	if err != nil {
