@@ -149,7 +149,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		ca = replaceConsecutiveSpaces(ca)
 		fields := strings.Split(ca, "+")
 
-		if len(fields) != 6 {
+		if len(fields) != 5 {
 			break
 		}
 
