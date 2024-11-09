@@ -9,6 +9,6 @@ FROM ubuntu:latest
 RUN set -x && apt-get update && apt-get install -y \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/cmd/cert-renewal/main /app/server
+COPY --from=builder /app/cmd/certs-renewal/main /app/server
 WORKDIR /app
 CMD ["/app/server"]
