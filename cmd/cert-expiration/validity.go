@@ -106,5 +106,19 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 			zap.Error(err))
 	}
 
+	rpc, err := connection.ExpirationInfo(c.ctx,
+		&pb.Expiration{
+			ValidCertificate:       false,
+			Certificates:           nil,
+			CertificateAuthorities: nil,
+		})
+
+	if err != nil {
+		c.log.Error("could not send status update: ", zap.Error(err))
+	}
+
+	c.log.Info("Status Update",
+		zap.Bool("response received", rpc.GetReceived()))
+
 	return time.Time{}, time.Time{}, err
 }

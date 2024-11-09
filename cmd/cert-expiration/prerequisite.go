@@ -81,8 +81,8 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesExpiration{
-			EtcdStatus:   false,
-			DiskPressure: false,
+			EtcdStatus:   true,
+			DiskPressure: true,
 			Err:          "",
 		})
 
@@ -91,8 +91,7 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	}
 
 	c.log.Info("Status Update",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("retry", rpc.GetSkipRetryCurrentStep()))
+		zap.Bool("response received", rpc.GetReceived()))
 
 	return nil
 }
