@@ -31,21 +31,21 @@ clean:
 
 ##### Docker #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios cert-renewal etcd-restart rollback
+docker-build-and-push: kapetanios certs-renewal certs-expiration etcd-restart rollback
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/kapetanios:latest
 	docker push quay.io/klovercloud/kapetanios:latest
 
-.PHONY: cert-expiration
-cert-expiration:
+.PHONY: certs-expiration
+certs-expiration:
 	@printf $(COLOR) "Building docker image for cert-expiration minions and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/certs-expiration:latest -f certs-expiration.Dockerfile
  	docker push quay.io/klovercloud/certs-expiration:latest
 
-.PHONY: cert-renewal
-cert-renewal:
+.PHONY: certs-renewal
+certs-renewal:
 	@printf $(COLOR) "Building docker image for cert-renewal minions and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile
  	docker push quay.io/klovercloud/certs-renewal:latest
