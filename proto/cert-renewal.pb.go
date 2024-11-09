@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.35.1
 // 	protoc        v5.28.1
-// source: proto/cert-renewal.proto
+// source: proto/certs-renewal.proto
 
 package proto
 

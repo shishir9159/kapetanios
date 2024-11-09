@@ -53,12 +53,12 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 
 	// TODO:
 	//  handle the scenario:
-	//  {"level":"error","ts":1729066140.2577364,"caller":"kapetanios/cert-renewal.go:95","msg":"error
+	//  {"level":"error","ts":1729066140.2577364,"caller":"kapetanios/certs-renewal.go:95","msg":"error
 	//  restarting pods for certificate renewal","error":"Get
 	//  \"https://10.96.0.1:443/api/v1/namespaces/kube-system/pods?fieldSelector=spec.nodeName%3Dshihab-node-1&labelSelector=tier%3Dcontrol-plane\":
 	//  dial tcp 10.96.0.1:443: connect: connection refused - error from a previous
 	//  attempt: read tcp 10.0.2.29:37980->10.96.0.1:443: read: connection reset by
-	//  peer","stacktrace":"main.Cert\n\t/app/cmd/kapetanios/cert-renewal.go:95"}
+	//  peer","stacktrace":"main.Cert\n\t/app/cmd/kapetanios/certs-renewal.go:95"}
 
 	go func() {
 		// todo: instead of the first minion, count the number of minions in switch case

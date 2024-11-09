@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.28.1
-// source: proto/cert-renewal.proto
+// source: proto/certs-renewal.proto
 
 package proto
 
@@ -231,5 +231,5 @@ var Renewal_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/cert-renewal.proto",
+	Metadata: "proto/certs-renewal.proto",
 }

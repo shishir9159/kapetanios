@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY . ./
 RUN go mod download
-RUN go build -C ./cmd/cert-expiration -o main
+RUN go build -C ./cmd/certs-expiration -o main
 
 FROM ubuntu:latest
 RUN set -x && apt-get update && apt-get install -y \
