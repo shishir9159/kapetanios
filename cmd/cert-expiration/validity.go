@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/x509"
+	"strings"
 
 	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
@@ -10,7 +11,6 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"os/exec"
-	"strings"
 	"sync"
 	"time"
 )
@@ -92,7 +92,14 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		return time.Time{}, time.Time{}, err
 	}
 
+	if err = changedRoot(); err != nil {
+		c.log.Fatal("Failed to exit from the updated root",
+			zap.Error(err))
+	}
+
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+
+	// todo: string operations
 
 	checkingSubstr := strings.Contains(outStr, "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED")
 
@@ -100,11 +107,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		zap.String("outStr", outStr),
 		zap.String("errStr", errStr),
 		zap.Bool("checkingSubstr", checkingSubstr))
-
-	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
-	}
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
