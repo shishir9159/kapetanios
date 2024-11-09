@@ -82,7 +82,7 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesExpiration{
 			EtcdStatus:   true,
-			DiskPressure: true,
+			DiskPressure: false,
 			Err:          "",
 		})
 
