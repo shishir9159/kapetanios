@@ -123,14 +123,15 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	var certificates []*pb.Certificate
 
-	// remove the last empty line from the certs
-	certs = certs[:len(certs)-1]
-
 	for _, cert := range certs {
 		cert = replaceConsecutiveSpaces(cert)
 		fmt.Println(cert)
 		fields := strings.Split(cert, "+")
-		fmt.Println(fields)
+
+		// to skip the last empty lines from the certs
+		if len(fields) != 5 {
+			break
+		}
 
 		certificate := pb.Certificate{
 			Name:                 fields[0],
