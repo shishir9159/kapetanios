@@ -129,7 +129,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		fields := strings.Split(cert, "+")
 
 		// to skip the last empty lines from the certs
-		if len(fields) != 5 {
+		if len(fields) != 6 {
 			break
 		}
 
@@ -149,6 +149,10 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	for _, ca := range caAuthorities {
 		ca = replaceConsecutiveSpaces(ca)
 		fields := strings.Split(ca, "+")
+
+		if len(fields) != 6 {
+			break
+		}
 
 		certificateAuthority := pb.CertificateAuthority{
 			Name:              fields[0],
