@@ -125,7 +125,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	for _, cert := range certs {
 		cert = replaceConsecutiveSpaces(cert)
-		fmt.Println(cert)
 		fields := strings.Split(cert, "+")
 
 		// to skip the last empty lines from the certs
@@ -170,7 +169,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
-			ValidCertificate:       false,
+			ValidCertificate:       true, //tOdO: count
 			Certificates:           certificates,
 			CertificateAuthorities: certificateAuthorities,
 		})
