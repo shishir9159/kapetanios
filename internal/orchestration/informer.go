@@ -87,7 +87,7 @@ func NodeInformer(client *kubernetes.Clientset) error {
 	return nil
 }
 
-func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, n int, listOptions metav1.ListOptions) error {
+func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, n int, listOptions metav1.ListOptions, eventType watch.EventType) error {
 
 	listOptions = metav1.ListOptions{
 		TypeMeta:      metav1.TypeMeta{},
@@ -96,7 +96,7 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		Watch:         true,
 	}
 
-	watcher, err := client.CoreV1().Pods("kube-system").Watch(context.Background(), listOptions)
+	watcher, err := client.CoreV1().Pods("kube-system").Watch(ctx, listOptions)
 
 	if err != nil {
 		l.Error("error creating the watcher",
@@ -125,19 +125,19 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 			}
 
 			switch event.Type {
-			case watch.Added:
+			case eventType:
 				l.Info("The pod is added")
 				if pod.Status.Phase == corev1.PodRunning {
 					//pod.Status.ContainerStatuses
 					l.Info("The pod is running")
 				}
 				return nil
-			case watch.Modified:
-				l.Info("The pod is modified")
-				if pod.Status.Phase == corev1.PodRunning {
-					l.Info("The pod is running")
-				}
-				return nil
+			//case watch.Modified:
+			//	l.Info("The pod is modified")
+			//	if pod.Status.Phase == corev1.PodRunning {
+			//		l.Info("The pod is running")
+			//	}
+			//	return nil
 			case watch.Error:
 				e, _ := client.CoreV1().Events("kube-system").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
 				l.Info("returning event error")

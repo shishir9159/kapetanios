@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/watch"
 
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
@@ -62,7 +63,7 @@ func RestartByLabel(c Controller, matchLabels map[string]string, nodeName string
 
 	go func() {
 		// todo: instead of the first minion, count the number of minions in switch case
-		er := orchestration.Informer(c.client.Clientset(), c.ctx, c.log, len(minions.Items), listOptions)
+		er := orchestration.Informer(c.client.Clientset(), c.ctx, c.log, len(minions.Items), listOptions, watch.Added)
 		if er != nil {
 			c.log.Error("watcher error from minion restart",
 				zap.Error(er))
@@ -161,7 +162,7 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 			LabelSelector: listOptions.LabelSelector,
 		}
 
-		er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions)
+		er = orchestration.Informer(c.client.Clientset(), c.ctx, c.log, 1, listOptions, watch.Added)
 		if er != nil {
 			c.log.Error("watcher error from pod restart",
 				zap.Error(er))
