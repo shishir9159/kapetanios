@@ -116,8 +116,6 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 		case event := <-watcher.ResultChan():
 
 			pod, running := event.Object.(*corev1.Pod)
-
-			l.Info("running")
 			if !running {
 				l.Error("pod is not running",
 					zap.String("pod_name", pod.Name))
