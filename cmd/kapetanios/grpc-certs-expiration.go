@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"net"
 
 	pb "github.com/shishir9159/kapetanios/proto"
@@ -16,14 +15,16 @@ import (
 // expirationServer is used to implement proto.ValidityServer.
 type expirationServer struct {
 	pb.ValidityServer
+	log *zap.Logger
 }
 
 // ClusterHealthChecking implements proto.ValidityServer
 func (s *expirationServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesExpiration) (*pb.CertificateValidityResponse, error) {
 
-	log.Printf("Received backup sucess: %v", in.GetEtcdStatus())
-	log.Printf("Received disk pressure status: %v", in.GetDiskPressure())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("ClusterHealthChecking called",
+		zap.Bool("etcd status", in.GetEtcdStatus()),
+		zap.Bool("disk pressure", in.GetDiskPressure()),
+		zap.String("received error", in.GetErr()))
 
 	return &pb.CertificateValidityResponse{
 		Received: true,
@@ -37,12 +38,19 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 
 	}
 
-	for certificate, index := range in.GetCertificates() {
-		log.Println(certificate, " index: ", index)
+	for _, certificate := range in.GetCertificates() {
+		s.log.Info("certificate name: " + certificate.Name +
+			"certificate expires: " + certificate.Expires +
+			"certificate residual time: " + certificate.ResidualTime +
+			"certificate authority: " + certificate.CertificateAuthority +
+			"externally managed: " + certificate.ExternallyManaged)
 	}
 
-	for caAuthority, index := range in.GetCertificateAuthorities() {
-		log.Println(caAuthority, " index: ", index)
+	for _, caAuthority := range in.GetCertificateAuthorities() {
+		s.log.Info("certificate authority name: " + caAuthority.Name +
+			"certificate expires: " + caAuthority.Expires +
+			"certificate residual time: " + caAuthority.ResidualTime +
+			"externally managed: " + caAuthority.ExternallyManaged)
 	}
 
 	return &pb.CertificateValidityResponse{
@@ -50,25 +58,27 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	}, nil
 }
 
-func ExpirationGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
+func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Error("failed to listen", zap.Error(err))
+		zlog.Error("failed to listen", zap.Error(err))
 	}
 
 	s := grpc.NewServer()
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterValidityServer(s, &expirationServer{})
+	pb.RegisterValidityServer(s, &expirationServer{
+		log: zlog,
+	})
 
-	log.Info("cert validity server listening")
+	zlog.Info("cert validity server listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
-		log.Error("failed to serve", zap.Error(er))
+		zlog.Error("failed to serve", zap.Error(er))
 	}
 
-	log.Info("Shutting down gRPC server...")
+	zlog.Info("Shutting down gRPC server...")
 }
