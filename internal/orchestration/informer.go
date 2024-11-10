@@ -139,7 +139,7 @@ func Informer(client *kubernetes.Clientset, ctx context.Context, l *zap.Logger, 
 				}
 				return nil
 			case watch.Error:
-				e, _ := client.CoreV1().Events("default").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
+				e, _ := client.CoreV1().Events("kube-system").List(ctx, metav1.ListOptions{FieldSelector: "involvedObject.name=" + pod.Name, TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
 				l.Info("returning event error")
 				return fmt.Errorf(e.String())
 			}

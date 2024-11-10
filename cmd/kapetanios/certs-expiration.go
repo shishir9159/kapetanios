@@ -58,6 +58,9 @@ func Expiration(namespace string) {
 		//	return err or call grpc
 	}
 
+	ch := make(chan *grpc.Server, 1)
+	go ExpirationGrpc(c.log, ch)
+
 	// TODO: refactor this part inside the orchestrator
 
 	for index, node := range nodes.Items {
@@ -65,9 +68,6 @@ func Expiration(namespace string) {
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-expiration", roleName, node.Name)
-
-		ch := make(chan *grpc.Server, 1)
-		go ExpirationGrpc(c.log, ch)
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods this logic need to be in the orchestration too
@@ -82,12 +82,13 @@ func Expiration(namespace string) {
 
 		time.Sleep(25 * time.Second)
 
-		(<-ch).Stop()
-
 		c.log.Info("Cert Expiration pod created",
 			zap.Int("index", index),
 			zap.String("pod_name", minion.Name))
 
 		// todo: wait for request for restart from the minions
 	}
+
+	(<-ch).Stop()
+
 }
