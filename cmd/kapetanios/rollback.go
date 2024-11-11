@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"time"
@@ -69,6 +70,9 @@ func Rollback(namespace string) {
 			zap.Error(err))
 	}
 
+	ch := make(chan *grpc.Server, 1)
+	go ExpirationGrpc(c.log, ch)
+
 	// TODO: refactor this part to orchestrator
 
 	for index, node := range nodes.Items {
@@ -109,6 +113,8 @@ func Rollback(namespace string) {
 			break
 		}
 	}
+
+	(<-ch).GracefulStop()
 
 	c.log.Debug("entering restartRemainingComponent")
 

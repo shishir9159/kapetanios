@@ -256,7 +256,7 @@ func overRideValidation(lastModifiedBeforeRollback time.Time) {
 	}
 }
 
-func Rollback(c Controller, connection pb.RollbackClient) error {
+func rollback(c Controller, connection pb.RollbackClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {

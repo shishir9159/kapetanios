@@ -31,8 +31,6 @@ func main() {
 		fmt.Println(err)
 	}
 
-	//zap.ReplaceGlobals(logger)
-
 	// replace zap with zeroLog
 
 	c := Controller{
@@ -75,7 +73,7 @@ func main() {
 	//	step 1. replacing the last generated configs with
 	//  the latest backups would cause the cert renewal rollback
 
-	err = Rollback(c, connection)
+	err = rollback(c, connection)
 	if err != nil {
 		c.log.Error("failed to renew certificates and kubeConfigs",
 			zap.Error(err))

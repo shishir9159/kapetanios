@@ -72,6 +72,9 @@ func Cert(namespace string) {
 		//	return err or call grpc
 	}
 
+	ch := make(chan *grpc.Server, 1)
+	go CertGrpc(c.log, ch)
+
 	// TODO: refactor this part to orchestrator
 
 	for index, node := range nodes.Items {
@@ -79,9 +82,6 @@ func Cert(namespace string) {
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", roleName, node.Name)
-
-		ch := make(chan *grpc.Server, 1)
-		go CertGrpc(c.log, ch)
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods this logic need to be in the orchestration too
@@ -94,8 +94,6 @@ func Cert(namespace string) {
 			//return er
 			return
 		}
-
-		(<-ch).Stop()
 
 		c.log.Info("Cert Renewal pod created",
 			zap.Int("index", index),
@@ -114,6 +112,8 @@ func Cert(namespace string) {
 			break
 		}
 	}
+
+	(<-ch).GracefulStop()
 
 	err = RestartRemainingComponents(c, "default")
 	if err != nil {
