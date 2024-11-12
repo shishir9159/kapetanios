@@ -69,9 +69,7 @@ func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterValidityServer(s, &expirationServer{
-		log: zlog,
-	})
+	pb.RegisterValidityServer(s, &expirationServer{})
 
 	zlog.Info("cert validity server listening")
 
