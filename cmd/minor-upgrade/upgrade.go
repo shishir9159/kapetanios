@@ -33,10 +33,10 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	//  (get this info from an environment value)
 
 	// TODO: certificate-renewal boolean
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade node --certificate-renewal="+certRenewal+" -y")
+	cmd := exec.Command("/bin/bash", "-c", "sudo kubeadm upgrade node --certificate-renewal="+certRenewal+" -y")
 
 	if firstNode == "true" {
-		cmd = exec.Command("/bin/bash", "-c", "kubeadm upgrade apply "+k8sVersion+" --certificate-renewal="+certRenewal+" -y")
+		cmd = exec.Command("/bin/bash", "-c", "sudo kubeadm upgrade apply "+k8sVersion+" --certificate-renewal="+certRenewal+" -y")
 	}
 
 	var stdoutBuf, stderrBuf bytes.Buffer

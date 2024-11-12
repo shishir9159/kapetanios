@@ -18,12 +18,12 @@ var (
 )
 
 // server is used to implement proto.RenewalServer.
-type server struct {
+type renewalServer struct {
 	pb.RenewalServer
 }
 
 // ClusterHealthChecking implements proto.RenewalServer
-func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRenewal) (*pb.RenewalResponse, error) {
+func (s *renewalServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRenewal) (*pb.RenewalResponse, error) {
 
 	proceedNextStep, terminateApplication := false, false
 
@@ -44,7 +44,7 @@ func (s *server) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesRe
 }
 
 // BackupUpdate implements proto.RenewalServer
-func (s *server) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.RenewalResponse, error) {
+func (s *renewalServer) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.RenewalResponse, error) {
 
 	proceedNextStep, terminateApplication := false, false
 
@@ -69,7 +69,7 @@ func (s *server) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*pb.Renew
 }
 
 // RenewalUpdate implements proto.RenewalServer
-func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.RenewalResponse, error) {
+func (s *renewalServer) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.RenewalResponse, error) {
 
 	proceedNextStep, terminateApplication := false, false
 
@@ -89,7 +89,7 @@ func (s *server) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (*pb.Ren
 }
 
 // RestartUpdate implements proto.RenewalServer
-func (s *server) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.RenewalFinalizer, error) {
+func (s *renewalServer) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.RenewalFinalizer, error) {
 
 	gracefullyShutDown, retryRestartingComponents := false, false
 
@@ -127,7 +127,7 @@ func CertGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterRenewalServer(s, &server{})
+	pb.RegisterRenewalServer(s, &renewalServer{})
 
 	log.Info("cert renewal sever listening")
 

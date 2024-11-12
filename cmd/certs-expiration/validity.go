@@ -74,7 +74,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		return time.Time{}, time.Time{}, err
 	}
 
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration --config /etc/kubernetes/kubeadm-config.yaml")
+	cmd := exec.Command("/bin/bash", "-c", "sudo kubeadm certs check-expiration --config /etc/kubernetes/kubeadm-config.yaml")
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
