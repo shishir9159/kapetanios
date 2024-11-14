@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/reflection"
 	"net"
 
 	pb "github.com/shishir9159/kapetanios/proto"
@@ -71,7 +70,7 @@ func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 	}
 
 	// in dev mode
-	reflection.Register(s)
+	//reflection.Register(s)
 	pb.RegisterValidityServer(s, &server)
 
 	zlog.Info("cert validity server listening")

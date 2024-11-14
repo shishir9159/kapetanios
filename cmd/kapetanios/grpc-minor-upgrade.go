@@ -15,6 +15,7 @@ import (
 // server is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
+	log *zap.Logger
 }
 
 // ClusterHealthChecking implements proto.MinorUpgradeServer
