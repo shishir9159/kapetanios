@@ -43,6 +43,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 // UpgradeVersionSelection implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
+
 	var proceedNextStep, terminateApplication = false, false
 
 	proceedNextStep = true
@@ -55,8 +56,8 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 
 	return &pb.ClusterUpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
-		TerminateApplication: false,
-		CertificateRenewal:   terminateApplication,
+		TerminateApplication: terminateApplication,
+		CertificateRenewal:   certificateRenewal,
 		Version:              "",
 	}, nil
 }
