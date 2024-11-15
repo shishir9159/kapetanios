@@ -12,11 +12,11 @@ import (
 
 func Expiration(namespace string) {
 
-	logger, err := zap.NewProduction()
+	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			logger.Fatal("error syncing logger before application terminates", zap.Error(err))
+			logger.Fatal("error syncing logger before application terminates", zap.Error(er))
 		}
 	}(logger)
 
