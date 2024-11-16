@@ -20,7 +20,7 @@ var (
 	certificateRenewal = false
 )
 
-// todo: move to utils, interface
+// todo: move to utils, add node interface
 func drainAndCordonNode(c Controller, node *corev1.Node) error {
 
 	drainer := &drain.Helper{
@@ -110,15 +110,10 @@ func addTaint(node *corev1.Node) {
 	node.Spec.Taints = newTaints
 }
 
-// be careful about the different  across
-// the nodes version
-
 // TODO: https://v1-27.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/#recovering-from-a-failure-state
 func recovery(namespace string) {
 
 }
-
-// TODO: for testing purposes, try the current master node 1
 
 func MinorUpgradeFirstRun(namespace string) {
 

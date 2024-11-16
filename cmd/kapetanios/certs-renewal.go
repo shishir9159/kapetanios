@@ -49,6 +49,7 @@ func Cert(namespace string) {
 	// TODO:
 	//  Controller Definition need to be moved with the
 	//  initial Setup and making sure there exists only one
+	//  refactor Controller -n ame
 	InitialSetup(c)
 
 	roleName := "certs"
@@ -76,8 +77,7 @@ func Cert(namespace string) {
 	ch := make(chan *grpc.Server, 1)
 	go CertGrpc(c.log, ch)
 
-	// TODO: refactor this part to orchestrator
-
+	// TODO: refactor this part to orchestrator by decomposing
 	for index, node := range nodes.Items {
 
 		// namespace should only be included after the consideration for the existing
@@ -85,7 +85,7 @@ func Cert(namespace string) {
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", roleName, node.Name)
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
-		// how many pods this logic need to be in the orchestration too
+		// how many pods to monitor should be sent to the orchestration too
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
 			c.log.Error("Cert Renewal pod creation failed: ",
@@ -109,7 +109,6 @@ func Cert(namespace string) {
 				zap.Error(er))
 
 			//retry logic
-			//return er
 			break
 		}
 	}
