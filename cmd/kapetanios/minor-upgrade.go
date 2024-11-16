@@ -20,6 +20,7 @@ var (
 	certificateRenewal = false
 )
 
+// todo: move to utils, interface
 func drainAndCordonNode(c Controller, node *corev1.Node) error {
 
 	drainer := &drain.Helper{
@@ -54,6 +55,7 @@ func drainAndCordonNode(c Controller, node *corev1.Node) error {
 	return nil
 }
 
+// todo: move to utils, interface
 func removeTaint(node *corev1.Node) {
 
 	taints := node.Spec.Taints
@@ -120,11 +122,11 @@ func recovery(namespace string) {
 
 func MinorUpgradeFirstRun(namespace string) {
 
-	logger, err := zap.NewProduction()
+	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			logger.Fatal("error syncing logger before application terminates", zap.Error(err))
+			logger.Fatal("error syncing logger before application terminates", zap.Error(er))
 		}
 	}(logger)
 
