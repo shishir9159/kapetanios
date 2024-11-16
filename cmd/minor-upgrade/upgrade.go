@@ -83,17 +83,8 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	//[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
 	//[addons] Applied essential addon: CoreDNS
 	//[addons] Applied essential addon: kube-proxy
-	//
 	//[upgrade/successful] SUCCESS! Your cluster was upgraded to "v1.26.5". Enjoy!
-	//
 	//[upgrade/kubelet] Now that your control plane is upgraded, please proceed with upgrading your kubelets if you haven't already done so.
-
-	//time.Sleep(4 * time.Second)
-	//	if err != nil {
-	//		log.Error("Failed to upgrade kubeadm",
-	//			zap.Error(err))
-	//		return false, err
-	//	}
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal("Failed to exit from the updated root",
