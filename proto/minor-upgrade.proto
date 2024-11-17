@@ -59,6 +59,7 @@ message ComponentRestartStatus {
 
 message MinorUpgradeFinalizer {
   bool responseReceived = 1;
+  bool retryCurrentStep = 2;
 }
 
 service MinorUpgrade {
@@ -70,5 +71,6 @@ service MinorUpgrade {
   rpc ClusterUpgrade(UpgradeStatus) returns(UpgradeResponse);
   rpc ClusterComponentRestart(ComponentRestartStatus) returns(UpgradeResponse);
 
-//  rpc ClusterStatus(sanity_check) returns(MinorUpgradeFinalizer);
+//  todo:
+//   rpc ClusterStatus(sanity_check) returns(MinorUpgradeFinalizer);
 }

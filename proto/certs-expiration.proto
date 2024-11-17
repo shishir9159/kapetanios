@@ -29,7 +29,7 @@ message CertificateAuthority {
 }
 
 message CertificateValidityResponse {
-  bool received = 1;
+  bool responseReceived = 1;
 }
 
 service Validity {

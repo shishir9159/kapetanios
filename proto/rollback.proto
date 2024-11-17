@@ -1,8 +1,6 @@
 syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
-// TODO:
-
 message PrerequisitesRollback {
   bool backupExists = 1;
   bool spaceAvailability = 2;
@@ -31,9 +29,9 @@ message RollbackRestartStatus {
   string err = 5;
 }
 
-// TODO: retry?
 message RollbackFinalizer {
   bool responseReceived = 1;
+  bool retryCurrentStep = 2;
 }
 
 service Rollback {
