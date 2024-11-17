@@ -1,22 +1,27 @@
 package main
 
 import (
+	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	"io"
+	"os"
 	"syscall"
 )
 
 // todo:
 //  move to internal/ cluster health check
 
-// check if localAPIEndpoint is not same across the nodes
+// todo: check if localAPIEndpoint is not same across the nodes
 
-// todo:
-//	how to leverage lseek to get block storage space
-//	https://stackoverflow.com/questions/46558824/how-do-i-get-a-block-devices-size-correctly-in-go
+// todo: refactor with interface
 
-func getStorage(path string) (int64, error) {
+// equivalent to `df /path/to/mounted/filesystem`
+// it works with filesystems not device files
+// how much data could be stored in the filesystem mounted at provided path
+// warning -- filesystems have overheads
+func getStorageStat(path string) (int64, error) {
 
 	var stat syscall.Statfs_t
 	err := syscall.Statfs(path, &stat)
@@ -31,6 +36,27 @@ func getStorage(path string) (int64, error) {
 	}
 
 	return int64(stat.Bfree) * stat.Bsize, nil
+}
+
+// equivalent to `lsblk --bytes /dev/device`
+// to calculate the total storable data amount in th block device
+func getStorage(path string) (int64, error) {
+
+	// location exists or not?
+	file, err := os.Open(path)
+	if err != nil {
+		fmt.Printf("error opening %s: %s\n", path, err)
+		os.Exit(1)
+	}
+
+	// meant to work with block devices todo: trial and error
+	pos, err := file.Seek(0, io.SeekEnd)
+	if err != nil {
+		fmt.Printf("error seeking to end of %s: %s\n", path, err)
+		os.Exit(1)
+	}
+
+	return pos / 1048576, nil
 }
 
 func NodeHealth(c Controller, connection pb.ValidityClient) error {

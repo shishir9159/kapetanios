@@ -18,17 +18,7 @@ import (
 
 // TODO: validity check only pods
 
-// TODO: if "externally managed" value shows yes
-//  suggestions:
-//  step 1. cordon, drain, delete: kubectl drain <node-name> --ignore-daemonsets --delete-local-data; kubectl delete node <node-name>
-//  step 2. kubeadm token create --print-join-command --config /etc/kubernetes/kubeadm-config.yaml
-//  step 3. kubeadm init phase upload-certs --upload-certs --config /etc/kubernetes/kubeadm-config.yaml
-//  step 4. kubeadm join <master-node>:6443 --token <23-characters-long-token>
-//    --discovery-token-ca-cert-hash sha256:<64-characters-long-token> --control-plane --certificate-key
-//   <64-characters-long-certificate-from-the-output-of-step-3> --apiserver-advertise-address <master-node-ip> --v=14
-
-// should it be with certs renewal and minor-upgrade?
-
+// TODO: should it be with certs renewal and minor-upgrade?
 var (
 	certPeriodValidationMutex  sync.Mutex
 	certPeriodValidationCached = map[string]struct{}{}
@@ -81,19 +71,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	err = cmd.Run()
 
-	// TODO: format the following
-	//CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
-	//admin.conf                 Oct 18, 2025 04:31 UTC   350d            ca                      no
-	//apiserver                  Oct 18, 2025 04:31 UTC   350d            ca                      no
-	//apiserver-kubelet-client   Oct 18, 2025 04:31 UTC   350d            ca                      no
-	//controller-manager.conf    Oct 18, 2025 04:31 UTC   350d            ca                      no
-	//front-proxy-client         Oct 18, 2025 04:31 UTC   350d            front-proxy-ca          no
-	//scheduler.conf             Oct 18, 2025 04:31 UTC   350d            ca                      no
-	//
-	//CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
-	//ca                      May 27, 2034 13:31 UTC   9y              no
-	//front-proxy-ca          May 27, 2034 13:31 UTC   9y              no
-
 	if err != nil {
 		c.log.Error("Failed to check cert expiration date",
 			zap.Error(err))
@@ -106,8 +83,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-
-	// todo: string operations
 
 	tillCertsSubstr := "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED\n"
 	tillCaAuthoritiesSubstr := "CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED\n"
