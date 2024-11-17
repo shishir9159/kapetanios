@@ -26,6 +26,7 @@ const (
 	MinorUpgrade_ClusterUpgradePlan_FullMethodName      = "/MinorUpgrade/ClusterUpgradePlan"
 	MinorUpgrade_ClusterUpgrade_FullMethodName          = "/MinorUpgrade/ClusterUpgrade"
 	MinorUpgrade_ClusterComponentRestart_FullMethodName = "/MinorUpgrade/ClusterComponentRestart"
+	MinorUpgrade_ClusterStatus_FullMethodName           = "/MinorUpgrade/ClusterStatus"
 )
 
 // MinorUpgradeClient is the client API for MinorUpgrade service.
@@ -39,6 +40,7 @@ type MinorUpgradeClient interface {
 	ClusterUpgradePlan(ctx context.Context, in *UpgradePlan, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterUpgrade(ctx context.Context, in *UpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterComponentRestart(ctx context.Context, in *ComponentRestartStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
+	ClusterStatus(ctx context.Context, in *UpgradeStatus, opts ...grpc.CallOption) (*MinorUpgradeFinalizer, error)
 }
 
 type minorUpgradeClient struct {
@@ -119,6 +121,16 @@ func (c *minorUpgradeClient) ClusterComponentRestart(ctx context.Context, in *Co
 	return out, nil
 }
 
+func (c *minorUpgradeClient) ClusterStatus(ctx context.Context, in *UpgradeStatus, opts ...grpc.CallOption) (*MinorUpgradeFinalizer, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MinorUpgradeFinalizer)
+	err := c.cc.Invoke(ctx, MinorUpgrade_ClusterStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MinorUpgradeServer is the server API for MinorUpgrade service.
 // All implementations must embed UnimplementedMinorUpgradeServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type MinorUpgradeServer interface {
 	ClusterUpgradePlan(context.Context, *UpgradePlan) (*UpgradeResponse, error)
 	ClusterUpgrade(context.Context, *UpgradeStatus) (*UpgradeResponse, error)
 	ClusterComponentRestart(context.Context, *ComponentRestartStatus) (*UpgradeResponse, error)
+	ClusterStatus(context.Context, *UpgradeStatus) (*MinorUpgradeFinalizer, error)
 	mustEmbedUnimplementedMinorUpgradeServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedMinorUpgradeServer) ClusterUpgrade(context.Context, *UpgradeS
 }
 func (UnimplementedMinorUpgradeServer) ClusterComponentRestart(context.Context, *ComponentRestartStatus) (*UpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterComponentRestart not implemented")
+}
+func (UnimplementedMinorUpgradeServer) ClusterStatus(context.Context, *UpgradeStatus) (*MinorUpgradeFinalizer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClusterStatus not implemented")
 }
 func (UnimplementedMinorUpgradeServer) mustEmbedUnimplementedMinorUpgradeServer() {}
 func (UnimplementedMinorUpgradeServer) testEmbeddedByValue()                      {}
@@ -308,6 +324,24 @@ func _MinorUpgrade_ClusterComponentRestart_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MinorUpgrade_ClusterStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradeStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MinorUpgradeServer).ClusterStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MinorUpgrade_ClusterStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MinorUpgradeServer).ClusterStatus(ctx, req.(*UpgradeStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MinorUpgrade_ServiceDesc is the grpc.ServiceDesc for MinorUpgrade service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +376,10 @@ var MinorUpgrade_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClusterComponentRestart",
 			Handler:    _MinorUpgrade_ClusterComponentRestart_Handler,
+		},
+		{
+			MethodName: "ClusterStatus",
+			Handler:    _MinorUpgrade_ClusterStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

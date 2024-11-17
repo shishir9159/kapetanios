@@ -70,7 +70,5 @@ service MinorUpgrade {
   rpc ClusterUpgradePlan(UpgradePlan) returns (UpgradeResponse);
   rpc ClusterUpgrade(UpgradeStatus) returns(UpgradeResponse);
   rpc ClusterComponentRestart(ComponentRestartStatus) returns(UpgradeResponse);
-
-//  todo:
-//   rpc ClusterStatus(sanity_check) returns(MinorUpgradeFinalizer);
+  rpc ClusterStatus(UpgradeStatus) returns(MinorUpgradeFinalizer);
 }
