@@ -96,6 +96,8 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	certs := strings.Split(certsString, "\n")
 	caAuthorities := strings.Split(caAuthoritiesString, "\n")
 
+	externallyManaged := false
+
 	var certificates []*pb.Certificate
 
 	for _, cert := range certs {
@@ -113,6 +115,11 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 			ResidualTime:         fields[2],
 			CertificateAuthority: fields[3],
 			ExternallyManaged:    fields[4],
+		}
+
+		// todo: sanity checking
+		if certificate.ExternallyManaged == "yes" {
+			externallyManaged = true
 		}
 
 		certificates = append(certificates, &certificate)
@@ -142,8 +149,11 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		zap.String("outStr", outStr),
 		zap.String("errStr", errStr))
 
+	fmt.Println(externallyManaged)
+
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
+			// externally managed
 			ValidCertificate:       true, //tOdO: count
 			Certificates:           certificates,
 			CertificateAuthorities: certificateAuthorities,
