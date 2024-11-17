@@ -49,7 +49,15 @@ func Cert(namespace string) {
 	// TODO:
 	//  Controller Definition need to be moved with the
 	//  initial Setup and making sure there exists only one
-	//  refactor Controller -n ame
+	//  :refactor Controller name
+
+	//curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.26/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+	//sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg # allow unprivileged APT programs to read this keyring
+	//echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.26/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+	//sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list   # helps tools such as command-not-found to work correctly
+	//apt update -y --allow-insecure-repositories
+	//apt install -y kubectl=1.26.0-2.1 kubelet=1.26.0-2.1 kubeadm=1.26.0-2.1 --allow-unauthenticated
+
 	InitialSetup(c)
 
 	roleName := "certs"
