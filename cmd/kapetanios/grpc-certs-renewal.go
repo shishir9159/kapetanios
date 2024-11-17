@@ -91,10 +91,10 @@ func (s *renewalServer) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (
 // RestartUpdate implements proto.RenewalServer
 func (s *renewalServer) RestartUpdate(_ context.Context, in *pb.RestartStatus) (*pb.RenewalFinalizer, error) {
 
-	gracefullyShutDown, retryRestartingComponents := false, false
+	retryComponentsRestart := false
 
 	if in.GetEtcdRestart() && in.GetKubeletRestart() {
-		gracefullyShutDown = true
+
 	}
 
 	if in.GetErr() != "" {
@@ -110,9 +110,9 @@ func (s *renewalServer) RestartUpdate(_ context.Context, in *pb.RestartStatus) (
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalFinalizer{
-		GracefullyShutDown:        gracefullyShutDown,
-		RetryRestartingComponents: retryRestartingComponents,
-		OverrideUserKubeConfig:    true, //TODO: prompt
+		ResponseReceived:       true,
+		RetryCurrentStep:       retryComponentsRestart,
+		OverrideUserKubeConfig: true, //TODO: prompt or initial input
 	}, nil
 }
 

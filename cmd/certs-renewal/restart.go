@@ -77,13 +77,15 @@ func Restart(c Controller, connection pb.RenewalClient) (bool, bool, error) {
 	}
 
 	c.log.Info("server response",
-		zap.Bool("finalizer", rpc.GetGracefullyShutDown()),
+		zap.Bool("finalizer", rpc.GetResponseReceived()),
 		zap.Bool("override existing user kube config", rpc.GetOverrideUserKubeConfig()),
-		zap.Bool("retry", rpc.GetRetryRestartingComponents()))
+		zap.Bool("retry", rpc.GetRetryCurrentStep()))
 
-	if rpc.GetRetryRestartingComponents() {
-		return false, false, err
+	overrideUserKubeConfig := rpc.GetOverrideUserKubeConfig()
+
+	if rpc.GetRetryCurrentStep() {
+		overrideUserKubeConfig = false
 	}
 
-	return rpc.GetGracefullyShutDown(), rpc.GetOverrideUserKubeConfig(), nil
+	return rpc.GetRetryCurrentStep(), overrideUserKubeConfig, nil
 }

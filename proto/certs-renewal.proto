@@ -41,10 +41,9 @@ message RestartStatus {
 }
 
 message RenewalFinalizer {
-//   todo: response received
-  bool gracefullyShutDown = 1;
-  bool overrideUserKubeConfig = 2;
-  bool retryRestartingComponents = 3;
+  bool responseReceived = 1;
+  bool retryCurrentStep = 2;
+  bool overrideUserKubeConfig = 3;
 }
 
 service Renewal {
