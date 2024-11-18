@@ -18,7 +18,6 @@ import (
 
 // TODO: validity check only pods
 
-// TODO: should it be with certs renewal and minor-upgrade?
 var (
 	certPeriodValidationMutex  sync.Mutex
 	certPeriodValidationCached = map[string]struct{}{}

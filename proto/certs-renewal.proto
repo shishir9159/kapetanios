@@ -1,6 +1,8 @@
 syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
+// todo: application errors
+
 message PrerequisitesRenewal {
   bool etcdStatus = 1;
   bool externallyManagedCerts = 2;

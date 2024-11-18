@@ -100,23 +100,15 @@ func main() {
 
 	// todo: include in the testing
 	testing := false
-	latest := false
 	version = "1.26.8-1.1"
 
 	if testing {
 		//version = kubernetesVersion
 	}
 
-	if latest {
-	}
-
-	// TODO:
-	//  if available version fails or works,
-	//  check if that matches with upgradePlane
-	//  if the latest is selected
-
 	// TODO: refactor
 	//   plan := "v1.26.6"
+	//   clusterVersion should be separated from package(+) or components(-) version?
 
 	var diff string
 	for i := 0; i < maxAttempts; i++ {

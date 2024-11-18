@@ -104,9 +104,6 @@ func Exists(filePath string) bool {
 	return true
 }
 
-// TODO:
-//  save certDir to configMap
-
 func populatingConfigMap(c Controller) (*ETCD, error) {
 
 	etcdCluster := ETCD{}
@@ -170,6 +167,7 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 	}
 
 	configMap.Data["KUBERNETES_VERSION"] = removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)
+	configMap.Data["CertificatesDir"] = removeTabsAndShiftWhitespaces(clusterConfiguration.CertificatesDir)
 	configMap.Data["ETCD_CA_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)
 	configMap.Data["ETCD_CERT_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)
 	configMap.Data["ETCD_KEY_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)

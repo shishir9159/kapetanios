@@ -30,8 +30,6 @@ func Cert(namespace string) {
 		}
 	}(logger)
 
-	// TODO:
-	//  refactor
 	client, err := orchestration.NewClient()
 
 	c := Controller{

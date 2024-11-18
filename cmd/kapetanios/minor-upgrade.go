@@ -125,8 +125,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		}
 	}(logger)
 
-	// TODO:
-	//  refactor
 	client, err := orchestration.NewClient()
 
 	// TODO: add namespace in the controller itself

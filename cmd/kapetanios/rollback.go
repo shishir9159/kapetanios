@@ -10,16 +10,6 @@ import (
 	"time"
 )
 
-// TODO: refactor
-//  type Controller struct {
-//	 client *orchestration.Client
-//	 ctx    context.Context
-//	 log    *zap.Logger
-//  }
-
-// TODO:
-//  Refactor this to the orchestration library
-
 func Rollback(namespace string) {
 
 	logger, err := zap.NewProduction()
@@ -44,9 +34,6 @@ func Rollback(namespace string) {
 			zap.Error(err))
 	}
 
-	// TODO:
-	//  Controller Definition need to be moved with the
-	//  initial Setup and making sure there exists only one
 	InitialSetup(c)
 
 	roleName := "certs"

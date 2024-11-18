@@ -106,6 +106,10 @@ func main() {
 		ReadinessEndpoint: "/healthz",
 	}))
 
+	// TODO:
+	//  Controller Definition need to be moved with the
+	//  initial Setup and making sure there exists only one
+
 	// setup routes
 	setupRoutes(app)
 

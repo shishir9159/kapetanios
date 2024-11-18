@@ -84,16 +84,14 @@ func getLatestBackupDir() (string, error) {
 			log.Println(baseDir, "backup directory for certificates doesn't exist")
 			return "", fmt.Errorf("backup directory for certificate doesn't exist")
 		} else if !baseDirFileInfo.IsDir() {
-			// remove the file and create a directory
+			// todo: remove the file and create a directory
 		}
-		//  Todo:
-		//	  is the er in the inner scope relative to the outer err
 	} else if backupDirFileInfo, er := os.Stat(backupDirectory); er != nil {
 		if os.IsNotExist(er) {
 			log.Println(baseDir, "backups for certificates and kubeConfigs don't exist")
 			return "", fmt.Errorf("no backup found")
 		} else if !backupDirFileInfo.IsDir() {
-			// remove the file and create a directory
+			// todo: remove the file and create a directory
 		}
 	}
 

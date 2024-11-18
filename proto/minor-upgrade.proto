@@ -1,6 +1,8 @@
 syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
+// todo: application errors
+
 message PrerequisitesMinorUpgrade {
   bool etcdStatus = 1;
   uint64 storageAvailability = 2;
@@ -57,11 +59,6 @@ message ComponentRestartStatus {
   string err = 4;
 }
 
-message MinorUpgradeFinalizer {
-  bool responseReceived = 1;
-  bool retryCurrentStep = 2;
-}
-
 service MinorUpgrade {
   rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (UpgradeResponse);
   rpc UpgradeVersionSelection(AvailableVersions) returns (ClusterUpgradeResponse);
@@ -70,5 +67,4 @@ service MinorUpgrade {
   rpc ClusterUpgradePlan(UpgradePlan) returns (UpgradeResponse);
   rpc ClusterUpgrade(UpgradeStatus) returns(UpgradeResponse);
   rpc ClusterComponentRestart(ComponentRestartStatus) returns(UpgradeResponse);
-  rpc ClusterStatus(UpgradeStatus) returns(MinorUpgradeFinalizer);
 }
