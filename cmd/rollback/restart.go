@@ -61,7 +61,8 @@ func Restart(c Controller, connection pb.RollbackClient) error {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 	}
 
 	c.log.Info("Status Update",

@@ -72,8 +72,9 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) (boo
 		c.log.Info("available free space in the /var/lib/etcd directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
 	}
 
-	//	etcd status
-	//
+	// TODO: etcd status
+	//  sudo ETCDCTL_API=3 etcdctl endpoint health --endpoints=https://10.0.0.7:2379,https://10.0.0.9:2379,https://10.0.0.10:2379
+	//  --cacert=/etc/etcd/pki/ca.pem --cert=/etc/etcd/pki/etcd.cert --key=/etc/etcd/pki/etcd.key
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal("Failed to exit from the updated root",
