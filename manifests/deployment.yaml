@@ -35,7 +35,7 @@ spec:
 #              httpHeaders:
 #                - name: brief
 #                  value: "true"
-              path: /healthz
+              path: /livez
               port: 80
               scheme: HTTP
             periodSeconds: 300
@@ -48,7 +48,7 @@ spec:
 #              httpHeaders:
 #                - name: brief
 #                  value: "true"
-              path: /healthz
+              path: /readyz
               port: 80
               scheme: HTTP
             periodSeconds: 300

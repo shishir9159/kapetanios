@@ -99,11 +99,11 @@ func main() {
 		LivenessProbe: func(c *fiber.Ctx) bool {
 			return true
 		},
-		LivenessEndpoint: "/healthz",
+		LivenessEndpoint: "/livez",
 		ReadinessProbe: func(c *fiber.Ctx) bool {
 			return true
 		},
-		ReadinessEndpoint: "/healthz",
+		ReadinessEndpoint: "/readyz",
 	}))
 
 	// TODO:
