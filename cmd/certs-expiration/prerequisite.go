@@ -117,7 +117,7 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	}
 
 	c.log.Info("Status Update",
-		zap.Bool("response received", rpc.GetReceived()))
+		zap.Bool("response received", rpc.GetResponseReceived()))
 
 	return nil
 }
