@@ -79,33 +79,39 @@ func Cert(namespace string) {
 	//--from-file=etcd-client.key=/etc/kubernetes/pki/etcd.key \
 	//--from-file=etcd-client.crt=/etc/kubernetes/pki/etcd.cert
 
+	// experiment with https://docs.cilium.io/en/stable/operations/performance/tuning/ given Supported NICs for BIG TCP: mlx4, mlx5, ice exists
 	// check if --allocate-node-cidrs true in kube-controller-manager
-	// API_SERVER_IP=10.0.0.7
-	// helm template cilium/cilium --version 1.14.0 --namespace kube-system \
-	//  --set etcd.enabled=true --set etcd.ssl=true \
-	//  --set "etcd.endpoints[0]=https://10.0.0.7:2379" \
-	//  --set "etcd.endpoints[1]=https://10.0.0.9:2379" \
-	//  --set "etcd.endpoints[2]=https://10.0.0.10:2379" \
-	//  --set identityAllocationMode=kvstore \
-	//  --set kubeProxyReplacement=true \
-	//  --set bpf.hostLegacyRouting=false \
-	//  --set enable-ipv4-masquerade=true \
-	//  --set bpf.masquerade=true \
-	//  --set loadBalancer.mode=dsr \
-	//  --set enable-ipv6=false \
-	//  --set clean-cilium-bpf-state=true \
-	//  --set preallocate-bpf-maps=true \
-	//  --set cni.install=true \
-	//  --set cni.exclusive=true \
-	//  --set ipam.operator.clusterPoolIPv4PodCIDRList=10.244.0.0/16 \
-	//  --set ipam.mode=cluster-pool \
-	//  --set monitor-aggregation=true \
-	//  --set bpf.disableExternalIPMitigation=true \
-	//  --set loadBalancer.algorithm=maglev \
-	//  --set k8sServiceHost=${API_SERVER_IP} \
-	//  --set k8sServicePort=6443 \
-	//  --set externalTrafficPolicy=Local \
-	//  --output-dir manifests
+	//API_SERVER_IP=10.0.0.7
+	//helm template cilium/cilium --version 1.14.0 --namespace kube-system \
+	//--set etcd.enabled=true --set etcd.ssl=true \
+	//--set "etcd.endpoints[0]=https://10.0.0.7:2379" \
+	//--set "etcd.endpoints[1]=https://10.0.0.9:2379" \
+	//--set "etcd.endpoints[2]=https://10.0.0.10:2379" \
+	//--set identityAllocationMode=kvstore \
+	//--set kubeProxyReplacement=true \
+	//--set bpf.hostLegacyRouting=false \
+	//--set routingMode=native \
+	//--set tunnelProtocol=geneve \
+	//--set loadBalancer.dsrDispatch=geneve \
+	//--set enable-ipv4-masquerade=true \
+	//--set bpf.masquerade=true \
+	//--set loadBalancer.mode=dsr \
+	//--set enable-ipv6=false \
+	//--set clean-cilium-bpf-state=true \
+	//--set preallocate-bpf-maps=true \
+	//--set cni.install=true \
+	//--set cni.exclusive=true \
+	//--set ipam.operator.clusterPoolIPv4PodCIDRList=10.244.0.0/16 \
+	//--set ipam.mode=cluster-pool \
+	//--set monitor-aggregation=true \
+	//--set bpf.disableExternalIPMitigation=true \
+	//--set loadBalancer.algorithm=maglev \
+	//--set k8sServiceHost=${API_SERVER_IP} \
+	//--set k8sServicePort=6443 \
+	//--set externalTrafficPolicy=Local \
+	//--set hubble.relay.enabled=true \
+	//--set hubble.ui.enabled=true \
+	//--output-dir manifests
 
 	// validation: kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep KubeProxyReplacement
 	// status: kubectl -n kube-system exec ds/cilium -- cilium-dbg status --verbose
