@@ -88,5 +88,5 @@ func Expiration(namespace string) {
 		// todo: wait for request for restart from the minions
 	}
 
-	(<-ch).GracefulStop()
+	//(<-ch).GracefulStop()
 }
