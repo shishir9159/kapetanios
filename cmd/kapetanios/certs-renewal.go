@@ -80,7 +80,7 @@ func Cert(namespace string) {
 	//--from-file=etcd-client.crt=/etc/kubernetes/pki/etcd.cert
 
 	// experiment with https://docs.cilium.io/en/stable/operations/performance/tuning/ given Supported NICs for BIG TCP: mlx4, mlx5, ice exists
-	// check if --allocate-node-cidrs true in kube-controller-manager
+	//// check if --allocate-node-cidrs true in kube-controller-manager
 	//API_SERVER_IP=10.0.0.7
 	//helm template cilium/cilium --version 1.14.0 --namespace kube-system \
 	//--set etcd.enabled=true --set etcd.ssl=true \
@@ -90,12 +90,9 @@ func Cert(namespace string) {
 	//--set identityAllocationMode=kvstore \
 	//--set kubeProxyReplacement=true \
 	//--set bpf.hostLegacyRouting=false \
-	//--set routingMode=native \
 	//--set tunnelProtocol=geneve \
-	//--set loadBalancer.dsrDispatch=geneve \
 	//--set enable-ipv4-masquerade=true \
 	//--set bpf.masquerade=true \
-	//--set loadBalancer.mode=dsr \
 	//--set enable-ipv4=true \
 	//--set enable-ipv6=false \
 	//--set clean-cilium-bpf-state=true \
@@ -115,9 +112,16 @@ func Cert(namespace string) {
 	//--set hubble.ui.enabled=true \
 	//--output-dir manifests
 
+	///////--set endpointRoutes.enabled=true \
+	//--set routingMode=native \
+	//--set loadBalancer.dsrDispatch=geneve \
+	//--set loadBalancer.mode=dsr \ // doesn't work with geneve tunneling
+
 	// validation: kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep KubeProxyReplacement
 	// status: kubectl -n kube-system exec ds/cilium -- cilium-dbg status --verbose
 	// status: kubectl -n kube-system exec ds/cilium -- cilium-dbg --all-addresses
+
+	// v1.11.3
 	InitialSetup(c)
 
 	roleName := "certs"
