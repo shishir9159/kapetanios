@@ -96,11 +96,13 @@ func Cert(namespace string) {
 	//--set enable-ipv4-masquerade=true \
 	//--set bpf.masquerade=true \
 	//--set loadBalancer.mode=dsr \
+	//--set enable-ipv4=true \
 	//--set enable-ipv6=false \
 	//--set clean-cilium-bpf-state=true \
 	//--set preallocate-bpf-maps=true \
 	//--set cni.install=true \
 	//--set cni.exclusive=true \
+	//--set ipv4NativeRoutingCIDR=10.244.0.0/16 \
 	//--set ipam.operator.clusterPoolIPv4PodCIDRList=10.244.0.0/16 \
 	//--set ipam.mode=cluster-pool \
 	//--set monitor-aggregation=true \
