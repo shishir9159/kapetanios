@@ -77,7 +77,7 @@ func Expiration(namespace string) {
 				zap.Int("index", index),
 				zap.Error(er))
 
-			return // er
+			return // er // defer gracefulStop
 		}
 
 		time.Sleep(25 * time.Second)
