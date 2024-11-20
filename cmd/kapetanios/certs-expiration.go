@@ -16,7 +16,7 @@ func Expiration(namespace string) {
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			logger.Fatal("error syncing logger before application terminates", zap.Error(er))
+			logger.Info("error syncing logger before application terminates", zap.Error(er))
 		}
 	}(logger)
 
@@ -88,5 +88,5 @@ func Expiration(namespace string) {
 		// todo: wait for request for restart from the minions
 	}
 
-	//(<-ch).GracefulStop()
+	(<-ch).GracefulStop()
 }

@@ -19,10 +19,10 @@ func Prerequisites(namespace string) {
 
 	// TODO: throw error no master nodes found
 
-	logger, err := zap.NewProduction()
+	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
+		err := logger.Sync()
+		if err != nil {
 			logger.Info("error syncing logger before application terminates", zap.Error(err))
 		}
 	}(logger)

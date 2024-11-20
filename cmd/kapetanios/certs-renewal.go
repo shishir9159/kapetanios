@@ -25,7 +25,7 @@ func Cert(namespace string) {
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			logger.Fatal("error syncing logger before application terminates",
+			logger.Info("error syncing logger before application terminates",
 				zap.Error(er))
 		}
 	}(logger)
