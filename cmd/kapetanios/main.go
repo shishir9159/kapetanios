@@ -95,6 +95,13 @@ func main() {
 		AllowMethods: "GET, HEAD, PUT, PATCH, POST, DELETE",
 	}))
 
+	// TODO:
+	//  Controller Definition need to be moved with the
+	//  initial Setup and making sure there exists only one
+
+	// setup routes
+	setupRoutes(app)
+
 	app.Use(healthcheck.New(healthcheck.Config{
 		LivenessProbe: func(c *fiber.Ctx) bool {
 			return true
@@ -105,13 +112,6 @@ func main() {
 		},
 		ReadinessEndpoint: "/readyz",
 	}))
-
-	// TODO:
-	//  Controller Definition need to be moved with the
-	//  initial Setup and making sure there exists only one
-
-	// setup routes
-	setupRoutes(app)
 
 	Prerequisites(minorUpgradeNamespace)
 
