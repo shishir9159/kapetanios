@@ -73,7 +73,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	if err != nil {
 		c.log.Error("Failed to check cert expiration date",
 			zap.Error(err))
-		return time.Time{}, time.Time{}, err
+		// todo: return time.Time{}, time.Time{}, err
 	}
 
 	if err = changedRoot(); err != nil {
