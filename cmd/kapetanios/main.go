@@ -54,7 +54,7 @@ func sanityChecking(c *fiber.Ctx) error {
 
 	//c.Accepts(`shuttle="launched"`)
 
-	return c.SendStatus(fiber.StatusOK)
+	return c.SendStatus(http.StatusOK)
 }
 
 func shuttleLaunched(c *fiber.Ctx) error {
