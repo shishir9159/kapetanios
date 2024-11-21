@@ -52,14 +52,14 @@ func rollback(c *fiber.Ctx) error {
 
 func sanityChecking(c *fiber.Ctx) error {
 
-	c.Accepts(`shuttle="launched"`)
+	//c.Accepts(`shuttle="launched"`)
 
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 
 func shuttleLaunched(c *fiber.Ctx) error {
 
-	c.Accepts(`sanity="checked"`)
+	//c.Accepts(`sanity="checked"`)
 
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
