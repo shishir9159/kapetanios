@@ -71,8 +71,8 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 		s.log.Info(`suggestions at current scenario is to remove the node and rejoin by following steps:
 		step 1. cordon, drain, delete: kubectl drain <node-name> --ignore-daemonsets --delete-local-data;
 		step 2. kubectl delete node <node-name>\n
-		step 3. kubeadm token create --print-join-command --config /etc/kubernetes/kubeadm-config.yaml\n
-		step 4. kubeadm init phase upload-certs --upload-certs --config /etc/kubernetes/kubeadm-config.yaml\n
+		step 3. kubeadm token create --print-join-command --config /etc/kubernetes/kubeadm/kubeadm-config.yaml\n
+		step 4. kubeadm init phase upload-certs --upload-certs --config /etc/kubernetes/kubeadm/kubeadm-config.yaml\n
 		step 5. kubeadm join <master-node>:6443 --token <23-characters-long-token>
                 --discovery-token-ca-cert-hash sha256:<64-characters-long-token>
 				--control-plane --certificate-key<64-characters-long-certificate-from-the-output-of-step-3>

@@ -22,7 +22,7 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	// --config is not necessary as it is saved in the cm
 
 	//kubeadm upgrade diff to see the changes
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade diff "+version+" --config /etc/kubernetes/kubeadm-config.yaml")
+	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade diff "+version+" --config /etc/kubernetes/kubeadm/kubeadm-config.yaml")
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
