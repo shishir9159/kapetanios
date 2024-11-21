@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	"net/http"
 )
@@ -63,32 +65,7 @@ func setupRoutes(app *fiber.App) {
 	//// Provide a minimal config for startup check
 	//app.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker())
 	// Provide a minimal config for check with custom endpoint
-	app.Get("/live", healthcheck.New())
-
-	//// Or extend your config for customization
-	//app.Get(healthcheck.DefaultLivenessEndpoint, healthcheck.NewHealthChecker(healthcheck.Config{
-	//	Probe: func(c fiber.Ctx) bool {
-	//		return true
-	//	},
-	//}))
-	//// And it works the same for readiness, just change the route
-	//app.Get(healthcheck.DefaultReadinessEndpoint, healthcheck.NewHealthChecker(healthcheck.Config{
-	//	Probe: func(c fiber.Ctx) bool {
-	//		return true
-	//	},
-	//}))
-	//// And it works the same for startup, just change the route
-	//app.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker(healthcheck.Config{
-	//	Probe: func(c fiber.Ctx) bool {
-	//		return true
-	//	},
-	//}))
-	//// With a custom route and custom probe
-	//app.Get("/live", healthcheck.NewHealthChecker(healthcheck.Config{
-	//	Probe: func(c fiber.Ctx) bool {
-	//		return true
-	//	},
-	//}))
+	app.Use("/livez", healthcheck.New())
 
 	app.Get("/renewal", certRenewal)
 	app.Get("/cleanup", cleanup)
@@ -116,6 +93,9 @@ func main() {
 
 	//if err != nil {
 	//}
+
+	app.Use(recover.New())
+	app.Use(compress.New())
 
 	//app.Use(fiberzap.New(fiberzap.Config{
 	//	Logger: logger,

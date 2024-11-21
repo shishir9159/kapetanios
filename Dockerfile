@@ -8,7 +8,7 @@ RUN go build -C ./cmd/kapetanios -o main
 
 FROM debian:bookworm-slim
 RUN set -x && apt-get update && apt-get install -y \
-    ca-certificates && \
+    ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/cmd/kapetanios/main /app/server
