@@ -1,12 +1,10 @@
 package main
 
 import (
-	"github.com/gofiber/contrib/fiberzap/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/swagger"
-	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -80,14 +78,14 @@ func main() {
 
 	app := fiber.New()
 
-	logger, err := zap.NewProduction()
+	//logger, err := zap.NewProduction()
 
-	if err != nil {
-	}
+	//if err != nil {
+	//}
 
-	app.Use(fiberzap.New(fiberzap.Config{
-		Logger: logger,
-	}))
+	//app.Use(fiberzap.New(fiberzap.Config{
+	//	Logger: logger,
+	//}))
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
@@ -119,7 +117,7 @@ func main() {
 
 	// TODO: prevent duplicate lighthouse instances
 	// TODO: websocket
-	err = app.Listen(":80")
+	err := app.Listen(":80")
 
 	if err != nil {
 		return
