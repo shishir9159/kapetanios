@@ -2,10 +2,8 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	"net/http"
 )
@@ -65,8 +63,8 @@ func setupRoutes(app *fiber.App) {
 	//// Provide a minimal config for startup check
 	//app.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker())
 	// Provide a minimal config for check with custom endpoint
-	app.Use("/livez", healthcheck.New())
-
+	health := app.Group("/health")
+	health.Use("/livez", healthcheck.New())
 	app.Get("/renewal", certRenewal)
 	app.Get("/cleanup", cleanup)
 	app.Get("/expiration", expiration)
@@ -94,8 +92,8 @@ func main() {
 	//if err != nil {
 	//}
 
-	app.Use(recover.New())
-	app.Use(compress.New())
+	//app.Use(recover.New())
+	//app.Use(compress.New())
 
 	//app.Use(fiberzap.New(fiberzap.Config{
 	//	Logger: logger,
