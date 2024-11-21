@@ -32,9 +32,9 @@ spec:
             failureThreshold: 10
             httpGet:
               host: 127.0.0.1
-#              httpHeaders:
-#                - name: brief
-#                  value: "true"
+              httpHeaders:
+                - name: shuttle
+                  value: "launched"
               path: /livez
               port: 80
               scheme: HTTP
@@ -45,9 +45,9 @@ spec:
             failureThreshold: 3
             httpGet:
               host: 127.0.0.1
-#              httpHeaders:
-#                - name: brief
-#                  value: "true"
+              httpHeaders:
+                - name: sanity
+                  value: "checked"
               path: /readyz
               port: 80
               scheme: HTTP

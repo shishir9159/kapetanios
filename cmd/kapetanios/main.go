@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/swagger"
 	"net/http"
 )
@@ -51,13 +50,24 @@ func rollback(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": http.StatusOK})
 }
 
+func sanityChecking(c *fiber.Ctx) error {
+
+	c.Accepts(`shuttle="launched"`)
+
+	return c.JSON(fiber.Map{"status": http.StatusOK})
+}
+
+func shuttleLaunched(c *fiber.Ctx) error {
+
+	c.Accepts(`sanity="checked"`)
+
+	return c.JSON(fiber.Map{"status": http.StatusOK})
+}
+
 func setupRoutes(app *fiber.App) {
 
-	app.Get("/readyz", func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusServiceUnavailable) // Not Ready
-	})
-
-	app.Get("/livez", healthcheck.New())
+	app.Get("/readyz", sanityChecking)
+	app.Get("/livez", shuttleLaunched)
 	app.Get("/renewal", certRenewal)
 	app.Get("/cleanup", cleanup)
 	app.Get("/expiration", expiration)
