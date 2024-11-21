@@ -54,14 +54,14 @@ func sanityChecking(c *fiber.Ctx) error {
 
 	//c.Accepts(`shuttle="launched"`)
 
-	return c.JSON(fiber.Map{"status": http.StatusOK})
+	return c.SendStatus(fiber.StatusOK)
 }
 
 func shuttleLaunched(c *fiber.Ctx) error {
 
 	//c.Accepts(`sanity="checked"`)
 
-	return c.JSON(fiber.Map{"status": http.StatusOK})
+	return c.SendStatus(fiber.StatusOK)
 }
 
 func setupRoutes(app *fiber.App) {
