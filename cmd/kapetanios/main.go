@@ -53,18 +53,11 @@ func rollback(c *fiber.Ctx) error {
 
 func setupRoutes(app *fiber.App) {
 
-	//api := app.Group("/cert", logger.New())
-	//minorUpgrade := app.Group("minor-upgrade")
+	app.Get("/readyz", func(c *fiber.Ctx) error {
+		return c.SendStatus(fiber.StatusServiceUnavailable) // Not Ready
+	})
 
-	// Provide a minimal config for liveness check
-	//app.Get(healthcheck.DefaultLivenessEndpoint, healthcheck.NewHealthChecker())
-	//// Provide a minimal config for readiness check
-	//app.Get(healthcheck.DefaultReadinessEndpoint, healthcheck.NewHealthChecker())
-	//// Provide a minimal config for startup check
-	//app.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker())
-	// Provide a minimal config for check with custom endpoint
-	health := app.Group("/health")
-	health.Use("/livez", healthcheck.New())
+	app.Get("/livez", healthcheck.New())
 	app.Get("/renewal", certRenewal)
 	app.Get("/cleanup", cleanup)
 	app.Get("/expiration", expiration)
