@@ -102,16 +102,18 @@ func main() {
 	// setup routes
 	setupRoutes(app)
 
-	app.Use(healthcheck.New(healthcheck.Config{
-		LivenessProbe: func(c *fiber.Ctx) bool {
-			return true
-		},
-		LivenessEndpoint: "/livez",
-		ReadinessProbe: func(c *fiber.Ctx) bool {
-			return true
-		},
-		ReadinessEndpoint: "/readyz",
-	}))
+	app.Use("/livez", healthcheck.New())
+
+	//app.Use(healthcheck.New(healthcheck.Config{
+	//	LivenessProbe: func(c *fiber.Ctx) bool {
+	//		return true
+	//	},
+	//	LivenessEndpoint: "/livez",
+	//	ReadinessProbe: func(c *fiber.Ctx) bool {
+	//		return true
+	//	},
+	//	ReadinessEndpoint: "/readyz",
+	//}))
 
 	Prerequisites(minorUpgradeNamespace)
 
