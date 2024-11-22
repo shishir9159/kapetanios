@@ -22,6 +22,9 @@ func getK8sConfigsDir() string {
 	return "/etc/kubernetes/"
 }
 
+// os.Rename simply doesn't work and shows the following error:
+// "12: invalid cross-device link"
+// so, we have to copy and remove-original and copy and temp-remove
 func renameBackupDirectories(s int, glob []string) error {
 
 	for _, dir := range glob {
