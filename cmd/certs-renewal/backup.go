@@ -25,12 +25,13 @@ func getK8sConfigsDir() string {
 func renameBackupDirectories(s int, glob []string) error {
 
 	for _, dir := range glob {
-		log.Println("dir:" + dir)
-		log.Println("dir[s:]:" + dir[s:])
 		index, err := strconv.Atoi(dir[s:])
 		if err != nil {
 			return err
 		}
+
+		log.Println("dir  :" + dir)
+		log.Println("dir[s:]+strconv.Itoa(index+1)  :" + dir[s:] + strconv.Itoa(index+1))
 
 		err = os.Rename(dir, dir[s:]+strconv.Itoa(index+1))
 		if err != nil {
@@ -43,7 +44,7 @@ func renameBackupDirectories(s int, glob []string) error {
 
 func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern string) (int, error) {
 
-	s := len(baseDir) + len(backupDirPattern) - 1
+	s := len(baseDir) + len(backupDirPattern)
 
 	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
 	if err != nil {
