@@ -30,9 +30,6 @@ func renameBackupDirectories(s int, glob []string) error {
 			return err
 		}
 
-		log.Println("dir  :" + dir)
-		log.Println("dir[s:]+strconv.Itoa(index+1)  :" + dir[:s] + strconv.Itoa(index+1))
-
 		err = os.Rename(dir, dir[:s]+strconv.Itoa(index+1))
 		if err != nil {
 			return err
@@ -48,12 +45,8 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 
 	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
 	if err != nil {
-		log.Println(glob)
-		log.Println(err)
+		fmt.Println("error searching for the backup files")
 	}
-
-	fmt.Println("glob 1:")
-	fmt.Println(glob)
 
 	if len(glob) == 0 {
 		return 1, nil
@@ -68,9 +61,6 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		jj, _ := strconv.Atoi(glob[j][s:])
 		return ii > jj
 	})
-
-	fmt.Println("glob 2:")
-	fmt.Println(glob)
 
 	if len(glob) >= backupCount {
 		er := removeDirectory(glob[backupCount-1])

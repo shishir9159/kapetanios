@@ -124,7 +124,7 @@ func main() {
 				zap.Error(err))
 		}
 
-		if skip {
+		if !skip {
 			break
 		}
 	}
