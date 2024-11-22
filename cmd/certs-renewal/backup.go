@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -20,6 +22,44 @@ func getK8sConfigsDir() string {
 	//  read from the configmap populated
 	//  by lighthouse manager
 	return "/etc/kubernetes/"
+}
+
+func Move(source, destination string) error {
+	err := os.Rename(source, destination)
+	if err != nil && strings.Contains(err.Error(), "invalid cross-device link") {
+		return moveCrossDevice(source, destination)
+	}
+	return err
+}
+
+func moveCrossDevice(source, destination string) error {
+	src, err := os.Open(source)
+	if err != nil {
+		return errors.Wrap(err, "opening source file")
+	}
+	dst, err := os.Create(destination)
+	if err != nil {
+		src.Close()
+		return errors.Wrap(err, "Create(destination)")
+	}
+	_, err = io.Copy(dst, src)
+	src.Close()
+	dst.Close()
+	if err != nil {
+		return errors.Wrap(err, "Copy")
+	}
+	fi, err := os.Stat(source)
+	if err != nil {
+		os.Remove(destination)
+		return errors.Wrap(err, "Stat")
+	}
+	err = os.Chmod(destination, fi.Mode())
+	if err != nil {
+		os.Remove(destination)
+		return errors.Wrap(err, "Stat")
+	}
+	os.Remove(source)
+	return nil
 }
 
 // os.Rename simply doesn't work and shows the following error:
