@@ -110,7 +110,7 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		}
 		ii, _ := strconv.Atoi(glob[i][s:])
 		jj, _ := strconv.Atoi(glob[j][s:])
-		return ii < jj
+		return ii > jj
 	})
 
 	fmt.Println("glob 2:")
