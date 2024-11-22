@@ -22,16 +22,16 @@ func getK8sConfigsDir() string {
 	return "/etc/kubernetes/"
 }
 
-func renameBackupDirectories(glob []string) error {
+func renameBackupDirectories(s int, glob []string) error {
 
 	for _, dir := range glob {
-		index, err := strconv.Atoi(dir[11:])
+		index, err := strconv.Atoi(dir[s:])
 		if err != nil {
 			log.Println(dir)
 			return err
 		}
 
-		err = os.Rename(dir, dir[11:]+strconv.Itoa(index+1))
+		err = os.Rename(dir, dir[s:]+strconv.Itoa(index+1))
 		if err != nil {
 			return err
 		}
@@ -41,6 +41,8 @@ func renameBackupDirectories(glob []string) error {
 }
 
 func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern string) (int, error) {
+
+	s := len(baseDir) + len(backupDirPattern)
 
 	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
 	if err != nil {
@@ -54,11 +56,11 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 	// natural sorting assumes the
 	// backupDirPattern is of 11 letters
 	sort.Slice(glob, func(i, j int) bool {
-		if glob[i][:11] != glob[j][:11] {
+		if glob[i][:s] != glob[j][:s] {
 			return glob[i] < glob[j]
 		}
-		ii, _ := strconv.Atoi(glob[i][11:])
-		jj, _ := strconv.Atoi(glob[j][11:])
+		ii, _ := strconv.Atoi(glob[i][s:])
+		jj, _ := strconv.Atoi(glob[j][s:])
 		return ii < jj
 	})
 
@@ -69,7 +71,7 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		}
 	}
 
-	err = renameBackupDirectories(glob)
+	err = renameBackupDirectories(s, glob)
 	if err != nil {
 		return 1, err
 	}
