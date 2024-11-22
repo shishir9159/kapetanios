@@ -29,7 +29,6 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	if err != nil {
 		c.log.Error("Failed to update vm",
 			zap.Error(err))
-		return false, "", err
 	}
 
 	// TODO: detect redhat, and run: yum list --showduplicates kubeadm --disableexcludes=kubernetes
@@ -60,7 +59,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	if len(availableVersionSlice) == 0 {
 		c.log.Error("no available versions for minor upgrade",
 			zap.Error(err))
-		return false, "", err
+		// todo: panic??? return false, "", err
 	}
 
 	// TODO:
