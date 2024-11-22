@@ -97,7 +97,7 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	rpc, err := connection.ClusterUpgrade(c.ctx,
 		&pb.UpgradeStatus{
 			UpgradeSuccess: true,
-			Log:            "",
+			Log:            stdoutBuf.String(),
 			Err:            "",
 		})
 
@@ -124,7 +124,8 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		return false, err
 	}
 
-	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' && apt-mark hold "+k8sComponents)
+	// todo: --allow-unauthenticated make it optional
+	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' --allow-unauthenticated && apt-mark hold "+k8sComponents)
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
