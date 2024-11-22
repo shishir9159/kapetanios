@@ -14,6 +14,25 @@ spec:
       labels:
         app: kapetanios
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: assigned-node-role-minor-upgrade.kubernetes.io
+                    operator: In
+                    values:
+                      - minor-upgrade
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: assigned-node-role-minor-upgrade.kubernetes.io
+                    operator: In
+                    values:
+                      - minor-upgrade
+              topologyKey:
+                kubernetes.io/hostname
       containers:
 # TODO: update maxSurge value to keep max one instance
 # TODO: update the image name in readme
