@@ -25,9 +25,10 @@ func getK8sConfigsDir() string {
 func renameBackupDirectories(s int, glob []string) error {
 
 	for _, dir := range glob {
+		log.Println("dir:" + dir)
+		log.Println("dir[s:]:" + dir[s:])
 		index, err := strconv.Atoi(dir[s:])
 		if err != nil {
-			log.Println(dir)
 			return err
 		}
 
@@ -50,13 +51,14 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		log.Println(err)
 	}
 
+	fmt.Println("glob 1:")
 	fmt.Println(glob)
 
 	if len(glob) == 0 {
 		return 1, nil
 	}
 	// natural sorting assumes the
-	// backupDirPattern is of 11 letters
+	// backupDirPattern is of s letters
 	sort.Slice(glob, func(i, j int) bool {
 		if glob[i][:s] != glob[j][:s] {
 			return glob[i] < glob[j]
@@ -66,6 +68,7 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		return ii < jj
 	})
 
+	fmt.Println("glob 2:")
 	fmt.Println(glob)
 
 	if len(glob) >= backupCount {
