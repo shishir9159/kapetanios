@@ -27,6 +27,7 @@ func renameBackupDirectories(glob []string) error {
 	for _, dir := range glob {
 		index, err := strconv.Atoi(dir[11:])
 		if err != nil {
+			log.Println(dir)
 			return err
 		}
 
@@ -43,7 +44,7 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 
 	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
 	if err != nil {
-
+		log.Println(glob)
 		log.Println(err)
 	}
 

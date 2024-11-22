@@ -29,6 +29,7 @@ func Renew(c Controller, connection pb.RenewalClient) (bool, error) {
 	// "/usr/local/bin/kubeadm certs renew scheduler.conf"
 	// it is assumed that kubeadm exist otherwise, cert validity wouldn't have work
 
+	// tOdO: is the config location necessary?
 	cmd := exec.Command("/usr/bin/kubeadm", "certs", "renew", "all", "--config=/etc/kubernetes/kubeadm/kubeadm-config.yaml")
 
 	var stdoutBuf, stderrBuf bytes.Buffer
