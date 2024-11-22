@@ -130,10 +130,14 @@ func main() {
 	}
 
 	if overrideUserKubeConfig {
-		err = Copy("/etc/kubernetes/admin.conf", "/root/.kube/config")
-		if err != nil {
-			c.log.Error("failed to pass kubernetes admin privilege to the root user",
-				zap.Error(err))
-		}
+
+		// TODO: syscall + mkdir -p folder
+
+		//err = Copy("/etc/kubernetes/admin.conf", "/root/.kube/config")
+		//if err != nil {
+		//	c.log.Error("failed to pass kubernetes admin privilege to the root user",
+		//		zap.Error(err))
+		//}
+
 	}
 }
