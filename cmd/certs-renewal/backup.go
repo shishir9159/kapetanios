@@ -50,6 +50,8 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		log.Println(err)
 	}
 
+	fmt.Println(glob)
+
 	if len(glob) == 0 {
 		return 1, nil
 	}
@@ -63,6 +65,8 @@ func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern st
 		jj, _ := strconv.Atoi(glob[j][s:])
 		return ii < jj
 	})
+
+	fmt.Println(glob)
 
 	if len(glob) >= backupCount {
 		er := removeDirectory(glob[backupCount-1])

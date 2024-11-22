@@ -173,7 +173,7 @@ func Cert(namespace string) {
 			zap.String("pod_name", minion.Name))
 
 		// todo: wait for request for restart from the minions
-		time.Sleep(3 * time.Second)
+		time.Sleep(25 * time.Second)
 
 		er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 		if er != nil {
