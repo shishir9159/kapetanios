@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -36,14 +35,10 @@ type Controller struct {
 
 func main() {
 
-	logger, err := zap.NewProduction()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
+	logger := zap.Must(zap.NewProduction())
 	// TODO: replace zap with zeroLog
 
 	c := Controller{
@@ -61,11 +56,14 @@ func main() {
 
 	flag.Parse()
 	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultServiceConfig(retryPolicy))
-	if err != nil {
+	conn, err := grpc.NewClient(
+		*addr, grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(retryPolicy))
 
+	if err != nil {
 		c.log.Error("did not connect", zap.Error(err))
 	}
+
 	//grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()

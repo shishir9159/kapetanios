@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"github.com/gofiber/fiber/v2/log"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
@@ -23,15 +22,10 @@ type Controller struct {
 
 func main() {
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
-	logger, err := zap.NewProduction()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	//zap.ReplaceGlobals(logger)
+	logger := zap.Must(zap.NewProduction())
 
 	c := Controller{
 		ctx: ctx,
@@ -53,6 +47,7 @@ func main() {
 	if err != nil {
 		log.Error("did not connect", zap.Error(err))
 	}
+
 	//grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
