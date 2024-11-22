@@ -20,7 +20,7 @@ func getK8sConfigsDir() string {
 
 	// TODO:
 	//  read from the configmap populated
-	//  by lighthouse manager
+	//  by kapetanios
 	return "/etc/kubernetes/"
 }
 
@@ -62,9 +62,10 @@ func moveCrossDevice(source, destination string) error {
 	return nil
 }
 
-// os.Rename simply doesn't work and shows the following error:
+// os.Rename simply doesn't work and shows error:
 // "12: invalid cross-device link"
-// so, we have to copy and remove-original and copy and temp-remove
+// this edge case occurs in case of container spawned
+// process tinkering with host filesystem
 func renameBackupDirectories(s int, glob []string) error {
 
 	for _, dir := range glob {
@@ -76,10 +77,12 @@ func renameBackupDirectories(s int, glob []string) error {
 		log.Println("dir  :" + dir)
 		log.Println("dir[s:]+strconv.Itoa(index+1)  :" + dir[:s] + strconv.Itoa(index+1))
 
-		err = os.Rename(dir, dir[s:]+strconv.Itoa(index+1))
+		err = CopyDirectory(dir, dir[s:]+strconv.Itoa(index+1))
 		if err != nil {
 			return err
 		}
+
+		err = removeDirectory(dir)
 	}
 
 	return nil
