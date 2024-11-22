@@ -43,7 +43,7 @@ func renameBackupDirectories(s int, glob []string) error {
 
 func checkSurplusBackupDirs(backupCount int, baseDir string, backupDirPattern string) (int, error) {
 
-	s := len(baseDir) + len(backupDirPattern)
+	s := len(baseDir) + len(backupDirPattern) - 1
 
 	glob, err := filepath.Glob(baseDir + backupDirPattern + "*")
 	if err != nil {
