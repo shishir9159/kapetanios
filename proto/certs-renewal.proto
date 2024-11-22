@@ -24,8 +24,8 @@ message BackupStatus {
 
 message RenewalStatus {
   bool renewalSuccess = 1;
-  bool kubeConfigBackup = 2;
-  bool fileChecklistValidation = 3;
+  string renewalLog = 2;
+  string log = 3;
   string err = 4;
 }
 

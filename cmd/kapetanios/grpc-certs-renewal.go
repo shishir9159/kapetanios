@@ -31,10 +31,10 @@ func (s *renewalServer) ClusterHealthChecking(_ context.Context, in *pb.Prerequi
 		proceedNextStep = true
 	}
 
-	log.Printf("Received backup sucess: %v", in.GetEtcdStatus())
-	log.Printf("Received renewal sucess: %v", in.GetExternallyManagedCerts())
-	log.Printf("Received restart sucess: %v", in.GetKubeDirFreeSpace())
-	log.Printf("Received retry attempt: %s", in.GetLocalAPIEndpoint())
+	log.Printf("Received etcd status: %v", in.GetEtcdStatus())
+	log.Printf("Received certs externally managed status: %v", in.GetExternallyManagedCerts())
+	log.Printf("Received disk pressure status: %v", in.GetKubeDirFreeSpace())
+	log.Printf("Received local api endpoint: %s", in.GetLocalAPIEndpoint())
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalResponse{
@@ -57,8 +57,8 @@ func (s *renewalServer) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*p
 		proceedNextStep = false
 	}
 
-	log.Printf("Received backup sucess: %v", in.GetEtcdBackupSuccess())
-	log.Printf("Received renewal sucess: %v", in.GetKubeConfigBackupSuccess())
+	log.Printf("Received etcd backup status: %v", in.GetEtcdBackupSuccess())
+	log.Printf("Received backup sucess: %v", in.GetKubeConfigBackupSuccess())
 	log.Printf("Received restart sucess: %v", in.GetFileChecklistValidation())
 	log.Printf("Received error: %v", in.GetErr())
 
@@ -73,13 +73,16 @@ func (s *renewalServer) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (
 
 	proceedNextStep, terminateApplication := false, false
 
-	if in.GetRenewalSuccess() && in.GetKubeConfigBackup() && in.GetFileChecklistValidation() {
+	if in.GetRenewalSuccess() {
 		proceedNextStep = true
 	}
 
+	//Todo:
+	// updated expiration date
+
 	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
-	log.Printf("Received restart sucess: %v", in.GetKubeConfigBackup())
-	log.Printf("Received retry attempt: %d", in.GetFileChecklistValidation())
+	log.Printf("Received restart sucess: %v", in.GetRenewalLog())
+	log.Printf("Received retry attempt: %v", in.GetLog())
 	log.Printf("Received error: %v", in.GetErr())
 
 	return &pb.RenewalResponse{
