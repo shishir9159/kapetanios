@@ -11,7 +11,7 @@ import (
 
 func restartService(c Controller, component string) (string, string, error) {
 
-	cmd := exec.Command("/bin/bash", "-c", "sudo systemctl restart "+component)
+	cmd := exec.Command("/bin/bash", "-c", "systemctl restart "+component)
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf

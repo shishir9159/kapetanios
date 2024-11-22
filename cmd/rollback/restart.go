@@ -11,7 +11,7 @@ import (
 // Refactor to new internal library Restart
 func restartService(c Controller, component string) error {
 
-	cmd := exec.Command("/bin/bash", "-c", "sudo systemctl restart "+component)
+	cmd := exec.Command("/bin/bash", "-c", "systemctl restart "+component)
 
 	err := cmd.Run()
 
