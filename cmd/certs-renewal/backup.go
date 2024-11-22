@@ -31,7 +31,7 @@ func renameBackupDirectories(s int, glob []string) error {
 		}
 
 		log.Println("dir  :" + dir)
-		log.Println("dir[s:]+strconv.Itoa(index+1)  :" + dir[s:] + strconv.Itoa(index+1))
+		log.Println("dir[s:]+strconv.Itoa(index+1)  :" + dir[:s] + strconv.Itoa(index+1))
 
 		err = os.Rename(dir, dir[s:]+strconv.Itoa(index+1))
 		if err != nil {
