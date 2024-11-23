@@ -33,7 +33,8 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, error) {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 		return false, err
 	}
 

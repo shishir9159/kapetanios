@@ -54,7 +54,8 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 		return false, err
 	}
 

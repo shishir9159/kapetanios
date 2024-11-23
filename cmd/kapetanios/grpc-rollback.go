@@ -61,7 +61,8 @@ func RollbackGrpc(log *zap.Logger) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Error("failed to listen", zap.Error(err))
+		log.Error("failed to listen",
+			zap.Error(err))
 	}
 	s := grpc.NewServer()
 
@@ -72,6 +73,7 @@ func RollbackGrpc(log *zap.Logger) {
 	log.Info("rollback sever listening")
 	if er := s.Serve(lis); er != nil {
 
-		log.Error("failed to serve", zap.Error(er))
+		log.Error("failed to serve",
+			zap.Error(er))
 	}
 }

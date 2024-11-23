@@ -15,7 +15,8 @@ func Cleanup(namespace string) error {
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			logger.Info("error syncing logger before application terminates", zap.Error(err))
+			logger.Info("error syncing logger before application terminates",
+				zap.Error(err))
 		}
 	}(logger)
 

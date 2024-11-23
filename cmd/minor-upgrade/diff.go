@@ -56,7 +56,8 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 		return false, "", err
 	}
 

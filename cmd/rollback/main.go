@@ -51,7 +51,8 @@ func main() {
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Error("did not connect", zap.Error(err))
+		log.Error("did not connect",
+			zap.Error(err))
 	}
 	//grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {

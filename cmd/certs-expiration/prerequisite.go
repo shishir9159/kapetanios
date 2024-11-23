@@ -71,13 +71,15 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	freeSpace, err := getStorage("/opt/")
 
 	if err != nil {
-		c.log.Error("Failed to get storage space for /opt/ directory", zap.Error(err))
+		c.log.Error("Failed to get storage space for /opt/ directory",
+			zap.Error(err))
 		return err
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		c.log.Info("available free space in the /opt/ directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		c.log.Info("available free space in the /opt/ directory",
+			zap.Int64("freeSpace in MB ", freeSpace/1048576))
 	}
 
 	// TODO:
@@ -86,13 +88,15 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	freeSpace, err = getStorage("/var/lib/")
 
 	if err != nil {
-		c.log.Error("Failed to get storage space for /var/lib/etcd directory", zap.Error(err))
+		c.log.Error("Failed to get storage space for /var/lib/etcd directory",
+			zap.Error(err))
 		return err
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		c.log.Info("available free space in the /var/lib/etcd directory", zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		c.log.Info("available free space in the /var/lib/etcd directory",
+			zap.Int64("freeSpace in MB ", freeSpace/1048576))
 	}
 
 	//	etcd status
@@ -113,7 +117,8 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 	}
 
 	c.log.Info("Status Update",

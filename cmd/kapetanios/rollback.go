@@ -16,7 +16,8 @@ func Rollback(namespace string) {
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
-			logger.Info("error syncing logger before application terminates", zap.Error(err))
+			logger.Info("error syncing logger before application terminates",
+				zap.Error(err))
 		}
 	}(logger)
 
@@ -107,7 +108,8 @@ func Rollback(namespace string) {
 
 	err = RestartRemainingComponents(c, "default")
 	if err != nil {
-		c.log.Error("error restarting renewal components", zap.Error(err))
+		c.log.Error("error restarting renewal components",
+			zap.Error(err))
 	}
 
 	c.log.Info("entering grpc server")

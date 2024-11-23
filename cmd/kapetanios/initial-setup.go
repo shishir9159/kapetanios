@@ -75,10 +75,12 @@ func validatingNodesState(c Controller, label string) error {
 
 	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
-		c.log.Error("failed to list "+label+" nodes to validate", zap.Error(err))
+		c.log.Error("failed to list "+label+" nodes to validate",
+			zap.Error(err))
 		return err
 	} else if nodes.Size() == 0 {
-		c.log.Error("nodes for "+label+" are not labeled", zap.Error(err))
+		c.log.Error("nodes for "+label+" are not labeled",
+			zap.Error(err))
 		return err
 	}
 
@@ -111,7 +113,8 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 	cm, err := c.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
 
 	if err != nil {
-		c.log.Error("error fetching the kubeadm-config from the kube-system namespace", zap.Error(err))
+		c.log.Error("error fetching the kubeadm-config from the kube-system namespace",
+			zap.Error(err))
 		return &etcdCluster, err
 	}
 
@@ -122,7 +125,8 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 
 	err = yaml.Unmarshal([]byte(yamlFile), &clusterConfiguration)
 	if err != nil {
-		c.log.Error("error parsing the kubeadm-config yaml file", zap.Error(err))
+		c.log.Error("error parsing the kubeadm-config yaml file",
+			zap.Error(err))
 	}
 
 	etcdCluster = clusterConfiguration.ETCD
@@ -189,7 +193,8 @@ func InitialSetup(c Controller) {
 
 	etcdCluster, err := populatingConfigMap(c)
 	if err != nil {
-		c.log.Error("error populating config", zap.Error(err))
+		c.log.Error("error populating config",
+			zap.Error(err))
 	}
 
 	// TODO:
@@ -198,12 +203,14 @@ func InitialSetup(c Controller) {
 
 	err = validatingNodesState(c, "certs")
 	if err != nil {
-		c.log.Error("error validating master node labels", zap.Error(err))
+		c.log.Error("error validating master node labels",
+			zap.Error(err))
 	}
 
 	err = validatingNodesState(c, "etcd")
 	if err != nil {
-		c.log.Error("error validating etcd node labels", zap.Error(err))
+		c.log.Error("error validating etcd node labels",
+			zap.Error(err))
 	}
 
 }

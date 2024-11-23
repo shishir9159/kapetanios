@@ -186,7 +186,8 @@ func MinorUpgradeGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
-		log.Error("failed to serve", zap.Error(er))
+		log.Error("failed to serve",
+			zap.Error(er))
 	}
 
 	log.Info("Shutting down gRPC server...")

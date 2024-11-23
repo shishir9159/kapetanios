@@ -61,7 +61,8 @@ func main() {
 		grpc.WithDefaultServiceConfig(retryPolicy))
 
 	if err != nil {
-		c.log.Error("did not connect", zap.Error(err))
+		c.log.Error("did not connect",
+			zap.Error(err))
 	}
 
 	//grpc.WithDisableServiceConfig()

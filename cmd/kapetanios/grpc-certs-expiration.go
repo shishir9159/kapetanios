@@ -88,7 +88,8 @@ func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		zlog.Error("failed to listen", zap.Error(err))
+		zlog.Error("failed to listen",
+			zap.Error(err))
 	}
 
 	s := grpc.NewServer()
@@ -104,7 +105,8 @@ func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
-		zlog.Error("failed to serve", zap.Error(er))
+		zlog.Error("failed to serve",
+			zap.Error(er))
 	}
 
 	zlog.Info("Shutting down gRPC server...")

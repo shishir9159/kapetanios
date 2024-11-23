@@ -150,7 +150,8 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 	}
 
 	c.log.Info("Status Update",

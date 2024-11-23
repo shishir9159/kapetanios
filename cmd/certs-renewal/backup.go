@@ -327,7 +327,8 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 	}
 
 	c.log.Info("Backup Status",

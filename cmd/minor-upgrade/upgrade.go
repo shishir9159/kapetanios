@@ -102,7 +102,8 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 		return false, err
 	}
 
@@ -180,7 +181,8 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 		return false, err
 	}
 
@@ -299,7 +301,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ", zap.Error(err))
+		c.log.Error("could not send status update: ",
+			zap.Error(err))
 		return false, "", err
 	}
 
