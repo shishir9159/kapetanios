@@ -4,7 +4,6 @@ import (
 	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"io"
 	"os"
 	"syscall"
@@ -63,23 +62,24 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Fatal("Failed to create chroot on /host",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("Failed to create chroot on /host")
 		return err
 	}
 
 	freeSpace, err := getStorage("/opt/")
-
 	if err != nil {
-		c.log.Error("Failed to get storage space for /opt/ directory",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to get storage space for /opt/ directory")
 		return err
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		c.log.Info("available free space in the /opt/ directory",
-			zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		// TODO: fast formatting to error
+		c.log.Error().Err(nil).
+			Int64("available free space in /opt directory", freeSpace).
+			Msg("not enough free space for a healthy cluster")
 	}
 
 	// TODO:
@@ -88,24 +88,24 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	freeSpace, err = getStorage("/var/lib/")
 
 	if err != nil {
-		c.log.Error("Failed to get storage space for /var/lib/etcd directory",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to get storage space for /var/lib/ directory")
 		return err
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		c.log.Info("available free space in the /var/lib/etcd directory",
-			zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		c.log.Error().Err(nil).
+			Int64("available free space in /var/lib directory", freeSpace).
+			Msg("not enough free space for a healthy cluster")
 	}
 
 	//	etcd status
 	//
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
-
+		c.log.Fatal().Err(err).
+			Msg("Failed to exit from the updated root")
 		return err
 	}
 
@@ -117,12 +117,13 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
 	}
 
-	c.log.Info("Status Update",
-		zap.Bool("response received", rpc.GetResponseReceived()))
+	c.log.Info().
+		Bool("response received", rpc.GetResponseReceived()).
+		Msg("status update")
 
 	return nil
 }

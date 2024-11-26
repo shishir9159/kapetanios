@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/gofiber/fiber/v2/log"
+	"github.com/rs/zerolog"
 	pb "github.com/shishir9159/kapetanios/proto"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"os"
 	"time"
 )
 
@@ -17,44 +17,38 @@ var (
 
 type Controller struct {
 	ctx context.Context
-	log *zap.Logger
+	log zerolog.Logger
 }
 
 func main() {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	logger := zap.Must(zap.NewProduction())
+	// TODO: set log level
+
+	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().Timestamp().Logger()
 
 	c := Controller{
 		ctx: ctx,
 		log: logger,
 	}
 
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
-			c.log.Error("failed to close logger",
-				zap.Error(er))
-		}
-	}(logger)
+	logger.Info().Msg("logging to os.Stdout")
 
 	flag.Parse()
 
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Error("did not connect",
-			zap.Error(err))
+		c.log.Error().Err(err).Msg("could not create grpc client")
 	}
 
 	//grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
 		if er != nil {
-			log.Error("failed to close the grpc connection",
-				zap.Error(er))
+			c.log.Error().Err(er).Msg("failed to close the grpc connection")
 		}
 	}(conn)
 
@@ -62,13 +56,17 @@ func main() {
 
 	err = NodeHealth(c, connection)
 	if err != nil {
-		c.log.Error("failed to get cluster health status",
-			zap.Error(err))
+		c.log.Error().Err(err).Msg("failed to get cluster health status")
 	}
 
 	expirationDate, daysRemaining, err := certExpiration(c, connection)
-	c.log.Info("checking certificate expiration date",
-		zap.String("expirationDate", expirationDate.String()),
-		zap.String("daysRemaining", daysRemaining.String()))
 
+	if err != nil {
+		c.log.Error().Err(err).Msg("failed to get cluster expiration date")
+	}
+
+	c.log.Info().
+		Str("expirationDate", expirationDate.String()).
+		Str("daysRemaining", daysRemaining.String()).
+		Msg("checking certificate expiration date")
 }

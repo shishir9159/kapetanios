@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/swagger v1.1.0
+	github.com/rs/zerolog v1.33.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.1
