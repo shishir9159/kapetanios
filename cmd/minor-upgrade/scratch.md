@@ -14,8 +14,8 @@ upgrade the worker nodes
 - [ ] for other master nodes: kubeadm upgrade node --certificate-renewal=false
 - [ ] kubectl drain <node-to-drain> --ignore-daemonsets -- recommended draining point
 - [ ] apt-mark unhold kubelet kubectl && \
-   apt-get update && apt-get install -y kubelet='1.26.5-1.1' kubectl='1.26.5-1.1' && \
-   apt-mark hold kubelet kubectl
+  apt-get update && apt-get install -y kubelet='1.26.5-1.1' kubectl='1.26.5-1.1' && \
+  apt-mark hold kubelet kubectl
 - [ ] systemctl daemon-reload
 - [ ] systemctl restart kubelet
 - [ ] kubectl uncordon <node-to-drain>
