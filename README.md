@@ -22,16 +22,12 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 ## Protoc Code Generation
 ```Bash
-export PATH="$PATH:$(go env GOPATH)/bin"
-protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
+make protgen
 ```
 
 ## Docker Build
 ```Bash
-docker build . -t quay.io/klovercloud/kapetanios:latest
-docker push quay.io/klovercloud/kapetanios:latest
-docker build -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile .
-docker push quay.io/klovercloud/certs-renewal:latest
+docker build . -t quay.io/klovercloud/kapetanios:latest; docker push quay.io/klovercloud/kapetanios:latest; docker build . -t quay.io/klovercloud/certs-expiration:latest -f certs-expiration.Dockerfile; docker push quay.io/klovercloud/certs-expiration:latest; docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile; docker push quay.io/klovercloud/certs-renewal:latest; docker build . -t quay.io/klovercloud/etcd-migration:latest -f etcd-migration.Dockerfile; docker push quay.io/klovercloud/etcd-migration:latest; docker build . -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile; docker push quay.io/klovercloud/etcd-restart:latest; docker build . -t quay.io/klovercloud/minor-upgrade:latest -f minor-upgrade.Dockerfile; docker push quay.io/klovercloud/minor-upgrade:latest; docker build . -t quay.io/klovercloud/rollback:latest -f rollback.Dockerfile; docker push quay.io/klovercloud/rollback:latest;
 ```
 
 ## Deploy in K8s
@@ -47,12 +43,4 @@ grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 Renewal/StatusU
   "renewalSuccess" : true,
   "restartSuccess" : true
 }
-```
-
-### Possible errors:
-
-```
-domain cluster.local
-search cluster.local
-nameserver 10.96.0.10 
 ```
