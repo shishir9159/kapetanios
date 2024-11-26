@@ -13,12 +13,11 @@ import (
 // if the nodes match with the expectations
 
 func Prerequisites(namespace string) {
-	//if cm shows updated nodes to a certain value
-	//	 and desired kubernetesVersion exists on the cm,
-	//   then, call the minor upgrade
+	// if cm shows updated nodes to a certain value
+	// and desired kubernetesVersion exists on the cm,
+	// then, call the minor upgrade
 
 	// TODO: throw error no master nodes found
-
 	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
 		err := logger.Sync()

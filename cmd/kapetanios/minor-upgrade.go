@@ -208,7 +208,6 @@ func MinorUpgradeFirstRun(namespace string) {
 	roleName := "minor-upgrade"
 
 	// TODO: refactor this part to orchestrator
-
 	for index, node := range nodes.Items {
 
 		c.log.Info("condition",
@@ -216,7 +215,7 @@ func MinorUpgradeFirstRun(namespace string) {
 			zap.Bool("node.ObjectMeta.Name == kapetaniosNode", node.ObjectMeta.Name == kapetaniosNode))
 
 		// for reliability purposes, do it for all the nodes
-		//if node.ObjectMeta.Name == kapetaniosNode {
+		// if node.ObjectMeta.Name == kapetaniosNode {
 
 		configMapName := "kapetanios"
 		//  todo: refactor this hardcoded part

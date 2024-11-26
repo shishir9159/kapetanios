@@ -38,8 +38,7 @@ func Rollback(namespace string) {
 			zap.Error(err))
 	}
 
-	InitialSetup(c)
-
+	//InitialSetup(c)
 	roleName := "certs"
 	matchLabels := map[string]string{"assigned-node-role-certs.kubernetes.io": roleName}
 
