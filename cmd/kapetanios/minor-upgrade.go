@@ -126,6 +126,7 @@ func MinorUpgradeFirstRun(namespace string) {
 		}
 	}(logger)
 
+	// refactor
 	client, err := orchestration.NewClient()
 
 	// TODO: add namespace in the controller itself
@@ -152,6 +153,10 @@ func MinorUpgradeFirstRun(namespace string) {
 	}
 
 	kapetaniosPod, err := c.client.Clientset().CoreV1().Pods(namespace).List(c.ctx, listOptions)
+
+	if kapetaniosPod == nil {
+		c.log.Error("error getting pod list for kapetanios")
+	}
 
 	// assuming there's only one instance of pod
 	kapetaniosNode := kapetaniosPod.Items[0].Spec.NodeName

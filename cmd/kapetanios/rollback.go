@@ -12,12 +12,12 @@ import (
 
 func Rollback(namespace string) {
 
-	logger, err := zap.NewProduction()
+	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
 		er := logger.Sync()
 		if er != nil {
 			logger.Info("error syncing logger before application terminates",
-				zap.Error(err))
+				zap.Error(er))
 		}
 	}(logger)
 
@@ -29,6 +29,9 @@ func Rollback(namespace string) {
 		ctx:    context.Background(),
 		log:    logger,
 	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	if err != nil {
 		c.log.Error("error creating kubernetes client",

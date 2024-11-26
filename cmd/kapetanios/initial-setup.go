@@ -177,6 +177,8 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 	configMap.Data["ETCD_KEY_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)
 
 	for index, endpoint := range etcdCluster.External.Endpoints {
+		c.log.Info("etcd node: ",
+			zap.String("endpoint: ", endpoint))
 		configMap.Data["ETCD_NODE_"+strconv.Itoa(index+1)] = endpoint
 	}
 
