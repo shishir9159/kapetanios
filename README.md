@@ -11,14 +11,8 @@ libprotoc 27.3
 It is assumed that the following roles would be assigned to the respective nodes:
 1. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs and "node-role.kubernetes.io/control-plane" annotation
 2. assigned-node-role-minor-upgrade.kubernetes.io
-2. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
-3. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
-
-#### plugin install:
-```Bash
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-```
+3. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
+4. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
 
 ## Protoc Code Generation
 ```Bash
