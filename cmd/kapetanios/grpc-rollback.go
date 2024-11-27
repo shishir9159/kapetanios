@@ -4,12 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
-	"log"
-	"net"
-
 	pb "github.com/shishir9159/kapetanios/proto"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"net"
 )
 
 // rollbackServer is used to implement proto.RollbackServer.
@@ -20,9 +18,11 @@ type rollbackServer struct {
 
 // Prerequisites implements proto.RollbackServer
 func (s *rollbackServer) Prerequisites(_ context.Context, in *pb.PrerequisitesRollback) (*pb.RollbackResponse, error) {
-	log.Printf("received prerequisite check status: %v", in.GetBackupExists())
-	log.Printf("received renewal sucess: %v", in.GetSpaceAvailability())
-	log.Printf("Received error: %v", in.GetErr())
+
+	s.log.Info("received cluster prerequisites for rollback",
+		zap.Bool("backup exists", in.GetBackupExists()),
+		zap.Bool("space availability", in.GetSpaceAvailability()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.RollbackResponse{
 		ProceedNextStep:      false,
@@ -32,12 +32,14 @@ func (s *rollbackServer) Prerequisites(_ context.Context, in *pb.PrerequisitesRo
 
 // RollbackUpdate implements proto.RollbackServer
 func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus) (*pb.RollbackResponse, error) {
-	log.Printf("received prerequisite check status: %v", in.GetPrerequisitesCheckSuccess())
-	log.Printf("received renewal sucess: %v", in.GetRollbackSuccess())
-	log.Printf("received prerequisite check status: %v", in.GetRestartSuccess())
-	log.Printf("received renewal sucess: %v", in.GetRetryAttempt())
-	log.Printf("received prerequisite check status: %v", in.GetLog())
-	log.Printf("Received error: %v", in.GetErr())
+
+	s.log.Info("received cluster certificates rollback status",
+		zap.Bool("prerequisites check status", in.GetPrerequisitesCheckSuccess()), // TODO: move the responsibility to previous section
+		zap.Bool("renewal success", in.GetRollbackSuccess()),
+		zap.Bool("restart success", in.GetRestartSuccess()),
+		zap.Uint32("attempt count", in.GetRetryAttempt()), // TODO: might be unnecessary
+		zap.String("rollback log", in.GetLog()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.RollbackResponse{
 		ProceedNextStep:      false,
@@ -46,12 +48,14 @@ func (s *rollbackServer) RollbackUpdate(_ context.Context, in *pb.RollbackStatus
 }
 
 func (s *rollbackServer) Restarts(_ context.Context, in *pb.RollbackRestartStatus) (*pb.RollbackFinalizer, error) {
-	log.Printf("Received backup sucess: %v", in.GetEtcdRestart())
-	log.Printf("Received renewal sucess: %v", in.GetKubeletRestart())
-	log.Printf("Received renewal sucess: %v", in.GetEtcdError())
-	log.Printf("Received retry attempt: %s", in.GetKubeletError())
-	// error occurring at the command execution
-	log.Printf("Received error: %v", in.GetErr())
+
+	s.log.Info("received successful component restart status",
+		zap.Bool("etcd restart success", in.GetEtcdRestart()),
+		zap.Bool("kubelet restart success", in.GetKubeletRestart()),
+		zap.String("etcd error", in.GetEtcdError()),
+		zap.String("kubelet error", in.GetKubeletError()),
+		// error occurring at the command execution
+		zap.String("received error", in.GetErr()))
 
 	return &pb.RollbackFinalizer{
 		ResponseReceived: true,
