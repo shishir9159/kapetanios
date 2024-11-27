@@ -64,7 +64,6 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	if err != nil {
 		c.log.Fatal().Err(err).
 			Msg("Failed to create chroot on /host")
-		return err
 	}
 
 	freeSpace, err := getStorage("/opt/")

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"log"
 	"os/exec"
 	"sync"
@@ -56,11 +55,11 @@ func checkCertificateValidity(baseName string, cert *x509.Certificate) {
 }
 
 func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time.Time, error) {
+
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return time.Time{}, time.Time{}, err
+		c.log.Fatal().Err(err).
+			Msg("Failed to create chroot on /host")
 	}
 
 	// TODO: when is the config file necessary?
@@ -72,14 +71,14 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	err = cmd.Run()
 
 	if err != nil {
-		c.log.Error("Failed to check cert expiration date",
-			zap.Error(err))
-		// todo: return time.Time{}, time.Time{}, err
+		c.log.Error().Err(err).
+			Msg("Failed to check cert expiration date")
 	}
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("Failed to exit from the updated root")
+
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
@@ -138,9 +137,10 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		certificateAuthorities = append(certificateAuthorities, &certificateAuthority)
 	}
 
-	c.log.Info("outString and errString",
-		zap.String("outStr", outStr),
-		zap.String("errStr", errStr))
+	c.log.Info().
+		Str("outStr", outStr).
+		Str("errStr", errStr).
+		Send()
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
@@ -150,12 +150,13 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
 	}
 
-	c.log.Info("Status Update",
-		zap.Bool("response received", rpc.GetResponseReceived()))
+	c.log.Info().
+		Bool("response received", rpc.ResponseReceived).
+		Msg("status update")
 
 	return time.Time{}, time.Time{}, err
 }
