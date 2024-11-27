@@ -11,6 +11,11 @@ import (
 
 // check if localAPIEndpoint is not same across the nodes
 
+func etcdStatus() ([]string, error) {
+
+	return nil, nil
+}
+
 // todo:
 //	 how to leverage lseek to get block storage space
 //	 https://stackoverflow.com/questions/46558824/how-do-i-get-a-block-devices-size-correctly-in-go

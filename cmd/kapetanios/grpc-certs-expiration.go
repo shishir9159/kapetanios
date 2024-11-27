@@ -76,7 +76,7 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 		step 5. kubeadm join <master-node>:6443 --token <23-characters-long-token>
                 --discovery-token-ca-cert-hash sha256:<64-characters-long-token>
 				--control-plane --certificate-key<64-characters-long-certificate-from-the-output-of-step-3>
-				--apiserver-advertise-address <master-node-ip> --v=14`)
+				--apiserver-advertise-address <new-master-node-ip> --v=14`)
 	}
 
 	return &pb.CertificateValidityResponse{

@@ -11,6 +11,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type ETCD struct {
@@ -170,12 +171,16 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 			zap.Error(er))
 	}
 
+	endpoints := strings.Join(etcdCluster.External.Endpoints, ";")
+
+	configMap.Data["ETCD_NODES"] = endpoints
 	configMap.Data["KUBERNETES_VERSION"] = removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)
 	configMap.Data["CertificatesDir"] = removeTabsAndShiftWhitespaces(clusterConfiguration.CertificatesDir)
 	configMap.Data["ETCD_CA_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)
 	configMap.Data["ETCD_CERT_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)
 	configMap.Data["ETCD_KEY_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)
 
+	// todo: match by ip for etcd nodes
 	for index, endpoint := range etcdCluster.External.Endpoints {
 		c.log.Info("etcd node: ",
 			zap.String("endpoint: ", endpoint))
@@ -201,6 +206,8 @@ func InitialSetup(c Controller) {
 
 	// TODO:
 	//  return the etcdCluster
+	// TODO:
+	//  create a cache layer
 	fmt.Println(etcdCluster)
 
 	err = validatingNodesState(c, "certs")
