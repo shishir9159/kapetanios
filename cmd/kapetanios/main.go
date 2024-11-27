@@ -53,15 +53,17 @@ func rollback(c *fiber.Ctx) error {
 func sanityChecking(c *fiber.Ctx) error {
 
 	//c.Accepts(`shuttle="launched"`)
+	c.Status(http.StatusOK)
 
-	return c.SendStatus(http.StatusOK)
+	return nil
 }
 
 func shuttleLaunched(c *fiber.Ctx) error {
 
 	//c.Accepts(`sanity="checked"`)
+	c.Status(http.StatusOK)
 
-	return c.SendStatus(fiber.StatusOK)
+	return nil
 }
 
 func setupRoutes(app *fiber.App) {
