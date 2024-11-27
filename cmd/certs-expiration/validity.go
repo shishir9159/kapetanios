@@ -3,14 +3,13 @@ package main
 import (
 	"bytes"
 	"crypto/x509"
-	"regexp"
-	"strings"
-
 	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"log"
 	"os/exec"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 )

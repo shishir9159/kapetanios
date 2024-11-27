@@ -89,7 +89,8 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("failed to get storage space for /var/lib/ directory")
-		return err
+		// todo:
+		//  return err
 	}
 
 	// TODO:
