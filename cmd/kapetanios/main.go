@@ -52,7 +52,7 @@ func rollback(c *fiber.Ctx) error {
 
 func sanityChecking(c *fiber.Ctx) error {
 
-	//c.Accepts(`shuttle="launched"`)
+	c.Accepts(`shuttle="launched"`)
 	c.Status(http.StatusOK)
 
 	return nil
@@ -60,7 +60,7 @@ func sanityChecking(c *fiber.Ctx) error {
 
 func shuttleLaunched(c *fiber.Ctx) error {
 
-	//c.Accepts(`sanity="checked"`)
+	c.Accepts(`sanity="checked"`)
 	c.Status(http.StatusOK)
 
 	return nil

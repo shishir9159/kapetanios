@@ -20,6 +20,7 @@ var (
 // server is used to implement proto.RenewalServer.
 type renewalServer struct {
 	pb.RenewalServer
+	log *zap.Logger
 }
 
 // ClusterHealthChecking implements proto.RenewalServer
@@ -31,11 +32,16 @@ func (s *renewalServer) ClusterHealthChecking(_ context.Context, in *pb.Prerequi
 		proceedNextStep = true
 	}
 
-	log.Printf("Received etcd status: %v", in.GetEtcdStatus())
-	log.Printf("Received certs externally managed status: %v", in.GetExternallyManagedCerts())
-	log.Printf("Received disk pressure status: %v", in.GetKubeDirFreeSpace())
-	log.Printf("Received local api endpoint: %s", in.GetLocalAPIEndpoint())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received etcd status",
+		zap.Bool("etcdStatus", in.GetEtcdStatus()))
+	s.log.Info("received certs externally managed certs",
+		zap.Bool("externallyMangedCerts", in.GetExternallyManagedCerts()))
+	s.log.Info("received free disk space in kubernetes config directory",
+		zap.Int64("available space", in.GetKubeDirFreeSpace()))
+	s.log.Info("received local api endpoint",
+		zap.String("endpoint", in.GetLocalAPIEndpoint()))
+	s.log.Info("received error",
+		zap.String("", in.GetErr()))
 
 	return &pb.RenewalResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -57,10 +63,14 @@ func (s *renewalServer) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*p
 		proceedNextStep = false
 	}
 
-	log.Printf("Received etcd backup status: %v", in.GetEtcdBackupSuccess())
-	log.Printf("Received backup sucess: %v", in.GetKubeConfigBackupSuccess())
-	log.Printf("Received restart sucess: %v", in.GetFileChecklistValidation())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received etcd backup status",
+		zap.Bool("etcd backup success", in.GetEtcdBackupSuccess()))
+	s.log.Info("received k8s config backup status",
+		zap.Bool("k8s config backup success", in.GetKubeConfigBackupSuccess()))
+	s.log.Info("received file check list validation",
+		zap.Bool("backup files verified", in.GetFileChecklistValidation()))
+	s.log.Info("backup error",
+		zap.String("backup error", in.GetErr()))
 
 	return &pb.RenewalResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -80,10 +90,14 @@ func (s *renewalServer) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (
 	//Todo:
 	// updated expiration date
 
-	log.Printf("Received renewal sucess: %v", in.GetRenewalSuccess())
-	log.Printf("Received restart sucess: %v", in.GetRenewalLog())
-	log.Printf("Received retry attempt: %v", in.GetLog())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received renewal status",
+		zap.Bool("renewal success", in.GetRenewalSuccess()))
+	s.log.Info("received renewal logs",
+		zap.String("successfully restarted", in.GetRenewalLog()))
+	s.log.Info("received application log",
+		zap.String("application log", in.GetLog()))
+	s.log.Info("received application error",
+		zap.String("application error", in.GetErr()))
 
 	return &pb.RenewalResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -104,10 +118,22 @@ func (s *renewalServer) RestartUpdate(_ context.Context, in *pb.RestartStatus) (
 
 	}
 
-	log.Printf("Received backup sucess: %v", in.GetEtcdRestart())
-	log.Printf("Received renewal sucess: %v", in.GetKubeletRestart())
-	log.Printf("Received renewal sucess: %v", in.GetEtcdError())
-	log.Printf("Received retry attempt: %s", in.GetKubeletError())
+	s.log.Info("received etcd restart status",
+		zap.Bool("etcd restart success", in.GetEtcdRestart()))
+	s.log.Info("received kubelet restart status",
+		zap.Bool("kubelet restart success", in.GetKubeletRestart()))
+	s.log.Info("received etcd logs restart log",
+		zap.String("etcd logs after restart", in.GetEtcdLog()))
+	s.log.Info("received kubelet restart log",
+		zap.String("kubelet logs after restart", in.GetKubeletLog()))
+	s.log.Info("received etcd restart error",
+		zap.String("etcd errors after restart", in.GetEtcdError()))
+	s.log.Info("received kubelet restart error",
+		zap.String("kubelet errors after restart", in.GetKubeletError()))
+	s.log.Info("received application logs",
+		zap.String("application log", in.GetLog()))
+	s.log.Info("received application error",
+		zap.String("application log", in.GetErr()))
 
 	// error occurring at the command execution
 	log.Printf("Received error: %v", in.GetErr())
