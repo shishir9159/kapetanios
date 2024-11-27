@@ -32,16 +32,12 @@ func (s *renewalServer) ClusterHealthChecking(_ context.Context, in *pb.Prerequi
 		proceedNextStep = true
 	}
 
-	s.log.Info("received etcd status",
-		zap.Bool("etcdStatus", in.GetEtcdStatus()))
-	s.log.Info("received certs externally managed certs",
-		zap.Bool("externallyMangedCerts", in.GetExternallyManagedCerts()))
-	s.log.Info("received free disk space in kubernetes config directory",
-		zap.Int64("available space", in.GetKubeDirFreeSpace()))
-	s.log.Info("received local api endpoint",
-		zap.String("endpoint", in.GetLocalAPIEndpoint()))
-	s.log.Info("received error",
-		zap.String("", in.GetErr()))
+	s.log.Info("received cluster health report",
+		zap.Bool("etcd status", in.GetEtcdStatus()),
+		zap.Bool("certs externally managed status", in.GetExternallyManagedCerts()),
+		zap.Int64("available space in kubernetes config directory", in.GetKubeDirFreeSpace()),
+		zap.String("local api endpoint", in.GetLocalAPIEndpoint()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.RenewalResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -63,13 +59,10 @@ func (s *renewalServer) BackupUpdate(_ context.Context, in *pb.BackupStatus) (*p
 		proceedNextStep = false
 	}
 
-	s.log.Info("received etcd backup status",
-		zap.Bool("etcd backup success", in.GetEtcdBackupSuccess()))
-	s.log.Info("received k8s config backup status",
-		zap.Bool("k8s config backup success", in.GetKubeConfigBackupSuccess()))
-	s.log.Info("received file check list validation",
-		zap.Bool("backup files verified", in.GetFileChecklistValidation()))
-	s.log.Info("backup error",
+	s.log.Info("received cluster backup status",
+		zap.Bool("etcd backup success", in.GetEtcdBackupSuccess()),
+		zap.Bool("k8s config backup success", in.GetKubeConfigBackupSuccess()),
+		zap.Bool("backup files verified", in.GetFileChecklistValidation()),
 		zap.String("backup error", in.GetErr()))
 
 	return &pb.RenewalResponse{
@@ -89,16 +82,11 @@ func (s *renewalServer) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (
 
 	//Todo:
 	// updated expiration date
-
 	s.log.Info("received renewal status",
-		zap.Bool("renewal success", in.GetRenewalSuccess()))
-	s.log.Info("received renewal log",
-		zap.String("successfully restarted", in.GetRenewalLog()))
-	s.log.Info("received renewal error",
-		zap.String("successfully restarted", in.GetRenewalLog()))
-	s.log.Info("received application log",
-		zap.String("application log", in.GetLog()))
-	s.log.Info("received application error",
+		zap.Bool("renewal success", in.GetRenewalSuccess()),
+		zap.String("renewal log", in.GetRenewalLog()),
+		zap.String("renewal error", in.GetRenewalLog()),
+		zap.String("application log", in.GetLog()),
 		zap.String("application error", in.GetErr()))
 
 	return &pb.RenewalResponse{
@@ -120,22 +108,15 @@ func (s *renewalServer) RestartUpdate(_ context.Context, in *pb.RestartStatus) (
 
 	}
 
-	s.log.Info("received etcd restart status",
-		zap.Bool("etcd restart success", in.GetEtcdRestart()))
-	s.log.Info("received kubelet restart status",
-		zap.Bool("kubelet restart success", in.GetKubeletRestart()))
-	s.log.Info("received etcd logs restart log",
-		zap.String("etcd logs after restart", in.GetEtcdLog()))
-	s.log.Info("received kubelet restart log",
-		zap.String("kubelet logs after restart", in.GetKubeletLog()))
-	s.log.Info("received etcd restart error",
-		zap.String("etcd errors after restart", in.GetEtcdError()))
-	s.log.Info("received kubelet restart error",
-		zap.String("kubelet errors after restart", in.GetKubeletError()))
-	s.log.Info("received application logs",
-		zap.String("application log", in.GetLog()))
-	s.log.Info("received application error",
-		zap.String("application log", in.GetErr()))
+	s.log.Info("received component successful restart status",
+		zap.Bool("etcd restart success", in.GetEtcdRestart()),
+		zap.Bool("kubelet restart success", in.GetKubeletRestart()),
+		zap.String("etcd logs after restart", in.GetEtcdLog()),
+		zap.String("kubelet logs after restart", in.GetKubeletLog()),
+		zap.String("etcd errors after restart", in.GetEtcdError()),
+		zap.String("kubelet errors after restart", in.GetKubeletError()),
+		zap.String("application log", in.GetLog()),
+		zap.String("application error", in.GetErr()))
 
 	// error occurring at the command execution
 	log.Printf("Received error: %v", in.GetErr())
