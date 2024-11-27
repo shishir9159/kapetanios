@@ -92,7 +92,9 @@ func (s *renewalServer) RenewalUpdate(_ context.Context, in *pb.RenewalStatus) (
 
 	s.log.Info("received renewal status",
 		zap.Bool("renewal success", in.GetRenewalSuccess()))
-	s.log.Info("received renewal logs",
+	s.log.Info("received renewal log",
+		zap.String("successfully restarted", in.GetRenewalLog()))
+	s.log.Info("received renewal error",
 		zap.String("successfully restarted", in.GetRenewalLog()))
 	s.log.Info("received application log",
 		zap.String("application log", in.GetLog()))

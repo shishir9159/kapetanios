@@ -105,8 +105,7 @@ func NodeHealth(c Controller, connection pb.ValidityClient) error {
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
-			Msg("Failed to exit from the updated root")
-		return err
+			Msg("failed to exit from the updated root")
 	}
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,

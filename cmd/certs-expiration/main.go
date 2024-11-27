@@ -34,7 +34,7 @@ func main() {
 		log: logger,
 	}
 
-	logger.Info().Msg("logging to os.Stdout")
+	c.log.Info().Msg("logging to os.Stdout")
 
 	flag.Parse()
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"io"
 	"log"
 	"os"
@@ -290,9 +289,8 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	backupDir, err := getBackupDir(backupCount)
@@ -301,21 +299,21 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 	// Copy Recursively
 	err = CopyDirectory(kubernetesConfigDir, backupDir)
 	if err != nil {
-		c.log.Error("Failed to take backups",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to backup kube configs")
 		// todo: send the error the server: return false, err
 	}
 
 	failedCopyFiles := fileChecklistValidation(backupDir)
 	if len(failedCopyFiles) == 0 {
-		c.log.Error("Failed to take backups",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to backup certificates")
 		// todo: send the error the server: return false, err
 	}
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
 	}
 
 	rpc, err := connection.BackupUpdate(c.ctx,
@@ -327,13 +325,14 @@ func BackupCertificatesKubeConfigs(c Controller, backupCount int, connection pb.
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
 	}
 
-	c.log.Info("Backup Status",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("backup status")
 
 	return rpc.GetProceedNextStep(), err
 }

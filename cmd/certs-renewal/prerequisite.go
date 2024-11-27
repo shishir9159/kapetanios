@@ -3,8 +3,6 @@ package main
 import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
-
 	"syscall"
 )
 
@@ -38,24 +36,26 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) (boo
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Fatal("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	freeSpace, err := getStorage("/opt/")
 
 	if err != nil {
-		c.log.Error("Failed to get storage space for /opt/ directory",
-			zap.Error(err))
-		return false, err // TODO: fetch response to proceed or not
-		//	TODO: concatenate error string
+		c.log.Error().Err(err).
+			Msg("failed to get storage space for /opt/ directory")
+
+		// TODO: fetch response to proceed or not
+		//  return false, err
+		// TODO: concatenate error string
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		c.log.Info("available free space in the /opt/ directory",
-			zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		c.log.Info().
+			Int64("free space(MB)", freeSpace/1048576).
+			Msg("available free space in the /opt/ directory")
 	}
 
 	// TODO:
@@ -64,16 +64,19 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) (boo
 	freeSpace, err = getStorage("/var/lib/")
 
 	if err != nil {
-		c.log.Error("Failed to get storage space for /var/lib/etcd directory",
-			zap.Error(err))
-		return false, err // TODO: fetch response to proceed or not
+		c.log.Error().Err(err).
+			Msg("failed to get storage space for /var/lib/ directory")
+
+		// TODO: fetch response to proceed or not
+		//  return false, err
 		//	TODO: concatenate error string
 	}
 
 	// TODO:
 	if freeSpace != 0 {
-		c.log.Info("available free space in the /var/lib/etcd directory",
-			zap.Int64("freeSpace in MB ", freeSpace/1048576))
+		c.log.Info().
+			Int64("free space(MB)", freeSpace/1048576).
+			Msg("available free space in the /var/lib/ directory")
 	}
 
 	// TODO: etcd status
@@ -81,10 +84,8 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) (boo
 	//  --cacert=/etc/etcd/pki/ca.pem --cert=/etc/etcd/pki/etcd.cert --key=/etc/etcd/pki/etcd.key
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
-
-		return false, err
+		c.log.Fatal().Err(err).
+			Msg("Failed to exit from the updated root")
 	}
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
@@ -98,13 +99,14 @@ func PrerequisitesForCertRenewal(c Controller, connection pb.RenewalClient) (boo
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
 	}
 
-	c.log.Info("Status Update",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("status update")
 
 	return rpc.GetProceedNextStep(), nil
 }

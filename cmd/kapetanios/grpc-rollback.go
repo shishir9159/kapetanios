@@ -15,6 +15,7 @@ import (
 // rollbackServer is used to implement proto.RollbackServer.
 type rollbackServer struct {
 	pb.RollbackServer
+	log *zap.Logger
 }
 
 // Prerequisites implements proto.RollbackServer

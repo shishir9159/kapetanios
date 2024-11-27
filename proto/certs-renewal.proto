@@ -25,8 +25,9 @@ message BackupStatus {
 message RenewalStatus {
   bool renewalSuccess = 1;
   string renewalLog = 2;
-  string log = 3;
-  string err = 4;
+  string renewalError = 3;
+  string log = 4;
+  string err = 5;
 }
 
 message RestartStatus {

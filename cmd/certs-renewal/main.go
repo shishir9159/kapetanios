@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/rs/zerolog"
 	pb "github.com/shishir9159/kapetanios/proto"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"os"
 	"time"
 )
 
@@ -30,7 +31,7 @@ var (
 
 type Controller struct {
 	ctx context.Context
-	log *zap.Logger
+	log zerolog.Logger
 }
 
 func main() {
@@ -38,21 +39,12 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
-	logger := zap.Must(zap.NewProduction())
-	// TODO: replace zap with zeroLog
+	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().Timestamp().Logger()
 
 	c := Controller{
 		ctx: ctx,
 		log: logger,
 	}
-
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
-			c.log.Error("failed to close logger",
-				zap.Error(er))
-		}
-	}(logger)
 
 	flag.Parse()
 	// Set up a connection to the server.
@@ -61,16 +53,16 @@ func main() {
 		grpc.WithDefaultServiceConfig(retryPolicy))
 
 	if err != nil {
-		c.log.Error("did not connect",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not connect to kapetanios")
 	}
 
 	//grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
 		if er != nil {
-			c.log.Error("failed to close the grpc connection",
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Msg("could not close the grpc connection to kapetanios")
 		}
 	}(conn)
 
@@ -79,8 +71,8 @@ func main() {
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := PrerequisitesForCertRenewal(c, connection)
 		if er != nil {
-			c.log.Error("failed to get cluster health status",
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Msg("failed to get cluster health status")
 		}
 
 		if skip {
@@ -92,8 +84,9 @@ func main() {
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := BackupCertificatesKubeConfigs(c, backupCount, connection)
 		if er != nil {
-			c.log.Error("failed to backup certificates and kubeConfigs",
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Msg("failed to backup certificates and kubeConfigs")
+
 		}
 
 		if skip {
@@ -105,8 +98,8 @@ func main() {
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := Renew(c, connection)
 		if er != nil {
-			c.log.Error("failed to renew certificates and kubeConfigs",
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Msg("failed to renew the certificates and kubeConfigs")
 		}
 
 		if skip {
@@ -121,8 +114,8 @@ func main() {
 		var skip bool
 		skip, overrideUserKubeConfig, err = Restart(c, connection)
 		if err != nil {
-			c.log.Error("failed to restart kubernetes components after certificate renewal",
-				zap.Error(err))
+			c.log.Error().Err(err).
+				Msg("failed to restart the certificates and kubeConfigs")
 		}
 
 		if !skip {

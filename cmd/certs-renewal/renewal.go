@@ -4,9 +4,7 @@ import (
 	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"os/exec"
-	"time"
 )
 
 //  kubeadm kubeconfig --help
@@ -20,9 +18,8 @@ func Renew(c Controller, connection pb.RenewalClient) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	// whereis kubeadm
@@ -37,32 +34,32 @@ func Renew(c Controller, connection pb.RenewalClient) (bool, error) {
 
 	err = cmd.Run()
 	if err != nil {
-		c.log.Error("Failed to renew certificates",
-			zap.Error(err))
-		time.Sleep(3 * time.Second)
+		c.log.Error().Err(err).
+			Msg("failed to renew certificates")
 	}
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("Failed to exit from the updated root")
 	}
 
 	rpc, err := connection.RenewalUpdate(c.ctx,
 		&pb.RenewalStatus{
 			RenewalSuccess: true,
 			RenewalLog:     "",
+			RenewalError:   "",
 			Log:            "",
 			Err:            "",
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
 	}
 
-	c.log.Info("Backup Status",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication())
 
 	return rpc.GetProceedNextStep(), err
 }
