@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"net"
 )
 
@@ -31,9 +30,10 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	}
 
-	log.Printf("Received etcd status: %t", in.GetEtcdStatus())
-	log.Printf("Received storage availability: %v", in.GetStorageAvailability())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received cluster health status",
+		zap.Bool("etcd status", in.GetEtcdStatus()),
+		zap.Uint64("received storage availability", in.GetStorageAvailability()),
+		zap.String("received error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -51,8 +51,9 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 
 	}
 
-	log.Printf("Received k8s component version: %s", in.GetVersion())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("available version list",
+		zap.Strings("k8s component version", in.GetVersion()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.ClusterUpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -72,9 +73,10 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	}
 
-	log.Printf("Received os compatibility: %t", in.GetOsCompatibility())
-	log.Printf("Received kubernetes version diff: %v", in.GetDiff())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received cluster compatibility report",
+		zap.Bool("os compatibility", in.GetOsCompatibility()),
+		zap.String("kubernetes version diff", in.GetDiff()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -95,10 +97,11 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	}
 
-	log.Printf("Received component upgrade status: %t", in.GetComponentUpgradeSuccess())
-	log.Printf("for the k8s component: %v", in.GetComponent())
-	log.Printf("Received log: %v", in.GetLog())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received cluster component upgrade status",
+		zap.Bool("component successful upgrade", in.GetComponentUpgradeSuccess()),
+		zap.String("component", in.GetComponent()),
+		zap.String("log", in.GetLog()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -116,9 +119,10 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	}
 
-	log.Printf("Received current cluster version: %s", in.GetCurrentClusterVersion())
-	log.Printf("Received log: %v", in.GetLog())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received cluster upgrade plan",
+		zap.String("cluster version", in.GetCurrentClusterVersion()),
+		zap.String("received log", in.GetLog()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -136,9 +140,10 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	}
 
-	log.Printf("Received cluster upgrade status: %t", in.GetUpgradeSuccess())
-	log.Printf("Received log: %v", in.GetLog())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received cluster upgrade plan",
+		zap.Bool("cluster upgrade status", in.GetUpgradeSuccess()),
+		zap.String("log", in.GetLog()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
@@ -156,10 +161,11 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	}
 
-	log.Printf("Received component restart status: %t", in.GetComponentRestartSuccess())
-	log.Printf("for the component: %v", in.GetComponent())
-	log.Printf("Received log: %v", in.GetLog())
-	log.Printf("Received error: %v", in.GetErr())
+	s.log.Info("received cluster component restart status",
+		zap.Bool("component restart success", in.GetComponentRestartSuccess()),
+		zap.String("component", in.GetComponent()),
+		zap.String("log", in.GetLog()),
+		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
