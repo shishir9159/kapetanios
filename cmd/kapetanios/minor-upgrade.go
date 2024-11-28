@@ -172,8 +172,7 @@ func MinorUpgradeFirstRun(namespace string) {
 
 	// TODO: wouldn't work on one master node where lighthouse is scheduled
 	// TODO: possible error, lighthouse can be on a master node, that would be mistakenly upgraded at the last
-
-	//	// and sort the list from the smallest worker node by resources
+	// and sort the list from the smallest worker node by resources
 
 	sort.Slice(nodes.Items, func(i, j int) bool {
 		if nodes.Items[i].Name == kapetaniosNode {
@@ -200,9 +199,7 @@ func MinorUpgradeFirstRun(namespace string) {
 
 	if len(nodes.Items) == 0 {
 		c.log.Error("no nodes found",
-			//	return err or call grpc
 			zap.Error(err))
-
 	}
 
 	roleName := "minor-upgrade"
@@ -213,9 +210,6 @@ func MinorUpgradeFirstRun(namespace string) {
 		c.log.Info("condition",
 			zap.String("node.ObjectMeta.Name", node.ObjectMeta.Name),
 			zap.Bool("node.ObjectMeta.Name == kapetaniosNode", node.ObjectMeta.Name == kapetaniosNode))
-
-		// for reliability purposes, do it for all the nodes
-		// if node.ObjectMeta.Name == kapetaniosNode {
 
 		configMapName := "kapetanios"
 		//  todo: refactor this hardcoded part
@@ -245,7 +239,6 @@ func MinorUpgradeFirstRun(namespace string) {
 
 		c.log.Info("nodes to be upgraded",
 			zap.String("node to be", strings.Join(nodeNames, ";")))
-		//}
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
@@ -303,11 +296,10 @@ func MinorUpgradeFirstRun(namespace string) {
 
 		descriptor.Spec.Containers[0].Env = env
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
-		// todo: query for the kube-dns ip
+
 		//descriptor.Spec.DNSConfig = &corev1.PodDNSConfig{
-		//	Nameservers: []string{"10.96.0.10"},
-		//	Searches:    []string{"svc.cluster.local"},
-		//	//Options:     nil,
+		//Nameservers: []string{"10.96.0.10"},
+		//Searches:    []string{"svc.cluster.local"},
 		//}
 
 		// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
