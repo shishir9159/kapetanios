@@ -219,7 +219,7 @@ func MinorUpgradeFirstRun(namespace string) {
 
 		configMapName := "kapetanios"
 		//  todo: refactor this hardcoded part
-		targetedVersion := "1.26.5-1.1"
+		targetedVersion := "1.26.6-1.1"
 
 		configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.TODO(), configMapName, metav1.GetOptions{})
 		if er != nil {
