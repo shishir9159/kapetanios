@@ -4,7 +4,6 @@ import (
 	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"os/exec"
 )
@@ -13,9 +12,8 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, "", err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	// upgrade plan to list available upgrade options
@@ -32,8 +30,8 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	err = cmd.Run()
 
 	if err != nil {
-		c.log.Info("cmd.Run() failed with",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("error calculating cluster upgrade diff")
 		// TODO: return the error to the server : return false, "", err
 	}
 
@@ -41,8 +39,8 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	diff, _ := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
 	}
 
 	conn.ResetConnectBackoff()
@@ -56,14 +54,16 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		// TODO: retry for communication
 		return false, "", err
 	}
 
-	c.log.Info("upgrade diff",
-		zap.Bool("proceed to the next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("upgrade diff")
 
 	return rpc.GetProceedNextStep(), diff, nil
 }

@@ -4,11 +4,9 @@ import (
 	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"os"
 	"os/exec"
-	"time"
 )
 
 func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, error) {
@@ -20,9 +18,8 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	// TODO: get the version number from the upgrade plan
@@ -87,8 +84,8 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	//[upgrade/kubelet] Now that your control plane is upgraded, please proceed with upgrading your kubelets if you haven't already done so.
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
 	}
 
 	conn.ResetConnectBackoff()
@@ -102,14 +99,16 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		// TODO: retry for communication
 		return false, err
 	}
 
-	c.log.Info("Backup Status",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("upgrade status")
 
 	return rpc.GetProceedNextStep(), nil
 }
@@ -120,9 +119,8 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	// todo: --allow-unauthenticated make it optional
@@ -134,34 +132,34 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	err = cmd.Run()
 
 	if err != nil {
-		c.log.Error("Failed to install kubeadm",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to upgrade k8s component")
+		// TODO: check updated kubeadm version
+		//  return false, err
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	c.log.Info("outString and errString",
-		zap.String("outStr", outStr),
-		zap.String("errStr", errStr))
+	c.log.Info().
+		Str("outStr", outStr).
+		Str("errStr", errStr).
+		Msg("outString and errString")
 
 	cmd = exec.Command("/bin/bash", "-c", "kubeadm version")
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
 	outStr = string(stdoutBuf.Bytes())
-	c.log.Info("outString kubeadm version",
-		zap.String("outStr", outStr))
 
-	time.Sleep(4 * time.Second)
 	if err != nil {
-		c.log.Error("Failed to get kubeadm version",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to upgrade k8s component")
 		// TODO: check updated kubeadm version
 		//  return false, err
 	}
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
 	}
 
 	// TODO:
@@ -181,14 +179,16 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		// TODO: retry for communication
 		return false, err
 	}
 
-	c.log.Info("cluster upgrade response",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("upgrade status")
 
 	return rpc.GetProceedNextStep(), nil
 }
@@ -233,9 +233,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, "", err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	// TODO:
@@ -262,8 +261,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	// perform an upgrade.
 
 	if err != nil {
-		c.log.Error("Failed to get kubeadm upgrade plan",
-			zap.Error(err))
+		c.log.Error().Err(err).Msg("failed to calculate upgrade plan")
+		// todo: return false, "", err
 	}
 
 	//  W1018 10:00:57.703527  599279 common.go:84] your configuration file uses a deprecated API spec: "kubeadm.k8s.io/v1beta2". Please use 'kubeadm config migrate --old-config old.yaml --new-config new.yaml', which will write the new, similar spec using a newer API version.
@@ -285,8 +284,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	//[upgrade/versions] Latest version in the v1.26 series: v1.26.15
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
 	}
 
 	conn.ResetConnectBackoff()
@@ -301,14 +300,16 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		// TODO: retry for communication
 		return false, "", err
 	}
 
-	c.log.Info("Backup Status",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("upgrade status")
 
 	return rpc.GetProceedNextStep(), "", err
 }

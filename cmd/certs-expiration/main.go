@@ -27,7 +27,7 @@ func main() {
 
 	// TODO: set log level
 
-	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().Timestamp().Logger()
+	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().Timestamp().Caller().Logger()
 
 	c := Controller{
 		ctx: ctx,

@@ -4,11 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
-	"net"
-
 	pb "github.com/shishir9159/kapetanios/proto"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"net"
 )
 
 // expirationServer is used to implement proto.ValidityServer.

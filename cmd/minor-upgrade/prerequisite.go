@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	pb "github.com/shishir9159/kapetanios/proto"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"os"
 )
@@ -33,14 +32,15 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, error) {
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
 		return false, err
 	}
 
-	c.log.Info("prerequisite step response",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetProceedNextStep()).
+		Msg("prerequisite step response")
 
 	return rpc.GetProceedNextStep(), nil
 }

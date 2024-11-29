@@ -8,8 +8,7 @@ import (
 
 // todo:
 //  move to internal/ cluster health check
-
-// check if localAPIEndpoint is not same across the nodes
+//  check if localAPIEndpoint is not same across the nodes
 
 func etcdStatus() ([]string, error) {
 

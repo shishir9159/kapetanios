@@ -4,7 +4,6 @@ import (
 	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"os/exec"
 )
@@ -19,9 +18,8 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Fatal("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	// refactor into two
@@ -33,13 +31,13 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 	err = cmd.Run()
 
 	if err != nil {
-		c.log.Error("Failed to restart kubelet",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to restart kubelet")
 	}
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
 	}
 
 	conn.ResetConnectBackoff()
@@ -54,14 +52,16 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		// TODO: retry for communication
 		return false, err
 	}
 
-	c.log.Info("Backup Status",
-		zap.Bool("next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()))
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("backup status")
 
 	return rpc.GetProceedNextStep(), nil
 }

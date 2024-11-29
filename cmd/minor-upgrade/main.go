@@ -4,9 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"os"
 	"time"
 	//"github.com/rs/zerolog/log"
 )
@@ -18,7 +19,7 @@ var (
 
 type Controller struct {
 	ctx context.Context
-	log *zap.Logger
+	log zerolog.Logger
 }
 
 func main() {
@@ -26,10 +27,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
 
-	logger, err := zap.NewProduction()
-	if err != nil {
-		fmt.Println(err)
-	}
+	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().Timestamp().Caller().Logger()
 
 	// TODO:
 	//  replace zap with zeroLog
@@ -39,37 +37,31 @@ func main() {
 		log: logger,
 	}
 
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
-			c.log.Error("failed to close logger",
-				zap.Error(er))
-		}
-	}(logger)
-
 	flag.Parse()
 
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		c.log.Error("did not connect",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("couldn't connect to the kapetanios")
+
 	}
+
 	//grpc.WithDisableServiceConfig()
 	defer func(conn *grpc.ClientConn) {
 		er := conn.Close()
 		if er != nil {
-			c.log.Error("failed to close the grpc connection",
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Msg("failed to close the grpc connection")
 		}
 	}(conn)
 
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := Prerequisites(c, conn)
 		if er != nil {
-			c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
-				zap.Int("attempt", i),
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to check prerequisites for cluster upgrade")
 		}
 
 		if skip {
@@ -84,19 +76,14 @@ func main() {
 		skip, version, err = availableVersions(c, conn)
 
 		if err != nil {
-			c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
-				zap.Int("attempt", i),
-				zap.Error(err))
+			c.log.Error().Err(err).
+				Int("attempt", i).
+				Msg("failed to fetch minor versions for the kubernetes upgrade")
 		}
 
 		if skip {
 			break
 		}
-	}
-
-	if err != nil {
-		c.log.Error("failed to fetch minor versions for kubernetes version upgrade",
-			zap.Error(err))
 	}
 
 	// todo: include in the testing
@@ -116,9 +103,9 @@ func main() {
 		var skip bool
 		skip, diff, err = compatibility(c, "v1.26.5", conn)
 		if err != nil {
-			c.log.Error("failed to get diff",
-				zap.Int("attempt", i),
-				zap.Error(err))
+			c.log.Error().Err(err).
+				Int("attempt", i).
+				Msg("failed to diff")
 		}
 
 		if skip {
@@ -126,15 +113,17 @@ func main() {
 		}
 	}
 
-	c.log.Info("diff for upgrade plan",
-		zap.String("diff", diff))
+	c.log.Info().
+		Str("version", version).
+		Str("diff", diff).
+		Msg("diff for upgrade plan")
 
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := k8sComponentsUpgrade(c, "kubeadm", version, conn)
 		if er != nil {
-			c.log.Error("failed to get upgrade kubeadm",
-				zap.Int("attempt", i),
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade kubeadm")
 		}
 
 		if skip {
@@ -147,9 +136,9 @@ func main() {
 		var skip bool
 		skip, plan, err = upgradePlan(c, conn)
 		if err != nil {
-			c.log.Error("failed to get upgrade plan",
-				zap.Int("attempt", i),
-				zap.Error(err))
+			c.log.Error().Err(err).
+				Int("attempt", i).
+				Msg("failed to get upgrade plan")
 		}
 
 		if skip {
@@ -162,9 +151,9 @@ func main() {
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := clusterUpgrade(c, version, conn)
 		if er != nil {
-			c.log.Error("failed to get upgrade plan",
-				zap.Int("attempt", i),
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade cluster")
 		}
 
 		if skip {
@@ -175,9 +164,9 @@ func main() {
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := k8sComponentsUpgrade(c, "kubelet", version, conn)
 		if er != nil {
-			c.log.Error("failed to get upgrade plan",
-				zap.Int("attempt", i),
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade kubelet")
 		}
 
 		if skip {
@@ -188,9 +177,9 @@ func main() {
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := restartComponent(c, "kubelet", conn)
 		if er != nil {
-			c.log.Error("failed to restart kubelet",
-				zap.Int("attempt", i),
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to restart kubelet")
 		}
 
 		if skip {
@@ -204,9 +193,9 @@ func main() {
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := k8sComponentsUpgrade(c, "kubectl", version, conn)
 		if er != nil {
-			c.log.Error("failed to get upgrade plan",
-				zap.Int("attempt", i),
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade kubectl")
 		}
 
 		if skip {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"os/exec"
 	"strings"
@@ -14,9 +13,8 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
-		c.log.Error("Failed to create chroot on /host",
-			zap.Error(err))
-		return false, "", err
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
 	}
 
 	cmd := exec.Command("/bin/bash", "-c", "apt update -y")
@@ -27,8 +25,8 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	err = cmd.Run()
 
 	if err != nil {
-		c.log.Error("Failed to update vm",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to fetch repository updates")
 	}
 
 	// TODO: detect redhat, and run: yum list --showduplicates kubeadm --disableexcludes=kubernetes
@@ -44,22 +42,23 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	// extract second and the third column
 
 	if err != nil {
-		c.log.Error("Failed to list available versions",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("failed to list available versions")
 		// TODO: refactor this to send the error : return false, "", err
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	c.log.Info("outString and errString",
-		zap.String("outStr", outStr),
-		zap.String("errStr", errStr))
+	c.log.Info().
+		Str("out", outStr).
+		Str("err", errStr).
+		Msg("outString & errString")
 
 	availableVersionSlice := strings.Split(outStr, "\n")
 
 	if len(availableVersionSlice) == 0 {
-		c.log.Error("no available versions for minor upgrade",
-			zap.Error(err))
-		// todo: panic??? return false, "", err
+		c.log.Error().Err(err).
+			Msg("no available versions found for minor upgrade")
+		// todo: return false, "", err
 	}
 
 	// TODO:
@@ -67,8 +66,8 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	//  values
 
 	if err = changedRoot(); err != nil {
-		c.log.Fatal("Failed to exit from the updated root",
-			zap.Error(err))
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
 	}
 
 	conn.ResetConnectBackoff()
@@ -81,16 +80,18 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		})
 
 	if err != nil {
-		c.log.Error("could not send status update: ",
-			zap.Error(err))
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		// TODO: retry for communication
 		return false, "", err
 	}
 
-	c.log.Info("available versions",
-		zap.Bool("proceed to next step", rpc.GetProceedNextStep()),
-		zap.Bool("terminate application", rpc.GetTerminateApplication()),
-		zap.Bool("certificate renewal", rpc.GetCertificateRenewal()),
-		zap.String("fetch the version to upgrade", rpc.GetVersion()))
+	c.log.Info().
+		Bool("proceed to next step", rpc.GetProceedNextStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Bool("certificate renewal", rpc.GetCertificateRenewal()).
+		Str("fetch the version to upgrade", rpc.GetVersion()).
+		Msg("available versions")
 
 	return rpc.GetProceedNextStep(), rpc.GetVersion(), nil
 }

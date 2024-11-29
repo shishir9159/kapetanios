@@ -182,8 +182,6 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 
 	// todo: match by ip for etcd nodes
 	for index, endpoint := range etcdCluster.External.Endpoints {
-		c.log.Info("etcd node: ",
-			zap.String("endpoint: ", endpoint))
 		configMap.Data["ETCD_NODE_"+strconv.Itoa(index+1)] = endpoint
 	}
 
