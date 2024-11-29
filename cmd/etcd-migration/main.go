@@ -2,38 +2,51 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"os"
+)
+
+var (
+	maxAttempts = 3
+	addr        = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	retryPolicy = `{
+		"methodConfig": [{
+		  "retryPolicy": {
+			  "MaxAttempts": 4,
+			  "InitialBackoff": ".01s",
+			  "MaxBackoff": ".01s",
+			  "BackoffMultiplier": 4.0,
+			  "RetryableStatusCodes": [ "UNAVAILABLE", "DEADLINE_EXCEEDED" ]
+		  }
+		}]}`
 )
 
 type Controller struct {
 	ctx context.Context
-	log *zap.Logger
+	log zerolog.Logger
 }
 
 func main() {
 
-	logger, err := zap.NewProduction()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	//zap.ReplaceGlobals(logger)
-
-	// replace zap with zerolog
+	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().Timestamp().Caller().Logger()
 
 	c := Controller{
 		ctx: context.Background(),
 		log: logger,
 	}
 
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
-			c.log.Error("failed to close logger",
-				zap.Error(er))
-		}
-	}(logger)
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(retryPolicy))
+	if err != nil {
+		c.log.Error().Err(err).
+			Msg("couldn't connect to the kapetanios")
+	}
+
+	fmt.Println(conn)
 
 	//	TODO: etcd remove
 	//	 ETCDCTL_API=3 etcdctl endpoint health --endpoints=https://10.0.0.7:2379,https://10.0.0.9:2379,https://10.0.0.10:2379

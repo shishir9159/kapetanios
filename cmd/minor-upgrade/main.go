@@ -9,12 +9,21 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"os"
 	"time"
-	//"github.com/rs/zerolog/log"
 )
 
 var (
 	maxAttempts = 3
 	addr        = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	retryPolicy = `{
+		"methodConfig": [{
+		  "retryPolicy": {
+			  "MaxAttempts": 4,
+			  "InitialBackoff": ".01s",
+			  "MaxBackoff": ".01s",
+			  "BackoffMultiplier": 4.0,
+			  "RetryableStatusCodes": [ "UNAVAILABLE", "DEADLINE_EXCEEDED" ]
+		  }
+		}]}`
 )
 
 type Controller struct {
@@ -42,7 +51,8 @@ func main() {
 	flag.Parse()
 
 	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(retryPolicy))
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("couldn't connect to the kapetanios")
