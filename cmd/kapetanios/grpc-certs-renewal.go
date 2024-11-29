@@ -16,7 +16,7 @@ var (
 	port = flag.Int("port", 50051, "The server port")
 )
 
-// server is used to implement proto.RenewalServer.
+// renewalServer is used to implement proto.RenewalServer.
 type renewalServer struct {
 	pb.RenewalServer
 	log *zap.Logger
@@ -127,27 +127,30 @@ func (s *renewalServer) RestartUpdate(_ context.Context, in *pb.RestartStatus) (
 	}, nil
 }
 
-func CertGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
+func CertGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Error("failed to listen",
+		zlog.Error("failed to listen",
 			zap.Error(err))
 	}
 
 	s := grpc.NewServer()
+	server := renewalServer{
+		log: zlog,
+	}
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterRenewalServer(s, &renewalServer{})
+	pb.RegisterRenewalServer(s, &server)
 
-	log.Info("cert renewal sever listening")
+	zlog.Info("cert renewal sever listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
-		log.Error("failed to serve",
+		zlog.Error("failed to serve",
 			zap.Error(er))
 	}
 
-	log.Info("Shutting down gRPC server...")
+	zlog.Info("Shutting down gRPC server...")
 }

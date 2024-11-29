@@ -11,7 +11,7 @@ import (
 	"net"
 )
 
-// server is used to implement proto.MinorUpgradeServer.
+// minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
 	log *zap.Logger
@@ -173,28 +173,31 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-func MinorUpgradeGrpc(log *zap.Logger, ch chan<- *grpc.Server) {
+func MinorUpgradeGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Error("failed to listen",
+		zlog.Error("failed to listen",
 			zap.Error(err))
 	}
 
 	s := grpc.NewServer()
+	server := minorUpgradeServer{
+		log: zlog,
+	}
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterMinorUpgradeServer(s, &minorUpgradeServer{})
+	pb.RegisterMinorUpgradeServer(s, &server)
 
-	log.Info("upgrade server listening")
+	zlog.Info("upgrade server listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
-		log.Error("failed to serve",
+		zlog.Error("failed to serve",
 			zap.Error(er))
 	}
 
-	log.Info("Shutting down gRPC server...")
+	zlog.Info("Shutting down gRPC server...")
 }
