@@ -102,6 +102,9 @@ func main() {
 	//	Logger: logger,
 	//}))
 
+	// TODO:
+	//  sync.pool for caching mechanism
+
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
