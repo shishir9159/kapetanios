@@ -144,19 +144,6 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		Str("errStr", errStr).
 		Msg("outString and errString")
 
-	cmd = exec.Command("/bin/bash", "-c", "kubeadm version")
-	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
-
-	err = cmd.Run()
-	outStr = string(stdoutBuf.Bytes())
-
-	if err != nil {
-		c.log.Error().Err(err).
-			Msg("failed to upgrade k8s component")
-		// TODO: check updated kubeadm version
-		//  return false, err
-	}
-
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to exit from the updated root")

@@ -24,6 +24,8 @@ type Controller struct {
 
 func main() {
 
+	// TODO: optional backups
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
 
@@ -203,5 +205,5 @@ func main() {
 		}
 	}
 
-	// TODO: sanityChecking & finalizer
+	// TODO: sanityCheck/validation for cluster upgrade & finalizer
 }
