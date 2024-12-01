@@ -6,11 +6,9 @@ import (
 	"go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -206,29 +204,24 @@ func etcdStatus(etcdCluster ETCD) string {
 	//	 ETCDCTL_API=3 etcdctl endpoint health --endpoints=https://10.0.0.7:2379,https://10.0.0.9:2379,https://10.0.0.10:2379
 	//	 --cacert=/etc/etcd/pki/ca.pem --cert=/etc/etcd/pki/etcd.cert --key=/etc/etcd/pki/etcd.key
 
-	client := &http.Client{}
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute)
 
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   etcdCluster.External.Endpoints,
 		DialTimeout: 5 * time.Second,
 	})
-	if err != nil {
-		// handle error!
-	}
+
 	defer cli.Close()
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:2379/v2/stats/leader", nil)
-	if err != nil {
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-	}
-	defer resp.Body.Close()
-	bodyText, err := io.ReadAll(resp.Body)
-	if err != nil {
+	if err == context.DeadlineExceeded {
+		// handle errors
 	}
 
-	fmt.Printf("%s\n", bodyText)
+	status, err := cli.Maintenance.Status(ctx, etcdCluster.External.Endpoints[0])
+
+	if err != nil {
+		fmt.Println(status.Errors)
+	}
 
 	// TODO: populate the certificates in a secret or in the cache
 
@@ -248,9 +241,7 @@ func InitialSetup(c Controller) {
 	// TODO:
 	//  create a cache layer
 
-	//etcdStatus(*etcdCluster)
-
-	fmt.Println(etcdCluster)
+	etcdStatus(*etcdCluster)
 
 	err = validatingNodesState(c, "certs")
 	if err != nil {
