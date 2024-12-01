@@ -100,7 +100,7 @@ func main() {
 
 	// todo: include in the testing
 	testing := false
-	version = "1.26.5-1.1"
+	version = "1.26.6-1.1"
 
 	if testing {
 		//version = kubernetesVersion
@@ -113,7 +113,7 @@ func main() {
 	var diff string
 	for i := 0; i < maxAttempts; i++ {
 		var skip bool
-		skip, diff, err = compatibility(c, "v1.26.5", conn)
+		skip, diff, err = compatibility(c, "v1.26.6", conn)
 		if err != nil {
 			c.log.Error().Err(err).
 				Int("attempt", i).
