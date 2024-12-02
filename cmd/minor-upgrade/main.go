@@ -8,6 +8,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -38,7 +40,28 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
 
-	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().Timestamp().Caller().Logger()
+	//if debug == true {
+	//	out := os.Stdout
+	//	logLevel := zerolog.DebugLevel
+	//}
+
+	logger := zerolog.New(zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: time.RFC3339Nano,
+		FormatLevel: func(i interface{}) string {
+			return strings.ToUpper(fmt.Sprintf("[%s]", i))
+		},
+		FormatMessage: func(i interface{}) string {
+			return fmt.Sprintf("| %s |", i)
+		},
+		FormatCaller: func(i interface{}) string {
+			return filepath.Base(fmt.Sprintf("%s", i))
+		},
+		PartsExclude: []string{
+			zerolog.TimestampFieldName,
+		},
+	}).With().Timestamp().Caller().Stack().Logger()
+	//.Level(zerolog.InfoLevel)
 
 	// TODO:
 	//  replace zap with zeroLog
