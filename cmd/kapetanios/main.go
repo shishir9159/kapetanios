@@ -106,19 +106,6 @@ func main() {
 		// handle the connection, usually in a new Go routine
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			fmt.Fprintf(w, "Spinning up gRPC server...")
-			go startGRPCServer()
-		} else {
-			http.Error(w, "Only GET method is supported", http.StatusMethodNotAllowed)
-		}
-	})
-
-	quic.ApplicationErrorCode()
-
-	log.Fatal(http3.ListenAndServeQUIC(":443", "cert.pem", "key.pem", nil))
-
 	app := fiber.New()
 
 	//logger, err := zap.NewProduction()
