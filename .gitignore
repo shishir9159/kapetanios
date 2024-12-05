@@ -9,6 +9,11 @@
 *.dylib
 server
 
+# generated certificates for local testing
+cert.csr
+cert.pem
+key.pem
+
 # Test binary, built with `go test -c`
 *.test
 

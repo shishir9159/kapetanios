@@ -25,7 +25,7 @@ func (s *expirationServer) ClusterHealthChecking(_ context.Context, in *pb.Prere
 		zap.String("received error", in.GetErr()))
 
 	return &pb.CertificateValidityResponse{
-		ResponseReceived: false,
+		ResponseReceived: true,
 	}, nil
 }
 
@@ -79,7 +79,7 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	}
 
 	return &pb.CertificateValidityResponse{
-		ResponseReceived: false,
+		ResponseReceived: true,
 	}, nil
 }
 
