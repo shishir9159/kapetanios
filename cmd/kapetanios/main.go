@@ -8,6 +8,7 @@ import (
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/quic-go/webtransport-go"
+	"log"
 	"net"
 	"net/http"
 )
@@ -46,6 +47,40 @@ func minorUpgrade(c *fiber.Ctx) error {
 	//go MinorUpgradeFirstRun(minorUpgradeNamespace)
 
 	return c.JSON(fiber.Map{"status": http.StatusOK})
+}
+
+func collback(w http.ResponseWriter, r *http.Request) {
+
+	go Rollback(certRenewalNamespace)
+
+	// Upgrade the connection to WebTransport
+	w.Header().Set("Content-Type", "text/plain")
+	r.
+	if !http3.CheckIsExtendedConnect(r) {
+		http.Error(w, "Expected a WebTransport connect", http.StatusBadRequest)
+		return
+	}
+
+	log.Println("New WebTransport connection")
+	session, ok := w.(http3.WebTransportSession)
+	if !ok {
+		http.Error(w, "Failed to create WebTransport session", http.StatusInternalServerError)
+		return
+	}
+
+	// Start streaming logs to the client
+	go streamLogs(session)
+
+	// Handle incoming streams for acknowledgments
+	for {
+		stream, err := session.AcceptStream(context.Background())
+		if err != nil {
+			log.Println("Error accepting stream:", err)
+			break
+		}
+		go handleAcknowledgments(stream)
+	}
+
 }
 
 func rollback(c *fiber.Ctx) error {
@@ -97,9 +132,24 @@ func main() {
 
 	s := webtransport.Server{
 		H3: http3.Server{
-			Addr: ":443",
-			TLSConfig: &tls.Config{}, // use your tls.Config here
+			Addr:               ":443",
+			Port:               0,
+			TLSConfig:          &tls.Config{
+
+			}, // use your tls.Config here
+			QUICConfig:         nil,
+			Handler:            http.HandlerFunc(collback),
+			EnableDatagrams:    false,
+			MaxHeaderBytes:     0,
+			AdditionalSettings: nil,
+			StreamHijacker:     nil,
+			UniStreamHijacker:  nil,
+			IdleTimeout:        0,
+			ConnContext:        nil,
+			Logger:             nil,
 		},
+		ReorderingTimeout: 0,
+		CheckOrigin:       nil,
 	}
 
 	// Create a new HTTP endpoint /webtransport.
@@ -113,7 +163,10 @@ func main() {
 		// Handle the session. Here goes the application logic.
 	})
 
-	s.ListenAndServeTLS(<certFile>, <keyFile>)
+	err := s.ListenAndServeTLS("cert.pem", "key.pem")
+	if err != nil {
+		return
+	}
 
 	udpConn, err := net.ListenUDP("udp4", &net.UDPAddr{Port: 1234})
 	// ... error handling
