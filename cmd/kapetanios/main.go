@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"crypto/tls"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/swagger"
 	"github.com/quic-go/quic-go"
+	"github.com/quic-go/quic-go/http3"
+	"github.com/quic-go/webtransport-go"
 	"net"
 	"net/http"
 )
@@ -92,6 +94,26 @@ func SetupGroupRoutes(router fiber.Router) {
 }
 
 func main() {
+
+	s := webtransport.Server{
+		H3: http3.Server{
+			Addr: ":443",
+			TLSConfig: &tls.Config{}, // use your tls.Config here
+		},
+	}
+
+	// Create a new HTTP endpoint /webtransport.
+	http.HandleFunc("/webtransport", func(w http.ResponseWriter, r *http.Request) {
+		sess, err := s.Upgrade(w, r)
+		if err != nil {
+			//log.Printf("upgrading failed: %s", err)
+			w.WriteHeader(500)
+			return
+		}
+		// Handle the session. Here goes the application logic.
+	})
+
+	s.ListenAndServeTLS(<certFile>, <keyFile>)
 
 	udpConn, err := net.ListenUDP("udp4", &net.UDPAddr{Port: 1234})
 	// ... error handling
