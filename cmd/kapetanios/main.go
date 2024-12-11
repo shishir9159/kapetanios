@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/swagger"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
@@ -11,6 +15,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 )
 
 var (
@@ -127,6 +132,170 @@ func setupRoutes(app *fiber.App) {
 func SetupGroupRoutes(router fiber.Router) {
 
 }
+
+func tmpMain() {
+		quicConfig := &quic.Config{
+			GetConfigForClient:             nil,
+			Versions:                       nil,
+			HandshakeIdleTimeout:           0,
+			MaxIdleTimeout:                 0,
+			TokenStore:                     nil,
+			InitialStreamReceiveWindow:     0,
+			MaxStreamReceiveWindow:         0,
+			InitialConnectionReceiveWindow: 0,
+			MaxConnectionReceiveWindow:     0,
+			AllowConnectionWindowIncrease:  nil,
+			MaxIncomingStreams:             0,
+			MaxIncomingUniStreams:          0,
+			KeepAlivePeriod:                0,
+			InitialPacketSize:              0,
+			DisablePathMTUDiscovery:        false,
+			Allow0RTT:                      false,
+			EnableDatagrams:                false,
+			Tracer:                         nil,
+		}
+
+		// Create a WebTransport server
+		transportServer := &webtransport.Server{
+		H3: http3.Server{
+			Addr: "",
+			Port: 0,
+			TLSConfig: &tls.Config{
+				Rand:                                nil,
+				Time:                                nil,
+				Certificates:                        nil,
+				NameToCertificate:                   nil,
+				GetCertificate:                      nil,
+				GetClientCertificate:                nil,
+				GetConfigForClient:                  nil,
+				VerifyPeerCertificate:               nil,
+				VerifyConnection:                    nil,
+				RootCAs:                             &x509.CertPool{},
+				NextProtos:                          nil,
+				ServerName:                          "",
+				ClientAuth:                          0,
+				ClientCAs:                           &x509.CertPool{},
+				InsecureSkipVerify:                  false,
+				CipherSuites:                        nil,
+				PreferServerCipherSuites:            false,
+				SessionTicketsDisabled:              false,
+				SessionTicketKey:                    [32]byte{},
+				ClientSessionCache:                  nil,
+				UnwrapSession:                       nil,
+				WrapSession:                         nil,
+				MinVersion:                          0,
+				MaxVersion:                          0,
+				CurvePreferences:                    nil,
+				DynamicRecordSizingDisabled:         false,
+				Renegotiation:                       0,
+				KeyLogWriter:                        nil,
+				EncryptedClientHelloConfigList:      nil,
+				EncryptedClientHelloRejectionVerify: nil,
+			},
+			QUICConfig: quicConfig,
+			Handler:            nil,
+			EnableDatagrams:    false,
+			MaxHeaderBytes:     0,
+			AdditionalSettings: nil,
+			StreamHijacker:     nil,
+			UniStreamHijacker:  nil,
+			IdleTimeout:        0,
+			ConnContext:        nil,
+			//Logger:             &slog.Logger{},
+		},
+		ReorderingTimeout: 0,
+		CheckOrigin:       nil,
+	}
+
+	// Create a new HTTP endpoint /webtransport.
+	http.HandleFunc("/webtransport", func(w http.ResponseWriter, r *http.Request) {
+		sess, err := transportServer.Upgrade(w, r)
+		if err != nil {
+			log.Printf("upgrading failed: %s", err)
+			w.WriteHeader(500)
+			return
+		}
+		// Handle the session. Here goes the application logic.
+
+		stream, err := sess.OpenStream()
+		if err != nil {
+			log.Printf("opening stream failed: %s", err)
+			return
+		}
+
+		p := []bytes.Buffer()
+
+		read, err := stream.Read(p)
+		if err != nil {
+			return
+		}
+
+
+	})
+
+	err := transportServer.ListenAndServeTLS("cert.pem", "ca.key")
+	if err != nil {
+		return
+	}
+
+
+
+
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if err := wtServer.ServeHTTP(w, r); err != nil {
+			fmt.Printf("ServeHTTP error: %v\n", err)
+		}
+	})
+
+	go func()
+	for {
+
+	session, err := wtServer.Accept()
+
+	if err != nil {
+	fmt.Printf("Failed to accept session: %v\n", err)
+	continue
+	}
+	fmt.Println("New WebTransport session established")
+
+	go handleSession(session)
+	}
+}()
+
+ fmt.Println("Starting WebTransport server on :4433")
+err := http3.ListenAndServeQUIC(":4433", "cert.pem", "key.pem", nil)
+if err != nil {
+	fmt.Printf("Failed to start server: %v\n", err)
+	os.Exit(1)
+}
+}
+
+func handleSession(session *webtransport.Session) {
+	defer session.Close()
+	for {
+		stream, err := session.AcceptStream()
+		if err != nil {
+			fmt.Printf("Error accepting stream: %v\n", err)
+			break
+		}
+		go handleStream(stream)
+	}
+}
+
+func handleStream(stream webtransport.Stream) {
+	defer stream.Close()
+	buf := make([]byte, 1024)
+	for {
+		n, err := stream.Read(buf)
+		if err != nil {
+			fmt.Printf("Stream closed: %v\n", err)
+			break
+		}
+		fmt.Printf("Received: %s\n", buf[:n])
+	}
+}
+
 
 func main() {
 

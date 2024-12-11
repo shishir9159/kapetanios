@@ -33,6 +33,7 @@ type Controller struct {
 	log zerolog.Logger
 }
 
+// TODO: parallel execution
 func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
