@@ -12,6 +12,7 @@ type Client struct {
 }
 
 func NewClient() (*Client, error) {
+
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		kubeConfigPath := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()

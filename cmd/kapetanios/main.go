@@ -158,7 +158,7 @@ func tmpMain() {
 		// Create a WebTransport server
 		transportServer := &webtransport.Server{
 		H3: http3.Server{
-			Addr: "",
+			Addr: "0.0.0.0:443",
 			Port: 0,
 			TLSConfig: &tls.Config{
 				Rand:                                nil,
@@ -229,46 +229,9 @@ func tmpMain() {
 		if err != nil {
 			return
 		}
-
-
 	})
 
-	err := transportServer.ListenAndServeTLS("cert.pem", "ca.key")
-	if err != nil {
-		return
-	}
 
-
-
-
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if err := wtServer.ServeHTTP(w, r); err != nil {
-			fmt.Printf("ServeHTTP error: %v\n", err)
-		}
-	})
-
-	go func()
-	for {
-
-	session, err := wtServer.Accept()
-
-	if err != nil {
-	fmt.Printf("Failed to accept session: %v\n", err)
-	continue
-	}
-	fmt.Println("New WebTransport session established")
-
-	go handleSession(session)
-	}
-}()
-
- fmt.Println("Starting WebTransport server on :4433")
-err := http3.ListenAndServeQUIC(":4433", "cert.pem", "key.pem", nil)
-if err != nil {
-	fmt.Printf("Failed to start server: %v\n", err)
-	os.Exit(1)
-}
 }
 
 func handleSession(session *webtransport.Session) {

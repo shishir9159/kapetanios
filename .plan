@@ -1,0 +1,3 @@
+# proto-blog
+QUIC transport should work fine for the current state of the project. I will update it once I implement the resource utility metrics.
+Cache pool needs to be implemented for caching resource states.

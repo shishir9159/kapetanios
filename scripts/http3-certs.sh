@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# check openssl version
+# for docker, for k8s TODO: which one is better practice
+
 set -e
 
 echo "Generating CA key and certificate:"
