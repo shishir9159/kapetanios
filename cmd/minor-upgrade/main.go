@@ -28,12 +28,30 @@ var (
 		}]}`
 )
 
+// todo:
+//  yum repository for kubernetes
+//  find in which repo the package belongs to
+//  multiple repo handle
+
 type Controller struct {
-	ctx context.Context
-	log zerolog.Logger
+	ctx    context.Context
+	log    zerolog.Logger
+	distro string
 }
 
 func main() {
+
+	// TODO: handle the following errors
+	//  [azureuser@robi-infra-poc-1 ~]$ yum info kubectl
+	//  Docker CE Stable - x86_64                                                                                                                                                         677 kB/s |  66 kB     00:00
+	//  Kubernetes                                                                                                                                                                         47 kB/s |  33 kB     00:00
+	//  Red Hat Enterprise Linux 8 for x86_64 - BaseOS from RHUI (RPMs)                                                                                                                   0.0  B/s |   0  B     00:00
+	//  Errors during downloading metadata for repository 'rhel-8-for-x86_64-baseos-rhui-rpms':
+	//    - Curl error (58): Problem with the local SSL certificate for https://rhui4-1.microsoft.com/pulp/repos/content/dist/rhel8/rhui/8/x86_64/baseos/os/repodata/repomd.xml [could not load PEM client certificate, OpenSSL error error:0200100D:system library:fopen:Permission denied, (no key found, wrong pass phrase, or wrong file format?)]
+	//  Error: Failed to download metadata for repo 'rhel-8-for-x86_64-baseos-rhui-rpms': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+
+	// yum info -b kubectl
+	// rpm -q kubectl
 
 	// TODO: optional backups
 
@@ -65,6 +83,8 @@ func main() {
 
 	// TODO:
 	//  replace zap with zeroLog
+
+	getDistro()
 
 	c := Controller{
 		ctx: ctx,
