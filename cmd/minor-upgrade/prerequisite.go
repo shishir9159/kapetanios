@@ -1,16 +1,16 @@
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"errors"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
 	"os"
-	"os/exec"
+	"strings"
 )
 
-func getDistro(c Controller) (bool, error) {
+func getDistro(c Controller) (string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -18,62 +18,66 @@ func getDistro(c Controller) (bool, error) {
 			Msg("failed to create chroot on /host")
 	}
 
-	// TODO:
-	//  show the changelog of the version by fetching
-	//  https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v12715
-
-	// TODO: --certificate-renewal input from user, and by default should be true
-	// TODO: compare the upgrade plan before and after
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade plan --certificate-renewal=true")
-
-	var stdoutBuf, stderrBuf bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
-
-	err = cmd.Run()
-
-	// This command checks that your cluster can be upgraded, and fetches the
-	// versions you can upgrade to. It also shows a table with the component config
-	// version states.
-
-	//TODO: If kubeadm upgrade plan shows any component configs that
-	// require manual upgrade, users must provide a config file with replacement
-	// configs to kubeadm upgrade apply via the --config command line flag. Failing
-	// to do so will cause kubeadm upgrade apply to exit with an error and not
-	// perform an upgrade.
-
+	fi, err := os.Open("/etc/os-release")
 	if err != nil {
-		c.log.Error().Err(err).Msg("failed to calculate upgrade plan")
-		// todo: return false, "", err
+		c.log.Fatal().Err(err).
+			Msg("failed to open /etc/os-release")
 	}
 
-	//  W1018 10:00:57.703527  599279 common.go:84] your configuration file uses a deprecated API spec: "kubeadm.k8s.io/v1beta2". Please use 'kubeadm config migrate --old-config old.yaml --new-config new.yaml', which will write the new, similar spec using a newer API version.
+	//defer func() {
+	//	if er := fi.Close(); er != nil {
+	//		c.log.Fatal().Err(er).
+	//			Msg("failed to close /etc/os-release")
+	//	}
+	//}()
+	//
+	//// try double buffering the chunks
+	//buf := make([]byte, 1024)
+	//for {
+	//	// read a chunk
+	//	n, er := fi.Read(buf)
+	//	if er != nil && er != io.EOF {
+	//		c.log.Error().Err(er).
+	//			Msg("failed to read chunk by chunk from /etc/os-release")
+	//	}
+	//
+	//	if substring(buf[:n], 0) == "ID" {}
+	//
+	//	if n == 0 {
+	//		break
+	//	}
+	//}
 
-	// TODO:
-	//  show the logs
-	//  till these lines come up
-	//  [preflight] Running pre-flight checks.
+	var distro string
 
-	//[upgrade/config] Reading configuration from the cluster...
-	//[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
-	//[preflight] Running pre-flight checks.
-	//[upgrade] Running cluster health checks
-	//[upgrade] Fetching available versions to upgrade to
-	//[upgrade/versions] Cluster version: v1.26.15
-	//[upgrade/versions] kubeadm version: v1.26.5
-	//I1028 13:48:44.138137 3832104 version.go:256] remote version is much newer: v1.31.2; falling back to: stable-1.26
-	//[upgrade/versions] Target version: v1.26.15
-	//[upgrade/versions] Latest version in the v1.26 series: v1.26.15
+	scanner := bufio.NewScanner(fi)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "ID=") {
+			// Trim leading 'ID=' and remove quotes if present
+			idValue := strings.TrimPrefix(line, "ID=")
+			idValue = strings.Trim(idValue, `"`)
+			distro = idValue
+			c.log.Info().
+				Str("distro name", idValue).
+				Msg("~distro~")
+		}
+	}
+
+	if er := scanner.Err(); er != nil {
+		c.log.Error().Err(er).
+			Msg("failed to read the file /etc/os-release")
+	}
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to exit from the updated root")
 	}
 
-	conn.ResetConnectBackoff()
-
+	return distro, err
 }
 
-func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, error) {
+func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	// TODO: how to know the current node is etcd with clientSet?
 	//  	- etcd cluster from the cm
@@ -84,9 +88,9 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	etcdNode := os.Getenv("ETCD_NODE")
 	if etcdNode == "false" {
-		return false, errors.New("ETCD_NODE environment variable set false")
+		return false, distro, errors.New("ETCD_NODE environment variable set false")
 	} else if etcdNode == "true" {
-		return false, errors.New("ETCD_NODE environment variable set to be True")
+		return false, distro, errors.New("ETCD_NODE environment variable set to be True")
 	}
 
 	connection := pb.NewMinorUpgradeClient(conn)
@@ -102,7 +106,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, error) {
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("could not send status update")
-		return false, err
+		return false, distro, err
 	}
 
 	c.log.Info().
@@ -110,5 +114,5 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, error) {
 		Bool("terminate application", rpc.GetProceedNextStep()).
 		Msg("prerequisite step response")
 
-	return rpc.GetProceedNextStep(), nil
+	return rpc.GetProceedNextStep(), distro, nil
 }

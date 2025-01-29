@@ -109,10 +109,13 @@ func main() {
 		}
 	}(conn)
 
+	var distro string
+
 	for i := 0; i < maxAttempts; i++ {
-		skip, distro, er := Prerequisites(c, conn)
-		if er != nil {
-			c.log.Error().Err(er).
+		var skip bool
+		skip, distro, err = Prerequisites(c, conn)
+		if err != nil {
+			c.log.Error().Err(err).
 				Int("attempt", i).
 				Msg("failed to check prerequisites for cluster upgrade")
 		}
