@@ -5,6 +5,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
+	"io"
 	"os"
 	"os/exec"
 )
@@ -224,51 +225,38 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 			Msg("failed to create chroot on /host")
 	}
 
-	// TODO:
-	//  show the changelog of the version by fetching
-	//  https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v12715
-
-	// TODO: --certificate-renewal input from user, and by default should be true
-	// TODO: compare the upgrade plan before and after
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade plan --certificate-renewal=true")
-
-	var stdoutBuf, stderrBuf bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
-
-	err = cmd.Run()
-
-	// This command checks that your cluster can be upgraded, and fetches the
-	// versions you can upgrade to. It also shows a table with the component config
-	// version states.
-
-	//TODO: If kubeadm upgrade plan shows any component configs that
-	// require manual upgrade, users must provide a config file with replacement
-	// configs to kubeadm upgrade apply via the --config command line flag. Failing
-	// to do so will cause kubeadm upgrade apply to exit with an error and not
-	// perform an upgrade.
-
+	fi, err := os.Open("/etc/os-release")
 	if err != nil {
-		c.log.Error().Err(err).Msg("failed to calculate upgrade plan")
-		// todo: return false, "", err
+		c.log.Fatal().Err(err).
+			Msg("failed to open /etc/os-release")
 	}
 
-	//  W1018 10:00:57.703527  599279 common.go:84] your configuration file uses a deprecated API spec: "kubeadm.k8s.io/v1beta2". Please use 'kubeadm config migrate --old-config old.yaml --new-config new.yaml', which will write the new, similar spec using a newer API version.
+	defer func() {
+		if er := fi.Close(); er != nil {
+			c.log.Fatal().Err(er).
+				Msg("failed to close /etc/os-release")
+		}
+	}()
 
-	// TODO:
-	//  show the logs
-	//  till these lines come up
-	//  [preflight] Running pre-flight checks.
+	// try double buffering the chunks
+	buf := make([]byte, 1024)
+	for {
+		// read a chunk
+		n, er := fi.Read(buf)
+		if er != nil && er != io.EOF {
+			c.log.Error().Err(er).
+				Msg("failed to read chunk by chunk from /etc/os-release")
+		}
 
-	//[upgrade/config] Reading configuration from the cluster...
-	//[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
-	//[preflight] Running pre-flight checks.
-	//[upgrade] Running cluster health checks
-	//[upgrade] Fetching available versions to upgrade to
-	//[upgrade/versions] Cluster version: v1.26.15
-	//[upgrade/versions] kubeadm version: v1.26.5
-	//I1028 13:48:44.138137 3832104 version.go:256] remote version is much newer: v1.31.2; falling back to: stable-1.26
-	//[upgrade/versions] Target version: v1.26.15
-	//[upgrade/versions] Latest version in the v1.26 series: v1.26.15
+		if n == 0 {
+			break
+		}
+	}
+
+	//var stdoutBuf, stderrBuf bytes.Buffer
+	//cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	//err = cmd.Run()
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
