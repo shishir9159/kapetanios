@@ -84,8 +84,6 @@ func main() {
 	// TODO:
 	//  replace zap with zeroLog
 
-	getDistro()
-
 	c := Controller{
 		ctx: ctx,
 		log: logger,
@@ -112,7 +110,7 @@ func main() {
 	}(conn)
 
 	for i := 0; i < maxAttempts; i++ {
-		skip, er := Prerequisites(c, conn)
+		skip, distro, er := Prerequisites(c, conn)
 		if er != nil {
 			c.log.Error().Err(er).
 				Int("attempt", i).
@@ -123,6 +121,8 @@ func main() {
 			break
 		}
 	}
+
+	c.distro = distro
 
 	var version string
 
