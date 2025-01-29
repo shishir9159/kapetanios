@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
-	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, error) {
@@ -231,32 +232,47 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 			Msg("failed to open /etc/os-release")
 	}
 
-	defer func() {
-		if er := fi.Close(); er != nil {
-			c.log.Fatal().Err(er).
-				Msg("failed to close /etc/os-release")
-		}
-	}()
+	//defer func() {
+	//	if er := fi.Close(); er != nil {
+	//		c.log.Fatal().Err(er).
+	//			Msg("failed to close /etc/os-release")
+	//	}
+	//}()
+	//
+	//// try double buffering the chunks
+	//buf := make([]byte, 1024)
+	//for {
+	//	// read a chunk
+	//	n, er := fi.Read(buf)
+	//	if er != nil && er != io.EOF {
+	//		c.log.Error().Err(er).
+	//			Msg("failed to read chunk by chunk from /etc/os-release")
+	//	}
+	//
+	//	if substring(buf[:n], 0) == "ID" {}
+	//
+	//	if n == 0 {
+	//		break
+	//	}
+	//}
 
-	// try double buffering the chunks
-	buf := make([]byte, 1024)
-	for {
-		// read a chunk
-		n, er := fi.Read(buf)
-		if er != nil && er != io.EOF {
-			c.log.Error().Err(er).
-				Msg("failed to read chunk by chunk from /etc/os-release")
-		}
-
-		if n == 0 {
-			break
+	scanner := bufio.NewScanner(fi)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "ID=") {
+			// Trim leading 'ID=' and remove quotes if present
+			idValue := strings.TrimPrefix(line, "ID=")
+			idValue = strings.Trim(idValue, `"`)
+			c.log.Info().
+				Str("distro name", idValue).
+				Msg("~distro~")
 		}
 	}
 
-	//var stdoutBuf, stderrBuf bytes.Buffer
-	//cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
-
-	//err = cmd.Run()
+	if er := scanner.Err(); er != nil {
+		c.log.Error().Err(er).
+			Msg("failed to read the file /etc/os-release")
+	}
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
@@ -285,6 +301,9 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		Bool("next step", rpc.GetProceedNextStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("upgrade status")
+
+	// fake breakpoints
+	os.Exit(0)
 
 	return rpc.GetProceedNextStep(), "", err
 }
