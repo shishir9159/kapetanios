@@ -41,9 +41,11 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 
 	// TODO: for redhat: yum list --showduplicates kubeadm --disableexcludes=kubernetes
 
+	// yum update and apt update
+
 	var repoSearch string
 	if c.distro == "rhel" {
-		repoSearch = "yum --showduplicates list *kubectl | grep .x86_64 | awk '{ print $2 }'"
+		repoSearch = "yum update -y && yum --showduplicates list *kubectl | grep .x86_64 | awk '{ print $2 }'"
 	} else if c.distro == "ubuntu" {
 		repoSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
 	}
