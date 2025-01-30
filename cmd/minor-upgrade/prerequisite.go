@@ -74,6 +74,8 @@ func getDistro(c Controller) (string, error) {
 			Msg("failed to exit from the updated root")
 	}
 
+	os.Exit(0)
+
 	return distro, err
 }
 
