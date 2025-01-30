@@ -5,6 +5,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -17,7 +18,16 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 			Msg("failed to create chroot on /host")
 	}
 
-	cmd := exec.Command("/bin/bash", "-c", "apt update -y")
+	var updateCommand string
+
+	if c.distro == "rhel" {
+		updateCommand = "yum update -y"
+	} else if c.distro == "ubuntu" {
+		updateCommand = "apt update -y"
+	}
+
+	// todo: test on ubuntu
+	cmd := exec.Command("/bin/bash", "-c", updateCommand)
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
@@ -29,9 +39,16 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 			Msg("failed to fetch repository updates")
 	}
 
-	// TODO: detect redhat, and run: yum list --showduplicates kubeadm --disableexcludes=kubernetes
+	// TODO: for redhat: yum list --showduplicates kubeadm --disableexcludes=kubernetes
 
-	cmd = exec.Command("/bin/bash", "-c", "apt-cache madison kubeadm | awk '{ print $3 }'")
+	var repoSearch string
+	if c.distro == "rhel" {
+		repoSearch = "yum --showduplicates list *kubectl | grep .x86_64 | awk '{ print $2 }"
+	} else if c.distro == "ubuntu" {
+		repoSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
+	}
+
+	cmd = exec.Command("/bin/bash", "-c", repoSearch)
 
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
@@ -92,6 +109,8 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		Bool("certificate renewal", rpc.GetCertificateRenewal()).
 		Str("fetch the version to upgrade", rpc.GetVersion()).
 		Msg("available versions")
+
+	os.Exit(0)
 
 	return rpc.GetProceedNextStep(), rpc.GetVersion(), nil
 }

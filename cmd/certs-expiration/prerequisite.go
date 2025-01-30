@@ -44,6 +44,7 @@ func getStorage(path string) (int64, error) {
 	// location exists or not?
 	file, err := os.Open(path)
 	if err != nil {
+		// TODO: use controller
 		fmt.Printf("error opening %s: %s\n", path, err)
 		os.Exit(1)
 	}
