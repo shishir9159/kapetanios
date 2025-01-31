@@ -5,7 +5,6 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
-	"os"
 	"os/exec"
 	"strings"
 )
@@ -114,7 +113,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		Str("fetch the version to upgrade", rpc.GetVersion()).
 		Msg("available versions")
 
-	os.Exit(0)
+	// TODO: VERSION COALESCING - FROM NUMERIC VALUES
 
 	return rpc.GetProceedNextStep(), rpc.GetVersion(), nil
 }

@@ -123,8 +123,17 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 			Msg("failed to create chroot on /host")
 	}
 
+	var upgradeCommand string
+
+	if c.distro == "rhel" {
+		// TODO: allow unauthenticated
+		upgradeCommand = "yum install -y " + k8sComponents + "=" + version
+	} else if c.distro == "ubuntu" {
+		upgradeCommand = "apt-mark unhold " + k8sComponents + " && DEBIAN_FRONTEND=noninteractive apt-get install -y " + k8sComponents + "='" + version + "' --allow-unauthenticated && apt-mark hold " + k8sComponents
+	}
+
 	// todo: --allow-unauthenticated make it optional
-	cmd := exec.Command("/bin/bash", "-c", "apt-mark unhold "+k8sComponents+" && DEBIAN_FRONTEND=noninteractive apt-get install -y "+k8sComponents+"='"+version+"' --allow-unauthenticated && apt-mark hold "+k8sComponents)
+	cmd := exec.Command("/bin/bash", "-c", upgradeCommand)
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
