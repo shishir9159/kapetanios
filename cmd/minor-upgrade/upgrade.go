@@ -125,6 +125,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 
 	var upgradeCommand string
 
+	// TODO: use lookup
 	if c.distro == "rhel" {
 		// TODO: allow unauthenticated
 		//upgradeCommand = "yum downgrade -y " + k8sComponents + "-" + version

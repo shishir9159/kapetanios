@@ -308,6 +308,8 @@ func MinorUpgradeFirstRun(namespace string) {
 		c.log.Info("cordoning and draining node",
 			zap.String("node name", node.Name))
 
+		// TODO: should wait for the coredns restart
+
 		err = drainAndCordonNode(c, &node)
 		if err != nil {
 			c.log.Error("failed to drain node",
