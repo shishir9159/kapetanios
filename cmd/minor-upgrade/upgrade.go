@@ -127,7 +127,8 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 
 	if c.distro == "rhel" {
 		// TODO: allow unauthenticated
-		upgradeCommand = "yum install -y " + k8sComponents + "=" + version
+		//upgradeCommand = "yum downgrade -y " + k8sComponents + "-" + version
+		upgradeCommand = "yum install -y " + k8sComponents + "-" + version
 	} else if c.distro == "ubuntu" {
 		upgradeCommand = "apt-mark unhold " + k8sComponents + " && DEBIAN_FRONTEND=noninteractive apt-get install -y " + k8sComponents + "='" + version + "' --allow-unauthenticated && apt-mark hold " + k8sComponents
 	}
