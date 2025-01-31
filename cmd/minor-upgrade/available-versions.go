@@ -43,28 +43,9 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
 
-	// yum and apt update
-	var repoUpdate string
-	if c.distro == "rhel" {
-		repoUpdate = "yum update -y"
-	} else if c.distro == "ubuntu" {
-		repoUpdate = "apt update -y"
-	}
-
-	//wait.PollUntilContextTimeout()
-	cmd = exec.Command("/bin/bash", "-c", repoUpdate)
-	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
-
-	err = cmd.Run()
-
-	c.log.Debug().
-		Str("stdout", stdoutBuf.String()).
-		Str("stderr", stderrBuf.String()).
-		Msg("successfully fetched repository updates")
-
 	var repoSearch string
 	if c.distro == "rhel" {
-		repoSearch = "yum list --showduplicates *kubectl --disableexcludes=kubernetes | grep .x86_64 | awk '{ print $2 }'"
+		repoSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes | grep .x86_64 | awk '{ print $2 }'"
 	} else if c.distro == "ubuntu" {
 		repoSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
 	}
@@ -82,13 +63,18 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		// TODO: refactor this to send the error : return false, "", err
 	}
 
-	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	c.log.Info().
-		Str("out", outStr).
-		Str("err", errStr).
-		Msg("outString & errString")
+	c.log.Debug().
+		Str("stdout", stdoutBuf.String()).
+		Str("stderr", stderrBuf.String()).
+		Msg("successfully fetched repository updates")
 
-	availableVersionSlice := strings.Split(outStr, "\n")
+	//outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	//c.log.Info().
+	//	Str("out", outStr).
+	//	Str("err", errStr).
+	//	Msg("outString & errString")
+
+	availableVersionSlice := strings.Split(stdoutBuf.String(), "\n")
 
 	if len(availableVersionSlice) == 0 {
 		c.log.Error().Err(err).
