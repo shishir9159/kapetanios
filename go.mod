@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/gofiber/swagger v1.1.1
+	github.com/gorilla/websocket v1.5.3
 	github.com/rs/zerolog v1.33.0
 	go.etcd.io/etcd/client/v3 v3.5.18
 	go.uber.org/zap v1.27.0
@@ -46,7 +47,6 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
