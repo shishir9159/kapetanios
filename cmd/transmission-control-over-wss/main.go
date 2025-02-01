@@ -32,15 +32,15 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	for {
-		mt, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
+		mt, message, er := c.ReadMessage()
+		if er != nil {
+			log.Println("read:", er)
 			break
 		}
 		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
+		er = c.WriteMessage(mt, message)
+		if er != nil {
+			log.Println("write:", er)
 			break
 		}
 	}
@@ -72,8 +72,6 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	// replace zap with zeroLog
 
 	c := Controller{
 		ctx: ctx,
