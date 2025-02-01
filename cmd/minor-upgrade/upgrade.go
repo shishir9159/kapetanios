@@ -25,10 +25,6 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	// TODO: get the version number from the upgrade plan
 	k8sVersion := "v" + version[:6]
 
-	// TODO: Same as the first control plane node but use
-	//  kubeadm upgrade node
-	//  (get this info from an environment value)
-
 	// TODO: certificate-renewal boolean
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade node --certificate-renewal="+certRenewal+" -y")
 
