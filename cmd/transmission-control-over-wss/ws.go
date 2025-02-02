@@ -23,7 +23,7 @@ func StartServer(handleMessage func(message []byte)) *Server {
 		handleMessage,
 	}
 
-	http.HandleFunc("/", server.echo)
+	http.HandleFunc("/echo", server.echo)
 	go http.ListenAndServe(":8080", nil)
 
 	return &server
