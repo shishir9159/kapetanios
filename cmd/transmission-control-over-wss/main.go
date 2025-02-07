@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -13,6 +14,8 @@ import (
 )
 
 var (
+	minorUpgradeNamespace = "default"
+
 	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
 )
 
@@ -39,23 +42,6 @@ type Server struct {
 	clients       map[*websocket.Conn]bool
 	handleMessage func(message []byte) // New message handler
 }
-
-//func InitiateLog() {
-//	if LogMode == "DEBUG" {
-//		Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339}).
-//			Level(zerolog.TraceLevel).
-//			With().
-//			Timestamp().
-//			Caller().
-//			Logger()
-//	} else {
-//		Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339}).
-//			Level(zerolog.InfoLevel).
-//			With().
-//			Timestamp().
-//			Logger()
-//	}
-//}
 
 func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 	connection, err := upgrader.Upgrade(w, r, nil)
@@ -140,6 +126,10 @@ func processMessage(msg string) string {
 	}
 }
 
+func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // func StartServer(handleMessage func(message []byte)) *Server {
 
 func StartServer(handleMessage func(message []byte)) {
@@ -150,6 +140,7 @@ func StartServer(handleMessage func(message []byte)) {
 		handleMessage,
 	}
 
+	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
 	http.HandleFunc("/ws", server.handleConnection)
 	http.HandleFunc("/echo", server.echo)
 	http.HandleFunc("/", home)
@@ -167,6 +158,8 @@ func StartServer(handleMessage func(message []byte)) {
 }
 
 func main() {
+
+	Prerequisites(minorUpgradeNamespace)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -201,7 +194,10 @@ func messageHandler(message []byte) {
 
 func (server *Server) WriteMessage(message []byte) {
 	for conn := range server.clients {
-		conn.WriteMessage(websocket.TextMessage, message)
+		err := conn.WriteMessage(websocket.TextMessage, message)
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -214,7 +210,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func runAway(ws *websocket.Conn) {
 	_, _, err := ws.ReadMessage()
-	if ce, ok := err.(*websocket.CloseError); ok {
+	var ce *websocket.CloseError
+	if errors.As(err, &ce) {
 		switch ce.Code {
 		case websocket.CloseNormalClosure,
 			websocket.CloseGoingAway,
