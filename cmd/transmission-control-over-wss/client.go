@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func main() {
+func client() {
 	serverAddr := "ws://localhost:8080/ws"
 	conn, _, err := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if err != nil {
