@@ -155,12 +155,13 @@ func StartServer(handleMessage func(message []byte)) {
 	http.HandleFunc("/", home)
 
 	fmt.Println("WebSocket server started on :80")
-	go func() {
-		er := http.ListenAndServe(":80", nil)
-		if er != nil {
-			panic(er)
-		}
-	}()
+
+	//go func() {
+	er := http.ListenAndServe(":80", nil)
+	if er != nil {
+		panic(er)
+	}
+	//}()
 
 	//return &server
 }
