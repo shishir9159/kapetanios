@@ -114,6 +114,9 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("prerequisite step response")
 
+	c.log.Info().
+		Msg("-----------------------------------------------------------")
+
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	}

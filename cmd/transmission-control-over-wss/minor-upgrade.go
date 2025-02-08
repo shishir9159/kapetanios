@@ -21,7 +21,8 @@ import (
 )
 
 var (
-	certificateRenewal = false
+	certificateRenewal    = false
+	applicationTerminated = false
 )
 
 type Controller struct {
@@ -295,6 +296,9 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	listOptions = metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
+
+	// TODO: a loop for all the nodes
+	//  wait for the applicationTerminated to be updated
 
 	time.Sleep(50 * time.Second)
 

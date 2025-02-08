@@ -82,6 +82,8 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		zap.Uint64("received storage availability", in.GetStorageAvailability()),
 		zap.String("received error", in.GetErr()))
 
+	s.log.Info("------------------------------------------------------------------")
+
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
 		TerminateApplication: terminateApplication,
