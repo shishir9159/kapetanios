@@ -43,10 +43,11 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		// TODO: shouldn't the error be considered fatal or return?
 		s.log.Error("failed to marshal cluster health", zap.Error(err))
 	}
+	load := string(payload)
 
 	for i := 0; i <= 10; i++ {
 		// todo: create a function payload, expected decision
-		if er := s.conn.WriteMessage(websocket.TextMessage, payload); er != nil {
+		if er := s.conn.WriteMessage(websocket.TextMessage, []byte(load)); er != nil {
 			s.log.Error("failed to write cluster health check in websocket",
 				zap.Error(err))
 			continue

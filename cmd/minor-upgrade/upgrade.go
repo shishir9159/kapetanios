@@ -106,6 +106,10 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("upgrade status")
 
+	if rpc.GetTerminateApplication() {
+		os.Exit(0)
+	}
+
 	return rpc.GetProceedNextStep(), nil
 }
 
@@ -183,6 +187,10 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		Bool("next step", rpc.GetProceedNextStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("upgrade status")
+
+	if rpc.GetTerminateApplication() {
+		os.Exit(0)
+	}
 
 	return rpc.GetProceedNextStep(), nil
 }
@@ -304,6 +312,10 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		Bool("next step", rpc.GetProceedNextStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("upgrade status")
+
+	if rpc.GetTerminateApplication() {
+		os.Exit(0)
+	}
 
 	return rpc.GetProceedNextStep(), "", err
 }

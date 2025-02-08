@@ -5,6 +5,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
+	"os"
 	"os/exec"
 )
 
@@ -62,6 +63,10 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 		Bool("next step", rpc.GetProceedNextStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("backup status")
+
+	if rpc.GetTerminateApplication() {
+		os.Exit(0)
+	}
 
 	return rpc.GetProceedNextStep(), nil
 }

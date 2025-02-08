@@ -5,6 +5,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
+	"os"
 	"os/exec"
 )
 
@@ -64,6 +65,10 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 		Bool("next step", rpc.GetProceedNextStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("upgrade diff")
+
+	if rpc.GetTerminateApplication() {
+		os.Exit(0)
+	}
 
 	return rpc.GetProceedNextStep(), diff, nil
 }
