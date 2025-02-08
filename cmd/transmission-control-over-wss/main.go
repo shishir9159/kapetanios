@@ -1,22 +1,19 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"go.uber.org/zap"
 	"html/template"
 	"log"
 	"net/http"
-	"time"
 )
 
 var (
 	minorUpgradeNamespace = "default"
-
-	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
+	port                  = flag.Int("port", 50051, "The server port")
+	addr                  = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
 )
 
 var upgrader = websocket.Upgrader{
@@ -30,11 +27,6 @@ var upgrader = websocket.Upgrader{
 		return true
 	},
 	EnableCompression: false,
-}
-
-type Controller struct {
-	ctx context.Context
-	log *zap.Logger
 }
 
 type Server struct {
@@ -95,9 +87,10 @@ func (server *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 	}(conn)
 
 	for {
-		_, msg, er := conn.ReadMessage()
+		msgType, msg, er := conn.ReadMessage()
+		fmt.Println("read:", msgType, msg, er)
 		if er != nil {
-			fmt.Println("error reading message:", er)
+			fmt.Println("error reading message:", er, msgType)
 			break
 		}
 
@@ -128,6 +121,20 @@ func processMessage(msg string) string {
 
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("error upgrading connection:", err)
+		return
+	}
+
+	defer func(conn *websocket.Conn) {
+		er := conn.Close()
+		if er != nil {
+			fmt.Println("error closing connection:", er)
+		}
+	}(conn)
+
+	MinorUpgradeFirstRun(minorUpgradeNamespace, conn)
 }
 
 // func StartServer(handleMessage func(message []byte)) *Server {
@@ -159,31 +166,8 @@ func StartServer(handleMessage func(message []byte)) {
 
 func main() {
 
-	Prerequisites(minorUpgradeNamespace)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	logger, err := zap.NewProduction()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	c := Controller{
-		ctx: ctx,
-		log: logger,
-	}
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
-			c.log.Error("failed to close logger",
-				zap.Error(er))
-		}
-	}(logger)
-
-	flag.Parse()
-	log.SetFlags(0)
-	//log.Fatal(http.ListenAndServe(*addr, nil))
+	// todo: resume connection
+	//  Prerequisites(minorUpgradeNamespace)
 
 	StartServer(messageHandler)
 }
