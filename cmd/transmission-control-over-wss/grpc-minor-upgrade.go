@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
+	jsoniter "github.com/json-iterator/go"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -19,17 +20,60 @@ type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
 }
 
+var json = jsoniter.ConfigFastest
+
+type clusterHealth struct {
+	// todo: whose responsibility is etcdStatus bool?
+	storageAvailability uint64
+	err                 string
+}
+
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
 	var proceedNextStep, terminateApplication = false, false
 
-	if in.GetEtcdStatus() && in.GetStorageAvailability() >= 50 {
-		proceedNextStep = true
+	nodeHealth := clusterHealth{
+		storageAvailability: in.GetStorageAvailability(),
+		err:                 in.GetErr(),
 	}
 
-	if in.GetErr() != "" {
+	payload, err := json.Marshal(nodeHealth)
+	if err != nil {
+		// TODO: shouldn't the error be considered fatal or return?
+		s.log.Error("failed to marshal cluster health", zap.Error(err))
+	}
 
+	for i := 0; i <= 10; i++ {
+		// todo: create a function payload, expected decision
+		if er := s.conn.WriteMessage(websocket.TextMessage, payload); er != nil {
+			s.log.Error("failed to write cluster health check in websocket",
+				zap.Error(err))
+			continue
+		}
+
+		msgType, msg, er := s.conn.ReadMessage()
+		if er != nil {
+			// TODO: shouldn't the error be considered fatal or return?
+			s.log.Error("failed to read frontend response",
+				zap.Error(er))
+		}
+		zap.String("error", er.Error())
+
+		response := string(msg)
+
+		switch response {
+		case "next step":
+			proceedNextStep = true
+			break
+		case "terminate application":
+			terminateApplication = true
+			break
+		default:
+			s.log.Error("unknown response from frontend",
+				zap.String("response", response),
+				zap.Int("msgType", msgType))
+		}
 	}
 
 	s.log.Info("received cluster health status",

@@ -5,4 +5,4 @@
 5. Ping and Pong control frames
 6. monitor the buffers building up on the sockets used to stream data to clients and ensure a buffer never grows beyond what the downstream connection can sustain by handling back pressure
 7. fallback transports: comet long polling
-8. 
+8. exponential back off grpc client to kapetanios

@@ -14,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/kubectl/pkg/drain"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -182,37 +181,14 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 
 	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
 
-	for _, no := range nodes.Items {
-		c.log.Info("nodes",
-			zap.String("nodes", no.ObjectMeta.Name))
-	}
-
-	sort.Slice(nodes.Items, func(i, j int) bool {
-		if nodes.Items[i].Name == kapetaniosNode {
-			return false
-		} else if nodes.Items[j].Name == kapetaniosNode {
-			return true
-		}
-
-		if _, firstNode := nodes.Items[i].Annotations["node-role.kubernetes.io/control-plane"]; firstNode {
-			return true
-		}
-		return false
-	})
-
-	for _, no := range nodes.Items {
-		c.log.Info("nodes",
-			zap.String("nodes", no.ObjectMeta.Name))
-	}
-
-	if err != nil {
-		c.log.Error("error listing nodes",
-			zap.Error(err))
-	}
-
 	if len(nodes.Items) == 0 {
-		c.log.Error("no nodes found",
-			zap.Error(err))
+		err = conn.WriteMessage(websocket.TextMessage, []byte("no node found:"+err.Error()))
+		if err != nil {
+			c.log.Error("no nodes found",
+				zap.Error(err))
+		}
+
+		return
 	}
 
 	roleName := "minor-upgrade"
@@ -224,41 +200,12 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 		}
 	}
 
-	er := conn.WriteMessage(websocket.TextMessage, []byte("kapetanios pod discovery error"+err.Error()))
-	if er != nil {
-		c.log.Error("error writing to websocket connection about failed pod discovery error",
-			zap.Error(er))
-	}
-
 	c.log.Info("condition",
 		zap.String("node.ObjectMeta.Name", node.ObjectMeta.Name),
 		zap.Bool("node.ObjectMeta.Name == kapetaniosNode", node.ObjectMeta.Name == kapetaniosNode))
 
-	configMapName := "kapetanios"
-
-	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.TODO(), configMapName, metav1.GetOptions{})
-	if er != nil {
-		c.log.Error("error fetching the configMap",
-			zap.Error(er))
-	}
-
-	var nodeNames []string
-
-	for _, no := range nodes.Items[index:] {
-		nodeNames = append(nodeNames, no.Name)
-	}
-
-	//configMap.Data["TARGETED_K8S_VERSION"] = targetedVersion
-	configMap.Data["NODES_TO_BE_UPGRADED"] = strings.Join(nodeNames, ";")
-
-	_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
-	if er != nil {
-		c.log.Error("error updating configMap",
-			zap.Error(er))
-	}
-
 	c.log.Info("nodes to be upgraded",
-		zap.String("node to be", strings.Join(nodeNames, ";")))
+		zap.String("node to be name:", node.Name))
 
 	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node.Name)
 
@@ -274,7 +221,6 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	descriptor.Spec.HostNetwork = true
 
 	certRenewalEnv := corev1.EnvVar{
-
 		Name:  "CERTIFICATE_RENEWAL",
 		Value: strconv.FormatBool(certificateRenewal),
 	}
@@ -282,15 +228,12 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	env := descriptor.Spec.Containers[0].Env
 	env = append(env, certRenewalEnv)
 
-	if index == 0 {
-
-		firstNodeToUpgradeEnv := corev1.EnvVar{
-			Name:  "FIRST_NODE_TO_BE_UPGRADED",
-			Value: "true",
-		}
-
-		env = append(env, firstNodeToUpgradeEnv)
+	firstNodeToUpgradeEnv := corev1.EnvVar{
+		Name:  "FIRST_NODE_TO_BE_UPGRADED",
+		Value: "true",
 	}
+
+	env = append(env, firstNodeToUpgradeEnv)
 
 	descriptor.Spec.Containers[0].Env = env
 	descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
@@ -327,15 +270,25 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 	if er != nil {
 		c.log.Error("minor upgrade pod creation failed: ",
-			zap.Int("index", index),
 			zap.Error(er))
+
+		err := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod creation failed: "+error.Error(er)))
+		if err != nil {
+			c.log.Error("failed to write minor upgrade pod creation error in websocket",
+				zap.Error(err))
+		}
 
 		return
 	}
 
 	c.log.Info("minor upgrade pod created",
-		zap.Int("index", index),
 		zap.String("pod name", minion.Name))
+
+	err = conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod created: "+minion.Name))
+	if err != nil {
+		c.log.Error("failed to write minor upgrade pod creation error in websocket",
+			zap.Error(err))
+	}
 
 	labelSelector = metav1.LabelSelector{MatchLabels: map[string]string{"app": "minor-upgrade"}}
 
