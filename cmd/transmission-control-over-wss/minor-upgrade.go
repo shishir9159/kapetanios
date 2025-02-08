@@ -195,7 +195,7 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 
 	var node corev1.Node
 	for _, no := range nodes.Items {
-		if no.ObjectMeta.Name == "" {
+		if no.ObjectMeta.Name == "robi-infra-poc-2" {
 			node = no
 		}
 	}
