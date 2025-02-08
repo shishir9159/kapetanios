@@ -11,7 +11,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.18
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.70.0
-	google.golang.org/protobuf v1.36.4
+	google.golang.org/protobuf v1.36.5
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.27.14
 	k8s.io/apimachinery v0.27.14
