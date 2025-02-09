@@ -64,7 +64,7 @@ func Prerequisites(namespace string) {
 	// todo: upgradedNodes := configMap.Data["UPGRADED_NODES"]
 
 	if targetedVersion != "" && nodesToBeUpgraded != "" {
-		LastDance(c, nodesToBeUpgraded, namespace)
+		//LastDance(c, nodesToBeUpgraded, namespace)
 		configMap.Data["TARGETED_K8S_VERSION"] = ""
 		configMap.Data["NODES_TO_BE_UPGRADED"] = ""
 		// todo: upgradedNodes := configMap.Data["UPGRADED_NODES"]
