@@ -17,7 +17,7 @@ var (
 )
 
 var upgrader = websocket.Upgrader{
-	HandshakeTimeout: 10,
+	HandshakeTimeout: 0,
 	ReadBufferSize:   0,
 	WriteBufferSize:  0,
 	WriteBufferPool:  nil,
