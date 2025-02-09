@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	jsoniter "github.com/json-iterator/go"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
 )
+
+//	jsoniter "github.com/json-iterator/go"
 
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
@@ -20,12 +22,13 @@ type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
 }
 
-var json = jsoniter.ConfigFastest
+//var json = jsoniter.ConfigFastest
 
 type clusterHealth struct {
 	// todo: whose responsibility is etcdStatus bool?
-	storageAvailability uint64
-	err                 string
+	etcdStatus          bool   `json:"etcdStatus"`
+	storageAvailability uint64 `json:"storageAvailability"`
+	err                 string `json:"err"`
 }
 
 // ClusterHealthChecking implements proto.MinorUpgradeServer
@@ -34,6 +37,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	var proceedNextStep, terminateApplication = false, false
 
 	nodeHealth := clusterHealth{
+		etcdStatus:          in.GetEtcdStatus(),
 		storageAvailability: in.GetStorageAvailability(),
 		err:                 in.GetErr(),
 	}
@@ -43,11 +47,11 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		// TODO: shouldn't the error be considered fatal or return?
 		s.log.Error("failed to marshal cluster health", zap.Error(err))
 	}
-	load := string(payload)
+	//load := string(payload)
 
 	for i := 0; i <= 10; i++ {
 		// todo: create a function payload, expected decision
-		if er := s.conn.WriteMessage(websocket.TextMessage, []byte(load)); er != nil {
+		if er := s.conn.WriteMessage(websocket.TextMessage, payload); er != nil {
 			s.log.Error("failed to write cluster health check in websocket",
 				zap.Error(err))
 			continue
@@ -65,9 +69,11 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		switch response {
 		case "next step":
 			proceedNextStep = true
+			s.log.Info("next step")
 			break
 		case "terminate application":
 			terminateApplication = true
+			s.log.Info("terminate application")
 			break
 		default:
 			s.log.Error("unknown response from frontend",
