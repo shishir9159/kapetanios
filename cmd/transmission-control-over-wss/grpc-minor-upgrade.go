@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
+	"strings"
 )
 
 //	jsoniter "github.com/json-iterator/go"
@@ -64,7 +65,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 				zap.Error(er))
 		}
 
-		response := string(msg)
+		response := strings.TrimSpace(string(msg))
 
 		switch response {
 		case "next step":

@@ -185,7 +185,7 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	// TODO: a loop for all the nodes
 	//  wait for the applicationTerminated to be updated
 
-	time.Sleep(50 * time.Second)
+	time.Sleep(180 * time.Second)
 
 	(<-ch).Stop()
 }
