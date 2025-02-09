@@ -44,7 +44,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	//payload, err := json.Marshal(nodeHealth)
 	//if err != nil {
-	//	// TODO: shouldn't the error be considered fatal or return?
+	// TODO: shouldn't the error be considered fatal or return?
 	//	s.log.Error("failed to marshal cluster health", zap.Error(err))
 	//}
 	//
@@ -71,13 +71,13 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		case "next step":
 			proceedNextStep = true
 			s.log.Info("next step")
+			i = 10
 			break
-			s.log.Info("after dark")
 		case "terminate application":
 			terminateApplication = true
 			s.log.Info("terminate application")
+			i = 10
 			break
-			s.log.Info("after dark")
 		default:
 			s.log.Error("unknown response from frontend",
 				zap.String("response", response),
