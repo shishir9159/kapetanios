@@ -48,12 +48,13 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	//	s.log.Error("failed to marshal cluster health", zap.Error(err))
 	//}
 	//
-	for i := 0; i <= 10; i++ {
+	for i := 0; i <= 2; i++ {
 		// todo: create a function payload, expected decision
-		if er := s.conn.WriteJSON(nodeHealth); er != nil {
+		if err := s.conn.WriteJSON(nodeHealth); err != nil {
 			//if er := s.conn.WriteMessage(websocket.TextMessage, payload); er != nil {
 			s.log.Error("failed to write cluster health check in websocket",
-				zap.Error(er))
+				zap.Int("i", i),
+				zap.Error(err))
 			//continue
 		}
 
@@ -71,10 +72,12 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 			proceedNextStep = true
 			s.log.Info("next step")
 			break
+			s.log.Info("after dark")
 		case "terminate application":
 			terminateApplication = true
 			s.log.Info("terminate application")
 			break
+			s.log.Info("after dark")
 		default:
 			s.log.Error("unknown response from frontend",
 				zap.String("response", response),
