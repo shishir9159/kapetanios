@@ -59,7 +59,6 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 			s.log.Error("failed to read frontend response",
 				zap.Error(er))
 		}
-		zap.String("error", er.Error())
 
 		response := string(msg)
 
