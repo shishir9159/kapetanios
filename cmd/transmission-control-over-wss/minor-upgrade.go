@@ -118,6 +118,7 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	c.log.Info("nodes to be upgraded",
 		zap.String("node to be name:", node.Name))
 
+	//targetedVersion := "1.26.6-1.1"
 	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node.Name)
 
 	descriptor.Spec.Tolerations = []corev1.Toleration{
@@ -152,15 +153,15 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpgradeGrpc(c.log, conn, ch)
 
-	minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
-	if er != nil {
+	minion, err := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
+	if err != nil {
 		c.log.Error("minor upgrade pod creation failed: ",
-			zap.Error(er))
+			zap.Error(err))
 
-		err := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod creation failed: "+error.Error(er)))
-		if err != nil {
+		er := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod creation failed: "+error.Error(err)))
+		if er != nil {
 			c.log.Error("failed to write minor upgrade pod creation error in websocket",
-				zap.Error(err))
+				zap.Error(er))
 		}
 
 		return

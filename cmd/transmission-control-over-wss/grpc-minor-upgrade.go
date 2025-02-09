@@ -240,13 +240,13 @@ func MinorUpgradeGrpc(zlog *zap.Logger, conn *websocket.Conn, ch chan<- *grpc.Se
 	reflection.Register(s)
 	pb.RegisterMinorUpgradeServer(s, &server)
 
-	zlog.Info("upgrade server listening")
+	server.log.Info("upgrade server listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
-		zlog.Error("failed to serve",
+		server.log.Error("failed to serve",
 			zap.Error(er))
 	}
 
-	zlog.Info("Shutting down gRPC server...")
+	server.log.Info("Shutting down gRPC server...")
 }
