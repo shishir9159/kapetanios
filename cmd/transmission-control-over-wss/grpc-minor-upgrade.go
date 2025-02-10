@@ -13,8 +13,6 @@ import (
 	"strings"
 )
 
-//	jsoniter "github.com/json-iterator/go"
-
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	log  *zap.Logger
@@ -25,10 +23,10 @@ type minorUpgradeServer struct {
 //var json = jsoniter.ConfigFastest
 
 type clusterHealth struct {
-	// todo: whose responsibility is etcdStatus bool?
-	etcdStatus          bool   `json:"etcdStatus"`
-	storageAvailability uint64 `json:"storageAvailability"`
-	err                 string `json:"err"`
+	// todo: whose responsibility is EtcdStatus bool?
+	EtcdStatus          bool   `json:"etcdStatus"`
+	StorageAvailability uint64 `json:"storageAvailability"`
+	Err                 string `json:"err"`
 }
 
 // TODO: state id ---------
@@ -57,9 +55,9 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	var proceedNextStep, terminateApplication = false, false
 
 	nodeHealth := clusterHealth{
-		etcdStatus:          in.GetEtcdStatus(),
-		storageAvailability: in.GetStorageAvailability(),
-		err:                 in.GetErr(),
+		EtcdStatus:          in.GetEtcdStatus(),
+		StorageAvailability: in.GetStorageAvailability(),
+		Err:                 in.GetErr(),
 	}
 
 	response, err := ClusterHealthReport(nodeHealth, s.conn)
