@@ -14,7 +14,7 @@ var (
 	minorUpgradeNamespace = "default"
 	port                  = flag.Int("port", 50051, "The server port")
 	addr                  = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
-	Clients               map[int]*websocket.Conn
+	Clients               = make(map[int]*websocket.Conn)
 )
 
 var upgrader = websocket.Upgrader{
