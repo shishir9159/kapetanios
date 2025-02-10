@@ -31,6 +31,26 @@ type clusterHealth struct {
 	err                 string `json:"err"`
 }
 
+// TODO: state id ---------
+func ClusterHealthReport(nodeHealth clusterHealth, conn *websocket.Conn) (string, error) {
+
+	// todo: create a function payload, expected decision
+	if err := conn.WriteJSON(nodeHealth); err != nil {
+		return "", err
+	}
+
+	msgType, msg, err := conn.ReadMessage()
+	if err != nil {
+		return "", err
+	}
+
+	if msgType != websocket.BinaryMessage {
+		return "", fmt.Errorf("unexpected message type: %v", msgType)
+	}
+
+	return strings.TrimSpace(string(msg)), nil
+}
+
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
@@ -42,38 +62,27 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		err:                 in.GetErr(),
 	}
 
-	// TODO: state id ---------
-
-	// todo: create a function payload, expected decision
-	if err := s.conn.WriteJSON(nodeHealth); err != nil {
-		s.log.Error("failed to write cluster health check in websocket",
+	response, err := ClusterHealthReport(nodeHealth, s.conn)
+	if err != nil {
+		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
-		//continue
 	}
-
-	msgType, msg, er := s.conn.ReadMessage()
-	if er != nil {
-		// TODO: shouldn't the error be considered fatal or return?
-		s.log.Error("failed to read frontend response",
-			zap.Error(er))
-	}
-
-	response := strings.TrimSpace(string(msg))
 
 	switch response {
 	case "next step":
 		proceedNextStep = true
-		s.log.Info("next step")
 		break
 	case "terminate application":
 		terminateApplication = true
-		s.log.Info("terminate application")
-		i = 10
 		break
 	default:
+		response, err = ClusterHealthReport(nodeHealth, s.conn)
+		if err != nil {
+			s.log.Error("Error reporting cluster health",
+				zap.Error(err))
+		}
 		s.log.Error("unknown response from frontend",
-			zap.String("response", response),
-			zap.Int("msgType", msgType))
+			zap.String("response", response))
 	}
 
 	s.log.Info("received cluster health status",
