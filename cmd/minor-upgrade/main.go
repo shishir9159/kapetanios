@@ -146,7 +146,7 @@ func main() {
 
 	// todo: include in the testing
 	testing := false
-	version = "1.29.0-150500.1.1"
+	version = "1.29.4-150500.2.1"
 	//version = "1.26.6-1.1"
 
 	if testing {

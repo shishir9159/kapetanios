@@ -1,0 +1,17 @@
+meta {
+  name: initial-request
+  type: http
+  seq: 1
+}
+
+get {
+  url: kapetanios.com/minor-upgrade
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "next step": true
+  }
+}
