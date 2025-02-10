@@ -49,7 +49,16 @@ func ClusterHealthReport(nodeHealth clusterHealth, conn *websocket.Conn) (string
 	return strings.TrimSpace(string(msg)), nil
 }
 
+type availableVersion struct {
+	CurrentVersion   string   `json:"currentVersion"`
+	AvailableVersion []string `json:"availableVersion"`
+}
+
 // TODO: state id ---------
+func VersionReport(versionList availableVersion, conn *websocket.Conn) (string, error) {
+
+	return "", nil
+}
 
 // TODO: state id ---------
 
