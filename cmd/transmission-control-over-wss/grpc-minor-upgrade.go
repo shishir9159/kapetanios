@@ -85,11 +85,12 @@ func readWrite[T any](value T, conn *websocket.Conn) (string, error) {
 		return "", err
 	}
 
-	if msgType != websocket.BinaryMessage {
+	if msgType != websocket.TextMessage {
 		return "", fmt.Errorf("unexpected message type: %v", msgType)
 	}
 
-	return strings.TrimSpace(string(msg)), nil
+	return strings.TrimSpace(string(msg)), err
+	//return strings.TrimSpace(string(msg)), nil
 }
 
 // ClusterHealthChecking implements proto.MinorUpgradeServer
@@ -106,7 +107,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	response, err := readWrite(nodeHealth, s.conn)
 	//response, err := ClusterHealthReport(nodeHealth, s.conn)
 	if err != nil {
-		s.log.Error("Error reporting cluster health",
+		s.log.Error("error reporting cluster health",
 			zap.Error(err))
 	}
 
