@@ -36,6 +36,7 @@ type Server struct {
 }
 
 func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
+
 	connection, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
@@ -46,7 +47,7 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 		delete(server.clients, connection)
 		err = connection.Close()
 		if err != nil {
-
+			log.Println("error closing connection:", err)
 		}
 	}(connection)
 
