@@ -53,6 +53,8 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
 	server.clients[connection] = true // Save the connection using it as a key
 
+	//lastMessage := "actually the first message"
+
 	for {
 		mt, message, er := connection.ReadMessage()
 
@@ -96,10 +98,13 @@ func (server *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response := processMessage(string(msg))
-		if er = conn.WriteMessage(websocket.TextMessage, []byte(response)); er != nil {
-			fmt.Println("error writing message:", er)
-			break
-		}
+
+		server.WriteMessage([]byte(response))
+		//
+		//if er = conn.WriteMessage(websocket.TextMessage, []byte(response)); er != nil {
+		//	fmt.Println("error writing message:", er)
+		//	break
+		//}
 	}
 }
 
