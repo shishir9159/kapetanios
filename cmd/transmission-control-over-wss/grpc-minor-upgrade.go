@@ -42,55 +42,44 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		err:                 in.GetErr(),
 	}
 
-	//payload, err := json.Marshal(nodeHealth)
-	//if err != nil {
-	// TODO: shouldn't the error be considered fatal or return?
-	//	s.log.Error("failed to marshal cluster health", zap.Error(err))
-	//}
-	//
-	for i := 0; i <= 2; i++ {
-		// todo: create a function payload, expected decision
-		if err := s.conn.WriteJSON(nodeHealth); err != nil {
-			//if er := s.conn.WriteMessage(websocket.TextMessage, payload); er != nil {
-			s.log.Error("failed to write cluster health check in websocket",
-				zap.Int("i", i),
-				zap.Error(err))
-			//continue
-		}
+	// TODO: state id ---------
 
-		msgType, msg, er := s.conn.ReadMessage()
-		if er != nil {
-			// TODO: shouldn't the error be considered fatal or return?
-			s.log.Error("failed to read frontend response",
-				zap.Error(er))
-		}
+	// todo: create a function payload, expected decision
+	if err := s.conn.WriteJSON(nodeHealth); err != nil {
+		s.log.Error("failed to write cluster health check in websocket",
+			zap.Error(err))
+		//continue
+	}
 
-		response := strings.TrimSpace(string(msg))
+	msgType, msg, er := s.conn.ReadMessage()
+	if er != nil {
+		// TODO: shouldn't the error be considered fatal or return?
+		s.log.Error("failed to read frontend response",
+			zap.Error(er))
+	}
 
-		switch response {
-		case "next step":
-			proceedNextStep = true
-			s.log.Info("next step")
-			i = 10
-			break
-		case "terminate application":
-			terminateApplication = true
-			s.log.Info("terminate application")
-			i = 10
-			break
-		default:
-			s.log.Error("unknown response from frontend",
-				zap.String("response", response),
-				zap.Int("msgType", msgType))
-		}
+	response := strings.TrimSpace(string(msg))
+
+	switch response {
+	case "next step":
+		proceedNextStep = true
+		s.log.Info("next step")
+		break
+	case "terminate application":
+		terminateApplication = true
+		s.log.Info("terminate application")
+		i = 10
+		break
+	default:
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response),
+			zap.Int("msgType", msgType))
 	}
 
 	s.log.Info("received cluster health status",
 		zap.Bool("etcd status", in.GetEtcdStatus()),
 		zap.Uint64("received storage availability", in.GetStorageAvailability()),
 		zap.String("received error", in.GetErr()))
-
-	s.log.Info("------------------------------------------------------------------")
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
