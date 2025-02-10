@@ -14,7 +14,6 @@ var (
 	minorUpgradeNamespace = "default"
 	port                  = flag.Int("port", 50051, "The server port")
 	addr                  = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
-	Clients               = make(map[int]*websocket.Conn)
 )
 
 var upgrader = websocket.Upgrader{
@@ -38,29 +37,26 @@ type Server struct {
 
 func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
-	if len(Clients) == 0 {
-		connection, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Print("upgrade:", err)
-			return
-		}
-
-		Clients[0] = connection
-
-		defer func(connection *websocket.Conn) {
-			delete(Clients, 0)
-			//delete(server.clients, connection)
-			err = connection.Close()
-			if err != nil {
-				log.Println("error closing connection:", err)
-			}
-		}(connection)
+	connection, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
 	}
 
-	//server.clients[connection] = true // Save the connection using it as a key
+	defer func(connection *websocket.Conn) {
+		delete(server.clients, connection)
+		err = connection.Close()
+		if err != nil {
+			log.Println("error closing connection:", err)
+		}
+	}(connection)
+
+	server.clients[connection] = true // Save the connection using it as a key
+
+	//lastMessage := "actually the first message"
 
 	for {
-		mt, message, er := Clients[0].ReadMessage()
+		mt, message, er := connection.ReadMessage()
 
 		if er != nil || mt == websocket.CloseMessage {
 			log.Println("read error:", er)
@@ -71,7 +67,7 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
 		server.WriteMessage(message)
 
-		er = Clients[0].WriteMessage(mt, message)
+		er = connection.WriteMessage(mt, message)
 		if er != nil {
 			log.Println("write:", er)
 			break
@@ -105,10 +101,12 @@ func (server *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 
 		response := processMessage(string(msg))
 
-		if er = conn.WriteMessage(websocket.TextMessage, []byte(response)); er != nil {
-			fmt.Println("error writing message:", er)
-			break
-		}
+		server.WriteMessage([]byte(response))
+		//
+		//if er = conn.WriteMessage(websocket.TextMessage, []byte(response)); er != nil {
+		//	fmt.Println("error writing message:", er)
+		//	break
+		//}
 	}
 }
 
@@ -187,8 +185,8 @@ func messageHandler(message []byte) {
 }
 
 func (server *Server) WriteMessage(message []byte) {
-	for index := range Clients {
-		err := Clients[index].WriteMessage(websocket.TextMessage, message)
+	for conn := range server.clients {
+		err := conn.WriteMessage(websocket.TextMessage, message)
 		if err != nil {
 			return
 		}
