@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
@@ -12,6 +13,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/watch"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -179,15 +182,53 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	}
 
 	labelSelector = metav1.LabelSelector{MatchLabels: map[string]string{"app": "minor-upgrade"}}
-
 	listOptions = metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
+		LabelSelector: listOptions.LabelSelector,
+		FieldSelector: "metadata.name=" + minion.Name,
+	})
+	defer watcher.Stop()
+	if err != nil {
+		err = conn.WriteMessage(websocket.TextMessage, []byte("failed to create a watcher for the pod: "+minion.Name))
+		if err != nil {
+			c.log.Error("failed to create a watcher for the pod",
+				zap.Error(err))
+		}
+		c.log.Error("failed to create a watcher for the pod",
+			zap.Error(err))
+		time.Sleep(180 * time.Second)
+		(<-ch).Stop()
 	}
 
 	// TODO: a loop for all the nodes
 	//  wait for the applicationTerminated to be updated
 
-	time.Sleep(180 * time.Second)
+	for event := range watcher.ResultChan() {
+		pod, ok := event.Object.(*corev1.Pod)
+		if !ok {
+			log.Println("Unexpected kubernetes object type")
+			continue
+		}
 
-	(<-ch).Stop()
+		switch event.Type {
+		case watch.Modified:
+			if pod.Status.Phase == corev1.PodSucceeded {
+				fmt.Println("Pod", minion.Name, "has completed successfully!")
+				(<-ch).Stop()
+				return
+			} else if pod.Status.Phase == corev1.PodFailed {
+				fmt.Println("Pod", minion.Name, "has failed!")
+				// todo: handle pod failure
+				(<-ch).Stop()
+				return
+			}
+		case watch.Deleted:
+			fmt.Println("Pod", minion.Name, "was deleted")
+			(<-ch).Stop()
+			return
+		}
+	}
 }
