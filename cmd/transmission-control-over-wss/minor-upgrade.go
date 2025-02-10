@@ -14,7 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
-	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -209,18 +208,26 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	for event := range watcher.ResultChan() {
 		pod, ok := event.Object.(*corev1.Pod)
 		if !ok {
-			log.Println("Unexpected kubernetes object type")
+			c.log.Error("watcher returned unexpected type",
+				zap.Reflect("event", event),
+				zap.Reflect("object", event.Object))
 			continue
 		}
 
 		switch event.Type {
 		case watch.Modified:
 			if pod.Status.Phase == corev1.PodSucceeded {
-				fmt.Println("Pod", minion.Name, "has completed successfully!")
+				c.log.Info("minor upgrade pod has completed successfully!",
+					zap.String("pod name", pod.Name),
+					zap.String("pod namespace", pod.Namespace),
+					zap.String("minion name", minion.Name))
 				(<-ch).Stop()
 				return
 			} else if pod.Status.Phase == corev1.PodFailed {
-				fmt.Println("Pod", minion.Name, "has failed!")
+				c.log.Info("minor upgrade pod has failed!",
+					zap.String("pod name", pod.Name),
+					zap.String("pod namespace", pod.Namespace),
+					zap.String("minion name", minion.Name))
 				// todo: handle pod failure
 				(<-ch).Stop()
 				return
