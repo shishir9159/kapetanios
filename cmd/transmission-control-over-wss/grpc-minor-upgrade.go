@@ -49,6 +49,18 @@ func ClusterHealthReport(nodeHealth clusterHealth, conn *websocket.Conn) (string
 	return strings.TrimSpace(string(msg)), nil
 }
 
+// TODO: state id ---------
+
+// TODO: state id ---------
+
+// TODO: state id ---------
+
+// TODO: state id ---------
+
+// TODO: state id ---------
+
+// TODO: state id ---------
+
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
