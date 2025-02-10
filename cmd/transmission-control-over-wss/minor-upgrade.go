@@ -153,6 +153,8 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpgradeGrpc(c.log, conn, ch)
 
+	// TODO: create a watcher against the minion pod
+
 	minion, err := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 	if err != nil {
 		c.log.Error("minor upgrade pod creation failed: ",
