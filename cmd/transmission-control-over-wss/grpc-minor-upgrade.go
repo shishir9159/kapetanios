@@ -20,7 +20,8 @@ type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
 }
 
-//var json = jsoniter.ConfigFastest
+// TODO:
+//  retry current step
 
 type clusterHealth struct {
 	// todo: whose responsibility is EtcdStatus bool?
@@ -29,11 +30,53 @@ type clusterHealth struct {
 	Err                 string `json:"err"`
 }
 
+type availableVersion struct {
+	CurrentVersion   string   `json:"currentVersion"`
+	AvailableVersion []string `json:"availableVersion"`
+	Err              string   `json:"err"`
+}
+
+type clusterCompatability struct {
+	OSCompatability bool   `json:"osCompatability"`
+	Diff            string `json:"diff"`
+	Err             string `json:"err"`
+}
+
+type clusterComponentUpgrade struct {
+	ComponentUpgradeSuccess bool   `json:"componentUpgradeSuccess"`
+	Component               string `json:"component"`
+	Log                     string `json:"log"`
+	Err                     string `json:"err"`
+}
+
+type clusterUpgradePlan struct {
+	ClusterVersion string `json:"clusterVersion"`
+	Log            string `json:"log"`
+	Err            string `json:"err"`
+}
+
+type clusterUpgradeSuccess struct {
+	UpgradeSuccess bool   `json:"upgradeSuccess"`
+	Log            string `json:"log"`
+	Err            string `json:"err"`
+}
+
+type componentRestartSuccess struct {
+	ComponentRestartSuccess bool   `json:"componentRestartSuccess"`
+	Component               string `json:"component"`
+	Log                     string `json:"log"`
+	Err                     string `json:"err"`
+}
+
+// TODO: Create an interface instead of generic that
+//  takes the structs write them in the connection
+//  and wait for reading
 // TODO: state id ---------
-func ClusterHealthReport(nodeHealth clusterHealth, conn *websocket.Conn) (string, error) {
+
+func readWrite[T any](value T, conn *websocket.Conn) (string, error) {
 
 	// todo: create a function payload, expected decision
-	if err := conn.WriteJSON(nodeHealth); err != nil {
+	if err := conn.WriteJSON(value); err != nil {
 		return "", err
 	}
 
@@ -49,27 +92,6 @@ func ClusterHealthReport(nodeHealth clusterHealth, conn *websocket.Conn) (string
 	return strings.TrimSpace(string(msg)), nil
 }
 
-type availableVersion struct {
-	CurrentVersion   string   `json:"currentVersion"`
-	AvailableVersion []string `json:"availableVersion"`
-}
-
-// TODO: state id ---------
-func VersionReport(versionList availableVersion, conn *websocket.Conn) (string, error) {
-
-	return "", nil
-}
-
-// TODO: state id ---------
-
-// TODO: state id ---------
-
-// TODO: state id ---------
-
-// TODO: state id ---------
-
-// TODO: state id ---------
-
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
@@ -81,7 +103,8 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		Err:                 in.GetErr(),
 	}
 
-	response, err := ClusterHealthReport(nodeHealth, s.conn)
+	response, err := readWrite(nodeHealth, s.conn)
+	//response, err := ClusterHealthReport(nodeHealth, s.conn)
 	if err != nil {
 		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
@@ -95,7 +118,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		terminateApplication = true
 		break
 	default:
-		response, err = ClusterHealthReport(nodeHealth, s.conn)
+		response, err = readWrite(nodeHealth, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -120,9 +143,33 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 
 	var proceedNextStep, terminateApplication = false, false
 
-	proceedNextStep = true
-	if in.GetErr() != "" {
+	versions := availableVersion{
+		CurrentVersion:   "",
+		AvailableVersion: in.GetVersion(),
+		Err:              in.GetErr(),
+	}
 
+	response, err := readWrite(versions, s.conn)
+	if err != nil {
+		s.log.Error("Error reporting cluster health",
+			zap.Error(err))
+	}
+
+	switch response {
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		response, err = readWrite(versions, s.conn)
+		if err != nil {
+			s.log.Error("Error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
 	}
 
 	s.log.Info("available version list",
@@ -142,9 +189,33 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	var proceedNextStep, terminateApplication = false, false
 
-	proceedNextStep = true
-	if in.GetErr() != "" {
+	compatability := clusterCompatability{
+		OSCompatability: in.GetOsCompatibility(),
+		Diff:            in.GetDiff(),
+		Err:             in.GetErr(),
+	}
 
+	response, err := readWrite(compatability, s.conn)
+	if err != nil {
+		s.log.Error("Error reporting cluster health",
+			zap.Error(err))
+	}
+
+	switch response {
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		response, err = readWrite(compatability, s.conn)
+		if err != nil {
+			s.log.Error("Error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
 	}
 
 	s.log.Info("received cluster compatibility report",
@@ -163,12 +234,34 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	var proceedNextStep, terminateApplication = false, false
 
-	if in.GetComponentUpgradeSuccess() {
-		proceedNextStep = true
+	componentUpgrade := clusterComponentUpgrade{
+		ComponentUpgradeSuccess: in.ComponentUpgradeSuccess,
+		Component:               in.GetComponent(),
+		Log:                     in.GetLog(),
+		Err:                     in.GetErr(),
 	}
 
-	if in.GetErr() != "" {
+	response, err := readWrite(componentUpgrade, s.conn)
+	if err != nil {
+		s.log.Error("Error reporting cluster health",
+			zap.Error(err))
+	}
 
+	switch response {
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		response, err = readWrite(componentUpgrade, s.conn)
+		if err != nil {
+			s.log.Error("Error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
 	}
 
 	s.log.Info("received cluster component upgrade status",
@@ -188,9 +281,33 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	var proceedNextStep, terminateApplication = false, false
 
-	proceedNextStep = true
-	if in.GetErr() != "" {
+	upgradePlan := clusterUpgradePlan{
+		ClusterVersion: in.GetCurrentClusterVersion(),
+		Log:            in.GetLog(),
+		Err:            in.GetErr(),
+	}
 
+	response, err := readWrite(upgradePlan, s.conn)
+	if err != nil {
+		s.log.Error("Error reporting cluster health",
+			zap.Error(err))
+	}
+
+	switch response {
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		response, err = readWrite(upgradePlan, s.conn)
+		if err != nil {
+			s.log.Error("Error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
 	}
 
 	s.log.Info("received cluster upgrade plan",
@@ -209,9 +326,33 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	var proceedNextStep, terminateApplication = false, false
 
-	proceedNextStep = true
-	if in.GetErr() != "" {
+	upgradeSuccess := clusterUpgradeSuccess{
+		UpgradeSuccess: in.GetUpgradeSuccess(),
+		Log:            in.GetLog(),
+		Err:            in.GetErr(),
+	}
 
+	response, err := readWrite(upgradeSuccess, s.conn)
+	if err != nil {
+		s.log.Error("Error reporting cluster health",
+			zap.Error(err))
+	}
+
+	switch response {
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		response, err = readWrite(upgradeSuccess, s.conn)
+		if err != nil {
+			s.log.Error("Error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
 	}
 
 	s.log.Info("received cluster upgrade plan",
@@ -230,9 +371,34 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	var proceedNextStep, terminateApplication = false, false
 
-	proceedNextStep = true
-	if in.GetErr() != "" {
+	restartSuccess := componentRestartSuccess{
+		ComponentRestartSuccess: false,
+		Component:               "",
+		Log:                     "",
+		Err:                     "",
+	}
 
+	response, err := readWrite(restartSuccess, s.conn)
+	if err != nil {
+		s.log.Error("Error reporting cluster health",
+			zap.Error(err))
+	}
+
+	switch response {
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		response, err = readWrite(restartSuccess, s.conn)
+		if err != nil {
+			s.log.Error("Error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
 	}
 
 	s.log.Info("received cluster component restart status",
