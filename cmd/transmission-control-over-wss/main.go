@@ -65,6 +65,8 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("recv: %s", message)
 
+		server.WriteMessage(message)
+
 		er = connection.WriteMessage(mt, message)
 		if er != nil {
 			log.Println("write:", er)
@@ -99,12 +101,10 @@ func (server *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 
 		response := processMessage(string(msg))
 
-		server.WriteMessage([]byte(response))
-		//
-		//if er = conn.WriteMessage(websocket.TextMessage, []byte(response)); er != nil {
-		//	fmt.Println("error writing message:", er)
-		//	break
-		//}
+		if er = conn.WriteMessage(websocket.TextMessage, []byte(response)); er != nil {
+			fmt.Println("error writing message:", er)
+			break
+		}
 	}
 }
 
@@ -184,7 +184,8 @@ func messageHandler(message []byte) {
 
 func (server *Server) WriteMessage(message []byte) {
 	for conn := range server.clients {
-		err := conn.WriteMessage(websocket.TextMessage, message)
+		err := conn.WriteMessage(websocket.TextMessage, []byte(conn.RemoteAddr().String()))
+		err = conn.WriteMessage(websocket.TextMessage, []byte(message))
 		if err != nil {
 			return
 		}
