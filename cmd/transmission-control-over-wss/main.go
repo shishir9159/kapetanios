@@ -14,6 +14,7 @@ var (
 	minorUpgradeNamespace = "default"
 	port                  = flag.Int("port", 50051, "The server port")
 	addr                  = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
+	Clients               map[int]*websocket.Conn
 )
 
 var upgrader = websocket.Upgrader{
@@ -37,26 +38,29 @@ type Server struct {
 
 func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
-	connection, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
+	if len(Clients) == 0 {
+		connection, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Print("upgrade:", err)
+			return
+		}
+
+		Clients[0] = connection
+
+		defer func(connection *websocket.Conn) {
+			delete(Clients, 0)
+			//delete(server.clients, connection)
+			err = connection.Close()
+			if err != nil {
+				log.Println("error closing connection:", err)
+			}
+		}(connection)
 	}
 
-	defer func(connection *websocket.Conn) {
-		delete(server.clients, connection)
-		err = connection.Close()
-		if err != nil {
-			log.Println("error closing connection:", err)
-		}
-	}(connection)
-
-	server.clients[connection] = true // Save the connection using it as a key
-
-	//lastMessage := "actually the first message"
+	//server.clients[connection] = true // Save the connection using it as a key
 
 	for {
-		mt, message, er := connection.ReadMessage()
+		mt, message, er := Clients[0].ReadMessage()
 
 		if er != nil || mt == websocket.CloseMessage {
 			log.Println("read error:", er)
@@ -67,7 +71,7 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
 		server.WriteMessage(message)
 
-		er = connection.WriteMessage(mt, message)
+		er = Clients[0].WriteMessage(mt, message)
 		if er != nil {
 			log.Println("write:", er)
 			break
@@ -183,9 +187,8 @@ func messageHandler(message []byte) {
 }
 
 func (server *Server) WriteMessage(message []byte) {
-	for conn := range server.clients {
-		err := conn.WriteMessage(websocket.TextMessage, []byte(conn.RemoteAddr().String()))
-		err = conn.WriteMessage(websocket.TextMessage, []byte(message))
+	for index := range Clients {
+		err := Clients[index].WriteMessage(websocket.TextMessage, message)
 		if err != nil {
 			return
 		}
