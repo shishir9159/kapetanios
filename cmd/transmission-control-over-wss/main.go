@@ -129,10 +129,11 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	//  prepare the global minority report
 
 	if len(server.clients) == 5 {
-		_, err := fmt.Fprintf(w, "quit older running tabs\n")
+		_, err := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
 		if err != nil {
-			return
+			log.Println("error writing concurrent connections warning:", err)
 		}
+
 		return
 	}
 
