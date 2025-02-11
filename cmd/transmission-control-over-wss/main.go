@@ -151,6 +151,10 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	server.clients[conn] = true
 
+	if len(server.clients) > 1 {
+		return
+	}
+
 	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
 }
 
