@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/shishir9159/kapetanios/internal/wss"
 	"html/template"
 	"log"
 	"net/http"
@@ -123,6 +124,44 @@ func processMessage(msg string) string {
 	}
 }
 
+func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
+
+	// TODO:
+	//  prepare the global minority report
+
+	if len(server.clients) == 5 {
+		_, err := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
+		if err != nil {
+			log.Println("error writing concurrent connections warning:", err)
+		}
+
+		return
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+
+	defer func(conn *websocket.Conn) {
+		delete(server.clients, conn)
+		err = conn.Close()
+		if err != nil {
+			fmt.Println("error closing connection:", err)
+		}
+	}(conn)
+
+	server.clients[conn] = true
+
+	if len(server.clients) > 1 {
+		time.Sleep(300 * time.Second)
+		return
+	}
+
+	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
+}
+
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	// TODO:
@@ -173,6 +212,7 @@ func StartServer(handleMessage func(message []byte)) {
 
 	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
 	http.HandleFunc("/ws", server.handleConnection)
+	http.HandleFunc("/minor", server.minor)
 	http.HandleFunc("/echo", server.echo)
 	http.HandleFunc("/", home)
 

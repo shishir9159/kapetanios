@@ -183,7 +183,7 @@ func MinorUpgradeFirstRun(namespace string, clients map[*websocket.Conn]bool) {
 		zap.String("pod name", minion.Name))
 
 	for conn := range clients {
-		er := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod created"+minion.Name))
+		er := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod created "+minion.Name))
 		if er != nil {
 			c.log.Error("failed to write minor upgrade pod creation error in websocket",
 				zap.String("", conn.RemoteAddr().String()),
