@@ -129,37 +129,40 @@ func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
 	// TODO:
 	//  prepare the global minority report
 
-	if len(server.clients) == 5 {
-		_, err := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
-		if err != nil {
-			log.Println("error writing concurrent connections warning:", err)
-		}
-
-		return
-	}
+	pool := wss.NewPool()
+	go pool.Run()
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Print("upgrade:", err)
+		log.Println("Upgrade:", err)
 		return
 	}
-
 	defer func(conn *websocket.Conn) {
-		delete(server.clients, conn)
-		err = conn.Close()
-		if err != nil {
-			fmt.Println("error closing connection:", err)
+		er := conn.Close()
+		if er != nil {
+
 		}
 	}(conn)
 
-	server.clients[conn] = true
+	client := &wss.Client{Conn: conn, Buffer: make([]string, 0)}
+	pool.AddClient(client)
+	defer pool.RemoveClient(client)
 
-	if len(server.clients) > 1 {
-		time.Sleep(300 * time.Second)
-		return
+	go client.ReadInputs()
+	receivedInputs := client.GetInputs()
+	fmt.Println("Client Inputs:", receivedInputs)
+
+	for {
+		er := conn.WriteMessage(websocket.TextMessage, []byte("Server message"))
+		if er != nil {
+			log.Println("Error writing message:", er)
+			break
+		}
+
 	}
 
 	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
+
 }
 
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
