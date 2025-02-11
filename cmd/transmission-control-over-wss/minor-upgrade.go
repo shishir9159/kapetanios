@@ -36,7 +36,7 @@ func recovery(namespace string) {
 
 }
 
-func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
+func MinorUpgradeFirstRun(namespace string, clients map[*websocket.Conn]bool) {
 
 	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
@@ -76,10 +76,13 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 
 	if kapetaniosPod == nil {
 		if err != nil {
-			er := conn.WriteMessage(websocket.TextMessage, []byte("kapetanios pod discovery error"+err.Error()))
-			if er != nil {
-				c.log.Error("error writing to websocket connection about failed pod discovery error",
-					zap.Error(er))
+			for conn := range clients {
+				er := conn.WriteMessage(websocket.TextMessage, []byte("kapetanios pod discovery error"+err.Error()))
+				if er != nil {
+					c.log.Error("error writing to websocket connection about failed pod discovery error",
+						zap.String("", conn.RemoteAddr().String()),
+						zap.Error(er))
+				}
 			}
 		}
 
@@ -95,12 +98,14 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
 
 	if len(nodes.Items) == 0 {
-		err = conn.WriteMessage(websocket.TextMessage, []byte("no node found:"+err.Error()))
-		if err != nil {
-			c.log.Error("no nodes found",
-				zap.Error(err))
+		for conn := range clients {
+			er := conn.WriteMessage(websocket.TextMessage, []byte("failed to get node list"+err.Error()))
+			if er != nil {
+				c.log.Error("no nodes found",
+					zap.String("", conn.RemoteAddr().String()),
+					zap.Error(er))
+			}
 		}
-
 		return
 	}
 
@@ -153,7 +158,7 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
 	ch := make(chan *grpc.Server, 1)
-	go MinorUpgradeGrpc(c.log, conn, ch)
+	go MinorUpgradeGrpc(c.log, clients, ch)
 
 	// TODO: create a watcher against the minion pod
 
@@ -162,10 +167,13 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 		c.log.Error("minor upgrade pod creation failed: ",
 			zap.Error(err))
 
-		er := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod creation failed: "+error.Error(err)))
-		if er != nil {
-			c.log.Error("failed to write minor upgrade pod creation error in websocket",
-				zap.Error(er))
+		for conn := range clients {
+			er := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod creation failed"+err.Error()))
+			if er != nil {
+				c.log.Error("error writing to websocket connection about minor upgrade pod creation failed",
+					zap.String("", conn.RemoteAddr().String()),
+					zap.Error(er))
+			}
 		}
 
 		return
@@ -174,10 +182,13 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 	c.log.Info("minor upgrade pod created",
 		zap.String("pod name", minion.Name))
 
-	err = conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod created: "+minion.Name))
-	if err != nil {
-		c.log.Error("failed to write minor upgrade pod creation error in websocket",
-			zap.Error(err))
+	for conn := range clients {
+		er := conn.WriteMessage(websocket.TextMessage, []byte("minor upgrade pod created"+minion.Name))
+		if er != nil {
+			c.log.Error("failed to write minor upgrade pod creation error in websocket",
+				zap.String("", conn.RemoteAddr().String()),
+				zap.Error(er))
+		}
 	}
 
 	labelSelector = metav1.LabelSelector{MatchLabels: map[string]string{"app": "minor-upgrade"}}
@@ -189,13 +200,18 @@ func MinorUpgradeFirstRun(namespace string, conn *websocket.Conn) {
 		LabelSelector: listOptions.LabelSelector,
 		FieldSelector: "metadata.name=" + minion.Name,
 	})
+
 	defer watcher.Stop()
 	if err != nil {
-		err = conn.WriteMessage(websocket.TextMessage, []byte("failed to create a watcher for the pod: "+minion.Name))
-		if err != nil {
-			c.log.Error("failed to create a watcher for the pod",
-				zap.Error(err))
+		for conn := range clients {
+			er := conn.WriteMessage(websocket.TextMessage, []byte("failed to create a watcher for the pod: "+minion.Name))
+			if er != nil {
+				c.log.Error("error writing to websocket connection about failure to create a watcher for the pod",
+					zap.String("", conn.RemoteAddr().String()),
+					zap.Error(er))
+			}
 		}
+
 		c.log.Error("failed to create a watcher for the pod",
 			zap.Error(err))
 		time.Sleep(180 * time.Second)

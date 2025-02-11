@@ -9,14 +9,15 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"log"
 	"net"
 	"strings"
 )
 
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
-	log  *zap.Logger
-	conn *websocket.Conn
+	log     *zap.Logger
+	clients map[*websocket.Conn]int
 	pb.MinorUpgradeServer
 }
 
@@ -73,12 +74,53 @@ type componentRestartSuccess struct {
 //  and wait for reading
 // TODO: state id ---------
 
-func readWrite[T any](value T, conn *websocket.Conn) (string, error) {
+func readMessage(ctx context.Context, conn *websocket.Conn, messageChan chan string) {
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Printf("Error reading from %s: %v", conn.RemoteAddr().String(), err)
+				return "", nil
+			}
 
-	// todo: create a function payload, expected decision
-	if err := conn.WriteJSON(value); err != nil {
-		return "", err
+			log.Printf("Received from %s: %s", conn.RemoteAddr().String(), string(msg))
+
+			// Send first message and return
+			select {
+			case messageChan <- string(msg):
+			default:
+			}
+			return
+		}
 	}
+}
+
+func writeMessage[T any](value T, clients map[*websocket.Conn]bool) (string, error) {
+
+	// Create a context with cancel to stop all Goroutines
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Channel to receive the first message
+	messageChan := make(chan string, 1)
+
+	for conn := range clients {
+		if err := conn.WriteJSON(value); err != nil {
+			cancel()
+			return "", err
+		}
+
+		// Start reading messages for all clients
+		go readMessage(ctx, conn, messageChan)
+	}
+
+	// Wait for the first message
+	message := <-messageChan
+
+	// Stop all reading Goroutines
+	cancel()
 
 	msgType, msg, err := conn.ReadMessage()
 	if err != nil {
@@ -90,7 +132,6 @@ func readWrite[T any](value T, conn *websocket.Conn) (string, error) {
 	}
 
 	return strings.TrimSpace(string(msg)), err
-	//return strings.TrimSpace(string(msg)), nil
 }
 
 // ClusterHealthChecking implements proto.MinorUpgradeServer
@@ -104,7 +145,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		Err:                 in.GetErr(),
 	}
 
-	response, err := readWrite(nodeHealth, s.conn)
+	response, err := writeMessage(nodeHealth, s.conn)
 	//response, err := ClusterHealthReport(nodeHealth, s.conn)
 	if err != nil {
 		s.log.Error("error reporting cluster health",
@@ -119,7 +160,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		terminateApplication = true
 		break
 	default:
-		response, err = readWrite(nodeHealth, s.conn)
+		response, err = writeMessage(nodeHealth, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -150,7 +191,7 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 		Err:              in.GetErr(),
 	}
 
-	response, err := readWrite(versions, s.conn)
+	response, err := writeMessage(versions, s.conn)
 	if err != nil {
 		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
@@ -164,7 +205,7 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 		terminateApplication = true
 		break
 	default:
-		response, err = readWrite(versions, s.conn)
+		response, err = writeMessage(versions, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -196,7 +237,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 		Err:             in.GetErr(),
 	}
 
-	response, err := readWrite(compatability, s.conn)
+	response, err := writeMessage(compatability, s.conn)
 	if err != nil {
 		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
@@ -210,7 +251,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 		terminateApplication = true
 		break
 	default:
-		response, err = readWrite(compatability, s.conn)
+		response, err = writeMessage(compatability, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -242,7 +283,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 		Err:                     in.GetErr(),
 	}
 
-	response, err := readWrite(componentUpgrade, s.conn)
+	response, err := writeMessage(componentUpgrade, s.conn)
 	if err != nil {
 		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
@@ -256,7 +297,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 		terminateApplication = true
 		break
 	default:
-		response, err = readWrite(componentUpgrade, s.conn)
+		response, err = writeMessage(componentUpgrade, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -288,7 +329,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		Err:            in.GetErr(),
 	}
 
-	response, err := readWrite(upgradePlan, s.conn)
+	response, err := writeMessage(upgradePlan, s.conn)
 	if err != nil {
 		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
@@ -302,7 +343,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		terminateApplication = true
 		break
 	default:
-		response, err = readWrite(upgradePlan, s.conn)
+		response, err = writeMessage(upgradePlan, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -333,7 +374,7 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 		Err:            in.GetErr(),
 	}
 
-	response, err := readWrite(upgradeSuccess, s.conn)
+	response, err := writeMessage(upgradeSuccess, s.conn)
 	if err != nil {
 		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
@@ -347,7 +388,7 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 		terminateApplication = true
 		break
 	default:
-		response, err = readWrite(upgradeSuccess, s.conn)
+		response, err = writeMessage(upgradeSuccess, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -379,7 +420,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 		Err:                     "",
 	}
 
-	response, err := readWrite(restartSuccess, s.conn)
+	response, err := writeMessage(restartSuccess, s.conn)
 	if err != nil {
 		s.log.Error("Error reporting cluster health",
 			zap.Error(err))
@@ -393,7 +434,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 		terminateApplication = true
 		break
 	default:
-		response, err = readWrite(restartSuccess, s.conn)
+		response, err = writeMessage(restartSuccess, s.conn)
 		if err != nil {
 			s.log.Error("Error reporting cluster health",
 				zap.Error(err))
@@ -414,7 +455,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-func MinorUpgradeGrpc(zlog *zap.Logger, conn *websocket.Conn, ch chan<- *grpc.Server) {
+func MinorUpgradeGrpc(zlog *zap.Logger, clients map[*websocket.Conn]int, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -425,8 +466,8 @@ func MinorUpgradeGrpc(zlog *zap.Logger, conn *websocket.Conn, ch chan<- *grpc.Se
 
 	s := grpc.NewServer()
 	server := minorUpgradeServer{
-		conn: conn,
-		log:  zlog,
+		clients: clients,
+		log:     zlog,
 	}
 
 	// in dev mode

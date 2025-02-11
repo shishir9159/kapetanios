@@ -58,7 +58,9 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
 		if er != nil || mt == websocket.CloseMessage {
 			log.Println("read error:", er)
-			break // Exit the loop if the client tries to close the connection or the connection is interrupted
+			// Exit the loop if the client tries to close the connection
+			// or the connection is interrupted
+			break
 		}
 
 		log.Printf("recv: %s", message)
@@ -122,20 +124,34 @@ func processMessage(msg string) string {
 
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
+	// TODO:
+	//  prepare the global minority report
+
+	if len(server.clients) == 5 {
+		_, err := fmt.Fprintf(w, "quit older running tabs\n")
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("error upgrading connection:", err)
+		log.Print("upgrade:", err)
 		return
 	}
 
 	defer func(conn *websocket.Conn) {
-		er := conn.Close()
-		if er != nil {
-			fmt.Println("error closing connection:", er)
+		delete(server.clients, conn)
+		err = conn.Close()
+		if err != nil {
+			fmt.Println("error closing connection:", err)
 		}
 	}(conn)
 
-	MinorUpgradeFirstRun(minorUpgradeNamespace, conn)
+	server.clients[conn] = true
+
+	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
 }
 
 // func StartServer(handleMessage func(message []byte)) *Server {
