@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
@@ -154,6 +155,8 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	if len(server.clients) > 1 {
 		return
 	}
+
+	time.Sleep(300 * time.Second)
 
 	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
 }
