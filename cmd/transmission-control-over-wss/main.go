@@ -153,10 +153,9 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	server.clients[conn] = true
 
 	if len(server.clients) > 1 {
+		time.Sleep(300 * time.Second)
 		return
 	}
-
-	time.Sleep(300 * time.Second)
 
 	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
 }
