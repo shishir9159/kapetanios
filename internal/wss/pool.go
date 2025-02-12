@@ -27,88 +27,93 @@ type Client struct {
 }
 
 type Pool struct {
-	clients    map[*Client]bool `json:"clients"`
-	mutex      sync.RWMutex     `json:"mutex"`
-	register   chan *Client     `json:"register"`
-	unregister chan *Client     `json:"unregister"`
-	broadcast  chan []byte      `json:"broadcast"`
+	Clients    map[*Client]bool `json:"clients"`
+	Mutex      sync.RWMutex     `json:"mutex"`
+	Register   chan *Client     `json:"register"`
+	Unregister chan *Client     `json:"unregister"`
+	Broadcast  chan []byte      `json:"broadcast"`
 }
 
 func NewPool() *Pool {
 	return &Pool{
-		clients:    make(map[*Client]bool),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		broadcast:  make(chan []byte),
+		Clients:    make(map[*Client]bool),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
+		Broadcast:  make(chan []byte),
 	}
 }
 
-func (p *Pool) Run() {
+func (pool *Pool) Run() {
 	for {
 		select {
-		case client := <-p.register:
-			p.mutex.Lock()
-			p.clients[client] = true
-			p.mutex.Unlock()
+		case client := <-pool.Register:
+			pool.Mutex.Lock()
+			pool.Clients[client] = true
+			pool.Mutex.Unlock()
 			fmt.Println("Client registered")
 
-		case client := <-p.unregister:
-			p.mutex.Lock()
-			if _, ok := p.clients[client]; ok {
-				delete(p.clients, client)
+		case client := <-pool.Unregister:
+			pool.Mutex.Lock()
+			if _, ok := pool.Clients[client]; ok {
+				delete(pool.Clients, client)
 				err := client.Conn.Close()
 				if err != nil {
 					return
 				}
 				fmt.Println("Client unregistered")
 			}
-			p.mutex.Unlock()
+			pool.Mutex.Unlock()
 
-		case message := <-p.broadcast:
-			p.mutex.RLock()
-			for client := range p.clients {
+		case message := <-pool.Broadcast:
+			pool.Mutex.RLock()
+			for client := range pool.Clients {
 				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
 					log.Println("Error writing message:", err)
-					p.unregister <- client // Unregister client on error
+					pool.Unregister <- client // Unregister client on error
 				}
 			}
-			p.mutex.RUnlock()
+			pool.Mutex.RUnlock()
 		}
 	}
 }
 
-func (p *Pool) AddClient(client *Client) {
-	p.register <- client
+func (pool *Pool) AddClient(client *Client) {
+	pool.Register <- client
 }
 
-func (p *Pool) RemoveClient(client *Client) {
-	p.unregister <- client
+func (pool *Pool) RemoveClient(client *Client) {
+	pool.Unregister <- client
 }
 
-func (p *Pool) Broadcast(message []byte) {
-	p.broadcast <- message
+func (pool *Pool) BroadcastMessage(message []byte) {
+	pool.Broadcast <- message
 }
 
-func (c *Client) ReadInputs() {
-	defer c.Conn.Close() // Close connection on exit
+func (c *Client) ReadInputs(pool *Pool) {
+	defer func(Conn *websocket.Conn) {
+		err := Conn.Close()
+		if err != nil {
+
+		}
+	}(c.Conn)
 
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println("Error reading message:", err)
-			pool.RemoveClient(c) // Remove client from pool on error
+			// client is removed from the pool on error
+			pool.RemoveClient(c)
 			break
 		}
 
-		c.mu.Lock()
+		c.Mu.Lock()
 		c.Buffer = append(c.Buffer, string(message)) // Store input
-		c.mu.Unlock()
+		c.Mu.Unlock()
 
 		fmt.Printf("Received: %s from client\n", message)
 
-		// Example: Echo back the message (optional)
-		if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
+		if err = c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
 			log.Println("Error writing message:", err)
 			pool.RemoveClient(c)
 			break
@@ -117,7 +122,7 @@ func (c *Client) ReadInputs() {
 }
 
 func (c *Client) GetInputs() []string {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	return c.Buffer // Return a copy to avoid data race if the slice is modified elsewhere
 }

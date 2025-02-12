@@ -148,7 +148,7 @@ func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
 	pool.AddClient(client)
 	defer pool.RemoveClient(client)
 
-	go client.ReadInputs()
+	go client.ReadInputs(pool)
 	receivedInputs := client.GetInputs()
 	fmt.Println("Client Inputs:", receivedInputs)
 
