@@ -145,7 +145,7 @@ func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
 	defer func(conn *websocket.Conn) {
 		er := conn.Close()
 		if er != nil {
-
+			log.Println("error closing connection:", er, conn.RemoteAddr())
 		}
 	}(conn)
 

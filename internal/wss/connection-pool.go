@@ -63,7 +63,7 @@ func (pool *ConnectionPool) Run() {
 				if err != nil {
 					return
 				}
-				fmt.Println("client unregistered")
+				fmt.Println("client unregistered", len(pool.Clients))
 			}
 			//pool.Mutex.Unlock()
 
@@ -111,7 +111,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 	message := <-messageChan
 	cancel()
 
-	return strings.TrimSpace(string(message)), nil
+	return strings.TrimSpace(message), nil
 }
 
 func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, messageChan chan string) {
@@ -130,7 +130,6 @@ func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, mes
 			if msgType != websocket.TextMessage {
 				log.Printf("unexpected message type: %v", msgType)
 			}
-
 			log.Printf("received from %s: %s", client.Conn.RemoteAddr().String(), string(msg))
 
 			select {
