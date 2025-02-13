@@ -21,13 +21,13 @@ var upgrader = websocket.Upgrader{HandshakeTimeout: 0,
 }
 
 type Client struct {
-	Conn   *websocket.Conn `json:"conn"`
-	Buffer []string        `json:"buffer"`
-	Mu     sync.Mutex      `json:"mu"`
+	Conn *websocket.Conn `json:"conn"`
+	Mu   sync.Mutex      `json:"mu"`
 }
 
 type Pool struct {
 	Clients    map[*Client]bool `json:"clients"`
+	Buffer     []string         `json:"buffer"`
 	Mutex      sync.RWMutex     `json:"mutex"`
 	Register   chan *Client     `json:"register"`
 	Unregister chan *Client     `json:"unregister"`
@@ -122,7 +122,7 @@ func (c *Client) ReadInputs(pool *Pool) {
 }
 
 func (c *Client) GetInputs() []string {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
+	//c.Mu.Lock()
+	//defer c.Mu.Unlock()
 	return c.Buffer // Return a copy to avoid data race if the slice is modified elsewhere
 }
