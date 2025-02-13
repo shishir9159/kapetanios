@@ -203,8 +203,6 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
 }
 
-// func StartServer(handleMessage func(message []byte)) *Server {
-
 func StartServer(handleMessage func(message []byte)) {
 
 	server := Server{
@@ -221,19 +219,15 @@ func StartServer(handleMessage func(message []byte)) {
 
 	fmt.Println("WebSocket server started on :80")
 
-	//go func() {
 	er := http.ListenAndServe(":80", nil)
 	if er != nil {
 		panic(er)
 	}
-	//}()
-
-	//return &server
 }
 
 func main() {
 
-	// todo: resume connection
+	// todo: resume connections after server restarts
 	//  Prerequisites(minorUpgradeNamespace)
 
 	StartServer(messageHandler)
