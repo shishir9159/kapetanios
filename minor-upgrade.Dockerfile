@@ -1,10 +1,8 @@
 FROM golang:1.23 AS builder
 WORKDIR /app
 
-COPY go.* ./
+COPY . ./
 RUN go mod download
-
-COPY cmd/minor-upgrade config/ internal/ proto/ ./
 RUN go build -C ./cmd/minor-upgrade -o main
 
 FROM ubuntu:latest
