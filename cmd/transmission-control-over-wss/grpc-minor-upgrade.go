@@ -4,20 +4,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/gorilla/websocket"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/shishir9159/kapetanios/internal/wss"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"net"
-	"strings"
 )
 
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
-	log     *zap.Logger
-	clients map[*websocket.Conn]bool
+	log            *zap.Logger
+	connectionPool *wss.ConnectionPool
 	pb.MinorUpgradeServer
 }
 
@@ -74,60 +73,6 @@ type componentRestartSuccess struct {
 //  and wait for reading
 // TODO: state id ---------
 
-func readMessage(ctx context.Context, conn *websocket.Conn, messageChan chan string) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			msgType, msg, err := conn.ReadMessage()
-			if err != nil {
-				log.Printf("Error reading from %s: %v", conn.RemoteAddr().String(), err)
-				return
-			}
-
-			if msgType != websocket.TextMessage {
-				log.Printf("unexpected message type: %v", msgType)
-			}
-
-			log.Printf("Received from %s: %s", conn.RemoteAddr().String(), string(msg))
-
-			// Send first message and return
-			select {
-			case messageChan <- string(msg):
-			default:
-			}
-			return
-		}
-	}
-}
-
-func writeMessage[T any](value T, clients map[*websocket.Conn]bool) (string, error) {
-
-	// Create a context with cancel to stop all Goroutines
-	ctx, cancel := context.WithCancel(context.Background())
-
-	// Channel to receive the first message
-	messageChan := make(chan string, 1)
-
-	for conn := range clients {
-		if err := conn.WriteJSON(value); err != nil {
-			continue
-		}
-
-		// Start reading messages for all clients
-		go readMessage(ctx, conn, messageChan)
-	}
-
-	// Wait for the first message
-	message := <-messageChan
-
-	// Stop all reading Goroutines
-	cancel()
-
-	return strings.TrimSpace(string(message)), nil
-}
-
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
@@ -139,11 +84,17 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		Err:                 in.GetErr(),
 	}
 
-	response, err := writeMessage(nodeHealth, s.clients)
-	//response, err := ClusterHealthReport(nodeHealth, s.conn)
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&nodeHealth)
 	if err != nil {
-		s.log.Error("error reporting cluster health",
-			zap.Error(err))
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
 	}
 
 	switch response {
@@ -154,9 +105,10 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		terminateApplication = true
 		break
 	default:
-		response, err = writeMessage(nodeHealth, s.clients)
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
-			s.log.Error("Error reporting cluster health",
+			s.log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
 		s.log.Error("unknown response from frontend",
@@ -185,10 +137,17 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 		Err:              in.GetErr(),
 	}
 
-	response, err := writeMessage(versions, s.clients)
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&versions)
 	if err != nil {
-		s.log.Error("Error reporting cluster health",
-			zap.Error(err))
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
 	}
 
 	switch response {
@@ -199,9 +158,10 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 		terminateApplication = true
 		break
 	default:
-		response, err = writeMessage(versions, s.clients)
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
-			s.log.Error("Error reporting cluster health",
+			s.log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
 		s.log.Error("unknown response from frontend",
@@ -231,10 +191,17 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 		Err:             in.GetErr(),
 	}
 
-	response, err := writeMessage(compatability, s.clients)
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&compatability)
 	if err != nil {
-		s.log.Error("Error reporting cluster health",
-			zap.Error(err))
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
 	}
 
 	switch response {
@@ -245,9 +212,10 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 		terminateApplication = true
 		break
 	default:
-		response, err = writeMessage(compatability, s.clients)
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
-			s.log.Error("Error reporting cluster health",
+			s.log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
 		s.log.Error("unknown response from frontend",
@@ -277,10 +245,17 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 		Err:                     in.GetErr(),
 	}
 
-	response, err := writeMessage(componentUpgrade, s.clients)
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&componentUpgrade)
 	if err != nil {
-		s.log.Error("Error reporting cluster health",
-			zap.Error(err))
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
 	}
 
 	switch response {
@@ -291,9 +266,10 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 		terminateApplication = true
 		break
 	default:
-		response, err = writeMessage(componentUpgrade, s.clients)
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
-			s.log.Error("Error reporting cluster health",
+			s.log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
 		s.log.Error("unknown response from frontend",
@@ -323,10 +299,17 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		Err:            in.GetErr(),
 	}
 
-	response, err := writeMessage(upgradePlan, s.clients)
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&upgradePlan)
 	if err != nil {
-		s.log.Error("Error reporting cluster health",
-			zap.Error(err))
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
 	}
 
 	switch response {
@@ -337,9 +320,10 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		terminateApplication = true
 		break
 	default:
-		response, err = writeMessage(upgradePlan, s.clients)
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
-			s.log.Error("Error reporting cluster health",
+			s.log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
 		s.log.Error("unknown response from frontend",
@@ -368,10 +352,17 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 		Err:            in.GetErr(),
 	}
 
-	response, err := writeMessage(upgradeSuccess, s.clients)
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&upgradeSuccess)
 	if err != nil {
-		s.log.Error("Error reporting cluster health",
-			zap.Error(err))
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
 	}
 
 	switch response {
@@ -382,9 +373,10 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 		terminateApplication = true
 		break
 	default:
-		response, err = writeMessage(upgradeSuccess, s.clients)
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
-			s.log.Error("Error reporting cluster health",
+			s.log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
 		s.log.Error("unknown response from frontend",
@@ -414,10 +406,17 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 		Err:                     "",
 	}
 
-	response, err := writeMessage(restartSuccess, s.clients)
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&restartSuccess)
 	if err != nil {
-		s.log.Error("Error reporting cluster health",
-			zap.Error(err))
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
 	}
 
 	switch response {
@@ -428,9 +427,10 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 		terminateApplication = true
 		break
 	default:
-		response, err = writeMessage(restartSuccess, s.clients)
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
-			s.log.Error("Error reporting cluster health",
+			s.log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
 		s.log.Error("unknown response from frontend",
@@ -449,7 +449,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-func MinorUpgradeGrpc(zlog *zap.Logger, clients map[*websocket.Conn]bool, ch chan<- *grpc.Server) {
+func MinorUpgradeGrpc(zlog *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -460,8 +460,8 @@ func MinorUpgradeGrpc(zlog *zap.Logger, clients map[*websocket.Conn]bool, ch cha
 
 	s := grpc.NewServer()
 	server := minorUpgradeServer{
-		clients: clients,
-		log:     zlog,
+		connectionPool: pool,
+		log:            zlog,
 	}
 
 	// in dev mode

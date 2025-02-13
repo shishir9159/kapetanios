@@ -9,7 +9,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"time"
 )
 
 var (
@@ -32,8 +31,8 @@ var upgrader = websocket.Upgrader{
 }
 
 type Server struct {
-	currentStep   uint8
-	clients       map[*websocket.Conn]bool
+	currentStep uint8
+	//clients       map[*websocket.Conn]bool
 	handleMessage func(message []byte) // New message handler
 }
 
@@ -46,14 +45,14 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func(connection *websocket.Conn) {
-		delete(server.clients, connection)
+		//delete(server.clients, connection)
 		err = connection.Close()
 		if err != nil {
 			log.Println("error closing connection:", err)
 		}
 	}(connection)
 
-	server.clients[connection] = true // Save the connection using it as a key
+	//server.clients[connection] = true // Save the connection using it as a key
 
 	for {
 		mt, message, er := connection.ReadMessage()
@@ -67,7 +66,7 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("recv: %s", message)
 
-		server.WriteMessage(message)
+		//server.WriteMessage(message)
 
 		er = connection.WriteMessage(mt, message)
 		if er != nil {
@@ -101,9 +100,8 @@ func (server *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		response := processMessage(string(msg))
-
-		server.WriteMessage([]byte(response))
+		//response := processMessage(string(msg))
+		//server.WriteMessage([]byte(response))
 	}
 }
 
@@ -134,7 +132,7 @@ func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("Upgrade:", err)
+		log.Println("upgrade:", err)
 		return
 	}
 	defer func(conn *websocket.Conn) {
@@ -144,70 +142,58 @@ func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
 		}
 	}(conn)
 
-	client := &wss.Client{Conn: conn, Buffer: make([]string, 0)}
+	client := &wss.Client{
+		Conn: conn,
+	}
 	pool.AddClient(client)
 	defer pool.RemoveClient(client)
 
-	go client.ReadInputs(pool)
-	receivedInputs := client.GetInputs()
-	fmt.Println("Client Inputs:", receivedInputs)
-
-	for {
-		er := conn.WriteMessage(websocket.TextMessage, []byte("Server message"))
-		if er != nil {
-			log.Println("Error writing message:", er)
-			break
-		}
-
-	}
-
-	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
-
+	MinorUpgradeFirstRun(minorUpgradeNamespace, pool)
 }
 
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
-
-	// TODO:
-	//  prepare the global minority report
-
-	if len(server.clients) == 5 {
-		_, err := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
-		if err != nil {
-			log.Println("error writing concurrent connections warning:", err)
-		}
-
-		return
-	}
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-
-	defer func(conn *websocket.Conn) {
-		delete(server.clients, conn)
-		err = conn.Close()
-		if err != nil {
-			fmt.Println("error closing connection:", err)
-		}
-	}(conn)
-
-	server.clients[conn] = true
-
-	if len(server.clients) > 1 {
-		time.Sleep(300 * time.Second)
-		return
-	}
-
-	MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
+	//
+	//// TODO:
+	////  prepare the global minority report
+	//
+	//if len(server.clients) == 5 {
+	//	_, err := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
+	//	if err != nil {
+	//		log.Println("error writing concurrent connections warning:", err)
+	//	}
+	//
+	//	return
+	//}
+	//
+	//conn, err := upgrader.Upgrade(w, r, nil)
+	//if err != nil {
+	//	log.Print("upgrade:", err)
+	//	return
+	//}
+	//
+	//defer func(conn *websocket.Conn) {
+	//	delete(server.clients, conn)
+	//	err = conn.Close()
+	//	if err != nil {
+	//		fmt.Println("error closing connection:", err)
+	//	}
+	//}(conn)
+	//
+	//server.clients[conn] = true
+	//
+	//if len(server.clients) > 1 {
+	//	time.Sleep(300 * time.Second)
+	//	return
+	//}
+	//
+	//MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
 }
 
 func StartServer(handleMessage func(message []byte)) {
 
 	server := Server{
 		0,
-		make(map[*websocket.Conn]bool),
+		//make(map[*websocket.Conn]bool),
 		handleMessage,
 	}
 
@@ -237,14 +223,14 @@ func messageHandler(message []byte) {
 	fmt.Println(string(message))
 }
 
-func (server *Server) WriteMessage(message []byte) {
-	for conn := range server.clients {
-		err := conn.WriteMessage(websocket.TextMessage, message)
-		if err != nil {
-			return
-		}
-	}
-}
+//func (server *Server) WriteMessage(message []byte) {
+//	for conn := range server.clients {
+//		err := conn.WriteMessage(websocket.TextMessage, message)
+//		if err != nil {
+//			return
+//		}
+//	}
+//}
 
 func home(w http.ResponseWriter, r *http.Request) {
 	err := homeTemplate.Execute(w, "ws://"+r.Host+"/echo")

@@ -73,7 +73,7 @@ func (pool *ConnectionPool) Run() {
 				// maybe only writeJson will work
 				err := client.Conn.WriteJSON(message)
 				if err != nil {
-					log.Println("error writing message:", err)
+					log.Println("error writing message:", err, message)
 					pool.Unregister <- client // Unregister client on error
 				}
 			}
@@ -139,17 +139,4 @@ func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, mes
 			return
 		}
 	}
-}
-
-func writeMessage[T any](value T, clients map[*websocket.Conn]bool) {
-
-	for conn := range clients {
-		// connection is not closed at failure as method requires
-		// precise definitions
-		if err := conn.WriteJSON(value); err != nil {
-			continue
-		}
-	}
-
-	//	important information can be failure to write in every connections
 }
