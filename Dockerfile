@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.7-labs
-FROM golang:1.23 AS builder
+FROM golang:1.23.6 AS builder
 WORKDIR /app
 
 COPY go.* ./

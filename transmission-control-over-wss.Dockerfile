@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.7-labs
-FROM golang:1.23 AS builder
+FROM golang:1.23.6 AS builder
 WORKDIR /app
 
 COPY go.* ./
@@ -12,9 +12,8 @@ FROM debian:bookworm-slim
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt/,type=cache,sharing=locked \
     set -x && rm -f /etc/apt/apt.conf.d/docker-clean && \
-    apt-get update && apt-get install -y \
-    ca-certificates curl && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get update && apt-get install -y curl \
+    ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/cmd/transmission-control-over-wss/main /app/server
 CMD ["/app/server"]
