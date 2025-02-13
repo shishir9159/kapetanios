@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
-COPY cmd/transmission-control-over-wss config/ internal/ proto/ ./
-RUN go build -C ./transmission-control-over-wss -o main
+COPY --parents cmd/transmission-control-over-wss config/ internal/ proto/ ./
+RUN go build -C ./cmd/transmission-control-over-wss -o main
 
 FROM debian:bookworm-slim
 # the cache is mounted only
@@ -16,5 +16,5 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/transmission-control-over-wss/main /app/server
+COPY --from=builder /app/cmd/transmission-control-over-wss/main /app/server
 CMD ["/app/server"]
