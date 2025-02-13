@@ -18,4 +18,11 @@ To create a production version of your app:
 bun run build
 ```
 
+## Cleaning
+
+```bash
+bunx eslint --fix ../../.gitignore
+bunx prettier --write .
+```
+
 You can preview the production build with `bun run preview`.
