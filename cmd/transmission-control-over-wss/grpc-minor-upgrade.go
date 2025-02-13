@@ -69,7 +69,9 @@ type componentRestartSuccess struct {
 	Err                     string `json:"err"`
 }
 
-// TODO: check the data race conditions
+// TODO: Create an interface instead of generic that
+//  takes the structs write them in the connection
+//  and wait for reading
 // TODO: state id ---------
 
 func readMessage(ctx context.Context, conn *websocket.Conn, messageChan chan string) {
@@ -105,15 +107,12 @@ func writeMessage[T any](value T, clients map[*websocket.Conn]bool) (string, err
 	// Create a context with cancel to stop all Goroutines
 	ctx, cancel := context.WithCancel(context.Background())
 
-	if ctx.Deadline()
-
 	// Channel to receive the first message
 	messageChan := make(chan string, 1)
 
 	for conn := range clients {
 		if err := conn.WriteJSON(value); err != nil {
-			cancel()
-			return "", err
+			continue
 		}
 
 		// Start reading messages for all clients

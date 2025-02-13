@@ -24,13 +24,13 @@ var upgrader = websocket.Upgrader{HandshakeTimeout: 0,
 
 type Client struct {
 	Conn *websocket.Conn `json:"conn"`
-	Mu   sync.Mutex      `json:"mu"`
+	// TODO: check if this lock is necessary
+	Mu sync.Mutex `json:"mu"`
 }
 
 type ConnectionPool struct {
 	Context    context.Context  `json:"context"`
 	Clients    map[*Client]bool `json:"clients"`
-	Buffer     []string         `json:"buffer"`
 	Mutex      sync.RWMutex     `json:"mutex"`
 	Register   chan *Client     `json:"register"`
 	Unregister chan *Client     `json:"unregister"`
@@ -40,7 +40,6 @@ type ConnectionPool struct {
 func NewPool() *ConnectionPool {
 	return &ConnectionPool{
 		Clients:    make(map[*Client]bool),
-		Buffer:     nil,
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Broadcast:  make(chan []byte),
@@ -72,7 +71,7 @@ func (pool *ConnectionPool) Run() {
 			//pool.Mutex.RLock()
 			for client := range pool.Clients {
 				// maybe only writeJson will work
-				err := client.Conn.WriteJSON( message)
+				err := client.Conn.WriteJSON(message)
 				if err != nil {
 					log.Println("error writing message:", err)
 					pool.Unregister <- client // Unregister client on error
@@ -95,53 +94,35 @@ func (pool *ConnectionPool) BroadcastMessage(message []byte) {
 	pool.Broadcast <- message
 }
 
-func (pool *ConnectionPool) ReadMessages() {
-	defer func(Conn *websocket.Conn) {
-		err := Conn.Close()
-		if err != nil {
+func (pool *ConnectionPool) ReadMessages() (string, error) {
 
-		}
-	}(c.Conn)
+	// todo: derive this child context from the inherited context
+	// Create a context with cancel to stop all Goroutines
+	ctx, cancel := context.WithCancel(context.Background())
 
-	for {
-		_, message, err := c.Conn.ReadMessage()
-		if err != nil {
-			log.Println("Error reading message:", err)
-			// client is removed from the pool on error
-			pool.RemoveClient(c)
-			break
-		}
+	// Channel to receive the first message
+	messageChan := make(chan string, 1)
 
-		c.Mu.Lock()
-		c.Buffer = append(c.Buffer, string(message)) // Store input
-		c.Mu.Unlock()
-
-		fmt.Printf("received: %s from client\n", message)
-
-		if err = c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
-			log.Println("error writing message:", err)
-			pool.RemoveClient(c)
-			break
-		}
+	for client := range pool.Clients {
+		go pool.readMessage(ctx, client, messageChan)
 	}
+
+	message := <-messageChan
+	cancel()
+
+	return strings.TrimSpace(string(message)), nil
 }
 
-func (c *Client) GetInputs() []string {
-	//c.Mu.Lock()
-	//defer c.Mu.Unlock()
-	return c.Buffer // Return a copy to avoid data race if the slice is modified elsewhere
-}
-
-
-func readMessage(ctx context.Context, conn *websocket.Conn, messageChan chan string) {
+func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, messageChan chan string) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			msgType, msg, err := conn.ReadMessage()
+			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil {
-				log.Printf("Error reading from %s: %v", conn.RemoteAddr().String(), err)
+				log.Printf("error reading from %s: %v", client.Conn.RemoteAddr().String(), err)
+				pool.RemoveClient(client)
 				return
 			}
 
@@ -149,7 +130,7 @@ func readMessage(ctx context.Context, conn *websocket.Conn, messageChan chan str
 				log.Printf("unexpected message type: %v", msgType)
 			}
 
-			log.Printf("Received from %s: %s", conn.RemoteAddr().String(), string(msg))
+			log.Printf("received from %s: %s", client.Conn.RemoteAddr().String(), string(msg))
 
 			select {
 			case messageChan <- string(msg):
@@ -160,31 +141,15 @@ func readMessage(ctx context.Context, conn *websocket.Conn, messageChan chan str
 	}
 }
 
-func writeMessage[T any](value T, clients map[*websocket.Conn]bool) (string, error) {
-
-	// Create a context with cancel to stop all Goroutines
-	ctx, cancel := context.WithCancel(context.Background())
-
-	if ctx.Deadline()
-
-	// Channel to receive the first message
-		messageChan := make(chan string, 1)
+func writeMessage[T any](value T, clients map[*websocket.Conn]bool) {
 
 	for conn := range clients {
+		// connection is not closed at failure as method requires
+		// precise definitions
 		if err := conn.WriteJSON(value); err != nil {
-			cancel()
-			return "", err
+			continue
 		}
-
-		// Start reading messages for all clients
-		go readMessage(ctx, conn, messageChan)
 	}
 
-	// Wait for the first message
-	message := <-messageChan
-
-	// Stop all reading Goroutines
-	cancel()
-
-	return strings.TrimSpace(string(message)), nil
+	//	important information can be failure to write in every connections
 }
