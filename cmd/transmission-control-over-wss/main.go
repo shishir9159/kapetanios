@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
@@ -142,11 +143,25 @@ func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
 		}
 	}(conn)
 
+	if len(pool.Clients) > 5 {
+		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
+		if er != nil {
+			log.Println("error writing concurrent connections warning:", er)
+			return
+		}
+	}
+
 	client := &wss.Client{
 		Conn: conn,
 	}
 	pool.AddClient(client)
 	defer pool.RemoveClient(client)
+
+	if len(pool.Clients) >= 1 {
+		//	 TODO: use the context
+		time.Sleep(360 * time.Second)
+		return
+	}
 
 	MinorUpgradeFirstRun(minorUpgradeNamespace, pool)
 }
