@@ -70,11 +70,12 @@ func (pool *ConnectionPool) Run() {
 		case message := <-pool.Broadcast:
 			//pool.Mutex.RLock()
 			for client := range pool.Clients {
-				// maybe only writeJson will work
-				err := client.Conn.WriteJSON(message)
+				// maybe not only writeJson will work
+				//err := client.Conn.WriteJSON(message)
+				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
 					log.Println("error writing message:", err, message)
-					pool.Unregister <- client // Unregister client on error
+					pool.Unregister <- client
 				}
 			}
 			//pool.Mutex.RUnlock()
