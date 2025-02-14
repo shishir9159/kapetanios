@@ -166,7 +166,7 @@ func MinorUpgradeFirstRun(namespace string) {
 	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
 
 	for _, no := range nodes.Items {
-		c.log.Info("nodes",
+		c.log.Debug("nodes",
 			zap.String("nodes", no.ObjectMeta.Name))
 	}
 
@@ -188,7 +188,7 @@ func MinorUpgradeFirstRun(namespace string) {
 	})
 
 	for _, no := range nodes.Items {
-		c.log.Info("nodes",
+		c.log.Debug("nodes",
 			zap.String("nodes", no.ObjectMeta.Name))
 	}
 
@@ -206,10 +206,6 @@ func MinorUpgradeFirstRun(namespace string) {
 
 	// TODO: refactor this part to orchestrator
 	for index, node := range nodes.Items {
-
-		c.log.Info("condition",
-			zap.String("node.ObjectMeta.Name", node.ObjectMeta.Name),
-			zap.Bool("node.ObjectMeta.Name == kapetaniosNode", node.ObjectMeta.Name == kapetaniosNode))
 
 		configMapName := "kapetanios"
 		//  todo: refactor this hardcoded part

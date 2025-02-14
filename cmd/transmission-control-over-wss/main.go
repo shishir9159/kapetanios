@@ -14,9 +14,8 @@ import (
 )
 
 var (
-	minorUpgradeNamespace = "default"
-	port                  = flag.Int("port", 50051, "The server port")
-	addr                  = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
+	port = flag.Int("port", 50051, "The server port")
+	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,7 +32,12 @@ var upgrader = websocket.Upgrader{
 }
 
 type MinorityReport struct {
-	currentStep uint8
+	currentStep           uint8
+	upgradedNodes         []string
+	nodesToBeUpgraded     []string
+	redhatK8sVersion      string
+	ubuntuK8sVersion      string
+	minorUpgradeNamespace string
 }
 
 type Server struct {
@@ -81,7 +85,12 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	MinorUpgradeFirstRun(minorUpgradeNamespace, server.pool)
+	minorityReport := MinorityReport{
+		currentStep:           0,
+		minorUpgradeNamespace: "default",
+	}
+
+	MinorUpgrade(&minorityReport, server.pool)
 }
 
 func StartServer(ctx context.Context) {
@@ -114,7 +123,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	StartServer(ctx)
-
 }
 
 func home(w http.ResponseWriter, r *http.Request) {

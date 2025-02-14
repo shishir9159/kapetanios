@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
-COPY --parents cmd/transmission-control-over-wss config/ internal/ proto/ ./
+COPY --parents cmd/transmission-control-over-wss config/ internal/ proto/ utils/ ./
 RUN go build -C ./cmd/transmission-control-over-wss -o main
 
 FROM debian:bookworm-slim
