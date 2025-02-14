@@ -159,6 +159,10 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	defer server.pool.RemoveClient(client)
 
 	if len(server.pool.Clients) >= 1 {
+
+		ctx, _ := context.WithCancel(server.pool.ReadCtx)
+		go server.pool.ReadMessageFromConn(ctx, client)
+		//go server.pool.ReadMessageFromConn(ctx)
 		// TODO: use the context
 		time.Sleep(480 * time.Second)
 		return

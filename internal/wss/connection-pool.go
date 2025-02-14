@@ -29,36 +29,45 @@ type Client struct {
 }
 
 type ConnectionPool struct {
-	Context     context.Context  `json:"context"`
+	Ctx         context.Context `json:"context"`
+	cancel      context.CancelFunc
+	ReadCtx     context.Context `json:"readContext"`
+	readCancel  context.CancelFunc
+	mutex       sync.RWMutex
 	Clients     map[*Client]bool `json:"clients"`
-	Mutex       sync.RWMutex     `json:"mutex"`
-	Register    chan *Client     `json:"register"`
-	Unregister  chan *Client     `json:"unregister"`
-	MessageChan chan string      `json:"messageChan"`
-	Broadcast   chan []byte      `json:"broadcast"`
+	register    chan *Client
+	unregister  chan *Client
+	broadcast   chan []byte
+	MessageChan chan string `json:"messageChan"`
 }
 
 func NewPool() *ConnectionPool {
+	ctx, cancel := context.WithCancel(context.Background())
+	readCtx, readCancel := context.WithCancel(ctx)
 
 	return &ConnectionPool{
+		Ctx:         ctx,
+		cancel:      cancel,
+		ReadCtx:     readCtx,
+		readCancel:  readCancel,
 		Clients:     make(map[*Client]bool),
-		Register:    make(chan *Client),
-		Unregister:  make(chan *Client),
+		register:    make(chan *Client),
+		unregister:  make(chan *Client),
+		broadcast:   make(chan []byte),
 		MessageChan: make(chan string, 1),
-		Broadcast:   make(chan []byte),
 	}
 }
 
 func (pool *ConnectionPool) Run() {
 	for {
 		select {
-		case client := <-pool.Register:
+		case client := <-pool.register:
 			//pool.Mutex.Lock()
 			pool.Clients[client] = true
 			//pool.Mutex.Unlock()
 			fmt.Println("client registered")
 
-		case client := <-pool.Unregister:
+		case client := <-pool.unregister:
 			//pool.Mutex.Lock()
 			if _, ok := pool.Clients[client]; ok {
 				delete(pool.Clients, client)
@@ -71,7 +80,7 @@ func (pool *ConnectionPool) Run() {
 			}
 			//pool.Mutex.Unlock()
 
-		case message := <-pool.Broadcast:
+		case message := <-pool.broadcast:
 			//pool.Mutex.RLock()
 			for client := range pool.Clients {
 				// maybe not only writeJson will work
@@ -79,7 +88,7 @@ func (pool *ConnectionPool) Run() {
 				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
 					log.Println("error writing message:", err, message)
-					pool.Unregister <- client
+					pool.unregister <- client
 				}
 			}
 			//pool.Mutex.RUnlock()
@@ -88,36 +97,44 @@ func (pool *ConnectionPool) Run() {
 }
 
 func (pool *ConnectionPool) AddClient(client *Client) {
-	pool.Register <- client
+	pool.register <- client
 }
 
 func (pool *ConnectionPool) RemoveClient(client *Client) {
-	pool.Unregister <- client
+	pool.unregister <- client
+}
+
+func (pool *ConnectionPool) CancelReadContext() {
+	pool.readCancel()
 }
 
 func (pool *ConnectionPool) BroadcastMessage(message []byte) {
-	pool.Broadcast <- message
+	pool.broadcast <- message
 }
 
 func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	// todo: derive this child context from the inherited context
-	// Create a context with cancel to stop all Goroutines
-	ctx, cancel := context.WithCancel(context.Background())
+	//  Create a context with cancel to stop all Goroutines
+
+	ctx, _ := context.WithCancel(pool.ReadCtx)
 
 	for client := range pool.Clients {
 		if pool.Clients[client] {
-			go pool.readMessage(ctx, client, pool.MessageChan)
+			go pool.ReadMessageFromConn(ctx, client)
 		}
 	}
 
 	message := <-pool.MessageChan
-	cancel()
+	pool.CancelReadContext()
+
+	// TODO: after cancellation, reinitialize the Read Context
+	pool.ReadCtx, pool.readCancel = context.WithCancel(pool.Ctx)
 
 	return strings.TrimSpace(message), nil
 }
 
-func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, messageChan chan string) {
+func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) {
 	pool.Clients[client] = false
 	for {
 		select {
@@ -138,7 +155,7 @@ func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, mes
 			log.Printf("received from %s: %s", client.Conn.RemoteAddr().String(), string(msg))
 
 			select {
-			case messageChan <- string(msg):
+			case pool.MessageChan <- string(msg):
 			default:
 			}
 

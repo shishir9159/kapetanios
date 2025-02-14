@@ -72,7 +72,7 @@ func RollbackGrpc(log *zap.Logger) {
 	s := grpc.NewServer()
 
 	// in dev mode
-	//reflection.Register(s)
+	//reflection.register(s)
 	pb.RegisterRollbackServer(s, &rollbackServer{})
 
 	log.Info("rollback sever listening")
