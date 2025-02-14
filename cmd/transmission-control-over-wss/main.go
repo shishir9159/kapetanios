@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -31,11 +32,13 @@ var upgrader = websocket.Upgrader{
 	EnableCompression: false,
 }
 
-type Server struct {
+type MinorityReport struct {
 	currentStep uint8
-	pool        *wss.ConnectionPool
-	//clients       map[*websocket.Conn]bool
-	handleMessage func(message []byte) // New message handler
+}
+
+type Server struct {
+	ctx  context.Context
+	pool *wss.ConnectionPool
 }
 
 func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
@@ -75,8 +78,8 @@ func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
 			log.Println("write:", er)
 			break
 		}
-
-		go server.handleMessage(message)
+		//
+		//go server.handleMessage(message)
 	}
 }
 
@@ -124,7 +127,7 @@ func processMessage(msg string) string {
 	}
 }
 
-func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
+func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	// TODO:
 	//  prepare the global minority report
@@ -156,68 +159,28 @@ func (server *Server) minor(w http.ResponseWriter, r *http.Request) {
 	defer server.pool.RemoveClient(client)
 
 	if len(server.pool.Clients) >= 1 {
-		//	 TODO: use the context
-		time.Sleep(360 * time.Second)
+		// TODO: use the context
+		time.Sleep(480 * time.Second)
 		return
 	}
 
 	MinorUpgradeFirstRun(minorUpgradeNamespace, server.pool)
 }
 
-func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
-	//
-	//// TODO:
-	////  prepare the global minority report
-	//
-	//if len(server.clients) == 5 {
-	//	_, err := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
-	//	if err != nil {
-	//		log.Println("error writing concurrent connections warning:", err)
-	//	}
-	//
-	//	return
-	//}
-	//
-	//conn, err := upgrader.Upgrade(w, r, nil)
-	//if err != nil {
-	//	log.Print("upgrade:", err)
-	//	return
-	//}
-	//
-	//defer func(conn *websocket.Conn) {
-	//	delete(server.clients, conn)
-	//	err = conn.Close()
-	//	if err != nil {
-	//		fmt.Println("error closing connection:", err)
-	//	}
-	//}(conn)
-	//
-	//server.clients[conn] = true
-	//
-	//if len(server.clients) > 1 {
-	//	time.Sleep(300 * time.Second)
-	//	return
-	//}
-	//
-	//MinorUpgradeFirstRun(minorUpgradeNamespace, server.clients)
-}
+func StartServer(ctx context.Context) {
 
-func StartServer(handleMessage func(message []byte)) {
-
-	pool := wss.NewPool()
+	messageChan := make(chan string, 1)
+	pool := wss.NewPool(messageChan)
 	// TODO: remove all the clients when the job ends
 	go pool.Run()
 
 	server := Server{
-		0,
-		pool,
-		//make(map[*websocket.Conn]bool),
-		handleMessage,
+		ctx:  ctx,
+		pool: pool,
 	}
 
 	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
 	http.HandleFunc("/ws", server.handleConnection)
-	http.HandleFunc("/minor", server.minor)
 	http.HandleFunc("/echo", server.echo)
 	http.HandleFunc("/", home)
 
@@ -234,21 +197,11 @@ func main() {
 	// todo: resume connections after server restarts
 	//  Prerequisites(minorUpgradeNamespace)
 
-	StartServer(messageHandler)
-}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	StartServer(ctx)
 
-func messageHandler(message []byte) {
-	fmt.Println(string(message))
 }
-
-//func (server *Server) WriteMessage(message []byte) {
-//	for conn := range server.clients {
-//		err := conn.WriteMessage(websocket.TextMessage, message)
-//		if err != nil {
-//			return
-//		}
-//	}
-//}
 
 func home(w http.ResponseWriter, r *http.Request) {
 	err := homeTemplate.Execute(w, "ws://"+r.Host+"/echo")

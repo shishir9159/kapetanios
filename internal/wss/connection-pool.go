@@ -29,15 +29,17 @@ type Client struct {
 }
 
 type ConnectionPool struct {
-	Context    context.Context  `json:"context"`
-	Clients    map[*Client]bool `json:"clients"`
-	Mutex      sync.RWMutex     `json:"mutex"`
-	Register   chan *Client     `json:"register"`
-	Unregister chan *Client     `json:"unregister"`
-	Broadcast  chan []byte      `json:"broadcast"`
+	Context     context.Context  `json:"context"`
+	Clients     map[*Client]bool `json:"clients"`
+	Mutex       sync.RWMutex     `json:"mutex"`
+	Register    chan *Client     `json:"register"`
+	Unregister  chan *Client     `json:"unregister"`
+	MessageChan chan string      `json:"messageChan"`
+	Broadcast   chan []byte      `json:"broadcast"`
 }
 
 func NewPool() *ConnectionPool {
+
 	return &ConnectionPool{
 		Clients:    make(map[*Client]bool),
 		Register:   make(chan *Client),
@@ -61,6 +63,7 @@ func (pool *ConnectionPool) Run() {
 				delete(pool.Clients, client)
 				err := client.Conn.Close()
 				if err != nil {
+					fmt.Println("error closing connections", err)
 					return
 				}
 				fmt.Println("client unregistered", len(pool.Clients))
@@ -101,11 +104,12 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 	// Create a context with cancel to stop all Goroutines
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Channel to receive the first message
 	messageChan := make(chan string, 1)
 
 	for client := range pool.Clients {
-		go pool.readMessage(ctx, client, messageChan)
+		if pool.Clients[client] {
+			go pool.readMessage(ctx, client, messageChan)
+		}
 	}
 
 	message := <-messageChan
@@ -115,9 +119,11 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 }
 
 func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, messageChan chan string) {
+	pool.Clients[client] = false
 	for {
 		select {
 		case <-ctx.Done():
+			pool.Clients[client] = true
 			return
 		default:
 			msgType, msg, err := client.Conn.ReadMessage()
@@ -136,6 +142,8 @@ func (pool *ConnectionPool) readMessage(ctx context.Context, client *Client, mes
 			case messageChan <- string(msg):
 			default:
 			}
+
+			pool.Clients[client] = true
 			return
 		}
 	}
