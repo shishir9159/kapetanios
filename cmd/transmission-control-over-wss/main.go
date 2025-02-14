@@ -41,92 +41,6 @@ type Server struct {
 	pool *wss.ConnectionPool
 }
 
-func (server *Server) echo(w http.ResponseWriter, r *http.Request) {
-
-	connection, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-
-	defer func(connection *websocket.Conn) {
-		//delete(server.clients, connection)
-		err = connection.Close()
-		if err != nil {
-			log.Println("error closing connection:", err)
-		}
-	}(connection)
-
-	//server.clients[connection] = true // Save the connection using it as a key
-
-	for {
-		mt, message, er := connection.ReadMessage()
-
-		if er != nil || mt == websocket.CloseMessage {
-			log.Println("read error:", er)
-			// Exit the loop if the client tries to close the connection
-			// or the connection is interrupted
-			break
-		}
-
-		log.Printf("recv: %s", message)
-
-		//server.WriteMessage(message)
-
-		er = connection.WriteMessage(mt, message)
-		if er != nil {
-			log.Println("write:", er)
-			break
-		}
-		//
-		//go server.handleMessage(message)
-	}
-}
-
-func (server *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println("error upgrading connection:", err)
-		return
-	}
-
-	defer func(conn *websocket.Conn) {
-		er := conn.Close()
-		if er != nil {
-			fmt.Println("error closing connection:", er)
-		}
-	}(conn)
-
-	for {
-		msgType, msg, er := conn.ReadMessage()
-		fmt.Println("read:", msgType, msg, er)
-		if er != nil {
-			fmt.Println("error reading message:", er, msgType)
-			break
-		}
-
-		//response := processMessage(string(msg))
-		//server.WriteMessage([]byte(response))
-	}
-}
-
-func processMessage(msg string) string {
-	switch msg {
-	case "step 1":
-		return "response for step 1"
-	case "step 2":
-		return "response for step 2"
-	case "step 3":
-		return "response for step 3"
-	case "step 4":
-		return "response for step 4"
-	case "step 5":
-		return "response for step 5"
-	default:
-		return "unknown step"
-	}
-}
-
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	// TODO:
@@ -136,8 +50,8 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
 		if er != nil {
 			log.Println("error writing concurrent connections warning:", er)
-			return
 		}
+		return
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -159,7 +73,6 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	defer server.pool.RemoveClient(client)
 
 	if len(server.pool.Clients) >= 1 {
-
 		ctx, _ := context.WithCancel(server.pool.ReadCtx)
 		go server.pool.ReadMessageFromConn(ctx, client)
 		//go server.pool.ReadMessageFromConn(ctx)
@@ -183,8 +96,6 @@ func StartServer(ctx context.Context) {
 	}
 
 	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
-	http.HandleFunc("/ws", server.handleConnection)
-	http.HandleFunc("/echo", server.echo)
 	http.HandleFunc("/", home)
 
 	fmt.Println("WebSocket server started on :80")

@@ -29,16 +29,16 @@ type Client struct {
 }
 
 type ConnectionPool struct {
-	Ctx         context.Context `json:"context"`
-	cancel      context.CancelFunc
-	ReadCtx     context.Context `json:"readContext"`
-	readCancel  context.CancelFunc
-	mutex       sync.RWMutex
-	Clients     map[*Client]bool `json:"clients"`
+	broadcast   chan []byte
 	register    chan *Client
 	unregister  chan *Client
-	broadcast   chan []byte
-	MessageChan chan string `json:"messageChan"`
+	mutex       sync.RWMutex
+	cancel      context.CancelFunc
+	readCancel  context.CancelFunc
+	MessageChan chan string      `json:"messageChan"`
+	Ctx         context.Context  `json:"context"`
+	Clients     map[*Client]bool `json:"clients"`
+	ReadCtx     context.Context  `json:"readContext"`
 }
 
 func NewPool() *ConnectionPool {
@@ -143,8 +143,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			return
 		default:
 			msgType, msg, err := client.Conn.ReadMessage()
-			if err != nil {
-				log.Printf("error reading from %s: %v", client.Conn.RemoteAddr().String(), err)
+			if err != nil || msgType == websocket.CloseMessage {
+				log.Printf("error reading from %s for messagetype %d: %v", client.Conn.RemoteAddr().String(), msgType, err)
 				pool.RemoveClient(client)
 				return
 			}
