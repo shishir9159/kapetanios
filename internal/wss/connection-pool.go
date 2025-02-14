@@ -41,10 +41,11 @@ type ConnectionPool struct {
 func NewPool() *ConnectionPool {
 
 	return &ConnectionPool{
-		Clients:    make(map[*Client]bool),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Broadcast:  make(chan []byte),
+		Clients:     make(map[*Client]bool),
+		Register:    make(chan *Client),
+		Unregister:  make(chan *Client),
+		MessageChan: make(chan string, 1),
+		Broadcast:   make(chan []byte),
 	}
 }
 
@@ -104,15 +105,13 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 	// Create a context with cancel to stop all Goroutines
 	ctx, cancel := context.WithCancel(context.Background())
 
-	messageChan := make(chan string, 1)
-
 	for client := range pool.Clients {
 		if pool.Clients[client] {
-			go pool.readMessage(ctx, client, messageChan)
+			go pool.readMessage(ctx, client, pool.MessageChan)
 		}
 	}
 
-	message := <-messageChan
+	message := <-pool.MessageChan
 	cancel()
 
 	return strings.TrimSpace(message), nil

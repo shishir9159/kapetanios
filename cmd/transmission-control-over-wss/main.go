@@ -169,8 +169,7 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 func StartServer(ctx context.Context) {
 
-	messageChan := make(chan string, 1)
-	pool := wss.NewPool(messageChan)
+	pool := wss.NewPool()
 	// TODO: remove all the clients when the job ends
 	go pool.Run()
 
