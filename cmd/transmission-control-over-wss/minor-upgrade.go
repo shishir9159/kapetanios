@@ -137,6 +137,9 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 	roleName := "minor-upgrade"
 	// todo: configMapName := "kapetanios"
 
+	ch := make(chan *grpc.Server, 1)
+	go MinorUpgradeGrpc(c.log, pool, ch)
+
 	// TODO: refactor this part to orchestrator
 	for index, node := range nodes.Items {
 
@@ -301,9 +304,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		////c.log.Info("gRPC server has been gracefully stopped.")
 		// ----------------- Cordon and Drain ----------------- \\
 
-		ch := make(chan *grpc.Server, 1)
-		go MinorUpgradeGrpc(c.log, pool, ch)
-
 		// TODO:
 		//  check for pods stuck in the terminating state
 		//  if any pods other than the whitelisted ones are still in the node,
@@ -350,7 +350,8 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 			c.log.Error("failed to create a watcher for the pod",
 				zap.Error(err))
-			time.Sleep(180 * time.Second)
+			// handle the error
+			time.Sleep(600 * time.Second)
 			(<-ch).Stop()
 		}
 
@@ -374,9 +375,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
-					(<-ch).Stop()
-
-					c.log.Info("breaking outerLoop!")
 					break outerLoop
 				} else if pod.Status.Phase == corev1.PodFailed {
 					c.log.Info("minor upgrade pod has failed!",
@@ -384,9 +382,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
 					// todo: handle pod failure
-					(<-ch).Stop()
-
-					c.log.Info("breaking outerLoop!")
 					break outerLoop
 				}
 			case watch.Deleted:
@@ -394,9 +389,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace),
 					zap.String("minion name", minion.Name))
-				(<-ch).Stop()
-
-				c.log.Info("breaking outerLoop!")
 				break outerLoop
 			}
 		}
@@ -408,6 +400,7 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 		watcher.Stop()
 	}
+	(<-ch).Stop()
 
 	c.log.Info("broken outerLoop -- wait noooooooooooooooooooo!")
 }
