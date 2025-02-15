@@ -61,7 +61,7 @@ spec:
       volumes:
       - name: report-config-volume
         configMap:
-          defaultMode: 0666
+          defaultMode: 0777
           name: report
       terminationGracePeriodSeconds: 60
       schedulerName: default-scheduler
