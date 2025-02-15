@@ -159,6 +159,14 @@ func StartServer(ctx context.Context) {
 
 func main() {
 
+	//report, err	 := readJSONConfig()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//if len(report.NodesToBeUpgraded) != 0 {
+	//
+	//}
+
 	// todo: resume connections after server restarts
 	//  Prerequisites(minorUpgradeNamespace)
 

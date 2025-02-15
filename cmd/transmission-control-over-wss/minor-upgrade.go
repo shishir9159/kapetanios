@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
+	"os"
 	"sort"
 	"strconv"
 	"sync"
@@ -178,6 +179,8 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 		report.NodesToBeUpgraded = nodeNames
 		err = writeJSONConfig(*report)
+
+		os.Exit(0)
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{
