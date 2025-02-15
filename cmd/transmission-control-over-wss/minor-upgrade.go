@@ -393,8 +393,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 			}
 		}
 
-		c.log.Info("broken outerLoop")
-
 		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 		//  check if previously listed pods are all successfully restarted before untainted
 

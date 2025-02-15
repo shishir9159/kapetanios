@@ -43,8 +43,9 @@ type MinorityReport struct {
 }
 
 type Server struct {
-	ctx  context.Context
-	pool *wss.ConnectionPool
+	ctx         context.Context
+	initialized bool
+	pool        *wss.ConnectionPool
 }
 
 func readJSONConfig() (MinorityReport, error) {
@@ -113,7 +114,7 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	server.pool.AddClient(client)
 	defer server.pool.RemoveClient(client)
 
-	if len(server.pool.Clients) >= 1 {
+	if server.initialized {
 		ctx, _ := context.WithCancel(server.pool.ReadCtx)
 		go server.pool.ReadMessageFromConn(ctx, client)
 		//go server.pool.ReadMessageFromConn(ctx)
@@ -122,12 +123,15 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: race condtion - readctx can be cancelled
+
 	minorityReport := MinorityReport{
 		CurrentStep:           0,
 		MinorUpgradeNamespace: "default",
 	}
 
 	MinorUpgrade(&minorityReport, server.pool)
+	server.initialized = true
 }
 
 func StartServer(ctx context.Context) {
@@ -137,8 +141,9 @@ func StartServer(ctx context.Context) {
 	go pool.Run()
 
 	server := Server{
-		ctx:  ctx,
-		pool: pool,
+		ctx:         ctx,
+		initialized: false,
+		pool:        pool,
 	}
 
 	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
