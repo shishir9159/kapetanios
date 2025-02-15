@@ -6,10 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -32,17 +34,52 @@ var upgrader = websocket.Upgrader{
 }
 
 type MinorityReport struct {
-	currentStep           uint8
-	upgradedNodes         []string
-	nodesToBeUpgraded     []string
-	redhatK8sVersion      string
-	ubuntuK8sVersion      string
-	minorUpgradeNamespace string
+	CurrentStep           uint8    `yaml:"currentStep"`
+	UpgradedNodes         []string `yaml:"upgradedNodes"`
+	NodesToBeUpgraded     []string `yaml:"nodesToBeUpgraded"`
+	RedhatK8sVersion      string   `yaml:"redhatK8sVersion"`
+	UbuntuK8sVersion      string   `yaml:"ubuntuK8sVersion"`
+	MinorUpgradeNamespace string   `yaml:"minorUpgradeNamespace"`
 }
 
 type Server struct {
 	ctx  context.Context
 	pool *wss.ConnectionPool
+}
+
+func readJSONConfig() (MinorityReport, error) {
+
+	if _, err := os.Stat("/etc/report/upgrade.json"); err != nil {
+		return MinorityReport{}, err
+	}
+
+	data, err := os.ReadFile("/etc/report/upgrade.json")
+	if err != nil {
+		return MinorityReport{}, err
+	}
+
+	report := MinorityReport{}
+	var json = jsoniter.ConfigFastest
+	if err = json.Unmarshal(data, &report); err != nil {
+		return MinorityReport{}, err
+	}
+
+	return report, nil
+}
+
+func writeJSONConfig(report MinorityReport) error {
+
+	var json = jsoniter.ConfigFastest
+	reportJson, err := json.Marshal(report)
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile("/etc/report/upgrade.json", reportJson, 0644); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
@@ -86,8 +123,8 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	}
 
 	minorityReport := MinorityReport{
-		currentStep:           0,
-		minorUpgradeNamespace: "default",
+		CurrentStep:           0,
+		MinorUpgradeNamespace: "default",
 	}
 
 	MinorUpgrade(&minorityReport, server.pool)

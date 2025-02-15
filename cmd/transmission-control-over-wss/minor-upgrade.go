@@ -5,9 +5,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -18,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -80,7 +77,7 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	namespace := report.minorUpgradeNamespace
+	namespace := report.MinorUpgradeNamespace
 
 	kapetaniosPod, err := c.client.Clientset().CoreV1().Pods(namespace).List(c.ctx, listOptions)
 
@@ -139,14 +136,7 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 	//}
 
 	roleName := "minor-upgrade"
-	configMapName := "kapetanios"
-	// TODO: remove
-	//var node corev1.Node
-	//for _, no := range nodes.Items {
-	//	if no.ObjectMeta.Name == "robi-infra-poc-2" {
-	//		node = no
-	//	}
-	//}
+	// todo: configMapName := "kapetanios"
 
 	// TODO: refactor this part to orchestrator
 	for index, node := range nodes.Items {
@@ -155,31 +145,37 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 			zap.String("node to be name:", node.Name))
 
 		// todo: populate with user input or not
-		targetedVersion := "1.26.6-1.1"
+		//targetedVersion := "1.26.6-1.1"
+
+		// namespace should only be included after the consideration for the existing
+		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node.Name)
 
-		configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.TODO(), configMapName, metav1.GetOptions{})
-		if er != nil {
-			c.log.Error("error fetching the configMap",
-				zap.Error(er))
-		}
+		// TODO: instead of pod monitoring for creation, monitor for successful restarts
+		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
+		//  if er != nil {
+		//  	c.log.Error("error restarting pods for certificate renewal",
+		//	    	zap.Error(er))
+		//	  //retry logic
+		//	 // return er
+		//	 break
+		//  }
 
+		// TODO: drain add node selector or something,
+		//   add the same thing on the necessary pods(except for ds)
+
+		//  TODO: after the pod is scheduled
+		//   must first drain the node
+		//   if failed, must be tainted again to
+		//   schedule nodes
 		var nodeNames []string
 
 		for _, no := range nodes.Items[index:] {
 			nodeNames = append(nodeNames, no.Name)
 		}
 
-		report.nodesToBeUpgraded = nodeNames
-
-		var json = jsoniter.ConfigFastest
-
-		ConfigFastest
-
-		configMap.Data["REPORT"], err = json.Marshal(&report)
-
-		configMap.Data["TARGETED_K8S_VERSION"] = targetedVersion
-		configMap.Data["NODES_TO_BE_UPGRADED"] = strings.Join(nodeNames, ";")
+		report.NodesToBeUpgraded = nodeNames
+		err = writeJSONConfig(*report)
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{
@@ -192,6 +188,8 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 		descriptor.Spec.HostNetwork = true
 
+		// TODO -- take input
+
 		certRenewalEnv := corev1.EnvVar{
 			Name:  "CERTIFICATE_RENEWAL",
 			Value: strconv.FormatBool(certificateRenewal),
@@ -200,31 +198,140 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		env := descriptor.Spec.Containers[0].Env
 		env = append(env, certRenewalEnv)
 
-		firstNodeToUpgradeEnv := corev1.EnvVar{
-			Name:  "FIRST_NODE_TO_BE_UPGRADED",
-			Value: "true",
-		}
+		if index == 0 {
 
-		env = append(env, firstNodeToUpgradeEnv)
+			firstNodeToUpgradeEnv := corev1.EnvVar{
+				Name:  "FIRST_NODE_TO_BE_UPGRADED",
+				Value: "true",
+			}
+
+			env = append(env, firstNodeToUpgradeEnv)
+		}
 
 		descriptor.Spec.Containers[0].Env = env
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
+		//descriptor.Spec.DNSConfig = &corev1.PodDNSConfig{
+		//	Nameservers: []string{"10.96.0.10"},
+		//	Searches:    []string{"svc.cluster.local"},
+		//}
+
+		// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
+		//  then those Pods might be scheduled to the node you have drained.
+
+		// ----------------- Cordon and Drain ----------------- \\
+		//c.log.Info("cordoning and draining node",
+		//	zap.String("node name", node.Name))
+		//
+		//// TODO: should wait for the coredns restart
+		//
+		//err = drainAndCordonNode(c, &node)
+		//if err != nil {
+		//	c.log.Error("failed to drain node",
+		//		zap.String("node name:", node.Name),
+		//		zap.Error(err))
+		//}
+		//
+		//// TODO:
+		////  display the possible errors if force was not
+		//
+		//// TODO:
+		////  if ran successfully
+		////  Warning: deleting Pods that declare no controller: default/dnsutils; ignoring DaemonSet-managed Pods: kube-system/cilium-wnn6z, kube-system/kube-proxy-m8txw, metallb-system/speaker-587dh
+		////evicting pod ingress-nginx/ingress-nginx-admission-create-5pjqv
+		////evicting pod metallb-system/controller-9b6c9f6c9-g2p4z
+		////evicting pod klovercloud/mesh-uat-go-two-6f846bfcf-ztnk5
+		////evicting pod ingress-nginx/ingress-nginx-controller-5dcc84f655-pvdcc
+		////evicting pod klovercloud/mesh-uat-go-one-86776497cf-227g9
+		////evicting pod default/dnsutils
+		////evicting pod default/backend-59b96df495-ghfn2
+		////evicting pod ingress-nginx/ingress-nginx-admission-patch-4qgmn
+		////evicting pod kube-system/coredns-787d4945fb-stk4w
+		////evicting pod kube-system/cilium-operator-fdf6bc9f4-mcx4h
+		////evicting pod default/kapetanios-b5bc457fb-v5vlx
+		////evicting pod default/minions-for-etcd-4mg95
+		////evicting pod kube-system/coredns-787d4945fb-4zl96
+		////pod/ingress-nginx-admission-patch-4qgmn evicted
+		////pod/ingress-nginx-admission-create-5pjqv evicted
+		////pod/controller-9b6c9f6c9-g2p4z evicted
+		////pod/minions-for-etcd-4mg95 evicted
+		////pod/mesh-uat-go-one-86776497cf-227g9 evicted
+		////I1029 03:31:47.241516 4025541 request.go:690] Waited for 1.103702573s due to client-side throttling, not priority and fairness, request: GET:https://10.0.0.3:6443/api/v1/namespaces/klovercloud/pods/mesh-uat-go-two-6f846bfcf-ztnk5
+		////pod/dnsutils evicted
+		////pod/backend-59b96df495-ghfn2 evicted
+		////pod/kapetanios-b5bc457fb-v5vlx evicted
+		////pod/mesh-uat-go-two-6f846bfcf-ztnk5 evicted
+		////pod/cilium-operator-fdf6bc9f4-mcx4h evicted
+		////pod/coredns-787d4945fb-4zl96 evicted
+		////pod/coredns-787d4945fb-stk4w evicted
+		////pod/ingress-nginx-controller-5dcc84f655-pvdcc evicted
+		//
+		//c.log.Info("tainting node",
+		//	zap.String("node name", node.Name))
+		//
+		//addTaint(&node)
+		//
+		//err = drain.RunCordonOrUncordon(&drain.Helper{
+		//	Ctx:    c.ctx,
+		//	Client: c.client.Clientset(),
+		//}, &node, false)
+		//
+		//if err != nil {
+		//	c.log.Error("error uncordoning the node",
+		//		zap.String("node name", node.Name),
+		//		zap.Error(err))
+		//}
+		//
+		////TODO:
+		////ctxTermination, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		////defer stop()
+		////
+		////var wg sync.WaitGroup
+		////
+		////// Start the gRPC server in a separate goroutine
+		////wg.Add(1)
+		////go func() {
+		////	defer wg.Done()
+		////	MinorUpgradeGrpc(ctxTermination)
+		////}()
+		////
+		////// Wait for the server goroutine to exit
+		////<-ctxTermination.Done()
+		////stop()
+		////wg.Wait()
+		////c.log.Info("gRPC server has been gracefully stopped.")
+		// ----------------- Cordon and Drain ----------------- \\
+
 		ch := make(chan *grpc.Server, 1)
 		go MinorUpgradeGrpc(c.log, pool, ch)
 
-		// TODO: create a watcher against the minion pod
+		// TODO:
+		//  check for pods stuck in the terminating state
+		//  if any pods other than the whitelisted ones are still in the node,
+		//  force delete
 
-		minion, err := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
-		if err != nil {
+		// TODO:
+		//  if the pod doesn't schedule, check for taint
+		//  check for all pod related event with informer
+
+		// TODO: monitor the node status with watch
+
+		// TODO: monitor the pod restart after upgrade
+		//  All containers are restarted after upgrade, because the container spec hash value is changed
+		//		just monitor the NODES before creating minion, no need to restart
+		//  RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
+
+		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
+		if er != nil {
 			c.log.Error("minor upgrade pod creation failed: ",
-				zap.Error(err))
+				zap.Error(er))
 
 			pool.BroadcastMessage([]byte("minor upgrade pod creation failed" + err.Error()))
 			return
 		}
 
 		c.log.Info("minor upgrade pod created",
+			zap.Int("index", index),
 			zap.String("pod name", minion.Name))
 
 		pool.BroadcastMessage([]byte("minor upgrade pod created successfully: " + minion.Name))
@@ -239,7 +346,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 			FieldSelector: "metadata.name=" + minion.Name,
 		})
 
-		defer watcher.Stop()
 		if err != nil {
 			pool.BroadcastMessage([]byte("failed to create a watcher for the pod: " + minion.Name))
 
@@ -252,6 +358,7 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		// TODO: a loop for all the nodes
 		//  wait for the applicationTerminated to be updated
 
+	outerLoop:
 		for event := range watcher.ResultChan() {
 			pod, ok := event.Object.(*corev1.Pod)
 			if !ok {
@@ -269,7 +376,7 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
 					(<-ch).Stop()
-					return
+					break outerLoop
 				} else if pod.Status.Phase == corev1.PodFailed {
 					c.log.Info("minor upgrade pod has failed!",
 						zap.String("pod name", pod.Name),
@@ -277,13 +384,18 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 						zap.String("minion name", minion.Name))
 					// todo: handle pod failure
 					(<-ch).Stop()
-					return
+					break outerLoop
 				}
 			case watch.Deleted:
 				fmt.Println("Pod", minion.Name, "was deleted")
 				(<-ch).Stop()
-				return
+				break outerLoop
 			}
 		}
+
+		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
+		//  check if previously listed pods are all successfully restarted before untainted
+
+		watcher.Stop()
 	}
 }

@@ -54,6 +54,14 @@ spec:
             periodSeconds: 300
             successThreshold: 1
             timeoutSeconds: 15
+          volumeMounts:
+            - name: report-config-volume
+              mountPath: "/etc/report/upgrade.json"
+              readOnly: true
+      volumes:
+        - name: report-config-volume
+          configMap:
+            name: kapetanios
       terminationGracePeriodSeconds: 60
       schedulerName: default-scheduler
 #      TODO: serviceAccount
