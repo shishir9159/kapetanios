@@ -56,12 +56,12 @@ spec:
             timeoutSeconds: 15
           volumeMounts:
             - name: report-config-volume
-#              mountPath: "/etc/report/"
-              mountPath: "/etc/report/upgrade.json"
-              readOnly: true
+              mountPath: "/etc/report/"
+              readOnly: false
       volumes:
         - name: report-config-volume
           configMap:
+            defaultMode: 0644
             name: report
       terminationGracePeriodSeconds: 60
       schedulerName: default-scheduler
