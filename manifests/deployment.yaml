@@ -28,32 +28,32 @@ spec:
               name: kapetanios
             - containerPort: 50051
               name: kapetanios-grpc
-          livenessProbe:
-            failureThreshold: 10
-            httpGet:
-              host: 127.0.0.1
-              httpHeaders:
-                - name: shuttle
-                  value: "launched"
-              path: /livez
-              port: kapetanios
-              scheme: HTTP
-            periodSeconds: 300
-            successThreshold: 1
-            timeoutSeconds: 5
-          readinessProbe:
-            failureThreshold: 3
-            httpGet:
-              host: 127.0.0.1
-              httpHeaders:
-                - name: sanity
-                  value: "checked"
-              path: /readyz
-              port: kapetanios
-              scheme: HTTP
-            periodSeconds: 300
-            successThreshold: 1
-            timeoutSeconds: 15
+#          livenessProbe:
+#            failureThreshold: 10
+#            httpGet:
+#              host: 127.0.0.1
+#              httpHeaders:
+#                - name: shuttle
+#                  value: "launched"
+#              path: /livez
+#              port: kapetanios
+#              scheme: HTTP
+#            periodSeconds: 300
+#            successThreshold: 1
+#            timeoutSeconds: 5
+#          readinessProbe:
+#            failureThreshold: 3
+#            httpGet:
+#              host: 127.0.0.1
+#              httpHeaders:
+#                - name: sanity
+#                  value: "checked"
+#              path: /readyz
+#              port: kapetanios
+#              scheme: HTTP
+#            periodSeconds: 300
+#            successThreshold: 1
+#            timeoutSeconds: 15
           volumeMounts:
             - name: report-config-volume
               mountPath: "/etc/report/"
@@ -61,7 +61,7 @@ spec:
       volumes:
         - name: report-config-volume
           configMap:
-            defaultMode: 0644
+            defaultMode: 0666
             name: report
       terminationGracePeriodSeconds: 60
       schedulerName: default-scheduler
