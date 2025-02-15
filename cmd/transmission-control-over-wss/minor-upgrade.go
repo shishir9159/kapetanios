@@ -179,6 +179,10 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 		report.NodesToBeUpgraded = nodeNames
 		err = writeJSONConfig(*report)
+		if err != nil {
+			c.log.Error("error writing reporting",
+				zap.Error(err))
+		}
 
 		os.Exit(0)
 
