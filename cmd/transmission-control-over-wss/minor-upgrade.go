@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -376,6 +375,8 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
 					(<-ch).Stop()
+
+					c.log.Info("breaking outerLoop!")
 					break outerLoop
 				} else if pod.Status.Phase == corev1.PodFailed {
 					c.log.Info("minor upgrade pod has failed!",
@@ -384,14 +385,23 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 						zap.String("minion name", minion.Name))
 					// todo: handle pod failure
 					(<-ch).Stop()
+
+					c.log.Info("breaking outerLoop!")
 					break outerLoop
 				}
 			case watch.Deleted:
-				fmt.Println("Pod", minion.Name, "was deleted")
+				c.log.Info("minor upgrade pod was deleted!",
+					zap.String("pod name", pod.Name),
+					zap.String("pod namespace", pod.Namespace),
+					zap.String("minion name", minion.Name))
 				(<-ch).Stop()
+
+				c.log.Info("breaking outerLoop!")
 				break outerLoop
 			}
 		}
+
+		c.log.Info("broken outerLoop")
 
 		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 		//  check if previously listed pods are all successfully restarted before untainted
