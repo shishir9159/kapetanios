@@ -408,4 +408,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 		watcher.Stop()
 	}
+
+	c.log.Info("broken outerLoop -- wait noooooooooooooooooooo!")
 }
