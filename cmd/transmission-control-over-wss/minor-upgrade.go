@@ -361,9 +361,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 			(<-ch).Stop()
 		}
 
-		// TODO: a loop for all the nodes
-		//  wait for the applicationTerminated to be updated
-
 	outerLoop:
 		for event := range watcher.ResultChan() {
 			pod, ok := event.Object.(*corev1.Pod)
@@ -405,6 +402,4 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		watcher.Stop()
 	}
 	(<-ch).Stop()
-
-	c.log.Info("broken outerLoop -- wait noooooooooooooooooooo!")
 }

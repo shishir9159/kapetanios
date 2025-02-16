@@ -10,6 +10,7 @@ message PrerequisitesMinorUpgrade {
 
 message UpgradeResponse {
   bool proceedNextStep = 1;
+  bool retryCurrentStep = 3;
   bool terminateApplication = 2;
 }
 
