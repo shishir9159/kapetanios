@@ -182,9 +182,8 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		if err != nil {
 			c.log.Error("error writing reporting",
 				zap.Error(err))
+			os.Exit(0)
 		}
-
-		os.Exit(0)
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{

@@ -21,15 +21,15 @@ var (
 )
 
 var upgrader = websocket.Upgrader{
-	HandshakeTimeout: 0,
 	ReadBufferSize:   0,
 	WriteBufferSize:  0,
 	WriteBufferPool:  nil,
-	Subprotocols:     nil,
-	Error:            nil,
+	HandshakeTimeout: 0,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+	Error:             nil,
+	Subprotocols:      nil,
 	EnableCompression: false,
 }
 
@@ -43,8 +43,8 @@ type MinorityReport struct {
 }
 
 type Server struct {
-	ctx         context.Context
 	initialized bool
+	ctx         context.Context
 	pool        *wss.ConnectionPool
 }
 
