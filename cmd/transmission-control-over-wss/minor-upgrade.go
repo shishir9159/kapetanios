@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -77,7 +78,9 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	namespace := report.MinorUpgradeNamespace
+	// TODO:
+	namespace := "default"
+	//namespace := report.MinorUpgradeNamespace
 
 	kapetaniosPod, err := c.client.Clientset().CoreV1().Pods(namespace).List(c.ctx, listOptions)
 
@@ -177,6 +180,8 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 			nodeNames = append(nodeNames, no.Name)
 		}
+
+		fmt.Println(nodeNames[0])
 
 		report.NodesToBeUpgraded = strings.Join(nodeNames, ";")
 		err = writeConfig(c, *report)

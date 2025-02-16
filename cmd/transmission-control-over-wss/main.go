@@ -36,16 +36,16 @@ var upgrader = websocket.Upgrader{
 }
 
 type upgradeProgression struct {
+	CurrentStep           uint8  `yaml:"currentStep"`
+	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
 }
 
 type MinorityReport struct {
-	CurrentStep           uint8  `yaml:"currentStep"`
-	UpgradedNodes         string `yaml:"upgradedNodes"`
-	NodesToBeUpgraded     string `yaml:"nodesToBeUpgraded"`
-	UbuntuK8sVersion      string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
-	Redhat8K8sVersion     string `yaml:"redhatK8sVersion"`
-	Redhat9K8sVersion     string `yaml:"redhatK8sVersion"`
-	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
+	UpgradedNodes     string `yaml:"upgradedNodes"`
+	NodesToBeUpgraded string `yaml:"nodesToBeUpgraded"`
+	UbuntuK8sVersion  string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
+	Redhat8K8sVersion string `yaml:"redhat8K8sVersion"`
+	Redhat9K8sVersion string `yaml:"redhat9K8sVersion"`
 }
 
 type Server struct {
@@ -152,8 +152,8 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	// TODO: race condtion - readctx can be cancelled
 
 	minorityReport := MinorityReport{
-		CurrentStep:           0,
-		MinorUpgradeNamespace: "default",
+		//CurrentStep:           0,
+		//MinorUpgradeNamespace: "default",
 	}
 
 	MinorUpgrade(&minorityReport, server.pool)
