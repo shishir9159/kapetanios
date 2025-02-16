@@ -142,9 +142,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 	roleName := "minor-upgrade"
 	// todo: configMapName := "kapetanios"
 
-	ch := make(chan *grpc.Server, 1)
-	go MinorUpgradeGrpc(c.log, pool, ch)
-
 	var nodeNames []string
 
 	c.log.Info("waiting for minor-upgrade service to become viable")
@@ -162,6 +159,9 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		nodeNames = append(nodeNames, no.Name)
 	}
 	c.log.Info("waiting for minor-upgrade service to become available")
+
+	ch := make(chan *grpc.Server, 1)
+	go MinorUpgradeGrpc(c.log, pool, ch)
 
 	// TODO: refactor this part to orchestrator
 	for index, node := range nodes.Items {
