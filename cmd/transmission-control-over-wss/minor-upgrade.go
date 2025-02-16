@@ -53,9 +53,10 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 	// TODO: add namespace in the controller itself
 	c := Controller{
-		client: client,
-		ctx:    context.Background(),
-		log:    logger,
+		client:    client,
+		ctx:       context.Background(),
+		namespace: "default",
+		log:       logger,
 	}
 
 	c.mu.Lock()
