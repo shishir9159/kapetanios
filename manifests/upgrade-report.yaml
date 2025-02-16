@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: report
-data:
-  name.properties: |
-    field=value1,value2

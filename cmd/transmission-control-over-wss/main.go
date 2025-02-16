@@ -8,7 +8,9 @@ import (
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/wss"
+	"go.uber.org/zap"
 	"html/template"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"net/http"
 	"os"
@@ -69,6 +71,23 @@ func readJSONConfig() (MinorityReport, error) {
 }
 
 func writeJSONConfig(report MinorityReport) error {
+
+	configMapName := "kapetanios"
+
+	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	if er != nil {
+		c.log.Error("error fetching the configMap",
+			zap.Error(er))
+	}
+
+	targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
+	nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
+
+	_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+	if er != nil {
+		c.log.Error("error updating configMap",
+			zap.Error(er))
+	}
 
 	var json = jsoniter.ConfigFastest
 	reportJson, err := json.Marshal(report)

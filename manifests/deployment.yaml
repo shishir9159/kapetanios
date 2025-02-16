@@ -54,15 +54,6 @@ spec:
 #            periodSeconds: 300
 #            successThreshold: 1
 #            timeoutSeconds: 15
-          volumeMounts:
-          - name: report-config-volume
-            mountPath: "/etc/report/"
-            readOnly: false
-      volumes:
-      - name: report-config-volume
-        configMap:
-          defaultMode: 0777
-          name: report
       terminationGracePeriodSeconds: 60
       schedulerName: default-scheduler
 #      TODO: serviceAccount
