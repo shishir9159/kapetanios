@@ -189,6 +189,7 @@ func StartServer(ctx context.Context) {
 	}
 
 	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
+	http.HandleFunc("/healthz", healthz)
 	http.HandleFunc("/", home)
 
 	fmt.Println("WebSocket server started on :80")
