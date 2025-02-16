@@ -111,7 +111,8 @@ func writeConfig(c Controller, report MinorityReport) error {
 }
 
 // healthz is a liveness probe.
-func healthz(w http.ResponseWriter, _ *http.Request) {
+func livez(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("shuttle", "launched")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -189,7 +190,7 @@ func StartServer(ctx context.Context) {
 	}
 
 	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
-	http.HandleFunc("/healthz", healthz)
+	http.HandleFunc("/livez", livez)
 	http.HandleFunc("/", home)
 
 	fmt.Println("WebSocket server started on :80")

@@ -146,7 +146,7 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 	for _, no := range nodes.Items {
 		c.log.Info("status",
 			//zap.String("node config assigned", no.Status.Config.Assigned.String()),
-			zap.String("node config active", no.Status.Config.Active.String()),
+			//zap.String("node config active", no.Status.Config.Active.String()),
 			//zap.String("node config last known good", no.Status.Config.LastKnownGood.String()),
 			zap.String("node condition reason", no.Status.Conditions[0].Reason),
 			zap.String("node info os image", no.Status.NodeInfo.OSImage),
