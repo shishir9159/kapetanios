@@ -144,17 +144,17 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 	var nodeNames []string
 
 	for _, no := range nodes.Items {
-		//c.log.Info("status",
-		//	zap.String("node config assigned", no.Status.Config.Assigned.String()),
-		//	zap.String("node config active", no.Status.Config.Active.String()),
-		//	zap.String("node config last known good", no.Status.Config.LastKnownGood.String()),
-		//	zap.String("node condition reason", no.Status.Conditions[0].Reason),
-		//	zap.String("node info os image", no.Status.NodeInfo.OSImage),
-		//	zap.String("node info operating system", no.Status.NodeInfo.OperatingSystem),
-		//	zap.String("node info kernel version", no.Status.NodeInfo.KernelVersion),
-		//	zap.String("node info kubelet version", no.Status.NodeInfo.KubeletVersion),
-		//	zap.String("node info container runtime version", no.Status.NodeInfo.ContainerRuntimeVersion),
-		//)
+		c.log.Info("status",
+			//zap.String("node config assigned", no.Status.Config.Assigned.String()),
+			//zap.String("node config active", no.Status.Config.Active.String()),
+			//zap.String("node config last known good", no.Status.Config.LastKnownGood.String()),
+			//zap.String("node condition reason", no.Status.Conditions[0].Reason),
+			//zap.String("node info os image", no.Status.NodeInfo.OSImage),
+			//zap.String("node info operating system", no.Status.NodeInfo.OperatingSystem),
+			//zap.String("node info kernel version", no.Status.NodeInfo.KernelVersion),
+			//zap.String("node info kubelet version", no.Status.NodeInfo.KubeletVersion),
+			zap.String("node info container runtime version", no.Status.NodeInfo.ContainerRuntimeVersion),
+		)
 		nodeNames = append(nodeNames, no.Name)
 	}
 
