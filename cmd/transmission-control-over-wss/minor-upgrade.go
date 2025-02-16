@@ -145,6 +145,24 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpgradeGrpc(c.log, pool, ch)
 
+	var nodeNames []string
+
+	c.log.Info("waiting for minor-upgrade service to become viable")
+	for _, no := range nodes.Items {
+		fmt.Println(no.Status.Config.Assigned)
+		fmt.Println(no.Status.Config.Active)
+		fmt.Println(no.Status.Config.LastKnownGood)
+		fmt.Println(no.Status.Config.LastKnownGood)
+
+		fmt.Println(no.Status.NodeInfo.OSImage)
+		fmt.Println(no.Status.NodeInfo.OperatingSystem)
+		fmt.Println(no.Status.NodeInfo.KernelVersion)
+		fmt.Println(no.Status.NodeInfo.KubeletVersion)
+		fmt.Println(no.Status.NodeInfo.ContainerRuntimeVersion)
+		nodeNames = append(nodeNames, no.Name)
+	}
+	c.log.Info("waiting for minor-upgrade service to become available")
+
 	// TODO: refactor this part to orchestrator
 	for index, node := range nodes.Items {
 
