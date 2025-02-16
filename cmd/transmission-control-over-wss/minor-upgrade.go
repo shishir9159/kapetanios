@@ -178,11 +178,18 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		var nodeNames []string
 
 		for _, no := range nodes.Items[index:] {
+			fmt.Println(no.Status.Config.Assigned)
+			fmt.Println(no.Status.Config.Active)
+			fmt.Println(no.Status.Config.LastKnownGood)
+			fmt.Println(no.Status.Config.LastKnownGood)
 
+			fmt.Println(no.Status.NodeInfo.OSImage)
+			fmt.Println(no.Status.NodeInfo.OperatingSystem)
+			fmt.Println(no.Status.NodeInfo.KernelVersion)
+			fmt.Println(no.Status.NodeInfo.KubeletVersion)
+			fmt.Println(no.Status.NodeInfo.ContainerRuntimeVersion)
 			nodeNames = append(nodeNames, no.Name)
 		}
-
-		fmt.Println(nodeNames[0])
 
 		report.NodesToBeUpgraded = strings.Join(nodeNames, ";")
 		err = writeConfig(c, *report)
