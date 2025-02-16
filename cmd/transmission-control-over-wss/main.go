@@ -35,13 +35,17 @@ var upgrader = websocket.Upgrader{
 	EnableCompression: false,
 }
 
+type upgradeProgression struct {
+}
+
 type MinorityReport struct {
-	CurrentStep           uint8    `yaml:"currentStep"`
-	UpgradedNodes         []string `yaml:"upgradedNodes"`
-	NodesToBeUpgraded     []string `yaml:"nodesToBeUpgraded"`
-	RedhatK8sVersion      string   `yaml:"redhatK8sVersion"`
-	UbuntuK8sVersion      string   `yaml:"ubuntuK8sVersion"`
-	MinorUpgradeNamespace string   `yaml:"minorUpgradeNamespace"`
+	CurrentStep           uint8  `yaml:"currentStep"`
+	UpgradedNodes         string `yaml:"upgradedNodes"`
+	NodesToBeUpgraded     string `yaml:"nodesToBeUpgraded"`
+	UbuntuK8sVersion      string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
+	Redhat8K8sVersion     string `yaml:"redhatK8sVersion"`
+	Redhat9K8sVersion     string `yaml:"redhatK8sVersion"`
+	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
 }
 
 type Server struct {
@@ -70,34 +74,37 @@ func readJSONConfig() (MinorityReport, error) {
 	return report, nil
 }
 
-func writeJSONConfig(report MinorityReport) error {
+func writeConfig(c Controller, report MinorityReport) error {
 
 	configMapName := "kapetanios"
 
-	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
 		c.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
 
-	targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
-	nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
+	configMap.Data["NODES_UPGRADED"] = report.UpgradedNodes
+	configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion
+	configMap.Data["REDHAT8_K8S_VERSION"] = report.Redhat8K8sVersion
+	configMap.Data["REDHAT9_K8S_VERSION"] = report.Redhat9K8sVersion
+	configMap.Data["NODES_TO_BE_UPGRADED"] = report.NodesToBeUpgraded
 
-	_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+	_, er = c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
 	if er != nil {
 		c.log.Error("error updating configMap",
 			zap.Error(er))
 	}
 
-	var json = jsoniter.ConfigFastest
-	reportJson, err := json.Marshal(report)
-	if err != nil {
-		return err
-	}
-
-	if err = os.WriteFile("/etc/report/upgrade.json", reportJson, 0644); err != nil {
-		return err
-	}
+	//var json = jsoniter.ConfigFastest
+	//reportJson, err := json.Marshal(report)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if err = os.WriteFile("/etc/report/upgrade.json", reportJson, 0644); err != nil {
+	//	return err
+	//}
 
 	return nil
 }
