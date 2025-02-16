@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -27,11 +26,11 @@ var (
 )
 
 type Controller struct {
-	mu        sync.Mutex
-	client    *orchestration.Client
 	namespace string
-	ctx       context.Context
+	mu        sync.Mutex
 	log       *zap.Logger
+	ctx       context.Context
+	client    *orchestration.Client
 }
 
 func recovery(namespace string) {
@@ -144,21 +143,20 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 
 	var nodeNames []string
 
-	c.log.Info("waiting for minor-upgrade service to become viable")
 	for _, no := range nodes.Items {
-		fmt.Println(no.Status.Config.Assigned)
-		fmt.Println(no.Status.Config.Active)
-		fmt.Println(no.Status.Config.LastKnownGood)
-		fmt.Println(no.Status.Config.LastKnownGood)
-
-		fmt.Println(no.Status.NodeInfo.OSImage)
-		fmt.Println(no.Status.NodeInfo.OperatingSystem)
-		fmt.Println(no.Status.NodeInfo.KernelVersion)
-		fmt.Println(no.Status.NodeInfo.KubeletVersion)
-		fmt.Println(no.Status.NodeInfo.ContainerRuntimeVersion)
+		c.log.Info("status",
+			zap.String("node config assigned", no.Status.Config.Assigned.String()),
+			zap.String("node config active", no.Status.Config.Active.String()),
+			zap.String("node config last known good", no.Status.Config.LastKnownGood.String()),
+			zap.String("node condition reason", no.Status.Conditions[0].Reason),
+			zap.String("node info os image", no.Status.NodeInfo.OSImage),
+			zap.String("node info operating system", no.Status.NodeInfo.OperatingSystem),
+			zap.String("node info kernel version", no.Status.NodeInfo.KernelVersion),
+			zap.String("node info kubelet version", no.Status.NodeInfo.KubeletVersion),
+			zap.String("node info container runtime version", no.Status.NodeInfo.ContainerRuntimeVersion),
+		)
 		nodeNames = append(nodeNames, no.Name)
 	}
-	c.log.Info("waiting for minor-upgrade service to become available")
 
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpgradeGrpc(c.log, pool, ch)
@@ -193,21 +191,6 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 		//   must first drain the node
 		//   if failed, must be tainted again to
 		//   schedule nodes
-		var nodeNames []string
-
-		for _, no := range nodes.Items[index:] {
-			fmt.Println(no.Status.Config.Assigned)
-			fmt.Println(no.Status.Config.Active)
-			fmt.Println(no.Status.Config.LastKnownGood)
-			fmt.Println(no.Status.Config.LastKnownGood)
-
-			fmt.Println(no.Status.NodeInfo.OSImage)
-			fmt.Println(no.Status.NodeInfo.OperatingSystem)
-			fmt.Println(no.Status.NodeInfo.KernelVersion)
-			fmt.Println(no.Status.NodeInfo.KubeletVersion)
-			fmt.Println(no.Status.NodeInfo.ContainerRuntimeVersion)
-			nodeNames = append(nodeNames, no.Name)
-		}
 
 		report.NodesToBeUpgraded = strings.Join(nodeNames, ";")
 		err = writeConfig(c, *report)
