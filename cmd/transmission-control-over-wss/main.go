@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"net/http"
+	"os"
 	"sync/atomic"
 	"time"
 )
@@ -123,6 +124,10 @@ func readyz(isReady *atomic.Value) http.HandlerFunc {
 
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request) {
+
 	// TODO:
 	//  prepare the global minority report
 
@@ -163,7 +168,8 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: race condition - readCtx can be cancelled
 
-	// todo ---------
+	// todo --------- the process needs to be auto started ---------
+	//  ------------- and server.initialized must be true ----------
 	Client, _ := orchestration.NewClient()
 	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
@@ -174,11 +180,13 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		}
 	}(logger)
 
+	namespace := os.Getenv("KAPETANIOS_NAMESPACE")
+
 	c := Controller{
-		client:    Client,
-		ctx:       context.Background(),
-		namespace: "default",
 		log:       logger,
+		client:    Client,
+		namespace: namespace,
+		ctx:       context.Background(),
 	}
 	// todo ---------
 
@@ -206,7 +214,9 @@ func StartServer(ctx context.Context) {
 		pool:        pool,
 	}
 
-	http.HandleFunc("/minor-upgrade", server.minorUpgrade)
+	http.HandleFunc("/minor-upgrade", server.minorUpdateUpgrade)
+	// TODO: work on this api
+	http.HandleFunc("/upgrade", server.minorUpgrade)
 	http.HandleFunc("/livez", livez)
 	http.HandleFunc("/", home)
 

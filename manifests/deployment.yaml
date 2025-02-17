@@ -20,6 +20,11 @@ spec:
         - image: quay.io/klovercloud/kapetanios:latest
           imagePullPolicy: Always
           name: kapetanios
+          env:
+            - name: KAPETANIOS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           envFrom:
             - configMapRef:
                 name: kapetanios
@@ -41,17 +46,17 @@ spec:
             periodSeconds: 300
             successThreshold: 1
             timeoutSeconds: 5
-          startupProbe:
-            httpGet:
-              host: 127.0.0.1
-              httpHeaders:
-                - name: shuttle
-                  value: "launched"
-              path: /livez
-              port: kapetanios
-              scheme: HTTP
-            successThreshold: 1
-            timeoutSeconds: 5
+#          startupProbe:
+#            httpGet:
+#              host: 127.0.0.1
+#              httpHeaders:
+#                - name: shuttle
+#                  value: "launched"
+#              path: /livez
+#              port: kapetanios
+#              scheme: HTTP
+#            successThreshold: 1
+#            timeoutSeconds: 5
 #          readinessProbe:
 #            failureThreshold: 3
 #            httpGet:

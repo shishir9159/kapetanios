@@ -21,8 +21,7 @@ import (
 )
 
 var (
-	certificateRenewal    = false
-	applicationTerminated = false
+	certificateRenewal = false
 )
 
 type nodeInfo struct {
@@ -124,9 +123,9 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 		}
 
 		// TODO: debug mode
-		//for _, no := range nodes.Items {
-		//	c.log.Debug("nodes before sorting",
-		//		zap.String("nodes", no.ObjectMeta.Name))
+		//  for _, no := range nodes.Items {
+		//	  c.log.Debug("nodes before sorting",
+		//	    	zap.String("nodes", no.ObjectMeta.Name))
 		//}
 
 		// TODO: wouldn't work on one master node where lighthouse is scheduled
