@@ -25,6 +25,9 @@ var (
 	applicationTerminated = false
 )
 
+type nodeInfo struct {
+}
+
 type Controller struct {
 	namespace string
 	mu        sync.Mutex
@@ -37,7 +40,7 @@ func recovery(namespace string) {
 
 }
 
-func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
+func MinorUpgrade(pool *wss.ConnectionPool) {
 
 	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
@@ -64,6 +67,29 @@ func MinorUpgrade(report *MinorityReport, pool *wss.ConnectionPool) {
 	if err != nil {
 		c.log.Error("error creating kubernetes client",
 			zap.Error(err))
+	}
+
+	minorityReport, err := readJSONConfig(c)
+	if err != nil {
+		// TODO: no restart mode or draining
+		c.log.Error("could not read config map",
+			zap.Error(err))
+	}
+
+	if minorityReport.nodesUpgraded != "" {
+
+	}
+
+	if minorityReport.UbuntuK8sVersion != "" {
+
+	}
+
+	if minorityReport.Redhat8K8sVersion != "" {
+
+	}
+
+	if minorityReport.Redhat9K8sVersion != "" {
+
 	}
 
 	renewalMinionManager := orchestration.NewMinions(c.client)

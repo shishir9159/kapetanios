@@ -6,14 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
 	"html/template"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"net/http"
-	"os"
 	"sync/atomic"
 	"time"
 )
@@ -42,7 +40,7 @@ type upgradeProgression struct {
 }
 
 type MinorityReport struct {
-	UpgradedNodes     string `yaml:"upgradedNodes"`
+	nodesUpgraded     string `yaml:"nodesUpgraded"`
 	NodesToBeUpgraded string `yaml:"nodesToBeUpgraded"`
 	UbuntuK8sVersion  string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
 	Redhat8K8sVersion string `yaml:"redhat8K8sVersion"`
@@ -55,21 +53,23 @@ type Server struct {
 	pool        *wss.ConnectionPool
 }
 
-func readJSONConfig() (MinorityReport, error) {
+func readJSONConfig(c Controller) (MinorityReport, error) {
 
-	if _, err := os.Stat("/etc/report/upgrade.json"); err != nil {
-		return MinorityReport{}, err
+	configMapName := "kapetanios"
+
+	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	if er != nil {
+		c.log.Error("error fetching the configMap",
+			zap.Error(er))
+		return MinorityReport{}, er
 	}
 
-	data, err := os.ReadFile("/etc/report/upgrade.json")
-	if err != nil {
-		return MinorityReport{}, err
-	}
-
-	report := MinorityReport{}
-	var json = jsoniter.ConfigFastest
-	if err = json.Unmarshal(data, &report); err != nil {
-		return MinorityReport{}, err
+	report := MinorityReport{
+		nodesUpgraded:     configMap.Data["NODES_UPGRADED"],
+		NodesToBeUpgraded: configMap.Data["UBUNTU_K8S_VERSION"],
+		UbuntuK8sVersion:  configMap.Data["REDHAT8_K8S_VERSION"],
+		Redhat8K8sVersion: configMap.Data["REDHAT9_K8S_VERSION"],
+		Redhat9K8sVersion: configMap.Data["NODES_TO_BE_UPGRADED"],
 	}
 
 	return report, nil
@@ -85,7 +85,7 @@ func writeConfig(c Controller, report MinorityReport) error {
 			zap.Error(er))
 	}
 
-	configMap.Data["NODES_UPGRADED"] = report.UpgradedNodes
+	configMap.Data["NODES_UPGRADED"] = report.nodesUpgraded
 	configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion
 	configMap.Data["REDHAT8_K8S_VERSION"] = report.Redhat8K8sVersion
 	configMap.Data["REDHAT9_K8S_VERSION"] = report.Redhat9K8sVersion
@@ -96,16 +96,6 @@ func writeConfig(c Controller, report MinorityReport) error {
 		c.log.Error("error updating configMap",
 			zap.Error(er))
 	}
-
-	//var json = jsoniter.ConfigFastest
-	//reportJson, err := json.Marshal(report)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if err = os.WriteFile("/etc/report/upgrade.json", reportJson, 0644); err != nil {
-	//	return err
-	//}
 
 	return nil
 }
@@ -168,12 +158,7 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: race condtion - readctx can be cancelled
 
-	minorityReport := MinorityReport{
-		//CurrentStep:           0,
-		//MinorUpgradeNamespace: "default",
-	}
-
-	MinorUpgrade(&minorityReport, server.pool)
+	MinorUpgrade(server.pool)
 	server.initialized = true
 }
 

@@ -1,8 +1,10 @@
 FROM golang:1.23.6 AS builder
 WORKDIR /app
 
-COPY . ./
+COPY go.* ./
 RUN go mod download
+COPY --parents cmd/minor-upgrade config/ internal/ proto/ utils/ ./
+
 RUN go build -C ./cmd/minor-upgrade -o main
 
 FROM debian:bookworm-slim

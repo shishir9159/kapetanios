@@ -60,6 +60,7 @@ spec:
 #                - name: sanity
 #                  value: "checked"
 #              path: /readyz
+##              path: /readyz
 #              port: kapetanios
 #              scheme: HTTP
 #            periodSeconds: 300
