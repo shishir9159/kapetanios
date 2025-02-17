@@ -137,6 +137,7 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO:  URGENT FIX - IT WORKS ONLY ONCE
+// TODO:  URGENT FIX - NEW CLIENT IS ENTERING
 func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	// TODO:
