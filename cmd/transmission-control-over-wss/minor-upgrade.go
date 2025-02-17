@@ -18,7 +18,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -121,7 +120,6 @@ type nodeInfo struct {
 
 type Controller struct {
 	namespace string
-	mu        sync.Mutex
 	log       *zap.Logger
 	ctx       context.Context
 	client    *orchestration.Client
@@ -151,9 +149,6 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 		namespace: "default",
 		log:       logger,
 	}
-
-	c.mu.Lock()
-	defer c.mu.Unlock()
 
 	if err != nil {
 		c.log.Error("error creating kubernetes client",

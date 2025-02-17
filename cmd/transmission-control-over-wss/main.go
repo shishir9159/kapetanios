@@ -15,6 +15,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -52,8 +53,9 @@ type MinorityReport struct {
 }
 
 type Server struct {
-	initialized bool
 	ctx         context.Context
+	waitChannel chan bool
+	mu          sync.Mutex
 	pool        *wss.ConnectionPool
 }
 
@@ -169,14 +171,18 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	server.pool.AddClient(client)
 	defer server.pool.RemoveClient(client)
 
-	if server.initialized {
+	if server.mu.TryLock() {
 		ctx, _ := context.WithCancel(server.pool.ReadCtx)
 		go server.pool.ReadMessageFromConn(ctx, client)
 		//go server.pool.ReadMessageFromConn(ctx)
 		// TODO: use the context
+		// todo: channel
 		time.Sleep(480 * time.Second)
 		return
 	}
+
+	server.mu.Lock()
+	defer server.mu.Unlock()
 
 	// TODO: race condition - readCtx can be cancelled
 
@@ -211,7 +217,6 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	}
 
 	MinorUpgrade(server.pool, minorityReport)
-	server.initialized = true
 }
 
 func StartServer(ctx context.Context) {
@@ -221,9 +226,8 @@ func StartServer(ctx context.Context) {
 	go pool.Run()
 
 	server := Server{
-		ctx:         ctx,
-		initialized: false,
-		pool:        pool,
+		ctx:  ctx,
+		pool: pool,
 	}
 
 	http.HandleFunc("/minor-upgrade", server.minorUpdateUpgrade)
