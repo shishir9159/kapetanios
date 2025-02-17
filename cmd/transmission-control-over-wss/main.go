@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -123,7 +124,16 @@ func readyz(isReady *atomic.Value) http.HandlerFunc {
 }
 
 func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
+	var Json = jsoniter.ConfigFastest
+	decoder := Json.NewDecoder(r.Body)
+	var t upgradeProgression
+	err := decoder.Decode(&t)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		panic(err)
+	}
 
+	log.Println(t)
 }
 
 func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request) {
