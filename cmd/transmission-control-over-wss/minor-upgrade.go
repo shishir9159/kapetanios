@@ -40,7 +40,7 @@ func recovery(namespace string) {
 
 }
 
-func MinorUpgrade(pool *wss.ConnectionPool) {
+func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 
 	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
@@ -69,26 +69,15 @@ func MinorUpgrade(pool *wss.ConnectionPool) {
 			zap.Error(err))
 	}
 
-	minorityReport, err := readJSONConfig(c)
-	if err != nil {
-		// TODO: no restart mode or draining
-		c.log.Error("could not read config map",
-			zap.Error(err))
-	}
-
-	if minorityReport.nodesUpgraded != "" {
+	if report.UbuntuK8sVersion != "" {
 
 	}
 
-	if minorityReport.UbuntuK8sVersion != "" {
+	if report.Redhat8K8sVersion != "" {
 
 	}
 
-	if minorityReport.Redhat8K8sVersion != "" {
-
-	}
-
-	if minorityReport.Redhat9K8sVersion != "" {
+	if report.Redhat9K8sVersion != "" {
 
 	}
 
@@ -132,6 +121,19 @@ func MinorUpgrade(pool *wss.ConnectionPool) {
 			pool.BroadcastMessage([]byte("failed to get node list: " + err.Error()))
 		}
 		return
+	}
+
+	// TODO: should I save nodes information
+	//  challenges - node info would be updated after upgrades
+	if report.nodesUpgraded != "" {
+		nodesUpgraded := strings.Split(report.nodesUpgraded, ";")
+		for _, node := range nodes.Items {
+			for _, nodeUpgraded := range nodesUpgraded {
+				if node.Name == nodeUpgraded {
+
+				}
+			}
+		}
 	}
 
 	// TODO: debug mode

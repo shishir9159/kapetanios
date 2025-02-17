@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
 	"html/template"
@@ -156,9 +157,36 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: race condtion - readctx can be cancelled
+	// TODO: race condition - readCtx can be cancelled
 
-	MinorUpgrade(server.pool)
+	// todo ---------
+	Client, _ := orchestration.NewClient()
+	logger := zap.Must(zap.NewProduction())
+	defer func(logger *zap.Logger) {
+		er := logger.Sync()
+		if er != nil {
+			logger.Info("error syncing logger before application terminates",
+				zap.Error(er))
+		}
+	}(logger)
+
+	c := Controller{
+		client:    Client,
+		ctx:       context.Background(),
+		namespace: "default",
+		log:       logger,
+	}
+	// todo ---------
+
+	minorityReport, err := readJSONConfig(c)
+	if err != nil {
+		// TODO: no restart mode or draining
+		log.Println("error reading config map:", err)
+		//c.log.Error("could not read config map",
+		//	zap.Error(err))
+	}
+
+	MinorUpgrade(server.pool, minorityReport)
 	server.initialized = true
 }
 
