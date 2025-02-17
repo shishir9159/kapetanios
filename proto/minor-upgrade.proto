@@ -21,9 +21,10 @@ message AvailableVersions {
 
 message ClusterUpgradeResponse {
   bool proceedNextStep = 1;
-  bool terminateApplication = 2;
-  bool certificateRenewal = 3;
-  string version = 4;
+  bool retryCurrentStep = 2;
+  bool terminateApplication = 3;
+  bool certificateRenewal = 4;
+  string version = 5;
 }
 
 message UpgradeCompatibility {
