@@ -61,11 +61,14 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 
 	c.log.Info().
 		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("retry current step", rpc.GetRetryCurrentStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("backup status")
 
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
+	} else if rpc.GetRetryCurrentStep() {
+		return rpc.GetRetryCurrentStep(), nil
 	}
 
 	return rpc.GetProceedNextStep(), nil

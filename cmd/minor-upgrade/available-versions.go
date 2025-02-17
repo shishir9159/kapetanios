@@ -109,6 +109,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 
 	c.log.Info().
 		Bool("proceed to next step", rpc.GetProceedNextStep()).
+		Bool("retry current step", rpc.GetRetryCurrentStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Bool("certificate renewal", rpc.GetCertificateRenewal()).
 		Str("fetch the version to upgrade", rpc.GetVersion()).
@@ -118,6 +119,10 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
+	}
+
+	if rpc.GetRetryCurrentStep() {
+		return rpc.GetRetryCurrentStep(), "", nil
 	}
 
 	return rpc.GetProceedNextStep(), rpc.GetVersion(), nil

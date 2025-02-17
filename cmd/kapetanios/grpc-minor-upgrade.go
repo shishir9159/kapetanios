@@ -20,7 +20,7 @@ type minorUpgradeServer struct {
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
-	var proceedNextStep, terminateApplication = false, false
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	if in.GetEtcdStatus() && in.GetStorageAvailability() >= 50 {
 		proceedNextStep = true
@@ -37,6 +37,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	return &pb.UpgradeResponse{
 		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
 	}, nil
 }
@@ -44,7 +45,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 // UpgradeVersionSelection implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
 
-	var proceedNextStep, terminateApplication = false, false
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	proceedNextStep = true
 	if in.GetErr() != "" {
@@ -56,8 +57,8 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 		zap.String("error", in.GetErr()))
 
 	return &pb.ClusterUpgradeResponse{
-		RetryCurrentStep:     retryCurrentStep,
 		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
 		CertificateRenewal:   certificateRenewal,
 		Version:              "",
@@ -67,7 +68,7 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 // ClusterCompatibility implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.UpgradeCompatibility) (*pb.UpgradeResponse, error) {
 
-	var proceedNextStep, terminateApplication = false, false
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	proceedNextStep = true
 	if in.GetErr() != "" {
@@ -80,8 +81,8 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
-		RetryCurrentStep:     retryCurrentStep,
 		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
 	}, nil
 }
@@ -89,7 +90,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 // ClusterComponentUpgrade implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.ComponentUpgradeStatus) (*pb.UpgradeResponse, error) {
 
-	var proceedNextStep, terminateApplication = false, false
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	if in.GetComponentUpgradeSuccess() {
 		proceedNextStep = true
@@ -106,8 +107,8 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
-		RetryCurrentStep:     retryCurrentStep,
 		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
 	}, nil
 }
@@ -115,7 +116,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 // ClusterUpgradePlan implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.UpgradePlan) (*pb.UpgradeResponse, error) {
 
-	var proceedNextStep, terminateApplication = false, false
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	proceedNextStep = true
 	if in.GetErr() != "" {
@@ -128,8 +129,8 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
-		RetryCurrentStep:     retryCurrentStep,
 		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
 	}, nil
 }
@@ -137,7 +138,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 // ClusterUpgrade implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeStatus) (*pb.UpgradeResponse, error) {
 
-	var proceedNextStep, terminateApplication = false, false
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	proceedNextStep = true
 	if in.GetErr() != "" {
@@ -150,8 +151,8 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
-		RetryCurrentStep:     retryCurrentStep,
 		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
 	}, nil
 }
@@ -173,8 +174,8 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
-		RetryCurrentStep:     retryCurrentStep,
 		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
 	}, nil
 }

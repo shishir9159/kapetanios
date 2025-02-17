@@ -111,6 +111,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	c.log.Info().
 		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("retry current step", rpc.GetRetryCurrentStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("prerequisite step response")
 

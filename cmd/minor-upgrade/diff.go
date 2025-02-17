@@ -63,6 +63,7 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 
 	c.log.Info().
 		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("retry current step", rpc.GetRetryCurrentStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("upgrade diff")
 
