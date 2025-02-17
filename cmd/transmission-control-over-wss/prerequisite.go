@@ -38,9 +38,6 @@ func Prerequisites(namespace string) {
 		log:    logger,
 	}
 
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
 	if err != nil {
 		c.log.Error("error creating kubernetes client",
 			zap.Error(err))
