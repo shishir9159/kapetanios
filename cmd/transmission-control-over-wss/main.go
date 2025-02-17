@@ -41,11 +41,12 @@ type upgradeProgression struct {
 }
 
 type MinorityReport struct {
-	nodesUpgraded     string `yaml:"nodesUpgraded"`
-	NodesToBeUpgraded string `yaml:"nodesToBeUpgraded"`
-	UbuntuK8sVersion  string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
-	Redhat8K8sVersion string `yaml:"redhat8K8sVersion"`
-	Redhat9K8sVersion string `yaml:"redhat9K8sVersion"`
+	certificateRenewal bool   `yaml:"certificateRenewal"`
+	nodesUpgraded      string `yaml:"nodesUpgraded"`
+	NodesToBeUpgraded  string `yaml:"nodesToBeUpgraded"`
+	UbuntuK8sVersion   string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
+	Redhat8K8sVersion  string `yaml:"redhat8K8sVersion"`
+	Redhat9K8sVersion  string `yaml:"redhat9K8sVersion"`
 }
 
 type Server struct {
@@ -85,6 +86,9 @@ func writeConfig(c Controller, report MinorityReport) error {
 		c.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
+
+	// todo: check if value initialized
+	//  default values
 
 	configMap.Data["NODES_UPGRADED"] = report.nodesUpgraded
 	configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion

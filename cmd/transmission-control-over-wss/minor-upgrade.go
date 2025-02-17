@@ -69,18 +69,6 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 			zap.Error(err))
 	}
 
-	if report.UbuntuK8sVersion != "" {
-
-	}
-
-	if report.Redhat8K8sVersion != "" {
-
-	}
-
-	if report.Redhat9K8sVersion != "" {
-
-	}
-
 	renewalMinionManager := orchestration.NewMinions(c.client)
 
 	labelSelector := metav1.LabelSelector{
@@ -114,93 +102,91 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 	c.log.Info("kapetanios node",
 		zap.String("assigned to the node:", kapetaniosNode))
 
-	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
-
-	if len(nodes.Items) == 0 {
-		if err != nil {
-			pool.BroadcastMessage([]byte("failed to get node list: " + err.Error()))
-		}
-		return
-	}
-
-	// TODO: should I save nodes information
-	//  challenges - node info would be updated after upgrades
-	if report.nodesUpgraded != "" {
-		nodesUpgraded := strings.Split(report.nodesUpgraded, ";")
-		for _, node := range nodes.Items {
-			for _, nodeUpgraded := range nodesUpgraded {
-				if node.Name == nodeUpgraded {
-
-				}
-			}
-		}
-	}
-
-	// TODO: debug mode
-	//for _, no := range nodes.Items {
-	//	c.log.Debug("nodes before sorting",
-	//		zap.String("nodes", no.ObjectMeta.Name))
-	//}
-
-	// TODO: wouldn't work on one master node where lighthouse is scheduled
-	// TODO: possible error, lighthouse can be on a master node, that would be mistakenly upgraded at the last
-	//  and sort the list from the smallest worker node by resources
-	// TODO: check if node-role.kubernetes.io/control-plane matches with the annotations
-
-	sort.Slice(nodes.Items, func(i, j int) bool {
-		if nodes.Items[i].Name == kapetaniosNode {
-			return false
-		} else if nodes.Items[j].Name == kapetaniosNode {
-			return true
-		}
-
-		if _, firstNode := nodes.Items[i].Annotations["node-role.kubernetes.io/control-plane"]; firstNode {
-			return true
-		}
-		return false
-	})
-
-	// TODO: debug mode
-	//for _, no := range nodes.Items {
-	//	c.log.Debug("nodes after sorting",
-	//		zap.String("nodes", no.ObjectMeta.Name))
-	//}
-
-	roleName := "minor-upgrade"
-	// todo: configMapName := "kapetanios"
+	//var nodes corev1.NodeList
 
 	var nodeNames []string
+	if report.nodesUpgraded != "" {
+		//nodesUpgraded := strings.Split(report.nodesUpgraded, ";")
+		nodeNames = strings.Split(report.NodesToBeUpgraded, ";")
 
-	for _, no := range nodes.Items {
-		c.log.Info("status",
-			//zap.String("node config assigned", no.Status.Config.Assigned.String()),
-			//zap.String("node config active", no.Status.Config.Active.String()),
-			//zap.String("node config last known good", no.Status.Config.LastKnownGood.String()),
-			zap.String("node condition reason", no.Status.Conditions[0].Reason),
-			zap.String("node info os image", no.Status.NodeInfo.OSImage),
-			zap.String("node info operating system", no.Status.NodeInfo.OperatingSystem),
-			zap.String("node info kernel version", no.Status.NodeInfo.KernelVersion),
-			zap.String("node info kubelet version", no.Status.NodeInfo.KubeletVersion),
-			zap.String("node info container runtime version", no.Status.NodeInfo.ContainerRuntimeVersion),
-		)
-		nodeNames = append(nodeNames, no.Name)
+	} else {
+		nodes, er := c.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: ""})
+		if er != nil {
+			c.log.Error("error listing nodes",
+				zap.Error(er))
+		}
+
+		if len(nodes.Items) == 0 {
+			if er != nil {
+				pool.BroadcastMessage([]byte("failed to get node list: " + er.Error()))
+			}
+			return
+		}
+
+		// TODO: debug mode
+		//for _, no := range nodes.Items {
+		//	c.log.Debug("nodes before sorting",
+		//		zap.String("nodes", no.ObjectMeta.Name))
+		//}
+
+		// TODO: wouldn't work on one master node where lighthouse is scheduled
+		// TODO: possible error, lighthouse can be on a master node, that would be mistakenly upgraded at the last
+		//  and sort the list from the smallest worker node by resources
+		// TODO: check if node-role.kubernetes.io/control-plane matches with the annotations
+
+		sort.Slice(nodes.Items, func(i, j int) bool {
+			if nodes.Items[i].Name == kapetaniosNode {
+				return false
+			} else if nodes.Items[j].Name == kapetaniosNode {
+				return true
+			}
+
+			if _, firstNode := nodes.Items[i].Annotations["node-role.kubernetes.io/control-plane"]; firstNode {
+				return true
+			}
+			return false
+		})
+
+		// TODO: debug mode
+		//for _, no := range nodes.Items {
+		//	c.log.Debug("nodes after sorting",
+		//		zap.String("nodes", no.ObjectMeta.Name))
+		//}
+
+		for _, no := range nodes.Items {
+			c.log.Info("status",
+				//zap.String("node config assigned", no.Status.Config.Assigned.String()),
+				//zap.String("node config active", no.Status.Config.Active.String()),
+				//zap.String("node config last known good", no.Status.Config.LastKnownGood.String()),
+				zap.String("node condition reason", no.Status.Conditions[0].Reason),
+				zap.String("node info os image", no.Status.NodeInfo.OSImage),
+				zap.String("node info operating system", no.Status.NodeInfo.OperatingSystem),
+				zap.String("node info kernel version", no.Status.NodeInfo.KernelVersion),
+				zap.String("node info kubelet version", no.Status.NodeInfo.KubeletVersion),
+				zap.String("node info container runtime version", no.Status.NodeInfo.ContainerRuntimeVersion),
+			)
+			nodeNames = append(nodeNames, no.Name)
+		}
+
 	}
+
+	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpgradeGrpc(c.log, pool, ch)
 
 	// TODO: refactor this part to orchestrator
-	for index, node := range nodes.Items {
+	for index, node := range nodeNames {
 
 		c.log.Info("nodes to be upgraded",
-			zap.String("node to be name:", node.Name))
+			zap.String("node to be name:", node))
 
 		// todo: populate with user input or not
 		//targetedVersion := "1.26.6-1.1"
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node.Name)
+		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node)
 
 		// TODO: instead of pod monitoring for creation, monitor for successful restarts
 		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
@@ -221,7 +207,7 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 		//   schedule nodes
 
 		report.NodesToBeUpgraded = strings.Join(nodeNames, ";")
-		err = writeConfig(c, *report)
+		err = writeConfig(c, report)
 		if err != nil {
 			c.log.Error("error writing reporting",
 				zap.Error(err))
@@ -239,6 +225,18 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 		descriptor.Spec.HostNetwork = true
 
 		// TODO -- take input
+
+		if report.UbuntuK8sVersion != "" {
+
+		}
+
+		if report.Redhat8K8sVersion != "" {
+
+		}
+
+		if report.Redhat9K8sVersion != "" {
+
+		}
 
 		certRenewalEnv := corev1.EnvVar{
 			Name:  "CERTIFICATE_RENEWAL",
