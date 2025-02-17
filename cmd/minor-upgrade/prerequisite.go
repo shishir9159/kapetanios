@@ -117,6 +117,8 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
+	} else if rpc.GetRetryCurrentStep() {
+		return rpc.GetRetryCurrentStep(), "", nil
 	}
 
 	return rpc.GetProceedNextStep(), distro, nil
