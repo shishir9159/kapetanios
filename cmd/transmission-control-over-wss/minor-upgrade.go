@@ -13,6 +13,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/kubectl/pkg/drain"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,6 +25,96 @@ import (
 var (
 	certificateRenewal = false
 )
+
+// todo: move to utils, add node interface
+func drainAndCordonNode(c Controller, node *corev1.Node) error {
+
+	drainer := &drain.Helper{
+		Ctx:                             c.ctx,
+		Client:                          c.client.Clientset(),
+		DisableEviction:                 true,
+		Force:                           true, // TODO: should it be Force eviction?
+		IgnoreAllDaemonSets:             true,
+		DeleteEmptyDirData:              true,
+		SkipWaitForDeleteTimeoutSeconds: 30,
+		Timeout:                         3 * time.Minute,
+		GracePeriodSeconds:              10,
+		Out:                             os.Stdout,
+		ErrOut:                          os.Stderr,
+	}
+
+	err := drain.RunCordonOrUncordon(drainer, node, true)
+	if err != nil {
+		c.log.Error("error cordoning node",
+			zap.String("node", node.Name),
+			zap.Error(err))
+
+	}
+
+	err = drain.RunNodeDrain(drainer, node.Name)
+	if err != nil {
+		c.log.Error("error draining node",
+			zap.String("node", node.Name),
+			zap.Error(err))
+	}
+
+	return nil
+}
+
+// todo: move to utils, interface
+func removeTaint(node *corev1.Node) {
+
+	taints := node.Spec.Taints
+
+	if len(taints) == 0 {
+		return
+	}
+
+	taintToRemove := corev1.Taint{
+		Key:    "minor-upgrade-running",
+		Value:  "processing",
+		Effect: corev1.TaintEffectNoSchedule,
+	}
+
+	var newTaints []corev1.Taint
+
+	for _, taint := range taints {
+		if taint.MatchTaint(&taintToRemove) {
+			continue
+		}
+		newTaints = append(newTaints, taint)
+	}
+
+	node.Spec.Taints = newTaints
+}
+
+func addTaint(node *corev1.Node) {
+
+	taints := node.Spec.Taints
+
+	// TODO: declare as a struct maybe?
+	taintToAdd := corev1.Taint{
+		Key:    "minor-upgrade-running",
+		Value:  "processing",
+		Effect: corev1.TaintEffectNoSchedule,
+	}
+
+	newTaints := []corev1.Taint{taintToAdd}
+
+	if len(taints) != 0 {
+		for _, taint := range taints {
+			if taint.MatchTaint(&taintToAdd) {
+				return
+			}
+
+			newTaints = append(newTaints, taint)
+		}
+
+		return
+	}
+
+	node.Spec.Taints = newTaints
+}
 
 type nodeInfo struct {
 }
@@ -266,88 +358,94 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 		// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
 		//  then those Pods might be scheduled to the node you have drained.
 
-		// ----------------- Cordon and Drain ----------------- \\
-		//c.log.Info("cordoning and draining node",
-		//	zap.String("node name", node.Name))
+		no, err := c.client.Clientset().CoreV1().Nodes().Get(c.ctx, node, metav1.GetOptions{})
+		if err != nil {
+			c.log.Error("failed to get node by node name",
+				zap.String("node name:", node),
+				zap.Error(err))
+		}
+
+		c.log.Info("cordoning and draining node",
+			zap.String("node name", node))
+
+		// TODO: should wait for the coredns restart
+
+		err = drainAndCordonNode(c, no)
+		if err != nil {
+			// todo: switch to non-drain mode
+			c.log.Error("failed to drain node",
+				zap.String("node name:", node),
+				zap.Error(err))
+		}
+
+		// TODO:
+		//  display the possible errors if force was not
+
+		// TODO:
+		//  if ran successfully
+		//  Warning: deleting Pods that declare no controller: default/dnsutils; ignoring DaemonSet-managed Pods: kube-system/cilium-wnn6z, kube-system/kube-proxy-m8txw, metallb-system/speaker-587dh
+		//evicting pod ingress-nginx/ingress-nginx-admission-create-5pjqv
+		//evicting pod metallb-system/controller-9b6c9f6c9-g2p4z
+		//evicting pod klovercloud/mesh-uat-go-two-6f846bfcf-ztnk5
+		//evicting pod ingress-nginx/ingress-nginx-controller-5dcc84f655-pvdcc
+		//evicting pod klovercloud/mesh-uat-go-one-86776497cf-227g9
+		//evicting pod default/dnsutils
+		//evicting pod default/backend-59b96df495-ghfn2
+		//evicting pod ingress-nginx/ingress-nginx-admission-patch-4qgmn
+		//evicting pod kube-system/coredns-787d4945fb-stk4w
+		//evicting pod kube-system/cilium-operator-fdf6bc9f4-mcx4h
+		//evicting pod default/kapetanios-b5bc457fb-v5vlx
+		//evicting pod default/minions-for-etcd-4mg95
+		//evicting pod kube-system/coredns-787d4945fb-4zl96
+		//pod/ingress-nginx-admission-patch-4qgmn evicted
+		//pod/ingress-nginx-admission-create-5pjqv evicted
+		//pod/controller-9b6c9f6c9-g2p4z evicted
+		//pod/minions-for-etcd-4mg95 evicted
+		//pod/mesh-uat-go-one-86776497cf-227g9 evicted
+		//I1029 03:31:47.241516 4025541 request.go:690] Waited for 1.103702573s due to client-side throttling, not priority and fairness, request: GET:https://10.0.0.3:6443/api/v1/namespaces/klovercloud/pods/mesh-uat-go-two-6f846bfcf-ztnk5
+		//pod/dnsutils evicted
+		//pod/backend-59b96df495-ghfn2 evicted
+		//pod/kapetanios-b5bc457fb-v5vlx evicted
+		//pod/mesh-uat-go-two-6f846bfcf-ztnk5 evicted
+		//pod/cilium-operator-fdf6bc9f4-mcx4h evicted
+		//pod/coredns-787d4945fb-4zl96 evicted
+		//pod/coredns-787d4945fb-stk4w evicted
+		//pod/ingress-nginx-controller-5dcc84f655-pvdcc evicted
+
+		c.log.Info("tainting node",
+			zap.String("node name", node))
+
+		addTaint(no)
+
+		err = drain.RunCordonOrUncordon(&drain.Helper{
+			Ctx:    c.ctx,
+			Client: c.client.Clientset(),
+		}, no, false)
+
+		if err != nil {
+			c.log.Error("error uncordoning the node",
+				zap.String("node name", node),
+				zap.Error(err))
+		}
+
+		//TODO:
+		//ctxTermination, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		//defer stop()
 		//
-		//// TODO: should wait for the coredns restart
+		//var wg sync.WaitGroup
 		//
-		//err = drainAndCordonNode(c, &node)
-		//if err != nil {
-		//	c.log.Error("failed to drain node",
-		//		zap.String("node name:", node.Name),
-		//		zap.Error(err))
-		//}
+		//// Start the gRPC server in a separate goroutine
+		//wg.Add(1)
+		//go func() {
+		//	defer wg.Done()
+		//	MinorUpgradeGrpc(ctxTermination)
+		//}()
 		//
-		//// TODO:
-		////  display the possible errors if force was not
-		//
-		//// TODO:
-		////  if ran successfully
-		////  Warning: deleting Pods that declare no controller: default/dnsutils; ignoring DaemonSet-managed Pods: kube-system/cilium-wnn6z, kube-system/kube-proxy-m8txw, metallb-system/speaker-587dh
-		////evicting pod ingress-nginx/ingress-nginx-admission-create-5pjqv
-		////evicting pod metallb-system/controller-9b6c9f6c9-g2p4z
-		////evicting pod klovercloud/mesh-uat-go-two-6f846bfcf-ztnk5
-		////evicting pod ingress-nginx/ingress-nginx-controller-5dcc84f655-pvdcc
-		////evicting pod klovercloud/mesh-uat-go-one-86776497cf-227g9
-		////evicting pod default/dnsutils
-		////evicting pod default/backend-59b96df495-ghfn2
-		////evicting pod ingress-nginx/ingress-nginx-admission-patch-4qgmn
-		////evicting pod kube-system/coredns-787d4945fb-stk4w
-		////evicting pod kube-system/cilium-operator-fdf6bc9f4-mcx4h
-		////evicting pod default/kapetanios-b5bc457fb-v5vlx
-		////evicting pod default/minions-for-etcd-4mg95
-		////evicting pod kube-system/coredns-787d4945fb-4zl96
-		////pod/ingress-nginx-admission-patch-4qgmn evicted
-		////pod/ingress-nginx-admission-create-5pjqv evicted
-		////pod/controller-9b6c9f6c9-g2p4z evicted
-		////pod/minions-for-etcd-4mg95 evicted
-		////pod/mesh-uat-go-one-86776497cf-227g9 evicted
-		////I1029 03:31:47.241516 4025541 request.go:690] Waited for 1.103702573s due to client-side throttling, not priority and fairness, request: GET:https://10.0.0.3:6443/api/v1/namespaces/klovercloud/pods/mesh-uat-go-two-6f846bfcf-ztnk5
-		////pod/dnsutils evicted
-		////pod/backend-59b96df495-ghfn2 evicted
-		////pod/kapetanios-b5bc457fb-v5vlx evicted
-		////pod/mesh-uat-go-two-6f846bfcf-ztnk5 evicted
-		////pod/cilium-operator-fdf6bc9f4-mcx4h evicted
-		////pod/coredns-787d4945fb-4zl96 evicted
-		////pod/coredns-787d4945fb-stk4w evicted
-		////pod/ingress-nginx-controller-5dcc84f655-pvdcc evicted
-		//
-		//c.log.Info("tainting node",
-		//	zap.String("node name", node.Name))
-		//
-		//addTaint(&node)
-		//
-		//err = drain.RunCordonOrUncordon(&drain.Helper{
-		//	Ctx:    c.ctx,
-		//	Client: c.client.Clientset(),
-		//}, &node, false)
-		//
-		//if err != nil {
-		//	c.log.Error("error uncordoning the node",
-		//		zap.String("node name", node.Name),
-		//		zap.Error(err))
-		//}
-		//
-		////TODO:
-		////ctxTermination, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-		////defer stop()
-		////
-		////var wg sync.WaitGroup
-		////
-		////// Start the gRPC server in a separate goroutine
-		////wg.Add(1)
-		////go func() {
-		////	defer wg.Done()
-		////	MinorUpgradeGrpc(ctxTermination)
-		////}()
-		////
-		////// Wait for the server goroutine to exit
-		////<-ctxTermination.Done()
-		////stop()
-		////wg.Wait()
-		////c.log.Info("gRPC server has been gracefully stopped.")
-		// ----------------- Cordon and Drain ----------------- \\
+		//// Wait for the server goroutine to exit
+		//<-ctxTermination.Done()
+		//stop()
+		//wg.Wait()
+		//c.log.Info("gRPC server has been gracefully stopped.")
 
 		// TODO:
 		//  check for pods stuck in the terminating state

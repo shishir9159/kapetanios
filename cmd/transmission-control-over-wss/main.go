@@ -136,6 +136,7 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	log.Println(t)
 }
 
+// TODO:  URGENT FIX - IT WORKS ONLY ONCE
 func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	// TODO:
