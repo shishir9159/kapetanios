@@ -33,19 +33,19 @@ spec:
               name: kapetanios
             - containerPort: 50051
               name: kapetanios-grpc
-          livenessProbe:
-            failureThreshold: 10
-            httpGet:
-              host: 127.0.0.1
-              httpHeaders:
-                - name: shuttle
-                  value: "launched"
-              path: /livez
-              port: kapetanios
-              scheme: HTTP
-            periodSeconds: 300
-            successThreshold: 1
-            timeoutSeconds: 5
+#          livenessProbe:
+#            failureThreshold: 10
+#            httpGet:
+#              host: 127.0.0.1
+#              httpHeaders:
+#                - name: shuttle
+#                  value: "launched"
+#              path: /livez
+#              port: kapetanios
+#              scheme: HTTP
+#            periodSeconds: 300
+#            successThreshold: 1
+#            timeoutSeconds: 5
 #          startupProbe:
 #            httpGet:
 #              host: 127.0.0.1
