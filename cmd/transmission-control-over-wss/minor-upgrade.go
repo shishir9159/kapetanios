@@ -26,7 +26,7 @@ var (
 )
 
 // todo: move to utils, add node interface
-func drainAndCordonNode(c Controller, node *corev1.Node) error {
+func drainAndCordonNode(c Nefario, node *corev1.Node) error {
 
 	drainer := &drain.Helper{
 		Ctx:                             c.ctx,
@@ -118,7 +118,9 @@ func addTaint(node *corev1.Node) {
 type nodeInfo struct {
 }
 
-type Controller struct {
+// should it be foreman?
+
+type Nefario struct {
 	namespace string
 	log       *zap.Logger
 	ctx       context.Context
@@ -143,7 +145,7 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 	client, err := orchestration.NewClient()
 
 	// TODO: add namespace in the controller itself
-	c := Controller{
+	c := Nefario{
 		client:    client,
 		ctx:       context.Background(),
 		namespace: "default",

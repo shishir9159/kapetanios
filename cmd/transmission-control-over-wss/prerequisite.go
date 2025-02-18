@@ -34,7 +34,7 @@ func Prerequisites(namespace string) {
 	client, err := orchestration.NewClient()
 
 	// TODO: add namespace in the controller itself
-	c := Controller{
+	c := Nefario{
 		client: client,
 		ctx:    context.Background(),
 		log:    logger,

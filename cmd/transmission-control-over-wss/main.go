@@ -59,7 +59,7 @@ type Server struct {
 	pool        *wss.ConnectionPool
 }
 
-func readJSONConfig(c Controller) (MinorityReport, error) {
+func readJSONConfig(c Nefario) (MinorityReport, error) {
 
 	configMapName := "kapetanios"
 
@@ -81,7 +81,7 @@ func readJSONConfig(c Controller) (MinorityReport, error) {
 	return report, nil
 }
 
-func writeConfig(c Controller, report MinorityReport) error {
+func writeConfig(c Nefario, report MinorityReport) error {
 
 	configMapName := "kapetanios"
 
@@ -200,7 +200,7 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 
 	namespace := os.Getenv("KAPETANIOS_NAMESPACE")
 
-	c := Controller{
+	c := Nefario{
 		log:       logger,
 		client:    Client,
 		namespace: namespace,
