@@ -12,6 +12,8 @@ import (
 // number of control-plane pods and nodes running
 // if the nodes match with the expectations
 
+// TODO: controller needs to be passed
+
 func Prerequisites(namespace string) {
 	// if cm shows updated nodes to a certain value
 	// and desired kubernetesVersion exists on the cm,
@@ -45,31 +47,40 @@ func Prerequisites(namespace string) {
 
 	configMapName := "kapetanios"
 
-	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	//configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	//if er != nil {
+	//	c.log.Error("error fetching the configMap",
+	//		zap.Error(er))
+	//}
+
+	// TODO: controller should be created and passed here
+
+	configMapName = "kubeadm-config"
+
+	_, er := c.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
 		c.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
-
 	c.log.Info("after fetching configmap")
 
 	// TODO: to be foolproof check if the number of nodes the same
 	//  if that is the case, the first node consideration need to be taken
 
-	targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
-	nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
+	//targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
+	//nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
 	// todo: upgradedNodes := configMap.Data["UPGRADED_NODES"]
 
-	if targetedVersion != "" && nodesToBeUpgraded != "" {
-		//LastDance(c, nodesToBeUpgraded, namespace)
-		configMap.Data["TARGETED_K8S_VERSION"] = ""
-		configMap.Data["NODES_TO_BE_UPGRADED"] = ""
-		// todo: upgradedNodes := configMap.Data["UPGRADED_NODES"]
-
-		_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
-		if er != nil {
-			c.log.Error("error updating configMap",
-				zap.Error(er))
-		}
-	}
+	//if targetedVersion != "" && nodesToBeUpgraded != "" {
+	//	//LastDance(c, nodesToBeUpgraded, namespace)
+	//	//configMap.Data["TARGETED_K8S_VERSION"] = ""
+	//	//configMap.Data["NODES_TO_BE_UPGRADED"] = ""
+	//	// todo: upgradedNodes := configMap.Data["UPGRADED_NODES"]
+	//
+	//	_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+	//	if er != nil {
+	//		c.log.Error("error updating configMap",
+	//			zap.Error(er))
+	//	}
+	//}
 }

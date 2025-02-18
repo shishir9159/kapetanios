@@ -171,7 +171,7 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	server.pool.AddClient(client)
 	defer server.pool.RemoveClient(client)
 
-	if server.mu.TryLock() {
+	if server.mu.TryLock() == false {
 		ctx, _ := context.WithCancel(server.pool.ReadCtx)
 		go server.pool.ReadMessageFromConn(ctx, client)
 		//go server.pool.ReadMessageFromConn(ctx)
