@@ -171,7 +171,7 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	server.pool.AddClient(client)
 	defer server.pool.RemoveClient(client)
 
-	if server.mu.TryLock() == false {
+	if server.mu.TryLock() {
 
 		defer server.mu.Unlock()
 
