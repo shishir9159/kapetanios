@@ -172,52 +172,52 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	defer server.pool.RemoveClient(client)
 
 	if server.mu.TryLock() == false {
-defer server.mu.Unlock()
 
-	// TODO: race condition - readCtx can be cancelled
+		defer server.mu.Unlock()
 
-	// todo --------- the process needs to be auto started ---------
-	//  ------------- and server.initialized must be true ----------
-	Client, _ := orchestration.NewClient()
-	logger := zap.Must(zap.NewProduction())
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
-			logger.Info("error syncing logger before application terminates",
-				zap.Error(er))
+		// TODO: race condition - readCtx can be cancelled
+
+		// todo --------- the process needs to be auto started ---------
+		//  ------------- and server.initialized must be true ----------
+		Client, _ := orchestration.NewClient()
+		logger := zap.Must(zap.NewProduction())
+		defer func(logger *zap.Logger) {
+			er := logger.Sync()
+			if er != nil {
+				logger.Info("error syncing logger before application terminates",
+					zap.Error(er))
+			}
+		}(logger)
+
+		namespace := os.Getenv("KAPETANIOS_NAMESPACE")
+
+		c := Nefario{
+			log:       logger,
+			client:    Client,
+			namespace: namespace,
+			ctx:       context.Background(),
 		}
-	}(logger)
+		// todo ---------
 
-	namespace := os.Getenv("KAPETANIOS_NAMESPACE")
+		minorityReport, err := readJSONConfig(c)
+		if err != nil {
+			// TODO: no restart mode or draining
+			log.Println("error reading config map:", err)
+			//c.log.Error("could not read config map",
+			//	zap.Error(err))
+		}
 
-	c := Nefario{
-		log:       logger,
-		client:    Client,
-		namespace: namespace,
-		ctx:       context.Background(),
-	}
-	// todo ---------
+		MinorUpgrade(server.pool, minorityReport)
 
-	minorityReport, err := readJSONConfig(c)
-	if err != nil {
-		// TODO: no restart mode or draining
-		log.Println("error reading config map:", err)
-		//c.log.Error("could not read config map",
-		//	zap.Error(err))
-	}
-
-	MinorUpgrade(server.pool, minorityReport)
-		
 		return
 	}
-	
 
-ctx, _ := context.WithCancel(server.pool.ReadCtx)
-		go server.pool.ReadMessageFromConn(ctx, client)
-		//go server.pool.ReadMessageFromConn(ctx)
-		// TODO: use the context
-		// todo: channel
-		time.Sleep(480 * time.Second)
+	ctx, _ := context.WithCancel(server.pool.ReadCtx)
+	go server.pool.ReadMessageFromConn(ctx, client)
+	//go server.pool.ReadMessageFromConn(ctx)
+	// TODO: use the context
+	// todo: channel
+	time.Sleep(480 * time.Second)
 
 }
 
