@@ -172,17 +172,7 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	defer server.pool.RemoveClient(client)
 
 	if server.mu.TryLock() == false {
-		ctx, _ := context.WithCancel(server.pool.ReadCtx)
-		go server.pool.ReadMessageFromConn(ctx, client)
-		//go server.pool.ReadMessageFromConn(ctx)
-		// TODO: use the context
-		// todo: channel
-		time.Sleep(480 * time.Second)
-		return
-	}
-
-	server.mu.Lock()
-	defer server.mu.Unlock()
+defer server.mu.Unlock()
 
 	// TODO: race condition - readCtx can be cancelled
 
@@ -217,6 +207,18 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	}
 
 	MinorUpgrade(server.pool, minorityReport)
+		
+		return
+	}
+	
+
+ctx, _ := context.WithCancel(server.pool.ReadCtx)
+		go server.pool.ReadMessageFromConn(ctx, client)
+		//go server.pool.ReadMessageFromConn(ctx)
+		// TODO: use the context
+		// todo: channel
+		time.Sleep(480 * time.Second)
+
 }
 
 func StartServer(ctx context.Context) {
