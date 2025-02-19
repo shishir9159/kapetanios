@@ -10,6 +10,7 @@ import (
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"html/template"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
@@ -59,7 +60,7 @@ type Server struct {
 	pool        *wss.ConnectionPool
 }
 
-func readJSONConfig(c Nefario) (MinorityReport, error) {
+func readConfig(c Nefario) (MinorityReport, error) {
 
 	configMapName := "kapetanios"
 
@@ -176,7 +177,26 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 		// todo --------- the process needs to be auto started ---------
 		//  ------------- and server.initialized must be true ----------
 		Client, _ := orchestration.NewClient()
-		logger := zap.Must(zap.NewProduction())
+		cfg := zap.Config{
+			Encoding:         "json",
+			Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
+			OutputPaths:      []string{"stderr"},
+			ErrorOutputPaths: []string{"stderr"},
+			EncoderConfig: zapcore.EncoderConfig{
+				MessageKey: "message",
+
+				LevelKey:    "level",
+				EncodeLevel: zapcore.CapitalLevelEncoder,
+
+				TimeKey:    "time",
+				EncodeTime: zapcore.ISO8601TimeEncoder,
+
+				CallerKey:    "caller",
+				EncodeCaller: zapcore.ShortCallerEncoder,
+			},
+		}
+
+		logger := zap.Must(cfg.Build())
 		defer func(logger *zap.Logger) {
 			er := logger.Sync()
 			if er != nil {
@@ -198,7 +218,7 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 		c.log.Debug("client registered: ",
 			zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
-		minorityReport, err := readJSONConfig(c)
+		minorityReport, err := readConfig(c)
 		if err != nil {
 			// TODO: no restart mode or draining
 			log.Println("error reading config map:", err)
@@ -248,7 +268,7 @@ func StartServer(ctx context.Context) {
 
 func main() {
 
-	//report, err	 := readJSONConfig()
+	//report, err	 := readConfig()
 	//if err != nil {
 	//	log.Fatal(err)
 	//}

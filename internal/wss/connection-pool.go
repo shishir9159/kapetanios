@@ -74,7 +74,7 @@ func (pool *ConnectionPool) Run() {
 				err := client.Conn.Close()
 				if err != nil {
 					fmt.Println("error closing connections", err)
-					return
+					//return
 				}
 			}
 			//pool.Mutex.Unlock()
