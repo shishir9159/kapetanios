@@ -215,7 +215,7 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 		}
 		// todo ---------
 
-		c.log.Debug("client registered: ",
+		c.log.Info("client registered: ",
 			zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
 		minorityReport, err := readConfig(c)
@@ -226,10 +226,10 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 			//	zap.Error(err))
 		}
 
-		c.log.Debug("entered minor upgrade")
+		c.log.Info("entered minor upgrade")
 		MinorUpgrade(server.pool, minorityReport)
 
-		c.log.Debug("minor upgrade completed")
+		c.log.Info("minor upgrade completed")
 		return
 	}
 
