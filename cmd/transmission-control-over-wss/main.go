@@ -142,9 +142,6 @@ func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 // TODO:  URGENT FIX - NEW CLIENT IS ENTERING
 func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request) {
 
-	// TODO:
-	//  prepare the global minority report
-
 	if len(server.pool.Clients) > 5 {
 		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
 		if er != nil {
@@ -172,7 +169,6 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	defer server.pool.RemoveClient(client)
 
 	if server.mu.TryLock() {
-
 		defer server.mu.Unlock()
 
 		// TODO: race condition - readCtx can be cancelled
@@ -199,6 +195,9 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 		}
 		// todo ---------
 
+		c.log.Debug("client registered: ",
+			zap.String("client address: ", client.Conn.RemoteAddr().String()))
+
 		minorityReport, err := readJSONConfig(c)
 		if err != nil {
 			// TODO: no restart mode or draining
@@ -207,18 +206,19 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 			//	zap.Error(err))
 		}
 
+		c.log.Debug("entered minor upgrade")
 		MinorUpgrade(server.pool, minorityReport)
 
+		c.log.Debug("minor upgrade completed")
 		return
 	}
 
 	ctx, _ := context.WithCancel(server.pool.ReadCtx)
+	log.Println("using read context", ctx)
 	go server.pool.ReadMessageFromConn(ctx, client)
-	//go server.pool.ReadMessageFromConn(ctx)
 	// TODO: use the context
 	// todo: channel
-	time.Sleep(480 * time.Second)
-
+	time.Sleep(540 * time.Second)
 }
 
 func StartServer(ctx context.Context) {

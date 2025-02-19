@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{HandshakeTimeout: 0,
@@ -24,8 +25,6 @@ var upgrader = websocket.Upgrader{HandshakeTimeout: 0,
 
 type Client struct {
 	Conn *websocket.Conn `json:"conn"`
-	// TODO: check if this lock is necessary
-	Mu sync.Mutex `json:"mu"`
 }
 
 type ConnectionPool struct {
@@ -70,13 +69,13 @@ func (pool *ConnectionPool) Run() {
 		case client := <-pool.unregister:
 			//pool.Mutex.Lock()
 			if _, ok := pool.Clients[client]; ok {
+				fmt.Println("client unregistered", len(pool.Clients), pool.Clients[client])
 				delete(pool.Clients, client)
 				err := client.Conn.Close()
 				if err != nil {
 					fmt.Println("error closing connections", err)
 					return
 				}
-				fmt.Println("client unregistered", len(pool.Clients))
 			}
 			//pool.Mutex.Unlock()
 
@@ -105,6 +104,7 @@ func (pool *ConnectionPool) RemoveClient(client *Client) {
 }
 
 func (pool *ConnectionPool) CancelReadContext() {
+
 	pool.readCancel()
 }
 
@@ -114,8 +114,13 @@ func (pool *ConnectionPool) BroadcastMessage(message []byte) {
 
 func (pool *ConnectionPool) ReadMessages() (string, error) {
 
-	// todo: derive this child context from the inherited context
-	//  Create a context with cancel to stop all Goroutines
+	for {
+		if len(pool.Clients) == 0 {
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		break
+	}
 
 	ctx, _ := context.WithCancel(pool.ReadCtx)
 

@@ -425,25 +425,6 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 				zap.Error(err))
 		}
 
-		//TODO:
-		//ctxTermination, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-		//defer stop()
-		//
-		//var wg sync.WaitGroup
-		//
-		//// Start the gRPC server in a separate goroutine
-		//wg.Add(1)
-		//go func() {
-		//	defer wg.Done()
-		//	MinorUpgradeGrpc(ctxTermination)
-		//}()
-		//
-		//// Wait for the server goroutine to exit
-		//<-ctxTermination.Done()
-		//stop()
-		//wg.Wait()
-		//c.log.Info("gRPC server has been gracefully stopped.")
-
 		// TODO:
 		//  check for pods stuck in the terminating state
 		//  if any pods other than the whitelisted ones are still in the node,
