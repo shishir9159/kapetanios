@@ -412,6 +412,10 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 		//pod/coredns-787d4945fb-stk4w evicted
 		//pod/ingress-nginx-controller-5dcc84f655-pvdcc evicted
 
+		// todo: compartmentalized draining
+		//    subset of node drained and tainted
+		//    don't remove taint if it was already tainted
+
 		c.log.Info("tainting node",
 			zap.String("node name", node))
 
