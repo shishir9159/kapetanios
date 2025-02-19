@@ -244,6 +244,7 @@ func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request)
 	go server.pool.ReadMessageFromConn(ctx, client)
 	// TODO: use the context
 	// todo: channel
+	// todo: broken pipe error
 	time.Sleep(540 * time.Second)
 }
 
