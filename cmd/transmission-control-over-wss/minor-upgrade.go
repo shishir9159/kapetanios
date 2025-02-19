@@ -42,6 +42,7 @@ func drainAndCordonNode(c Nefario, node *corev1.Node) error {
 		ErrOut:                          os.Stderr,
 	}
 
+	c.log.Info("cordoning node", zap.String("node", node.Name))
 	err := drain.RunCordonOrUncordon(drainer, node, true)
 	if err != nil {
 		c.log.Error("error cordoning node",
@@ -50,6 +51,7 @@ func drainAndCordonNode(c Nefario, node *corev1.Node) error {
 
 	}
 
+	c.log.Info("draining node", zap.String("node", node.Name))
 	err = drain.RunNodeDrain(drainer, node.Name)
 	if err != nil {
 		c.log.Error("error draining node",
@@ -57,6 +59,7 @@ func drainAndCordonNode(c Nefario, node *corev1.Node) error {
 			zap.Error(err))
 	}
 
+	c.log.Info("returning from draining node", zap.Time("node", time.Now().UTC()))
 	return nil
 }
 
