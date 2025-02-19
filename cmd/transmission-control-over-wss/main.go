@@ -44,8 +44,11 @@ type upgradeProgression struct {
 	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
 }
 
+// todo: should i keep track record if nodes are already tainted
+
 type MinorityReport struct {
 	certificateRenewal bool   `yaml:"certificateRenewal"`
+	drainNodes         bool   `yaml:"drainNodes"`
 	nodesUpgraded      string `yaml:"nodesUpgraded"`
 	NodesToBeUpgraded  string `yaml:"nodesToBeUpgraded"`
 	UbuntuK8sVersion   string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
@@ -72,6 +75,9 @@ func readConfig(c Nefario) (MinorityReport, error) {
 	}
 
 	report := MinorityReport{
+		//certificateRenewal: false,
+		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
+		drainNodes:        false,
 		nodesUpgraded:     configMap.Data["NODES_UPGRADED"],
 		NodesToBeUpgraded: configMap.Data["UBUNTU_K8S_VERSION"],
 		UbuntuK8sVersion:  configMap.Data["REDHAT8_K8S_VERSION"],

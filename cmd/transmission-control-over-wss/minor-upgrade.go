@@ -118,6 +118,67 @@ func addTaint(node *corev1.Node) {
 	node.Spec.Taints = newTaints
 }
 
+// TODO:
+//
+//	if ran successfully
+//	Warning: deleting Pods that declare no controller: default/dnsutils; ignoring DaemonSet-managed Pods: kube-system/cilium-wnn6z, kube-system/kube-proxy-m8txw, metallb-system/speaker-587dh
+//
+// evicting pod ingress-nginx/ingress-nginx-admission-create-5pjqv
+// evicting pod metallb-system/controller-9b6c9f6c9-g2p4z
+// evicting pod klovercloud/mesh-uat-go-two-6f846bfcf-ztnk5
+// evicting pod ingress-nginx/ingress-nginx-controller-5dcc84f655-pvdcc
+// evicting pod klovercloud/mesh-uat-go-one-86776497cf-227g9
+// evicting pod default/dnsutils
+// evicting pod default/backend-59b96df495-ghfn2
+// evicting pod ingress-nginx/ingress-nginx-admission-patch-4qgmn
+// evicting pod kube-system/coredns-787d4945fb-stk4w
+// evicting pod kube-system/cilium-operator-fdf6bc9f4-mcx4h
+// evicting pod default/kapetanios-b5bc457fb-v5vlx
+// evicting pod default/minions-for-etcd-4mg95
+// evicting pod kube-system/coredns-787d4945fb-4zl96
+// pod/ingress-nginx-admission-patch-4qgmn evicted
+// pod/ingress-nginx-admission-create-5pjqv evicted
+// pod/controller-9b6c9f6c9-g2p4z evicted
+// pod/minions-for-etcd-4mg95 evicted
+// pod/mesh-uat-go-one-86776497cf-227g9 evicted
+// I1029 03:31:47.241516 4025541 request.go:690] Waited for 1.103702573s due to client-side throttling, not priority and fairness, request: GET:https://10.0.0.3:6443/api/v1/namespaces/klovercloud/pods/mesh-uat-go-two-6f846bfcf-ztnk5
+// pod/dnsutils evicted
+// pod/backend-59b96df495-ghfn2 evicted
+// pod/kapetanios-b5bc457fb-v5vlx evicted
+// pod/mesh-uat-go-two-6f846bfcf-ztnk5 evicted
+// pod/cilium-operator-fdf6bc9f4-mcx4h evicted
+// pod/coredns-787d4945fb-4zl96 evicted
+// pod/coredns-787d4945fb-stk4w evicted
+// pod/ingress-nginx-controller-5dcc84f655-pvdcc evicted
+func prepareNode(c Nefario, node *corev1.Node) error {
+	err := drainAndCordonNode(c, node)
+	if err != nil {
+		c.log.Error("failed to drain node",
+			zap.String("node name:", node.Name),
+			zap.Error(err))
+		return err
+	}
+
+	c.log.Info("tainting node",
+		zap.String("node name", node.Name))
+
+	addTaint(node)
+
+	err = drain.RunCordonOrUncordon(&drain.Helper{
+		Ctx:    c.ctx,
+		Client: c.client.Clientset(),
+	}, node, false)
+
+	if err != nil {
+		c.log.Error("error uncordoning the node",
+			zap.String("node name", node.Name),
+			zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
 type nodeInfo struct {
 }
 
@@ -370,66 +431,9 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 
 		// TODO: should wait for the coredns restart
 
-		err = drainAndCordonNode(c, no)
+		err = prepareNode(c, no)
 		if err != nil {
 			// todo: switch to non-drain mode
-			c.log.Error("failed to drain node",
-				zap.String("node name:", node),
-				zap.Error(err))
-		}
-
-		// TODO:
-		//  display the possible errors if force was not
-
-		// TODO:
-		//  if ran successfully
-		//  Warning: deleting Pods that declare no controller: default/dnsutils; ignoring DaemonSet-managed Pods: kube-system/cilium-wnn6z, kube-system/kube-proxy-m8txw, metallb-system/speaker-587dh
-		//evicting pod ingress-nginx/ingress-nginx-admission-create-5pjqv
-		//evicting pod metallb-system/controller-9b6c9f6c9-g2p4z
-		//evicting pod klovercloud/mesh-uat-go-two-6f846bfcf-ztnk5
-		//evicting pod ingress-nginx/ingress-nginx-controller-5dcc84f655-pvdcc
-		//evicting pod klovercloud/mesh-uat-go-one-86776497cf-227g9
-		//evicting pod default/dnsutils
-		//evicting pod default/backend-59b96df495-ghfn2
-		//evicting pod ingress-nginx/ingress-nginx-admission-patch-4qgmn
-		//evicting pod kube-system/coredns-787d4945fb-stk4w
-		//evicting pod kube-system/cilium-operator-fdf6bc9f4-mcx4h
-		//evicting pod default/kapetanios-b5bc457fb-v5vlx
-		//evicting pod default/minions-for-etcd-4mg95
-		//evicting pod kube-system/coredns-787d4945fb-4zl96
-		//pod/ingress-nginx-admission-patch-4qgmn evicted
-		//pod/ingress-nginx-admission-create-5pjqv evicted
-		//pod/controller-9b6c9f6c9-g2p4z evicted
-		//pod/minions-for-etcd-4mg95 evicted
-		//pod/mesh-uat-go-one-86776497cf-227g9 evicted
-		//I1029 03:31:47.241516 4025541 request.go:690] Waited for 1.103702573s due to client-side throttling, not priority and fairness, request: GET:https://10.0.0.3:6443/api/v1/namespaces/klovercloud/pods/mesh-uat-go-two-6f846bfcf-ztnk5
-		//pod/dnsutils evicted
-		//pod/backend-59b96df495-ghfn2 evicted
-		//pod/kapetanios-b5bc457fb-v5vlx evicted
-		//pod/mesh-uat-go-two-6f846bfcf-ztnk5 evicted
-		//pod/cilium-operator-fdf6bc9f4-mcx4h evicted
-		//pod/coredns-787d4945fb-4zl96 evicted
-		//pod/coredns-787d4945fb-stk4w evicted
-		//pod/ingress-nginx-controller-5dcc84f655-pvdcc evicted
-
-		// todo: compartmentalized draining
-		//    subset of node drained and tainted
-		//    don't remove taint if it was already tainted
-
-		c.log.Info("tainting node",
-			zap.String("node name", node))
-
-		addTaint(no)
-
-		err = drain.RunCordonOrUncordon(&drain.Helper{
-			Ctx:    c.ctx,
-			Client: c.client.Clientset(),
-		}, no, false)
-
-		if err != nil {
-			c.log.Error("error uncordoning the node",
-				zap.String("node name", node),
-				zap.Error(err))
 		}
 
 		// TODO:
