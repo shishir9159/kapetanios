@@ -40,8 +40,8 @@ type nodeInfo struct {
 
 type Nefario struct {
 	client    *orchestration.Client
-	cancel    context.CancelFunc
 	ctx       context.Context
+	cancel    context.CancelFunc
 	log       *zap.Logger
 	mu        sync.Mutex
 	namespace string
@@ -188,6 +188,11 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	upgrade.pool.AddClient(client)
 	defer upgrade.pool.RemoveClient(client)
+
+	if upgrade.nefario.mu.TryLock() {
+		// only one api would run at a time
+		defer upgrade.nefario.mu.Unlock()
+	}
 
 	if upgrade.mu.TryLock() {
 		defer upgrade.mu.Unlock()

@@ -53,6 +53,6 @@ func Prerequisites(upgrade *Upgrade) error {
 
 	// TODO: another channel to send signal
 	//  that server can run now that mutex is locked
-	upgrade.MinorUpgrade(report)
+	go upgrade.MinorUpgrade(report)
 	return nil
 }
