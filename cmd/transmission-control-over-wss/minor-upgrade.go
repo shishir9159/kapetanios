@@ -390,9 +390,12 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 
 		// TODO: should wait for the coredns restart
 
-		err = prepareNode(upgrade.nefario, no)
-		if err != nil {
-			// todo: switch to non-drain mode
+		if upgradeConfig.drainNodes {
+			err = prepareNode(upgrade.nefario, no)
+			if err != nil {
+				// todo: take prompt
+				// todo: switch to non-drain mode
+			}
 		}
 
 		// TODO:
