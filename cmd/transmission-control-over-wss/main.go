@@ -54,6 +54,7 @@ type Upgrade struct {
 	mu       sync.Mutex
 	upgraded chan bool
 	pool     *wss.ConnectionPool
+	config   *upgradeConfig
 }
 
 type upgradeProgression struct {
@@ -298,9 +299,9 @@ func main() {
 		log:       logger,
 	}
 
-	report, err := readConfig(&nefario)
+	config, err := readConfig(&nefario)
 	if err != nil {
-		nefario.log.Error("error reading config map",
+		nefario.log.Info("failed to read config map: ",
 			zap.Error(err))
 	}
 
@@ -311,6 +312,14 @@ func main() {
 	upgrade := Upgrade{
 		nefario: &nefario,
 		pool:    pool,
+		config: &config,
+	}
+
+	// TODO: refactor read write,
+	//  be conservative what you send
+	report, err := readConfig(upgrade.nefario)
+	if err != nil {
+			zap.Error(err))
 	}
 
 	if len(report.NodesToBeUpgraded) != 0 {
