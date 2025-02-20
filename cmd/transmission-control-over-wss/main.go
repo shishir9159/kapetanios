@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -11,7 +10,6 @@ import (
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"html/template"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"net/http"
@@ -39,14 +37,36 @@ var upgrader = websocket.Upgrader{
 	EnableCompression: false,
 }
 
+type nodeInfo struct {
+}
+
+// should it be foreman?
+
+type Nefario struct {
+	namespace string
+	log       *zap.Logger
+	ctx       context.Context
+	client    *orchestration.Client
+}
+
+// TODO: update -- should it be query to one vm or all the vm?
+
+type upgrade struct {
+	nefario Nefario
+	mu      sync.Mutex
+	upgraded chan bool
+	pool    *wss.ConnectionPool
+}
+
 type upgradeProgression struct {
 	CurrentStep           uint8  `yaml:"currentStep"`
 	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
 }
 
-// todo: should i keep track record if nodes are already tainted
+// todo: should i keep track record if nodes were already
+//  tainted before draining
 
-type MinorityReport struct {
+type upgradeReport struct {
 	certificateRenewal bool   `yaml:"certificateRenewal"`
 	drainNodes         bool   `yaml:"drainNodes"`
 	nodesUpgraded      string `yaml:"nodesUpgraded"`
@@ -60,10 +80,9 @@ type Server struct {
 	ctx         context.Context
 	waitChannel chan bool
 	mu          sync.Mutex
-	pool        *wss.ConnectionPool
 }
 
-func readConfig(c Nefario) (MinorityReport, error) {
+func readConfig(c Nefario) (upgradeReport, error) {
 
 	configMapName := "kapetanios"
 
@@ -71,10 +90,10 @@ func readConfig(c Nefario) (MinorityReport, error) {
 	if er != nil {
 		c.log.Error("error fetching the configMap",
 			zap.Error(er))
-		return MinorityReport{}, er
+		return upgradeReport{}, er
 	}
 
-	report := MinorityReport{
+	report := upgradeReport{
 		//certificateRenewal: false,
 		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
 		drainNodes:        false,
@@ -88,7 +107,7 @@ func readConfig(c Nefario) (MinorityReport, error) {
 	return report, nil
 }
 
-func writeConfig(c Nefario, report MinorityReport) error {
+func writeConfig(c Nefario, report upgradeReport) error {
 
 	configMapName := "kapetanios"
 
@@ -122,31 +141,104 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func readyz(isReady *atomic.Value) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		if isReady == nil || !isReady.Load().(bool) {
-			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
-			return
+//func readyz(isReady *atomic.Value) http.HandlerFunc {
+//	return func(w http.ResponseWriter, _ *http.Request) {
+//		if isReady == nil || !isReady.Load().(bool) {
+//			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+//			return
+//		}
+//		w.WriteHeader(http.StatusOK)
+//	}
+//}
+
+func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
+	//var Json = jsoniter.ConfigFastest
+	//decoder := Json.NewDecoder(r.Body)
+	//var t upgradeProgression
+	//err := decoder.Decode(&t)
+	//if err != nil {
+	//	http.Error(w, err.Error(), http.StatusBadRequest)
+	//	panic(err)
+	//}
+	//
+	//log.Println(t)
+
+	if len(upgrade.pool.Clients) > 5 {
+		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
+		if er != nil {
+			upgrade.nefario.log.Info("error writing concurrent connections warning:",
+				zap.Error(er))
 		}
-		w.WriteHeader(http.StatusOK)
-	}
-}
 
-func (server *Server) minorUpgrade(w http.ResponseWriter, r *http.Request) {
-	var Json = jsoniter.ConfigFastest
-	decoder := Json.NewDecoder(r.Body)
-	var t upgradeProgression
-	err := decoder.Decode(&t)
+		return
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		panic(err)
+		log.Println("upgrade:", err)
+		return
+	}
+	defer func(conn *websocket.Conn) {
+		er := conn.Close()
+		if er != nil {
+			log.Println("error closing connection:", er, conn.RemoteAddr())
+		}
+	}(conn)
+
+	client := &wss.Client{
+		Conn: conn,
 	}
 
-	log.Println(t)
+	upgrade.pool.AddClient(client)
+	defer upgrade.pool.RemoveClient(client)
+
+	if upgrade.mu.TryLock() {
+		defer upgrade.mu.Unlock()
+
+		// TODO: race condition - readCtx can be cancelled
+
+
+		upgrade.nefario.log.Info("registered client: ",
+			zap.String("client address: ", client.Conn.RemoteAddr().String()))
+
+		minorityReport, err := readConfig(upgrade.nefario)
+		if err != nil {
+			// TODO: no restart mode or draining
+			log.Println("error reading config map:", err)
+			//c.log.Error("could not read config map",
+			//	zap.Error(err))
+		}
+
+		upgrade.upgraded = make(chan bool)
+		upgrade.MinorUpgrade(minorityReport)
+
+		return
+	}
+
+	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
+	go upgrade.pool.ReadMessageFromConn(ctx, client)
+	// TODO: use the context
+	// todo: broken pipe error
+
+	<-upgrade.upgraded
 }
 
-// TODO:  URGENT FIX - IT WORKS ONLY ONCE
-// TODO:  URGENT FIX - NEW CLIENT IS ENTERING
+func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {
+
+	if nefario.mu.TryLock() {
+		
+	}
+
+	// cleanup
+
+	nefario.log.Info("stopping all minions and ongoing process")
+	// all connection closed
+	// stop channel to stop all the connections
+
+	nefario.ctx = context.Background()
+}
+
+// TODO: lifetime - cleanup
 func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	if len(server.pool.Clients) > 5 {
@@ -255,15 +347,15 @@ func StartServer(ctx context.Context) {
 	go pool.Run()
 
 	server := Server{
-		ctx:  ctx,
-		pool: pool,
+		ctx: ctx,
 	}
+
+	upgrade nefario
 
 	http.HandleFunc("/minor-upgrade", server.minorUpdateUpgrade)
 	// TODO: work on this api
 	http.HandleFunc("/upgrade", server.minorUpgrade)
 	http.HandleFunc("/livez", livez)
-	http.HandleFunc("/", home)
 
 	fmt.Println("WebSocket server started on :80")
 
@@ -275,13 +367,52 @@ func StartServer(ctx context.Context) {
 
 func main() {
 
-	//report, err	 := readConfig()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//if len(report.NodesToBeUpgraded) != 0 {
-	//
-	//}
+	Client, _ := orchestration.NewClient()
+	cfg := zap.Config{
+		Encoding:         "json",
+		Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
+		OutputPaths:      []string{"stderr"},
+		ErrorOutputPaths: []string{"stderr"},
+		EncoderConfig: zapcore.EncoderConfig{
+			MessageKey: "message",
+
+			LevelKey:    "level",
+			EncodeLevel: zapcore.CapitalLevelEncoder,
+
+			TimeKey:    "time",
+			EncodeTime: zapcore.ISO8601TimeEncoder,
+
+			CallerKey:    "caller",
+			EncodeCaller: zapcore.ShortCallerEncoder,
+		},
+	}
+
+	logger := zap.Must(cfg.Build())
+	defer func(logger *zap.Logger) {
+		er := logger.Sync()
+		if er != nil {
+			logger.Info("error syncing logger before application terminates",
+				zap.Error(er))
+		}
+	}(logger)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	nefario := Nefario{
+		log:       logger,
+		client:    Client,
+		namespace: os.Getenv("KAPETANIOS_NAMESPACE"),
+		ctx:       context.Background(),
+	}
+
+
+	report, err := readConfig(nefario)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(report.NodesToBeUpgraded) != 0 {
+
+	}
 
 	// todo: resume connections after server restarts
 	//  Prerequisites(minorUpgradeNamespace)
@@ -290,95 +421,3 @@ func main() {
 	defer cancel()
 	StartServer(ctx)
 }
-
-func home(w http.ResponseWriter, r *http.Request) {
-	err := homeTemplate.Execute(w, "ws://"+r.Host+"/echo")
-	if err != nil {
-		return
-	}
-}
-
-func runAway(ws *websocket.Conn) {
-	_, _, err := ws.ReadMessage()
-
-}
-
-var homeTemplate = template.Must(template.New("").Parse(`
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<script>  
-window.addEventListener("load", function(evt) {
-
-    var output = document.getElementById("output");
-    var input = document.getElementById("input");
-    var ws;
-
-    var print = function(message) {
-        var d = document.createElement("div");
-        d.textContent = message;
-        output.appendChild(d);
-        output.scroll(0, output.scrollHeight);
-    };
-
-    document.getElementById("open").onclick = function(evt) {
-        if (ws) {
-            return false;
-        }
-        ws = new WebSocket("{{.}}");
-        ws.onopen = function(evt) {
-            print("OPEN");
-        }
-        ws.onclose = function(evt) {
-            print("CLOSE");
-            ws = null;
-        }
-        ws.onmessage = function(evt) {
-            print("RESPONSE: " + evt.data);
-        }
-        ws.onerror = function(evt) {
-            print("ERROR: " + evt.data);
-        }
-        return false;
-    };
-
-    document.getElementById("send").onclick = function(evt) {
-        if (!ws) {
-            return false;
-        }
-        print("SEND: " + input.value);
-        ws.send(input.value);
-        return false;
-    };
-
-    document.getElementById("close").onclick = function(evt) {
-        if (!ws) {
-            return false;
-        }
-        ws.close();
-        return false;
-    };
-
-});
-</script>
-</head>
-<body>
-<table>
-<tr><td valign="top" width="50%">
-<p>Click "Open" to create a connection to the server, 
-"Send" to send a message to the server and "Close" to close the connection. 
-You can change the message and send multiple times.
-<p>
-<form>
-<button id="open">Open</button>
-<button id="close">Close</button>
-<p><input id="input" type="text" value="Hello world!">
-<button id="send">Send</button>
-</form>
-</td><td valign="top" width="50%">
-<div id="output" style="max-height: 70vh;overflow-y: scroll;"></div>
-</td></tr></table>
-</body>
-</html>
-`))

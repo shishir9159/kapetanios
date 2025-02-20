@@ -179,23 +179,11 @@ func prepareNode(c Nefario, node *corev1.Node) error {
 	return nil
 }
 
-type nodeInfo struct {
-}
-
-// should it be foreman?
-
-type Nefario struct {
-	namespace string
-	log       *zap.Logger
-	ctx       context.Context
-	client    *orchestration.Client
-}
-
 func recovery(namespace string) {
 
 }
 
-func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
+func (upgrade *upgrade) MinorUpgrade(report upgradeReport) {
 
 	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {
@@ -529,5 +517,5 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 	}
 	(<-ch).Stop()
 
-	//	 TODO: remove all existing connections and channel
+	<-upgrade.upgraded
 }

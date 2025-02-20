@@ -13,6 +13,9 @@ import (
 	"net"
 )
 
+// TODO: rpc stream
+// TODO: error handle
+
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	log            *zap.Logger

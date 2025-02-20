@@ -2,29 +2,16 @@ package wss
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
 )
 
-var upgrader = websocket.Upgrader{HandshakeTimeout: 0,
-	ReadBufferSize:  0,
-	WriteBufferSize: 0,
-	WriteBufferPool: nil,
-	Subprotocols:    nil,
-	Error:           nil,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-	EnableCompression: false,
-}
-
 type Client struct {
+	send chan []byte     // Buffered channel of outbound messages: need to implement
 	Conn *websocket.Conn `json:"conn"`
 }
 
@@ -35,10 +22,10 @@ type ConnectionPool struct {
 	mutex       sync.RWMutex
 	cancel      context.CancelFunc
 	readCancel  context.CancelFunc
-	MessageChan chan string      `json:"messageChan"`
 	Ctx         context.Context  `json:"context"`
 	Clients     map[*Client]bool `json:"clients"`
 	ReadCtx     context.Context  `json:"readContext"`
+	MessageChan chan string      `json:"messageChan"`
 }
 
 func NewPool() *ConnectionPool {
@@ -91,17 +78,6 @@ func (pool *ConnectionPool) Run() {
 					// todo: investigate the error type
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNoStatusReceived) {
 						log.Println("Client disconnected (broken pipe)")
-					}
-
-					var ce *websocket.CloseError
-					if errors.As(err, &ce) {
-						switch ce.Code {
-						case websocket.CloseNormalClosure,
-							websocket.CloseGoingAway,
-							websocket.CloseAbnormalClosure:
-							//todo: s.env.Statusf("Web socket closed by client: %s", err)
-							return
-						}
 					}
 
 					pool.unregister <- client

@@ -14,7 +14,9 @@ import (
 
 // TODO: controller needs to be passed
 
-func Prerequisites(namespace string) {
+// TODO: node - role name
+
+func Prerequisites(upgrade upgrade) {
 	// if cm shows updated nodes to a certain value
 	// and desired kubernetesVersion exists on the cm,
 	// then, call the minor upgrade
