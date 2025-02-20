@@ -86,7 +86,7 @@ func (pool *ConnectionPool) Run() {
 				//err := client.Conn.WriteJSON(message)
 				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
-					log.Println("error writing message:", err, message)
+					log.Println("error writing message:", err, string(message))
 					pool.unregister <- client
 				}
 			}

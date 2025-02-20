@@ -11,12 +11,12 @@ func wsclient() {
 	serverAddr := "ws://localhost:8080/ws"
 	conn, _, err := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if err != nil {
-		log.Fatal("Error connecting to WebSocket server:", err)
+		log.Fatal("error connecting to webSocket server:", err)
 	}
 	defer func(conn *websocket.Conn) {
 		er := conn.Close()
 		if er != nil {
-			log.Println("Error closing WebSocket connection:", er)
+			log.Println("error closing webSocket connection:", er)
 		}
 	}(conn)
 
@@ -24,16 +24,16 @@ func wsclient() {
 
 	for _, step := range steps {
 		if er := conn.WriteMessage(websocket.TextMessage, []byte(step)); er != nil {
-			log.Println("Error writing message:", er)
+			log.Println("error writing message:", er)
 			return
 		}
 
 		_, msg, er := conn.ReadMessage()
 		if er != nil {
-			log.Println("Error reading message:", er)
+			log.Println("error reading message:", er)
 			return
 		}
-		fmt.Println("Received:", string(msg))
+		fmt.Println("received:", string(msg))
 
 		time.Sleep(1 * time.Second)
 	}

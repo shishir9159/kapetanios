@@ -528,4 +528,6 @@ func MinorUpgrade(pool *wss.ConnectionPool, report MinorityReport) {
 		watcher.Stop()
 	}
 	(<-ch).Stop()
+
+	//	 TODO: remove all existing connections and channel
 }
