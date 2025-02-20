@@ -41,15 +41,17 @@ type nodeInfo struct {
 
 type Nefario struct {
 	client    *orchestration.Client
+	cancel    context.CancelFunc
 	ctx       context.Context
 	log       *zap.Logger
+	mu        sync.Mutex
 	namespace string
 }
 
 // TODO: update -- should it be query to one vm or all the vm?
 
 type Upgrade struct {
-	nefario  Nefario
+	nefario  *Nefario
 	mu       sync.Mutex
 	upgraded chan bool
 	pool     *wss.ConnectionPool
@@ -78,13 +80,13 @@ type Server struct {
 	mu  sync.Mutex
 }
 
-func readConfig(c Nefario) (upgradeConfig, error) {
+func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
 	configMapName := "kapetanios"
 
-	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
-		c.log.Error("error fetching the configMap",
+		nefario.log.Error("error fetching the configMap",
 			zap.Error(er))
 		return upgradeConfig{}, er
 	}
@@ -103,13 +105,14 @@ func readConfig(c Nefario) (upgradeConfig, error) {
 	return report, nil
 }
 
-func writeConfig(c Nefario, report upgradeConfig) error {
+func writeConfig(nefario *Nefario, report upgradeConfig) error {
 
 	configMapName := "kapetanios"
 
-	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
+		Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
-		c.log.Error("error fetching the configMap",
+		nefario.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
 
@@ -122,9 +125,10 @@ func writeConfig(c Nefario, report upgradeConfig) error {
 	configMap.Data["REDHAT9_K8S_VERSION"] = report.Redhat9K8sVersion
 	configMap.Data["NODES_TO_BE_UPGRADED"] = report.NodesToBeUpgraded
 
-	_, er = c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+	_, er = nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
+		Update(context.TODO(), configMap, metav1.UpdateOptions{})
 	if er != nil {
-		c.log.Error("error updating configMap",
+		nefario.log.Error("error updating configMap",
 			zap.Error(er))
 	}
 
@@ -278,7 +282,7 @@ func main() {
 		log:       logger,
 	}
 
-	report, err := readConfig(nefario)
+	report, err := readConfig(&nefario)
 	if err != nil {
 		nefario.log.Error("error reading config map",
 			zap.Error(err))
@@ -289,7 +293,7 @@ func main() {
 	go pool.Run()
 
 	upgrade := Upgrade{
-		nefario: nefario,
+		nefario: &nefario,
 		pool:    pool,
 	}
 
@@ -301,16 +305,15 @@ func main() {
 		}
 	}
 
-	server := Server{}
-
-	http.HandleFunc("/minor-upgrade")
+	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
 	http.HandleFunc("/livez", livez)
 
-	fmt.Println("WebSocket server started on :80")
-
-	er := http.ListenAndServe(":80", nil)
-	if er != nil {
-		panic(er)
+	upgrade.nefario.log.Info("starting kapetanios server on :80")
+	err = http.ListenAndServe(":80", nil)
+	if err != nil {
+		upgrade.nefario.log.Error("error starting kapetanios server",
+			zap.Error(err))
+		panic(err)
 	}
 
 }

@@ -197,7 +197,7 @@ func (upgrade *Upgrade) MinorUpgrade(report upgradeConfig) {
 	client, err := orchestration.NewClient()
 
 	// TODO: add namespace in the controller itself
-	c := Nefario{
+	nefario := Nefario{
 		client:    client,
 		ctx:       context.Background(),
 		namespace: "default",
@@ -205,11 +205,11 @@ func (upgrade *Upgrade) MinorUpgrade(report upgradeConfig) {
 	}
 
 	if err != nil {
-		c.log.Error("error creating kubernetes client",
+		nefario.log.Error("error creating kubernetes client",
 			zap.Error(err))
 	}
 
-	renewalMinionManager := orchestration.NewMinions(c.client)
+	renewalMinionManager := orchestration.NewMinions(nefario.client)
 
 	labelSelector := metav1.LabelSelector{
 		MatchLabels: map[string]string{
@@ -225,11 +225,12 @@ func (upgrade *Upgrade) MinorUpgrade(report upgradeConfig) {
 	namespace := "default"
 	//namespace := report.MinorUpgradeNamespace
 
-	kapetaniosPod, err := c.client.Clientset().CoreV1().Pods(namespace).List(c.ctx, listOptions)
+	kapetaniosPod, err := nefario.client.Clientset().CoreV1().Pods(namespace).
+		List(nefario.ctx, listOptions)
 
 	if kapetaniosPod == nil {
 		if err != nil {
-			pool.BroadcastMessage([]byte("kapetanios pod discovery error: " +
+			nefario.pool.BroadcastMessage([]byte("kapetanios pod discovery error: " +
 				err.Error()))
 		}
 
