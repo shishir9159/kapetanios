@@ -101,7 +101,6 @@ func (pool *ConnectionPool) RemoveClient(client *Client) {
 }
 
 func (pool *ConnectionPool) CancelReadContext() {
-
 	pool.readCancel()
 }
 
@@ -130,7 +129,6 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 	message := <-pool.MessageChan
 	pool.CancelReadContext()
 
-	// TODO: after cancellation, reinitialize the Read Context
 	pool.ReadCtx, pool.readCancel = context.WithCancel(pool.Ctx)
 
 	return strings.TrimSpace(message), nil

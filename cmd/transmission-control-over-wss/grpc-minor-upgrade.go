@@ -480,19 +480,19 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-func MinorUpgradeGrpc(zlog *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.Server) {
+func MinorUpgradeGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		zlog.Error("failed to listen",
+		log.Error("failed to listen",
 			zap.Error(err))
 	}
 
 	s := grpc.NewServer()
 	server := minorUpgradeServer{
 		connectionPool: pool,
-		log:            zlog,
+		log:            log,
 	}
 
 	// in dev mode
