@@ -72,7 +72,7 @@ func removeTaint(node *corev1.Node) {
 	}
 
 	taintToRemove := corev1.Taint{
-		Key:    "minor-Upgrade-running",
+		Key:    "minor-upgrade-running",
 		Value:  "processing",
 		Effect: corev1.TaintEffectNoSchedule,
 	}
@@ -95,7 +95,7 @@ func addTaint(node *corev1.Node) {
 
 	// TODO: declare as a struct maybe?
 	taintToAdd := corev1.Taint{
-		Key:    "minor-Upgrade-running",
+		Key:    "minor-upgrade-running",
 		Value:  "processing",
 		Effect: corev1.TaintEffectNoSchedule,
 	}
@@ -291,7 +291,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 		upgrade.nefario.log.Info("nodes to be upgraded",
 			zap.String("node to be name:", node))
 
-		// todo: populate with user input or not
+		// todo: populate with user input
 		//targetedVersion := "1.26.6-1.1"
 
 		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
@@ -324,7 +324,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{
-				Key:      "minor-Upgrade-running",
+				Key:      "minor-upgrade-running",
 				Operator: "Equal",
 				Value:    "processing",
 				Effect:   corev1.TaintEffectNoSchedule,
@@ -382,6 +382,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 			upgrade.nefario.log.Error("failed to get node by node name",
 				zap.String("node name:", node),
 				zap.Error(err))
+			continue
 		}
 
 		upgrade.nefario.log.Info("cordoning and draining node",
@@ -405,28 +406,31 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 
 		// TODO: monitor the node status with watch
 
-		// TODO: monitor the pod restart after Upgrade
-		//  All containers are restarted after Upgrade, because the container spec hash value is changed
+		// TODO: monitor the pod restart after upgrade
+		//  All containers are restarted after upgrade, because the container spec hash value is changed
 		//		just monitor the NODES before creating minion, no need to restart
 		//  RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 
 		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
 			Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			upgrade.nefario.log.Error("minor Upgrade pod creation failed: ",
+			upgrade.nefario.log.Error("minor upgrade pod creation failed: ",
 				zap.Error(er))
 
-			upgrade.pool.BroadcastMessage([]byte("minor Upgrade pod creation failed" + err.Error()))
+			upgrade.pool.BroadcastMessage([]byte("minor upgrade pod creation failed " + err.Error()))
 			return
 		}
 
-		upgrade.nefario.log.Info("minor Upgrade pod created",
+		upgrade.nefario.log.Info("minor upgrade pod created",
 			zap.Int("index", index),
 			zap.String("pod name", minion.Name))
 
-		upgrade.pool.BroadcastMessage([]byte("minor Upgrade pod created successfully: " + minion.Name))
+		upgrade.pool.BroadcastMessage([]byte("minor upgrade pod created successfully: " + minion.Name))
 
-		labelSelector = metav1.LabelSelector{MatchLabels: map[string]string{"app": "minor-Upgrade"}}
+		labelSelector = metav1.LabelSelector{
+			MatchLabels: map[string]string{"app": "minor-upgrade"},
+		}
+
 		listOptions = metav1.ListOptions{
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		}
@@ -459,13 +463,13 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 			switch event.Type {
 			case watch.Modified:
 				if pod.Status.Phase == corev1.PodSucceeded {
-					upgrade.nefario.log.Info("minor Upgrade pod has completed successfully!",
+					upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
 					break outerLoop
 				} else if pod.Status.Phase == corev1.PodFailed {
-					upgrade.nefario.log.Info("minor Upgrade pod has failed!",
+					upgrade.nefario.log.Info("minor upgrade pod has failed!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
@@ -473,7 +477,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 					break outerLoop
 				}
 			case watch.Deleted:
-				upgrade.nefario.log.Info("minor Upgrade pod was deleted!",
+				upgrade.nefario.log.Info("minor upgrade pod was deleted!",
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace),
 					zap.String("minion name", minion.Name))
@@ -481,7 +485,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 			}
 		}
 
-		// TODO: All containers are restarted after Upgrade, because the container spec hash value is changed.
+		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
 		//  check if previously listed pods are all successfully restarted before untainted
 
 		watcher.Stop()
