@@ -2,6 +2,7 @@ package wss
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
@@ -87,6 +88,22 @@ func (pool *ConnectionPool) Run() {
 				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
 					log.Println("error writing message:", err, string(message))
+					// todo: investigate the error type
+					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNoStatusReceived) {
+						log.Println("Client disconnected (broken pipe)")
+					}
+
+					var ce *websocket.CloseError
+					if errors.As(err, &ce) {
+						switch ce.Code {
+						case websocket.CloseNormalClosure,
+							websocket.CloseGoingAway,
+							websocket.CloseAbnormalClosure:
+							//todo: s.env.Statusf("Web socket closed by client: %s", err)
+							return
+						}
+					}
+
 					pool.unregister <- client
 				}
 			}

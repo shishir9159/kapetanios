@@ -300,16 +300,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func runAway(ws *websocket.Conn) {
 	_, _, err := ws.ReadMessage()
-	var ce *websocket.CloseError
-	if errors.As(err, &ce) {
-		switch ce.Code {
-		case websocket.CloseNormalClosure,
-			websocket.CloseGoingAway,
-			websocket.CloseNoStatusReceived:
-			//todo: s.env.Statusf("Web socket closed by client: %s", err)
-			return
-		}
-	}
+
 }
 
 var homeTemplate = template.Must(template.New("").Parse(`
