@@ -32,7 +32,7 @@ func Prerequisites(upgrade *Upgrade) error {
 	//}
 
 	upgrade.mu.Lock()
-	// the lock would not be deferred here
+	// how to unlock?
 	// defer upgrade.mu.Unlock()
 
 	// TODO: race condition - readCtx can be cancelled

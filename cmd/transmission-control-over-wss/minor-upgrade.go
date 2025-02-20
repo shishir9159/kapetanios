@@ -184,6 +184,8 @@ func recovery(namespace string) {
 
 func (upgrade *Upgrade) MinorUpgrade() {
 
+	defer upgrade.mu.Unlock()
+
 	labelSelector := metav1.LabelSelector{
 		MatchLabels: map[string]string{
 			"app": "kapetanios",
@@ -315,7 +317,8 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		//   if failed, must be tainted again to
 		//   schedule nodes
 
-		upgrade.config.NodesToBeUpgraded = strings.Join(nodeNames, ";")
+		upgrade.config.nodesUpgraded = strings.Join(nodeNames[:index], ";")
+		upgrade.config.NodesToBeUpgraded = strings.Join(nodeNames[index:], ";")
 		err = writeConfig(upgrade.nefario, *upgrade.config)
 		if err != nil {
 			upgrade.nefario.log.Error("error writing reporting",

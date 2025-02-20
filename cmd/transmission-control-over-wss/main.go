@@ -191,13 +191,6 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 			zap.Error(err))
 		return
 	}
-	//defer func(conn *websocket.Conn) {
-	//	//upgrade.pool.RemoveClient()
-	//	er := conn.Close()
-	//	if er != nil {
-	//		log.Println("error closing connection:", er, conn.RemoteAddr())
-	//	}
-	//}(conn)
 
 	client := &wss.Client{
 		Conn: conn,
@@ -206,13 +199,14 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	upgrade.pool.AddClient(client)
 	defer upgrade.pool.RemoveClient(client)
 
+	// todo: add on prerequisite
 	if upgrade.nefario.mu.TryLock() {
-		// only one api would run at a time
+		// only allow one api would run at a time
 		defer upgrade.nefario.mu.Unlock()
 	}
 
 	if upgrade.mu.TryLock() {
-		defer upgrade.mu.Unlock()
+		//defer upgrade.mu.Unlock()
 
 		// TODO: race condition - readCtx can be cancelled
 
