@@ -172,15 +172,17 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("Upgrade:", err)
+		upgrade.nefario.log.Info("connection upgrade error:",
+			zap.Error(err))
 		return
 	}
-	defer func(conn *websocket.Conn) {
-		er := conn.Close()
-		if er != nil {
-			log.Println("error closing connection:", er, conn.RemoteAddr())
-		}
-	}(conn)
+	//defer func(conn *websocket.Conn) {
+	//	//upgrade.pool.RemoveClient()
+	//	er := conn.Close()
+	//	if er != nil {
+	//		log.Println("error closing connection:", er, conn.RemoteAddr())
+	//	}
+	//}(conn)
 
 	client := &wss.Client{
 		Conn: conn,
@@ -290,7 +292,7 @@ func main() {
 
 	pool := wss.NewPool()
 	// TODO: remove all the clients when the job ends
-	go pool.Run()
+	go pool.Run(nefario.log)
 
 	upgrade := Upgrade{
 		nefario: &nefario,

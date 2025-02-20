@@ -206,6 +206,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 		upgrade.nefario.log.Error("check cluster health and communication to kubernetes api server",
 			zap.Error(err))
 
+		// handle gracefully
 		return
 	}
 
@@ -277,10 +278,9 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 			)
 			nodeNames = append(nodeNames, no.Name)
 		}
-
 	}
 
-	roleName := "minor-Upgrade"
+	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpgradeGrpc(upgrade.nefario.log, upgrade.pool, ch)

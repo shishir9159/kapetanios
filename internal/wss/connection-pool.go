@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 	"log"
 	"strings"
 	"sync"
@@ -45,7 +46,7 @@ func NewPool() *ConnectionPool {
 	}
 }
 
-func (pool *ConnectionPool) Run() {
+func (pool *ConnectionPool) Run(log *zap.Logger) {
 	for {
 		select {
 		case client := <-pool.register:
@@ -57,12 +58,14 @@ func (pool *ConnectionPool) Run() {
 		case client := <-pool.unregister:
 			//pool.Mutex.Lock()
 			if _, ok := pool.Clients[client]; ok {
-				fmt.Println("client unregistered", len(pool.Clients), pool.Clients[client])
+				log.Info("client unregistered",
+					zap.String("client address", client.Conn.RemoteAddr().String()),
+					zap.Int("remaining clients", len(pool.Clients)))
 				delete(pool.Clients, client)
 				err := client.Conn.Close()
 				if err != nil {
-					fmt.Println("error closing connections", err)
-					//return
+					log.Error("close connection failed",
+						zap.Error(err))
 				}
 			}
 			//pool.Mutex.Unlock()
@@ -74,10 +77,11 @@ func (pool *ConnectionPool) Run() {
 				//err := client.Conn.WriteJSON(message)
 				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
-					log.Println("error writing message:", err, string(message))
-					// todo: investigate the error type
+					log.Error("error writing message:",
+						zap.String("message body:", string(message)),
+						zap.Error(err))
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNoStatusReceived) {
-						log.Println("Client disconnected (broken pipe)")
+						log.Error("client disconnected (broken pipe)")
 					}
 
 					pool.unregister <- client
