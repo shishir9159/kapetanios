@@ -13,7 +13,7 @@ import (
 
 // TODO: node - role name
 
-func Prerequisites(upgrade *Upgrade) {
+func Prerequisites(upgrade *Upgrade) error {
 
 	// if cm shows updated nodes to a certain value
 	// and desired kubernetesVersion version must exist on the cm
@@ -25,7 +25,7 @@ func Prerequisites(upgrade *Upgrade) {
 	if err != nil {
 		upgrade.nefario.log.Info("failed to read config map: ",
 			zap.Error(err))
-		return
+		return err
 	}
 
 	// TODO: controller should be created and passed here
@@ -39,7 +39,7 @@ func Prerequisites(upgrade *Upgrade) {
 	//}
 
 	if report.NodesToBeUpgraded == "" {
-		return
+		return nil
 	}
 
 	upgrade.mu.Lock()
@@ -54,4 +54,5 @@ func Prerequisites(upgrade *Upgrade) {
 	// TODO: another channel to send signal
 	//  that server can run now that mutex is locked
 	upgrade.MinorUpgrade(report)
+	return nil
 }

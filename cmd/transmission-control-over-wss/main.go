@@ -237,28 +237,6 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 //	nefario.ctx = context.Background()
 //}
 
-func StartServer(ctx context.Context) {
-
-	server := Server{
-		ctx: ctx,
-	}
-
-	Upgrade
-	nefario
-
-	http.HandleFunc("/minor-upgrade", server.minorUpdateUpgrade)
-	// TODO: work on this api
-	http.HandleFunc("/upgrade", server.minorUpgrade)
-	http.HandleFunc("/livez", livez)
-
-	fmt.Println("WebSocket server started on :80")
-
-	er := http.ListenAndServe(":80", nil)
-	if er != nil {
-		panic(er)
-	}
-}
-
 func main() {
 
 	cfg := zap.Config{
@@ -317,14 +295,31 @@ func main() {
 	}
 
 	if len(report.NodesToBeUpgraded) != 0 {
-		go Prerequisites(&upgrade)
+		er := Prerequisites(&upgrade)
+		if er != nil {
+			upgrade.nefario.log.Info("error writing prerequisites warning:",
+				zap.Error(er))
+		}
 	}
-
-	// todo: resume connec6tions after server restarts
-	//  Prerequisites(minorUpgradeNamespace)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	StartServer(ctx)
+
+	server := Server{}
+
+	// TODO: nefario mutex
+
+	http.HandleFunc("/minor-upgrade", server.minorUpdateUpgrade)
+	// TODO: work on this api
+	http.HandleFunc("/upgrade", server.minorUpgrade)
+	http.HandleFunc("/livez", livez)
+
+	fmt.Println("WebSocket server started on :80")
+
+	er := http.ListenAndServe(":80", nil)
+	if er != nil {
+		panic(er)
+	}
 
 }
