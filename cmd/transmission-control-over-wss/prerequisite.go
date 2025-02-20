@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"go.uber.org/zap"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // if the labels exists
@@ -15,7 +13,7 @@ import (
 
 // TODO: node - role name
 
-func Prerequisites(upgrade *upgrade) {
+func Prerequisites(upgrade *Upgrade) {
 
 	// if cm shows updated nodes to a certain value
 	// and desired kubernetesVersion version must exist on the cm
@@ -32,13 +30,28 @@ func Prerequisites(upgrade *upgrade) {
 
 	// TODO: controller should be created and passed here
 
-	configMapName := "kubeadm-config"
-
-	//configMap, er := upgrade.nefario.client.Clientset().CoreV1().ConfigMaps("kube-system").
+	//configMapName := "kubeadm-config"
+	//configMap, er := Upgrade.nefario.client.Clientset().CoreV1().ConfigMaps("kube-system").
 	//	Get(context.Background(), configMapName, metav1.GetOptions{})
 	//if er != nil {
-	//	upgrade.nefario.log.Info("error fetching the kubeadm-config configMap: ",
+	//	Upgrade.nefario.log.Info("error fetching the kubeadm-config configMap: ",
 	//		zap.Error(er))
 	//}
 
+	if report.NodesToBeUpgraded == "" {
+		return
+	}
+
+	upgrade.mu.Lock()
+	defer upgrade.mu.Unlock()
+
+	// TODO: race condition - readCtx can be cancelled
+	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
+		zap.String("nodes to be upgraded", report.NodesToBeUpgraded))
+
+	upgrade.upgraded = make(chan bool, 1)
+
+	// TODO: another channel to send signal
+	//  that server can run now that mutex is locked
+	upgrade.MinorUpgrade(report)
 }

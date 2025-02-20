@@ -294,8 +294,8 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 			zap.String("response", response))
 	}
 
-	s.log.Info("received cluster component upgrade status",
-		zap.Bool("component successful upgrade", in.GetComponentUpgradeSuccess()),
+	s.log.Info("received cluster component Upgrade status",
+		zap.Bool("component successful Upgrade", in.GetComponentUpgradeSuccess()),
 		zap.String("component", in.GetComponent()),
 		zap.String("log", in.GetLog()),
 		zap.String("error", in.GetErr()))
@@ -352,7 +352,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 			zap.String("response", response))
 	}
 
-	s.log.Info("received cluster upgrade plan",
+	s.log.Info("received cluster Upgrade plan",
 		zap.String("cluster version", in.GetCurrentClusterVersion()),
 		zap.String("received log", in.GetLog()),
 		zap.String("error", in.GetErr()))
@@ -409,8 +409,8 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 			zap.String("response", response))
 	}
 
-	s.log.Info("received cluster upgrade plan",
-		zap.Bool("cluster upgrade status", in.GetUpgradeSuccess()),
+	s.log.Info("received cluster Upgrade plan",
+		zap.Bool("cluster Upgrade status", in.GetUpgradeSuccess()),
 		zap.String("log", in.GetLog()),
 		zap.String("error", in.GetErr()))
 
@@ -499,7 +499,7 @@ func MinorUpgradeGrpc(zlog *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grp
 	reflection.Register(s)
 	pb.RegisterMinorUpgradeServer(s, &server)
 
-	server.log.Info("upgrade server listening")
+	server.log.Info("Upgrade server listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {

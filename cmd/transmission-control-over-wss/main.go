@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -15,8 +14,6 @@ import (
 	"net/http"
 	"os"
 	"sync"
-	"sync/atomic"
-	"time"
 )
 
 var (
@@ -51,11 +48,11 @@ type Nefario struct {
 
 // TODO: update -- should it be query to one vm or all the vm?
 
-type upgrade struct {
-	nefario Nefario
-	mu      sync.Mutex
+type Upgrade struct {
+	nefario  Nefario
+	mu       sync.Mutex
 	upgraded chan bool
-	pool    *wss.ConnectionPool
+	pool     *wss.ConnectionPool
 }
 
 type upgradeProgression struct {
@@ -63,7 +60,7 @@ type upgradeProgression struct {
 	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
 }
 
-// todo: should i keep track record if nodes were already
+// todo: should I keep track record if nodes were already
 //  tainted before draining
 
 type upgradeConfig struct {
@@ -153,7 +150,8 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 
 // TODO: lifetime - cleanup
 
-func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
+func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
+
 	//var Json = jsoniter.ConfigFastest
 	//decoder := Json.NewDecoder(r.Body)
 	//var t upgradeProgression
@@ -177,7 +175,7 @@ func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("upgrade:", err)
+		log.Println("Upgrade:", err)
 		return
 	}
 	defer func(conn *websocket.Conn) {
@@ -210,7 +208,7 @@ func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 			//	zap.Error(err))
 		}
 
-		upgrade.upgraded = make(chan bool)
+		upgrade.upgraded = make(chan bool, 1)
 		upgrade.MinorUpgrade(minorityReport)
 
 		return
@@ -241,13 +239,12 @@ func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 func StartServer(ctx context.Context) {
 
-
-
 	server := Server{
 		ctx: ctx,
 	}
 
-	upgrade nefario
+	Upgrade
+	nefario
 
 	http.HandleFunc("/minor-upgrade", server.minorUpdateUpgrade)
 	// TODO: work on this api
@@ -270,11 +267,11 @@ func main() {
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 		EncoderConfig: zapcore.EncoderConfig{
-			MessageKey: "message",
-			LevelKey:    "level",
-			EncodeLevel: zapcore.CapitalLevelEncoder,
-			TimeKey:    "time",
-			EncodeTime: zapcore.ISO8601TimeEncoder,
+			MessageKey:   "message",
+			LevelKey:     "level",
+			EncodeLevel:  zapcore.CapitalLevelEncoder,
+			TimeKey:      "time",
+			EncodeTime:   zapcore.ISO8601TimeEncoder,
 			CallerKey:    "caller",
 			EncodeCaller: zapcore.ShortCallerEncoder,
 		},
@@ -314,20 +311,20 @@ func main() {
 	// TODO: remove all the clients when the job ends
 	go pool.Run()
 
-	upgrade := upgrade{
-		nefario:  nefario,
-		pool:     pool,
+	upgrade := Upgrade{
+		nefario: nefario,
+		pool:    pool,
 	}
 
 	if len(report.NodesToBeUpgraded) != 0 {
-		Prerequisites(&upgrade)
-
+		go Prerequisites(&upgrade)
 	}
 
-	// todo: resume connections after server restarts
+	// todo: resume connec6tions after server restarts
 	//  Prerequisites(minorUpgradeNamespace)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	StartServer(ctx)
+
 }
