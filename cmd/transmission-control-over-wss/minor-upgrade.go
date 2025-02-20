@@ -295,7 +295,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 		//targetedVersion := "1.26.6-1.1"
 
 		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-Upgrade", roleName, node)
+		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node)
 
 		// TODO: instead of pod monitoring for creation, monitor for successful restarts
 		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
