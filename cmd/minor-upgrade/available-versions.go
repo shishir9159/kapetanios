@@ -122,7 +122,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	}
 
 	if rpc.GetRetryCurrentStep() {
-		return rpc.GetRetryCurrentStep(), "", nil
+		return false, "", nil
 	}
 
 	return rpc.GetProceedNextStep(), rpc.GetVersion(), nil

@@ -68,7 +68,7 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	} else if rpc.GetRetryCurrentStep() {
-		return rpc.GetRetryCurrentStep(), nil
+		return false, nil
 	}
 
 	return rpc.GetProceedNextStep(), nil

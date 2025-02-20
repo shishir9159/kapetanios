@@ -110,7 +110,7 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	} else if rpc.GetRetryCurrentStep() {
-		return rpc.GetRetryCurrentStep(), nil
+		return false, nil
 	}
 
 	return rpc.GetProceedNextStep(), nil
@@ -195,7 +195,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	} else if rpc.GetRetryCurrentStep() {
-		return rpc.GetRetryCurrentStep(), nil
+		return false, nil
 	}
 
 	return rpc.GetProceedNextStep(), nil
@@ -323,7 +323,7 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	} else if rpc.GetRetryCurrentStep() {
-		return rpc.GetRetryCurrentStep(), "", nil
+		return false, "", nil
 	}
 
 	return rpc.GetProceedNextStep(), "", err

@@ -70,7 +70,7 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	} else if rpc.GetRetryCurrentStep() {
-		return rpc.GetRetryCurrentStep(), "", nil
+		return false, "", nil
 	}
 
 	return rpc.GetProceedNextStep(), diff, nil

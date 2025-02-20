@@ -130,14 +130,14 @@ func main() {
 
 	//step 3. Restarting pods to work with the updated certificates
 	for i := 0; i < maxAttempts; i++ {
-		var skip bool
-		skip, overrideUserKubeConfig, err = Restart(c, connection)
+		var retry bool
+		retry, overrideUserKubeConfig, err = Restart(c, connection)
 		if err != nil {
 			c.log.Error().Err(err).
 				Msg("failed to restart the certificates and kubeConfigs")
 		}
 
-		if !skip {
+		if !retry {
 			break
 		}
 	}
