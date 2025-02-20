@@ -28,7 +28,7 @@ spec:
             - name: KAPETANIOS_SERVICE_ACCOUNT
               valueFrom:
                 fieldRef:
-                  fieldPath: spec.template.spec.serviceAccountName
+                  fieldPath: spec.serviceAccountName
           envFrom:
             - configMapRef:
                 name: kapetanios

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -16,73 +15,30 @@ import (
 
 // TODO: node - role name
 
-func Prerequisites(upgrade upgrade) {
+func Prerequisites(upgrade *upgrade) {
+
 	// if cm shows updated nodes to a certain value
-	// and desired kubernetesVersion exists on the cm,
-	// then, call the minor upgrade
+	// and desired kubernetesVersion version must exist on the cm
+	// for the updates
 
 	// TODO: throw error no master nodes found
-	logger := zap.Must(zap.NewProduction())
-	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			logger.Info("error syncing logger before application terminates",
-				zap.Error(err))
-		}
-	}(logger)
 
-	// TODO:
-	//  refactor
-	client, err := orchestration.NewClient()
-
-	// TODO: add namespace in the controller itself
-	c := Nefario{
-		client: client,
-		ctx:    context.Background(),
-		log:    logger,
-	}
-
+	report, err := readConfig(upgrade.nefario)
 	if err != nil {
-		c.log.Error("error creating kubernetes client",
+		upgrade.nefario.log.Info("failed to read config map: ",
 			zap.Error(err))
+		return
 	}
-
-	configMapName := "kapetanios"
-
-	//configMap, er := c.client.Clientset().CoreV1().ConfigMaps(namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
-	//if er != nil {
-	//	c.log.Error("error fetching the configMap",
-	//		zap.Error(er))
-	//}
 
 	// TODO: controller should be created and passed here
 
-	configMapName = "kubeadm-config"
+	configMapName := "kubeadm-config"
 
-	_, er := c.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), configMapName, metav1.GetOptions{})
-	if er != nil {
-		c.log.Error("error fetching the configMap",
-			zap.Error(er))
-	}
-	c.log.Info("after fetching configmap")
-
-	// TODO: to be foolproof check if the number of nodes the same
-	//  if that is the case, the first node consideration need to be taken
-
-	//targetedVersion := configMap.Data["TARGETED_K8S_VERSION"]
-	//nodesToBeUpgraded := configMap.Data["NODES_TO_BE_UPGRADED"]
-	// todo: upgradedNodes := configMap.Data["UPGRADED_NODES"]
-
-	//if targetedVersion != "" && nodesToBeUpgraded != "" {
-	//	//LastDance(c, nodesToBeUpgraded, namespace)
-	//	//configMap.Data["TARGETED_K8S_VERSION"] = ""
-	//	//configMap.Data["NODES_TO_BE_UPGRADED"] = ""
-	//	// todo: upgradedNodes := configMap.Data["UPGRADED_NODES"]
-	//
-	//	_, er = c.client.Clientset().CoreV1().ConfigMaps(namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
-	//	if er != nil {
-	//		c.log.Error("error updating configMap",
-	//			zap.Error(er))
-	//	}
+	//configMap, er := upgrade.nefario.client.Clientset().CoreV1().ConfigMaps("kube-system").
+	//	Get(context.Background(), configMapName, metav1.GetOptions{})
+	//if er != nil {
+	//	upgrade.nefario.log.Info("error fetching the kubeadm-config configMap: ",
+	//		zap.Error(er))
 	//}
+
 }

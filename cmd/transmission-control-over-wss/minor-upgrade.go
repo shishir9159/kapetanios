@@ -183,7 +183,7 @@ func recovery(namespace string) {
 
 }
 
-func (upgrade *upgrade) MinorUpgrade(report upgradeReport) {
+func (upgrade *upgrade) MinorUpgrade(report upgradeConfig) {
 
 	logger := zap.Must(zap.NewProduction())
 	defer func(logger *zap.Logger) {

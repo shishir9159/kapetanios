@@ -43,10 +43,10 @@ type nodeInfo struct {
 // should it be foreman?
 
 type Nefario struct {
-	namespace string
-	log       *zap.Logger
-	ctx       context.Context
 	client    *orchestration.Client
+	ctx       context.Context
+	log       *zap.Logger
+	namespace string
 }
 
 // TODO: update -- should it be query to one vm or all the vm?
@@ -66,7 +66,7 @@ type upgradeProgression struct {
 // todo: should i keep track record if nodes were already
 //  tainted before draining
 
-type upgradeReport struct {
+type upgradeConfig struct {
 	certificateRenewal bool   `yaml:"certificateRenewal"`
 	drainNodes         bool   `yaml:"drainNodes"`
 	nodesUpgraded      string `yaml:"nodesUpgraded"`
@@ -82,7 +82,7 @@ type Server struct {
 	mu          sync.Mutex
 }
 
-func readConfig(c Nefario) (upgradeReport, error) {
+func readConfig(c Nefario) (upgradeConfig, error) {
 
 	configMapName := "kapetanios"
 
@@ -90,10 +90,10 @@ func readConfig(c Nefario) (upgradeReport, error) {
 	if er != nil {
 		c.log.Error("error fetching the configMap",
 			zap.Error(er))
-		return upgradeReport{}, er
+		return upgradeConfig{}, er
 	}
 
-	report := upgradeReport{
+	report := upgradeConfig{
 		//certificateRenewal: false,
 		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
 		drainNodes:        false,
@@ -107,7 +107,7 @@ func readConfig(c Nefario) (upgradeReport, error) {
 	return report, nil
 }
 
-func writeConfig(c Nefario, report upgradeReport) error {
+func writeConfig(c Nefario, report upgradeConfig) error {
 
 	configMapName := "kapetanios"
 
@@ -150,6 +150,8 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //		w.WriteHeader(http.StatusOK)
 //	}
 //}
+
+// TODO: lifetime - cleanup
 
 func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	//var Json = jsoniter.ConfigFastest
@@ -197,7 +199,6 @@ func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 		// TODO: race condition - readCtx can be cancelled
 
-
 		upgrade.nefario.log.Info("registered client: ",
 			zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
@@ -223,128 +224,24 @@ func (upgrade *upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	<-upgrade.upgraded
 }
 
-func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {
-
-	if nefario.mu.TryLock() {
-		
-	}
-
-	// cleanup
-
-	nefario.log.Info("stopping all minions and ongoing process")
-	// all connection closed
-	// stop channel to stop all the connections
-
-	nefario.ctx = context.Background()
-}
-
-// TODO: lifetime - cleanup
-func (server *Server) minorUpdateUpgrade(w http.ResponseWriter, r *http.Request) {
-
-	if len(server.pool.Clients) > 5 {
-		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
-		if er != nil {
-			log.Println("error writing concurrent connections warning:", er)
-		}
-		return
-	}
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println("upgrade:", err)
-		return
-	}
-	defer func(conn *websocket.Conn) {
-		er := conn.Close()
-		if er != nil {
-			log.Println("error closing connection:", er, conn.RemoteAddr())
-		}
-	}(conn)
-
-	client := &wss.Client{
-		Conn: conn,
-	}
-	server.pool.AddClient(client)
-	defer server.pool.RemoveClient(client)
-
-	if server.mu.TryLock() {
-		defer server.mu.Unlock()
-
-		// TODO: race condition - readCtx can be cancelled
-
-		// todo --------- the process needs to be auto started ---------
-		//  ------------- and server.initialized must be true ----------
-		Client, _ := orchestration.NewClient()
-		cfg := zap.Config{
-			Encoding:         "json",
-			Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
-			OutputPaths:      []string{"stderr"},
-			ErrorOutputPaths: []string{"stderr"},
-			EncoderConfig: zapcore.EncoderConfig{
-				MessageKey: "message",
-
-				LevelKey:    "level",
-				EncodeLevel: zapcore.CapitalLevelEncoder,
-
-				TimeKey:    "time",
-				EncodeTime: zapcore.ISO8601TimeEncoder,
-
-				CallerKey:    "caller",
-				EncodeCaller: zapcore.ShortCallerEncoder,
-			},
-		}
-
-		logger := zap.Must(cfg.Build())
-		defer func(logger *zap.Logger) {
-			er := logger.Sync()
-			if er != nil {
-				logger.Info("error syncing logger before application terminates",
-					zap.Error(er))
-			}
-		}(logger)
-
-		namespace := os.Getenv("KAPETANIOS_NAMESPACE")
-
-		c := Nefario{
-			log:       logger,
-			client:    Client,
-			namespace: namespace,
-			ctx:       context.Background(),
-		}
-		// todo ---------
-
-		c.log.Info("client registered: ",
-			zap.String("client address: ", client.Conn.RemoteAddr().String()))
-
-		minorityReport, err := readConfig(c)
-		if err != nil {
-			// TODO: no restart mode or draining
-			log.Println("error reading config map:", err)
-			//c.log.Error("could not read config map",
-			//	zap.Error(err))
-		}
-
-		c.log.Info("entered minor upgrade")
-		MinorUpgrade(server.pool, minorityReport)
-
-		c.log.Info("minor upgrade completed")
-		return
-	}
-
-	ctx, _ := context.WithCancel(server.pool.ReadCtx)
-	log.Println("using read context", ctx)
-	go server.pool.ReadMessageFromConn(ctx, client)
-	// TODO: use the context
-	// todo: channel
-	// todo: broken pipe error
-	time.Sleep(540 * time.Second)
-}
+//func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {
+//
+//	if nefario.mu.TryLock() {
+//
+//	}
+//
+//	// cleanup
+//
+//	nefario.log.Info("stopping all minions and ongoing process")
+//	// all connection closed
+//	// stop channel to stop all the connections
+//
+//	nefario.ctx = context.Background()
+//}
 
 func StartServer(ctx context.Context) {
 
-	pool := wss.NewPool()
-	// TODO: remove all the clients when the job ends
-	go pool.Run()
+
 
 	server := Server{
 		ctx: ctx,
@@ -367,21 +264,17 @@ func StartServer(ctx context.Context) {
 
 func main() {
 
-	Client, _ := orchestration.NewClient()
 	cfg := zap.Config{
 		Encoding:         "json",
 		Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
-		OutputPaths:      []string{"stderr"},
+		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 		EncoderConfig: zapcore.EncoderConfig{
 			MessageKey: "message",
-
 			LevelKey:    "level",
 			EncodeLevel: zapcore.CapitalLevelEncoder,
-
 			TimeKey:    "time",
 			EncodeTime: zapcore.ISO8601TimeEncoder,
-
 			CallerKey:    "caller",
 			EncodeCaller: zapcore.ShortCallerEncoder,
 		},
@@ -396,21 +289,38 @@ func main() {
 		}
 	}(logger)
 
+	Client, err := orchestration.NewClient()
+	if err != nil {
+		logger.Error("error creating orchestration client",
+			zap.Error(err))
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	nefario := Nefario{
-		log:       logger,
 		client:    Client,
+		ctx:       ctx,
 		namespace: os.Getenv("KAPETANIOS_NAMESPACE"),
-		ctx:       context.Background(),
+		log:       logger,
 	}
-
 
 	report, err := readConfig(nefario)
 	if err != nil {
-		log.Fatal(err)
+		nefario.log.Error("error reading config map",
+			zap.Error(err))
 	}
+
+	pool := wss.NewPool()
+	// TODO: remove all the clients when the job ends
+	go pool.Run()
+
+	upgrade := upgrade{
+		nefario:  nefario,
+		pool:     pool,
+	}
+
 	if len(report.NodesToBeUpgraded) != 0 {
+		Prerequisites(&upgrade)
 
 	}
 
