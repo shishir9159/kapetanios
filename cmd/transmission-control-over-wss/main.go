@@ -90,11 +90,25 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 		drainNodes:         false,
 		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
 		nodesUpgraded:     configMap.Data["NODES_UPGRADED"],
-		NodesToBeUpgraded: configMap.Data["UBUNTU_K8S_VERSION"],
-		UbuntuK8sVersion:  configMap.Data["REDHAT8_K8S_VERSION"],
-		Redhat8K8sVersion: configMap.Data["REDHAT9_K8S_VERSION"],
-		Redhat9K8sVersion: configMap.Data["NODES_TO_BE_UPGRADED"],
+		NodesToBeUpgraded: configMap.Data["NODES_TO_BE_UPGRADED"],
+		UbuntuK8sVersion:  configMap.Data["UBUNTU_K8S_VERSION"],
+		Redhat8K8sVersion: configMap.Data["REDHAT8_K8S_VERSION"],
+		Redhat9K8sVersion: configMap.Data["REDHAT9_K8S_VERSION"],
 	}
+
+	nefario.log.Info("reading config",
+		zap.String("nodes upgraded", configMap.Data["NODES_UPGRADED"]),
+		zap.String("ubuntu k8s version", configMap.Data["UBUNTU_K8S_VERSION"]),
+		zap.String("redhat k8s version", configMap.Data["REDHAT8_K8S_VERSION"]),
+		zap.String("redhat 9 k8s version", configMap.Data["REDHAT9_K8S_VERSION"]),
+		zap.String("nodes to be upgraded", configMap.Data["NODES_TO_BE_UPGRADED"]))
+
+	nefario.log.Info("updated config",
+		zap.String("nodes upgraded", report.nodesUpgraded),
+		zap.String("ubuntu k8s version", report.UbuntuK8sVersion),
+		zap.String("redhat k8s version", report.Redhat8K8sVersion),
+		zap.String("redhat 9 k8s version", report.Redhat9K8sVersion),
+		zap.String("nodes to be upgraded", report.NodesToBeUpgraded))
 
 	return report, nil
 }
