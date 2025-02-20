@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
@@ -75,11 +74,6 @@ type upgradeConfig struct {
 	Redhat9K8sVersion  string `yaml:"redhat9K8sVersion"`
 }
 
-type Server struct {
-	ctx context.Context
-	mu  sync.Mutex
-}
-
 func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
 	configMapName := "kapetanios"
@@ -92,9 +86,9 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 	}
 
 	report := upgradeConfig{
-		//certificateRenewal: false,
+		certificateRenewal: false,
+		drainNodes:         false,
 		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
-		drainNodes:        false,
 		nodesUpgraded:     configMap.Data["NODES_UPGRADED"],
 		NodesToBeUpgraded: configMap.Data["UBUNTU_K8S_VERSION"],
 		UbuntuK8sVersion:  configMap.Data["REDHAT8_K8S_VERSION"],
@@ -278,6 +272,7 @@ func main() {
 	nefario := Nefario{
 		client:    Client,
 		ctx:       ctx,
+		cancel:    cancel,
 		namespace: os.Getenv("KAPETANIOS_NAMESPACE"),
 		log:       logger,
 	}
@@ -315,5 +310,4 @@ func main() {
 			zap.Error(err))
 		panic(err)
 	}
-
 }
