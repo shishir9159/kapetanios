@@ -182,7 +182,7 @@ func recovery(namespace string) {
 
 }
 
-func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
+func (upgrade *Upgrade) MinorUpgrade() {
 
 	labelSelector := metav1.LabelSelector{
 		MatchLabels: map[string]string{
@@ -215,9 +215,9 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 		zap.String("assigned to the node:", kapetaniosNode))
 
 	var nodeNames []string
-	if upgradeConfig.nodesUpgraded != "" {
+	if upgrade.config.nodesUpgraded != "" {
 		// TODO: nodesUpgraded := strings.Split(upgradeConfig.nodesUpgraded, ";")
-		nodeNames = strings.Split(upgradeConfig.NodesToBeUpgraded, ";")
+		nodeNames = strings.Split(upgrade.config.NodesToBeUpgraded, ";")
 
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
@@ -315,8 +315,8 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 		//   if failed, must be tainted again to
 		//   schedule nodes
 
-		upgradeConfig.NodesToBeUpgraded = strings.Join(nodeNames, ";")
-		err = writeConfig(upgrade.nefario, upgradeConfig)
+		upgrade.config.NodesToBeUpgraded = strings.Join(nodeNames, ";")
+		err = writeConfig(upgrade.nefario, *upgrade.config)
 		if err != nil {
 			upgrade.nefario.log.Error("error writing reporting",
 				zap.Error(err))
@@ -335,21 +335,21 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 
 		// TODO -- take input
 
-		if upgradeConfig.UbuntuK8sVersion != "" {
+		if upgrade.config.UbuntuK8sVersion != "" {
 
 		}
 
-		if upgradeConfig.Redhat8K8sVersion != "" {
+		if upgrade.config.Redhat8K8sVersion != "" {
 
 		}
 
-		if upgradeConfig.Redhat9K8sVersion != "" {
+		if upgrade.config.Redhat9K8sVersion != "" {
 
 		}
 
 		certRenewalEnv := corev1.EnvVar{
 			Name:  "CERTIFICATE_RENEWAL",
-			Value: strconv.FormatBool(upgradeConfig.certificateRenewal),
+			Value: strconv.FormatBool(upgrade.config.certificateRenewal),
 		}
 
 		env := descriptor.Spec.Containers[0].Env
@@ -390,7 +390,7 @@ func (upgrade *Upgrade) MinorUpgrade(upgradeConfig upgradeConfig) {
 
 		// TODO: should wait for the coredns restart
 
-		if upgradeConfig.drainNodes {
+		if upgrade.config.drainNodes {
 			err = prepareNode(upgrade.nefario, no)
 			if err != nil {
 				// todo: take prompt

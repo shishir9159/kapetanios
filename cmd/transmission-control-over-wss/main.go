@@ -219,7 +219,7 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		upgrade.nefario.log.Info("registered client: ",
 			zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
-		minorityReport, err := readConfig(upgrade.nefario)
+		config, err := readConfig(upgrade.nefario)
 		if err != nil {
 			// TODO: no restart mode or draining
 			log.Println("error reading config map:", err)
@@ -227,8 +227,9 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 			//	zap.Error(err))
 		}
 
+		upgrade.config = &config
 		upgrade.upgraded = make(chan bool, 1)
-		upgrade.MinorUpgrade(minorityReport)
+		upgrade.MinorUpgrade()
 
 		return
 	}
@@ -299,6 +300,8 @@ func main() {
 		log:       logger,
 	}
 
+	// TODO: refactor read write,
+	//  be conservative what you send
 	config, err := readConfig(&nefario)
 	if err != nil {
 		nefario.log.Info("failed to read config map: ",
@@ -310,19 +313,12 @@ func main() {
 	go pool.Run(nefario.log)
 
 	upgrade := Upgrade{
-		nefario: &nefario,
 		pool:    pool,
-		config: &config,
+		config:  &config,
+		nefario: &nefario,
 	}
 
-	// TODO: refactor read write,
-	//  be conservative what you send
-	report, err := readConfig(upgrade.nefario)
-	if err != nil {
-			zap.Error(err))
-	}
-
-	if len(report.NodesToBeUpgraded) != 0 {
+	if len(upgrade.config.NodesToBeUpgraded) != 0 {
 		er := Prerequisites(&upgrade)
 		if er != nil {
 			upgrade.nefario.log.Info("error writing prerequisites warning:",

@@ -21,13 +21,6 @@ func Prerequisites(upgrade *Upgrade) error {
 
 	// TODO: throw error no master nodes found
 
-	report, err := readConfig(upgrade.nefario)
-	if err != nil {
-		upgrade.nefario.log.Info("failed to read config map: ",
-			zap.Error(err))
-		return err
-	}
-
 	// TODO: controller should be created and passed here
 
 	//configMapName := "kubeadm-config"
@@ -38,21 +31,18 @@ func Prerequisites(upgrade *Upgrade) error {
 	//		zap.Error(er))
 	//}
 
-	if report.NodesToBeUpgraded == "" {
-		return nil
-	}
-
 	upgrade.mu.Lock()
-	defer upgrade.mu.Unlock()
+	// the lock would not be deferred here
+	// defer upgrade.mu.Unlock()
 
 	// TODO: race condition - readCtx can be cancelled
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
-		zap.String("nodes to be upgraded", report.NodesToBeUpgraded))
+		zap.String("nodes to be upgraded", upgrade.config.NodesToBeUpgraded))
 
 	upgrade.upgraded = make(chan bool, 1)
 
 	// TODO: another channel to send signal
 	//  that server can run now that mutex is locked
-	go upgrade.MinorUpgrade(report)
+	go upgrade.MinorUpgrade()
 	return nil
 }
