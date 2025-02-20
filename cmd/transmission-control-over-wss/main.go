@@ -74,9 +74,8 @@ type upgradeConfig struct {
 }
 
 type Server struct {
-	ctx         context.Context
-	waitChannel chan bool
-	mu          sync.Mutex
+	ctx context.Context
+	mu  sync.Mutex
 }
 
 func readConfig(c Nefario) (upgradeConfig, error) {
@@ -302,17 +301,9 @@ func main() {
 		}
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	StartServer(ctx)
-
 	server := Server{}
 
-	// TODO: nefario mutex
-
-	http.HandleFunc("/minor-upgrade", server.minorUpdateUpgrade)
-	// TODO: work on this api
-	http.HandleFunc("/upgrade", server.minorUpgrade)
+	http.HandleFunc("/minor-upgrade")
 	http.HandleFunc("/livez", livez)
 
 	fmt.Println("WebSocket server started on :80")
