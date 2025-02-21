@@ -217,10 +217,10 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		zap.String("assigned to the node:", kapetaniosNode))
 
 	var nodeNames []string
-	if upgrade.config.nodesUpgraded != "" {
-		// TODO: nodesUpgraded := strings.Split(upgradeConfig.nodesUpgraded, ";")
+	//var nodesUpgraded []string
+	if upgrade.config.nodesUpgraded != "" && upgrade.config.NodesToBeUpgraded != "" {
+		//nodesUpgraded = strings.Split(upgrade.config.nodesUpgraded, ";")
 		nodeNames = strings.Split(upgrade.config.NodesToBeUpgraded, ";")
-
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
