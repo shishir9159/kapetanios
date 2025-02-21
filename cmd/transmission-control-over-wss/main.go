@@ -80,6 +80,13 @@ type upgradeConfig struct {
 	Redhat9K8sVersion  string `yaml:"redhat9K8sVersion"`
 }
 
+func expiration(w http.ResponseWriter, _ *http.Request) {
+
+	go Expiration("default")
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
 	// todo: mount configMap
@@ -334,6 +341,7 @@ func main() {
 	}
 
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
+	http.HandleFunc("/expiration", expiration)
 	http.HandleFunc("/livez", livez)
 
 	upgrade.nefario.log.Info("starting kapetanios server on :80")
