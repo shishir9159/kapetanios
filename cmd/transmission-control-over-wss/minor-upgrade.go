@@ -502,5 +502,11 @@ func (upgrade *Upgrade) MinorUpgrade() {
 	}
 	(<-ch).Stop()
 
+	// DEBUGGING
+	upgrade.nefario.log.Info("upgrade completed",
+		zap.Bool("lock status", upgrade.mu.TryLock()))
+
+	upgrade.mu.Unlock()
+
 	<-upgrade.upgraded
 }

@@ -236,12 +236,6 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		upgrade.upgraded = make(chan bool, 1)
 		upgrade.MinorUpgrade()
 
-		// DEBUGGING
-		upgrade.nefario.log.Info("upgrade complete",
-			zap.Bool("lock status", upgrade.mu.TryLock()))
-
-		upgrade.mu.Unlock()
-
 		return
 	}
 
