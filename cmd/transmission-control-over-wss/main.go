@@ -208,7 +208,7 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	}
 
 	upgrade.pool.AddClient(client)
-	defer upgrade.pool.RemoveClient(client)
+	//defer upgrade.pool.RemoveClient(client)
 
 	// TODO:
 	//client.Conn.SetCloseHandler(func(code int, text string) error {
