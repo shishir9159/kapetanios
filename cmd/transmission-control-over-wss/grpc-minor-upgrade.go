@@ -101,6 +101,8 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		//return nil, err
 	}
 
+	// debugging
+
 	switch response {
 	case "retry":
 		retryCurrentStep = true

@@ -392,12 +392,12 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			continue
 		}
 
-		upgrade.nefario.log.Info("cordoning and draining node",
-			zap.String("node name", node))
-
 		// TODO: should wait for the coredns restart
 
 		if upgrade.config.drainNodes {
+
+			upgrade.nefario.log.Info("cordoning and draining node",
+				zap.String("node name", node))
 			err = prepareNode(upgrade.nefario, no)
 			if err != nil {
 				// todo: take prompt

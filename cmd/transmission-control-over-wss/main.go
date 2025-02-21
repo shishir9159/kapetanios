@@ -70,8 +70,9 @@ type upgradeProgression struct {
 //  tainted before draining
 
 type upgradeConfig struct {
-	certificateRenewal bool   `yaml:"certificateRenewal"`
 	drainNodes         bool   `yaml:"drainNodes"`
+	certificateRenewal bool   `yaml:"certificateRenewal"`
+	promptOnError      bool   `yaml:"promptOnLock"`
 	nodesUpgraded      string `yaml:"nodesUpgraded"`
 	NodesToBeUpgraded  string `yaml:"nodesToBeUpgraded"`
 	UbuntuK8sVersion   string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
@@ -320,6 +321,9 @@ func main() {
 		config:  &config,
 		nefario: &nefario,
 	}
+
+	// ------
+	upgrade.config.promptOnError = true
 
 	if upgrade.config.NodesToBeUpgraded != "" {
 		er := Prerequisites(&upgrade)
