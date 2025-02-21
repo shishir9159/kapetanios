@@ -15,7 +15,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     apt-get update && apt-get install -y curl \
     ca-certificates && rm -rf /var/lib/apt/lists/*
 
-#COPY /app/cmd/transmission-control-over-wss/main /app/server
+COPY ./cmd/transmission-control-over-wss/main ./server
 RUN export PATH="$PATH:$(go env GOPATH)/bin"
-CMD ["sh", "-c", "tail -f /dev/null"]
-#CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
+#CMD ["sh", "-c", "tail -f /dev/null"]
+CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
