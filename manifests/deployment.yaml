@@ -35,6 +35,8 @@ spec:
           ports:
             - containerPort: 80
               name: kapetanios
+            - containerPort: 8080
+              name: kapetanios-debug
             - containerPort: 50051
               name: kapetanios-grpc
 #          livenessProbe:

@@ -17,6 +17,4 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 
 COPY ./cmd/transmission-control-over-wss/main ./server
 RUN export PATH="$PATH:$(go env GOPATH)/bin"
-RUN dlv exec --listen 127.0.0.1:1234 --headless=true --api-version=2 --accept-multiclient main
-
-CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
+CMD ["dlv", "exec", "--listen 127.0.0.1:8080", "--headless=true", "--api-version=2", "--accept-multiclient", "./server"]
