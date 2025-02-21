@@ -21,4 +21,5 @@ COPY --from=builder /app/cmd/transmission-control-over-wss/main /app/server
 #CMD ["/app/server"]
 # DEBUG BUILD
 RUN export PATH="$PATH:$(go env GOPATH)/bin"
-CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
+CMD ["sleep infinity"]
+#CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
