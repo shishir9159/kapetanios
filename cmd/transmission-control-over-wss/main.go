@@ -210,6 +210,12 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	upgrade.pool.AddClient(client)
 	defer upgrade.pool.RemoveClient(client)
 
+	// TODO:
+	//client.Conn.SetCloseHandler(func(code int, text string) error {
+	//
+	//	return nil
+	//})
+
 	// todo: add on prerequisite
 	//if upgrade.nefario.mu.TryLock() {
 	//	// only allow one api would run at a time
