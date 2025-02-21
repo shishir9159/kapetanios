@@ -17,5 +17,5 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 
 #COPY /app/cmd/transmission-control-over-wss/main /app/server
 RUN export PATH="$PATH:$(go env GOPATH)/bin"
-CMD ["/bin/bash", "-c", "--", "while true; do sleep 30; done"]
+CMD ["sh", "-c", "tail -f /dev/null"]
 #CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
