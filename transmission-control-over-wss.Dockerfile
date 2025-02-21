@@ -20,4 +20,5 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 COPY --from=builder /app/cmd/transmission-control-over-wss/main /app/server
 #CMD ["/app/server"]
 # DEBUG BUILD
-CMD ["/dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
+RUN export PATH="$PATH:$(go env GOPATH)/bin"
+CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
