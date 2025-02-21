@@ -79,7 +79,8 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
 	configMapName := "kapetanios"
 
-	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
+		Get(nefario.ctx, configMapName, metav1.GetOptions{})
 	if er != nil {
 		nefario.log.Error("error fetching the configMap",
 			zap.Error(er))
@@ -97,14 +98,14 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 		Redhat9K8sVersion: configMap.Data["REDHAT9_K8S_VERSION"],
 	}
 
-	nefario.log.Info("reading config",
+	nefario.log.Debug("reading config",
 		zap.String("nodes upgraded", configMap.Data["NODES_UPGRADED"]),
 		zap.String("ubuntu k8s version", configMap.Data["UBUNTU_K8S_VERSION"]),
 		zap.String("redhat k8s version", configMap.Data["REDHAT8_K8S_VERSION"]),
 		zap.String("redhat 9 k8s version", configMap.Data["REDHAT9_K8S_VERSION"]),
 		zap.String("nodes to be upgraded", configMap.Data["NODES_TO_BE_UPGRADED"]))
 
-	nefario.log.Info("updated config",
+	nefario.log.Debug("updated config",
 		zap.String("nodes upgraded", report.nodesUpgraded),
 		zap.String("ubuntu k8s version", report.UbuntuK8sVersion),
 		zap.String("redhat k8s version", report.Redhat8K8sVersion),
@@ -124,9 +125,6 @@ func writeConfig(nefario *Nefario, report upgradeConfig) error {
 		nefario.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
-
-	// todo: check if value initialized
-	//  default values
 
 	configMap.Data["NODES_UPGRADED"] = report.nodesUpgraded
 	configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion

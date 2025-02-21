@@ -358,7 +358,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		env := descriptor.Spec.Containers[0].Env
 		env = append(env, certRenewalEnv)
 
-		if index == 0 {
+		if index == 0 && upgrade.config.nodesUpgraded == "" {
 
 			firstNodeToUpgradeEnv := corev1.EnvVar{
 				Name:  "FIRST_NODE_TO_BE_UPGRADED",
