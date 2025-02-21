@@ -34,6 +34,9 @@ var upgrader = websocket.Upgrader{
 }
 
 type nodeInfo struct {
+	os                string
+	kernelVersion     string
+	kubernetesVersion string
 }
 
 // should it be foreman?
@@ -55,6 +58,7 @@ type Upgrade struct {
 	upgraded chan bool
 	pool     *wss.ConnectionPool
 	config   *upgradeConfig
+	nodeInfo nodeInfo
 }
 
 type upgradeProgression struct {
@@ -77,6 +81,7 @@ type upgradeConfig struct {
 
 func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
+	// todo: mount configMap
 	configMapName := "kapetanios"
 
 	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).

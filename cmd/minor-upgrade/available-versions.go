@@ -43,14 +43,16 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
 
-	var repoSearch string
+	//var repoName string
+	var packageSearch string
 	if c.distro == "rhel" {
-		repoSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes | grep .x86_64 | awk '{ print $2 }'"
+		//repoName = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
+		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes | grep .x86_64 '| awk '{ print $2 }''"
 	} else if c.distro == "ubuntu" {
-		repoSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
+		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
 	}
 
-	cmd = exec.Command("/bin/bash", "-c", repoSearch)
+	cmd = exec.Command("/bin/bash", "-c", packageSearch)
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()

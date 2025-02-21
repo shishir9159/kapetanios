@@ -266,6 +266,10 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		//		zap.String("nodes", no.ObjectMeta.Name))
 		//}
 
+		// TODO:
+		//  based on the os version
+		//  select an appropriate package version
+
 		for _, no := range nodes.Items {
 			upgrade.nefario.log.Info("status",
 				//zap.String("node config assigned", no.Status.Config.Assigned.String()),
