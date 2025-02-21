@@ -6,7 +6,7 @@ COPY go.* ./
 RUN go mod download
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 COPY --parents cmd/transmission-control-over-wss config/ internal/ proto/ utils/ ./
-RUN go build -C ./cmd/transmission-control-over-wss -o main
+RUN go build -C cmd/transmission-control-over-wss -o main
 
 # the cache is mounted only
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
