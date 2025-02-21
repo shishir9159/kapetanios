@@ -31,18 +31,14 @@ func Prerequisites(upgrade *Upgrade) error {
 	//		zap.Error(er))
 	//}
 
-	upgrade.mu.Lock()
-	// how to unlock?
-	// defer upgrade.mu.Unlock()
-
 	// TODO: race condition - readCtx can be cancelled
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
 		zap.String("nodes to be upgraded", upgrade.config.NodesToBeUpgraded))
 
 	upgrade.upgraded = make(chan bool, 1)
 
-	// TODO: another channel to send signal
-	//  that server can run now that mutex is locked
+	upgrade.mu.Lock()
 	go upgrade.MinorUpgrade()
+
 	return nil
 }

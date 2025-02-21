@@ -203,10 +203,10 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	defer upgrade.pool.RemoveClient(client)
 
 	// todo: add on prerequisite
-	if upgrade.nefario.mu.TryLock() {
-		// only allow one api would run at a time
-		defer upgrade.nefario.mu.Unlock()
-	}
+	//if upgrade.nefario.mu.TryLock() {
+	//	// only allow one api would run at a time
+	//	defer upgrade.nefario.mu.Unlock()
+	//}
 
 	if upgrade.mu.TryLock() {
 		//defer upgrade.mu.Unlock()
@@ -227,6 +227,12 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		upgrade.config = &config
 		upgrade.upgraded = make(chan bool, 1)
 		upgrade.MinorUpgrade()
+
+		// DEBUGGING
+		upgrade.nefario.log.Info("upgrade complete",
+			zap.Bool("lock status", upgrade.mu.TryLock()))
+
+		upgrade.mu.Unlock()
 
 		return
 	}
@@ -315,7 +321,7 @@ func main() {
 		nefario: &nefario,
 	}
 
-	if len(upgrade.config.NodesToBeUpgraded) != 0 {
+	if upgrade.config.NodesToBeUpgraded != "" {
 		er := Prerequisites(&upgrade)
 		if er != nil {
 			upgrade.nefario.log.Info("error writing prerequisites warning:",
