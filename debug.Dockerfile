@@ -4,7 +4,6 @@ WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
-# DEBUG BUILD
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 COPY --parents cmd/transmission-control-over-wss config/ internal/ proto/ utils/ ./
 RUN go build -C ./cmd/transmission-control-over-wss -o main
@@ -16,9 +15,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     apt-get update && apt-get install -y curl \
     ca-certificates && rm -rf /var/lib/apt/lists/*
 
-COPY /app/cmd/transmission-control-over-wss/main /app/server
-#CMD ["/app/server"]
-# DEBUG BUILD
+#COPY /app/cmd/transmission-control-over-wss/main /app/server
 RUN export PATH="$PATH:$(go env GOPATH)/bin"
 CMD ["/bin/bash", "-c", "--", "while true; do sleep 30; done"]
 #CMD ["dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
