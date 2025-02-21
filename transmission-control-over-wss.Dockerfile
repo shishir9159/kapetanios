@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY go.* ./
 RUN go mod download
+# DEBUG BUILD
+RUN go get github.com/derekparker/delve/cmd/dlv
 COPY --parents cmd/transmission-control-over-wss config/ internal/ proto/ utils/ ./
 RUN go build -C ./cmd/transmission-control-over-wss -o main
 
@@ -16,4 +18,6 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/cmd/transmission-control-over-wss/main /app/server
-CMD ["/app/server"]
+#CMD ["/app/server"]
+# DEBUG BUILD
+CMD ["/dlv", "--listen=:1234", "--headless=true", "--api-version=2", "exec", "./app/server"]
