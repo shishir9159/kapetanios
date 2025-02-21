@@ -245,6 +245,10 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	// todo: broken pipe error
 
 	<-upgrade.upgraded
+
+	for _, client = range upgrade.pool.Clients {
+		upgrade.pool.RemoveClient(client)
+	}
 }
 
 //func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {
