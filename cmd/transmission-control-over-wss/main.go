@@ -246,7 +246,7 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	<-upgrade.upgraded
 
-	for _, client = range upgrade.pool.Clients {
+	for client = range upgrade.pool.Clients {
 		upgrade.pool.RemoveClient(client)
 	}
 }

@@ -79,13 +79,11 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 				if err != nil {
 					log.Error("error writing message:",
 						zap.String("message body:", string(message)),
+						zap.Int("remaining clients", len(pool.Clients)),
+						//zap.Int("closing error", websocket.CloseError.Error(err))),
 						zap.Error(err))
-					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNoStatusReceived) {
-						log.Error("client disconnected (broken pipe)")
-					}
-
-					pool.unregister <- client
 				}
+				pool.unregister <- client
 			}
 			//pool.Mutex.RUnlock()
 		}
