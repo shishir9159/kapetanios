@@ -81,9 +81,6 @@ func main() {
 	}).With().Timestamp().Caller().Stack().Logger()
 	//.Level(zerolog.InfoLevel)
 
-	// TODO:
-	//  replace zap with zeroLog
-
 	c := Controller{
 		ctx: ctx,
 		log: logger,

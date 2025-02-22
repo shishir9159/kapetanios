@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+// TODO: use the definitions from internal
+
 type ETCD struct {
 	External struct {
 		Endpoints []string `yaml:"endpoints"`

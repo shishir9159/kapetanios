@@ -35,6 +35,8 @@ func Prerequisites(upgrade *Upgrade) error {
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
 		zap.String("nodes to be upgraded", upgrade.config.NodesToBeUpgraded))
 
+	// TODO: CONTAINER-RUNTIME compatibility
+
 	upgrade.upgraded = make(chan bool, 1)
 
 	upgrade.mu.Lock()

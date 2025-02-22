@@ -413,7 +413,6 @@ func (upgrade *Upgrade) MinorUpgrade() {
 				zap.String("node name", node))
 			err = prepareNode(upgrade.nefario, no)
 			if err != nil {
-				// todo: take prompt
 				// todo: switch to non-drain mode
 			}
 		}

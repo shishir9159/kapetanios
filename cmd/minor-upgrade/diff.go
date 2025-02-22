@@ -26,8 +26,6 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
-	// TODO: CONTAINER-RUNTIME compatibility
-
 	err = cmd.Run()
 
 	if err != nil {

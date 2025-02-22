@@ -246,6 +246,9 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		upgrade.upgraded = make(chan bool, 1)
 		upgrade.MinorUpgrade()
 
+		// todo:
+		//  handle the error when only one persistent connection ran
+
 		return
 	}
 
