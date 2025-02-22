@@ -515,11 +515,20 @@ func (upgrade *Upgrade) MinorUpgrade() {
 	}
 	(<-ch).Stop()
 
+	upgrade.config.NodesUpgraded = ""
+	upgrade.config.NodesToBeUpgraded = ""
+
+	err = writeConfig(upgrade.nefario, *upgrade.config)
+	if err != nil {
+		upgrade.nefario.log.Error("error writing reporting",
+			zap.Error(err))
+
+	}
+
 	// deferring doesn't work
 	upgrade.mu.Unlock()
 
-	// TODO:
-	//  write updated config
+	// TODO: notifications for upgrade complete
 
 	<-upgrade.upgraded
 }
