@@ -102,7 +102,12 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	}
 
 	// debugging
+	// TODO: make a separate function
+	//  make an specific field for each response
+	//  dedicated for the decision --
 
+	// TODO:
+	//  onPromptError, you already know the answer
 	switch response {
 	case "retry":
 		retryCurrentStep = true
