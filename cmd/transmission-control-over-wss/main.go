@@ -247,8 +247,7 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
 	go upgrade.pool.ReadMessageFromConn(ctx, client)
-	// TODO: use the context
-	// todo: broken pipe error
+	// TODO: propagate the context
 
 	<-upgrade.upgraded
 

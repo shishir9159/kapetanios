@@ -15,6 +15,6 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     apt-get update && apt-get install -y curl \
     ca-certificates && rm -rf /var/lib/apt/lists/*
 
-COPY ./cmd/transmission-control-over-wss/main ./server
+COPY cmd/transmission-control-over-wss/main ./server
 RUN export PATH="$PATH:$(go env GOPATH)/bin"
 CMD ["dlv", "exec", "--listen 127.0.0.1:8080", "--headless=true", "--api-version=2", "--accept-multiclient", "./server"]

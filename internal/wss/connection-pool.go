@@ -82,8 +82,8 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 						zap.Int("remaining clients", len(pool.Clients)),
 						//zap.Int("closing error", websocket.CloseError.Error(err))),
 						zap.Error(err))
+					pool.unregister <- client
 				}
-				pool.unregister <- client
 			}
 			//pool.Mutex.RUnlock()
 		}
