@@ -522,7 +522,6 @@ func (upgrade *Upgrade) MinorUpgrade() {
 	if err != nil {
 		upgrade.nefario.log.Error("error writing reporting",
 			zap.Error(err))
-
 	}
 
 	// deferring doesn't work
