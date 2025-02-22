@@ -262,6 +262,8 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	for client = range upgrade.pool.Clients {
 		upgrade.pool.RemoveClient(client)
 	}
+
+	upgrade.pool.CancelReadContext()
 }
 
 //func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {
