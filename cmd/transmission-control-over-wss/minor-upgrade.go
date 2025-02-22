@@ -328,12 +328,17 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		upgrade.config.NodesUpgraded = strings.Join(nodeNames[:index], ";")
 		upgrade.config.NodesToBeUpgraded = strings.Join(nodeNames[index:], ";")
 
-		if len(nodesUpgraded) != 0 {
+		if len(nodesUpgraded) != 0 && index != 0 {
+			upgrade.config.NodesUpgraded = strings.Join(nodesUpgraded, ";")
+
+			upgrade.nefario.log.Info("nodes upgraded",
+				zap.String("node upgraded", upgrade.config.NodesUpgraded))
+		} else if len(nodesUpgraded) != 0 {
 			upgrade.config.NodesUpgraded = strings.Join([]string{upgrade.config.NodesUpgraded,
 				strings.Join(nodesUpgraded, ";")}, ";")
 
-			upgrade.nefario.log.Info("nodes to be upgraded",
-				zap.String("node to be upgraded", upgrade.config.NodesToBeUpgraded))
+			upgrade.nefario.log.Info("nodes upgraded",
+				zap.String("node upgraded", upgrade.config.NodesUpgraded))
 		}
 
 		err = writeConfig(upgrade.nefario, *upgrade.config)
