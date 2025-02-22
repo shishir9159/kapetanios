@@ -3,4 +3,5 @@
     i. first client requesting for the upgrade -- tested
     ii.
     iii. 
-3. 
+3. closing connection on the just registered client, that is on two separate go routine for writing in the connection - that connection gets closed
+4. 

@@ -73,7 +73,7 @@ type upgradeConfig struct {
 	drainNodes         bool   `yaml:"drainNodes"`
 	certificateRenewal bool   `yaml:"certificateRenewal"`
 	promptOnError      bool   `yaml:"promptOnLock"`
-	nodesUpgraded      string `yaml:"nodesUpgraded"`
+	NodesUpgraded      string `yaml:"NodesUpgraded"`
 	NodesToBeUpgraded  string `yaml:"nodesToBeUpgraded"`
 	UbuntuK8sVersion   string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
 	Redhat8K8sVersion  string `yaml:"redhat8K8sVersion"`
@@ -104,7 +104,7 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 		certificateRenewal: false,
 		drainNodes:         false,
 		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
-		nodesUpgraded:     configMap.Data["NODES_UPGRADED"],
+		NodesUpgraded:     configMap.Data["NODES_UPGRADED"],
 		NodesToBeUpgraded: configMap.Data["NODES_TO_BE_UPGRADED"],
 		UbuntuK8sVersion:  configMap.Data["UBUNTU_K8S_VERSION"],
 		Redhat8K8sVersion: configMap.Data["REDHAT8_K8S_VERSION"],
@@ -119,7 +119,7 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 		zap.String("nodes to be upgraded", configMap.Data["NODES_TO_BE_UPGRADED"]))
 
 	nefario.log.Debug("updated config",
-		zap.String("nodes upgraded", report.nodesUpgraded),
+		zap.String("nodes upgraded", report.NodesUpgraded),
 		zap.String("ubuntu k8s version", report.UbuntuK8sVersion),
 		zap.String("redhat k8s version", report.Redhat8K8sVersion),
 		zap.String("redhat 9 k8s version", report.Redhat9K8sVersion),
@@ -139,7 +139,7 @@ func writeConfig(nefario *Nefario, report upgradeConfig) error {
 			zap.Error(er))
 	}
 
-	configMap.Data["NODES_UPGRADED"] = report.nodesUpgraded
+	configMap.Data["NODES_UPGRADED"] = report.NodesUpgraded
 	configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion
 	configMap.Data["REDHAT8_K8S_VERSION"] = report.Redhat8K8sVersion
 	configMap.Data["REDHAT9_K8S_VERSION"] = report.Redhat9K8sVersion

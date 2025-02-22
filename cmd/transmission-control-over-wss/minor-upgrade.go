@@ -218,9 +218,9 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 	var nodeNames []string
 	//var nodesUpgraded []string
-	if upgrade.config.nodesUpgraded != "" && upgrade.config.NodesToBeUpgraded != "" {
-		//nodesUpgraded = strings.Split(upgrade.config.nodesUpgraded, ";")
+	if upgrade.config.NodesUpgraded != "" && upgrade.config.NodesToBeUpgraded != "" {
 		nodeNames = strings.Split(upgrade.config.NodesToBeUpgraded, ";")
+		//nodesUpgraded = strings.Split(upgrade.config.NodesUpgraded, ";")
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
@@ -325,7 +325,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		//   if failed, must be tainted again to
 		//   schedule nodes
 
-		upgrade.config.nodesUpgraded = strings.Join(nodeNames[:index], ";")
+		upgrade.config.NodesUpgraded = strings.Join(nodeNames[:index], ";")
 		upgrade.config.NodesToBeUpgraded = strings.Join(nodeNames[index:], ";")
 		err = writeConfig(upgrade.nefario, *upgrade.config)
 		if err != nil {
@@ -366,7 +366,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		env := descriptor.Spec.Containers[0].Env
 		env = append(env, certRenewalEnv)
 
-		if index == 0 && upgrade.config.nodesUpgraded == "" {
+		if index == 0 && upgrade.config.NodesUpgraded == "" {
 
 			firstNodeToUpgradeEnv := corev1.EnvVar{
 				Name:  "FIRST_NODE_TO_BE_UPGRADED",
