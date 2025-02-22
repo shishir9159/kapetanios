@@ -217,10 +217,10 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		zap.String("assigned to the node:", kapetaniosNode))
 
 	var nodeNames []string
-	//var nodesUpgraded []string
+	var nodesUpgraded []string
 	if upgrade.config.NodesUpgraded != "" && upgrade.config.NodesToBeUpgraded != "" {
 		nodeNames = strings.Split(upgrade.config.NodesToBeUpgraded, ";")
-		//nodesUpgraded = strings.Split(upgrade.config.NodesUpgraded, ";")
+		nodesUpgraded = strings.Split(upgrade.config.NodesUpgraded, ";")
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
@@ -327,6 +327,12 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		upgrade.config.NodesUpgraded = strings.Join(nodeNames[:index], ";")
 		upgrade.config.NodesToBeUpgraded = strings.Join(nodeNames[index:], ";")
+
+		if len(nodesUpgraded) != 0 {
+			upgrade.config.NodesUpgraded = strings.Join([]string{upgrade.config.NodesUpgraded,
+				strings.Join(nodesUpgraded, ";")}, ";")
+		}
+
 		err = writeConfig(upgrade.nefario, *upgrade.config)
 		if err != nil {
 			upgrade.nefario.log.Error("error writing reporting",
