@@ -286,6 +286,10 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		}
 	}
 
+	upgrade.nefario.log.Debug("nodes to be upgraded",
+		zap.String("nodesToBeUpgraded", upgrade.config.NodesToBeUpgraded),
+		zap.Strings("nodeNames:", nodeNames))
+
 	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)

@@ -331,6 +331,8 @@ func main() {
 		config:  &config,
 		nefario: &nefario,
 	}
+	nefario.log.Debug("nodes to be upgraded",
+		zap.String("nodesToBeUpgraded", upgrade.config.NodesToBeUpgraded))
 
 	// ------
 	upgrade.config.promptOnError = true
