@@ -331,6 +331,9 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		if len(nodesUpgraded) != 0 {
 			upgrade.config.NodesUpgraded = strings.Join([]string{upgrade.config.NodesUpgraded,
 				strings.Join(nodesUpgraded, ";")}, ";")
+
+			upgrade.nefario.log.Info("nodes to be upgraded",
+				zap.String("node to be upgraded", upgrade.config.NodesToBeUpgraded))
 		}
 
 		err = writeConfig(upgrade.nefario, *upgrade.config)
@@ -514,6 +517,9 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 	// deferring doesn't work
 	upgrade.mu.Unlock()
+
+	// TODO:
+	//  write updated config
 
 	<-upgrade.upgraded
 }
