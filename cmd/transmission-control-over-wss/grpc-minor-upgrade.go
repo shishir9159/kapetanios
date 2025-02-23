@@ -72,6 +72,43 @@ type componentRestartSuccess struct {
 	Err                     string `json:"err"`
 }
 
+// TODO:
+//  pass a generic???
+//  receive a generic too???
+
+func actionResponse(payload []byte, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool, error) {
+
+	pool.BroadcastMessage(payload)
+	response, err := pool.ReadMessages()
+	if err != nil {
+		log.Error("Error reading response",
+			zap.Error(err))
+		// return false, false, false, err
+	}
+
+	switch response {
+	case "retry":
+		return true, false, false, nil
+	case "next step":
+		return false, true, true, nil
+	case "terminate application":
+		return false, false, true, nil
+	default:
+		pool.BroadcastMessage(payload)
+		response, err = pool.ReadMessages()
+		if err != nil {
+			log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	// TODO: this should not happen as there is no
+	//  break statement in the switch
+	return false, false, false, nil
+}
+
 // TODO: Create an interface instead of generic that
 //  takes the structs write them in the connection
 //  and wait for reading
@@ -98,7 +135,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	s.connectionPool.BroadcastMessage(payload)
 	response, err := s.connectionPool.ReadMessages()
 	if err != nil {
-		//return nil, err
+		// return nil, err
 	}
 
 	// debugging
@@ -107,7 +144,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	//  dedicated for the decision --
 
 	// TODO:
-	//  onPromptError, you already know the answer
+	//  onPromptError: you already know the answer
 	switch response {
 	case "retry":
 		retryCurrentStep = true
@@ -162,6 +199,7 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 	s.connectionPool.BroadcastMessage(payload)
 	response, err := s.connectionPool.ReadMessages()
 	if err != nil {
+
 		//return nil, err
 	}
 
