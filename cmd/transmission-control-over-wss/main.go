@@ -258,13 +258,14 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	<-upgrade.upgraded
 
+	// can fail
+	upgrade.pool.CancelReadContext()
+
 	// TODO: should there be any mutex for removing clients?
 	for client = range upgrade.pool.Clients {
 		upgrade.pool.RemoveClient(client)
 	}
 
-	// can fail
-	upgrade.pool.CancelReadContext()
 }
 
 //func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {

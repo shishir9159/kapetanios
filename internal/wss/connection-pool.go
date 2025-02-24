@@ -71,6 +71,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			//pool.Mutex.Unlock()
 
 		case message := <-pool.broadcast:
+			// TODO: concurrent map reading writing failure
 			//pool.Mutex.RLock()
 			for client := range pool.Clients {
 				// maybe not only writeJson will work
@@ -137,23 +138,28 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
+			log.Println()
 			return
 		default:
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
-				log.Printf("error reading from %s for messagetype %d: %v", client.Conn.RemoteAddr().String(), msgType, err)
+				log.Printf("error reading from %s for messagetype %d: %v",
+					client.Conn.RemoteAddr().String(), msgType, err)
 				pool.RemoveClient(client)
 				return
 			}
 
 			if msgType != websocket.TextMessage {
-				log.Printf("unexpected message type: %v", msgType)
+				log.Printf("unexpected message type: %v",
+					msgType)
 			}
-			log.Printf("received from %s: %s", client.Conn.RemoteAddr().String(), string(msg))
+			log.Printf("received from %s: %s",
+				client.Conn.RemoteAddr().String(), string(msg))
 
 			select {
 			case pool.MessageChan <- string(msg):
 			default:
+				
 			}
 
 			pool.Clients[client] = true
