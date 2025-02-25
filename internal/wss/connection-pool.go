@@ -51,6 +51,8 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 		select {
 		case client := <-pool.register:
 			//pool.Mutex.Lock()
+			// true signifies the connection is occupied
+			// in reading messages
 			pool.Clients[client] = true
 			//pool.Mutex.Unlock()
 			fmt.Println("client registered")
@@ -126,6 +128,8 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 		}
 	}
 
+	// conn.setReadDeadline???!!!
+
 	message := <-pool.MessageChan
 	pool.CancelReadContext()
 
@@ -141,6 +145,11 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			log.Println()
 			return
 		default:
+			// TODO: exponentially back off till 15 seconds
+			err := client.Conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+			if err != nil {
+				return
+			}
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
 				log.Printf("error reading from %s for messagetype %d: %v",
@@ -156,11 +165,12 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			log.Printf("received from %s: %s",
 				client.Conn.RemoteAddr().String(), string(msg))
 
-			select {
-			case pool.MessageChan <- string(msg):
-			default:
-				
-			}
+			pool.MessageChan <- string(msg)
+
+			//select {
+			//case pool.MessageChan <- string(msg):
+			//default:
+			//}
 
 			pool.Clients[client] = true
 			return
