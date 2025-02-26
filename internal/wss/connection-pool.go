@@ -136,6 +136,10 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 	return strings.TrimSpace(message), nil
 }
 
+// pub sub and a single fifo wouldn't make this easier
+// as unsubscribing to listening to message would still
+// be challenging
+
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) {
 	pool.Clients[client] = false
 	for {
@@ -146,10 +150,11 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			return
 		default:
 			// TODO: exponentially back off till 15 seconds
-			err := client.Conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+			err := client.Conn.SetReadDeadline(time.Now().Add(100 * time.Second))
 			if err != nil {
 				return
 			}
+
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
 				log.Printf("error reading from %s for messagetype %d: %v",
@@ -166,7 +171,6 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				client.Conn.RemoteAddr().String(), string(msg))
 
 			pool.MessageChan <- string(msg)
-
 			//select {
 			//case pool.MessageChan <- string(msg):
 			//default:
