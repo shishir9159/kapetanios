@@ -171,10 +171,6 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				client.Conn.RemoteAddr().String(), string(msg))
 
 			pool.MessageChan <- string(msg)
-			//select {
-			//case pool.MessageChan <- string(msg):
-			//default:
-			//}
 
 			pool.Clients[client] = true
 			return
