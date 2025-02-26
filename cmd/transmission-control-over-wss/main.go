@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
+	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
