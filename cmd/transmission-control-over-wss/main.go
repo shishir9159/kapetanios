@@ -9,6 +9,7 @@ import (
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"net/http"
@@ -192,6 +193,8 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	//log.Println(t)
 
 	if len(upgrade.pool.Clients) > 5 {
+		io.WriteString(w, "maximum number of concurrent connection exceeded!")
+
 		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
 		if er != nil {
 			upgrade.nefario.log.Info("error writing concurrent connections warning:",

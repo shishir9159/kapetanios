@@ -140,9 +140,17 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 // as unsubscribing to listening to message would still
 // be challenging
 
-// TODO:
-//  list down all the requirements for the
-//  queue first before working on the queue
+// todo:
+//  Circular Queue or Ring Buffer Requirements:
+//  - FIFO
+//  - single reader, multiple writers
+//  - sync pool to reuse the heap allocations
+//  - how should I read? circular? pub sub pattern when an input happens?
+//  - bounded at compile time
+//  - provide methods that could pop if possible or return !ok
+//  - provide methods that blocked until it could pop
+//  - set limit on queue element size and insertion rate per element
+//  - maybe a long lived read connection is not bad if managed
 
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) {
 	pool.Clients[client] = false
@@ -163,6 +171,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			if err != nil || msgType == websocket.CloseMessage {
 				log.Printf("error reading from %s for messagetype %d: %v",
 					client.Conn.RemoteAddr().String(), msgType, err)
+				// TODO:
+				//  check if this line ever happens...
 				pool.RemoveClient(client)
 				return
 			}
