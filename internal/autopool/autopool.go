@@ -113,6 +113,9 @@ func (p *Pool) Stats() [][2]uint64 {
 	return out
 }
 
+// you need to be sure that the entire object is free
+// for reuse otherwise you get some nasty bugs
+
 // put adds x to the pool.
 func (p *Pool) put(i int, x interface{}) {
 	p.pools[i].Put(x)

@@ -489,6 +489,14 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			}
 
 			switch event.Type {
+
+			// TODO:
+			//	 handle the following case
+			//	 Events:
+			//   Type     Reason   Age   From     Message
+			//   ----     ------   ----  ----     -------
+			//   Warning  Evicted  11s   kubelet  The node had condition: [DiskPressure].
+
 			case watch.Modified:
 				if pod.Status.Phase == corev1.PodSucceeded {
 					upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",

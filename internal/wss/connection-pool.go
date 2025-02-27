@@ -140,6 +140,10 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 // as unsubscribing to listening to message would still
 // be challenging
 
+// TODO:
+//  list down all the requirements for the
+//  queue first before working on the queue
+
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) {
 	pool.Clients[client] = false
 	for {
