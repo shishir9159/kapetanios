@@ -1,26 +1,25 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { writable } from "svelte/store";
 
     // nodeInfo struct
     type Item = string;
 
-    let items = writable<Item[]>([]);
-    let loading = writable<boolean>(false);
-    let error = writable<string | null>(null);
+    let items = $state(<Item[]>([]));
+    let loading = $state(<boolean>(false));
+    let error = $state(<string | null>(null));
 
     async function fetchItems() {
-        loading.set(true);
-        error.set(null);
+        loading = true;
+        error = null;
         try {
+            // make it a kubernetes service
             const response = await fetch("http://k.com/list");
             if (!response.ok) throw new Error("Failed to fetch items");
             const data: Item[] = await response.json();
-            items.set(data);
+            items = data;
         } catch (err) {
             error.set(err instanceof Error ? err.message : "Unknown error");
         } finally {
-            loading.set(false);
+            loading = false;
         }
     }
 </script>

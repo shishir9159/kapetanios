@@ -143,15 +143,15 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 // todo:
 //  Circular Queue or Ring Buffer Requirements:
 //  - FIFO
+//  - runtime.NumGoroutine()
+//  - bounded at compile time
 //  - single reader, multiple writers
 //  - sync pool to reuse the heap allocations
-//  - how should I read? circular? pub sub pattern when an input happens?
-//  - bounded at compile time
-//  - provide methods that could pop if possible or return !ok
 //  - provide methods that blocked until it could pop
-//  - set limit on queue element size and insertion rate per element
 //  - maybe a long lived read connection is not bad if managed
-//  - runtime.NumGoroutine()
+//  - provide methods that could pop if possible or return !ok
+//  - set limit on queue element size and insertion rate per element
+//  - how should I read? circular? pub sub pattern when an input happens?
 
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) {
 	pool.Clients[client] = false
