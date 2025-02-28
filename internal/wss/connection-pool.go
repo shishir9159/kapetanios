@@ -151,6 +151,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 //  - provide methods that blocked until it could pop
 //  - set limit on queue element size and insertion rate per element
 //  - maybe a long lived read connection is not bad if managed
+//  - runtime.NumGoroutine()
 
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) {
 	pool.Clients[client] = false
