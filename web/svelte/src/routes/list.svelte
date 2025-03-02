@@ -1,6 +1,5 @@
 <script lang="ts">
 
-    // nodeInfo struct
     type Item = string;
 
     let items = $state(<Item[]>([]));

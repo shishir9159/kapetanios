@@ -163,7 +163,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			return
 		default:
 			// TODO: exponentially back off till 15 seconds
-			err := client.Conn.SetReadDeadline(time.Now().Add(100 * time.Second))
+			err := client.Conn.SetReadDeadline(time.Now().Add(300 * time.Second))
 			if err != nil {
 				return
 			}

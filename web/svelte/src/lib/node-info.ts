@@ -1,0 +1,1 @@
+// nodeInfo struct
