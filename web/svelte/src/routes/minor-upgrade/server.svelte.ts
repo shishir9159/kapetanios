@@ -1,7 +1,4 @@
-<script lang="ts">
-
-    type Item = string;
-
+type Item = string;
 let items = $state(<Item[]>([]));
 let loading = $state(<boolean>(false));
 let error = $state(<string | null>(null));
@@ -16,24 +13,9 @@ async function fetchItems() {
         const data: Item[] = await response.json();
         items = data;
     } catch (err) {
-        error.set(err instanceof Error ? err.message : "Unknown error");
+        error = (err instanceof Error ? err.message : "Unknown error");
     } finally {
         loading = false;
     }
 }
-</script>
 
-<main>
-<button on:click={fetchItems} disabled={$loading}>
-    {#if $loading} Loading... {/if}
-    {#if !$loading} Fetch Items {/if}
-    </button>
-
-        {#if $error}
-        <p style="color: red;">Error: {$error}</p>
-        {/if}
-
-            {#each $items as item}
-            <button>{item}</button>
-            {/each}
-            </main>
