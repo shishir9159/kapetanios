@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/gorilla/websocket"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	_ "go.uber.org/automaxprocs"
@@ -178,6 +179,22 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //}
 
 // TODO: lifetime - cleanup
+
+func (nefario *Nefario) report(w http.ResponseWriter, _ *http.Request) {
+	config, err := readConfig(nefario)
+	if err != nil {
+		return
+	}
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&config)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Write(payload)
+}
 
 func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
