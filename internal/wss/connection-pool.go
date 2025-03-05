@@ -64,6 +64,11 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("remaining clients", len(pool.Clients)))
 				delete(pool.Clients, client)
+
+				if client.Conn == nil {
+					return
+				}
+
 				err := client.Conn.Close()
 				if err != nil {
 					log.Error("close connection failed",
