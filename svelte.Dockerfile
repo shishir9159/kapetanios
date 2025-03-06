@@ -14,8 +14,9 @@ RUN cd /tmp/prod && bun install --frozen-lockfile --production
 FROM base AS prerelease
 #COPY --from=install /tmp/dev/node_modules node_modules
 COPY --from=install /tmp/prod/node_modules node_modules
-COPY web/svelte/* .
+COPY web/svelte/ .
 COPY web/svelte/.* .
+COPY web/svelte/.svelte-kit .
 
 ## [optional] tests & build
 #ENV NODE_ENV=production
