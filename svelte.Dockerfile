@@ -8,7 +8,7 @@ RUN cd /tmp/dev && bun install --frozen-lockfile
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /tmp/prod
-COPY package.json bun.lock /tmp/prod/
+COPY web/svelte/package.json web/svelte/bun.lock /tmp/prod/
 RUN cd /tmp/prod && bun install --frozen-lockfile --production
 
 # copy node_modules from temp directory
