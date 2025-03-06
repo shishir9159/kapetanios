@@ -8,11 +8,11 @@
         {#if !$loading} Fetch Items {/if}
     </button>
 
-    {#if $error}
-        <p style="color: red;">Error: {$error}</p>
-    {/if}
+//    {#if $error}
+ //       <p style="color: red;">Error: {$error}</p>
+//    {/if}
 
-    {#each $items as item}
-        <button>{item}</button>
-    {/each}
+//    {#each $items as item}
+//        <button>{item}</button>
+//    {/each}
 </main>
