@@ -2,9 +2,9 @@ FROM oven/bun:1 AS base
 WORKDIR /usr/src/app
 
 FROM base AS install
-RUN mkdir -p /tmp/dev
-COPY web/svelte/package.json web/svelte/bun.lock /tmp/dev/
-RUN cd /tmp/dev && bun install --frozen-lockfile
+RUN #mkdir -p /tmp/dev
+#COPY web/svelte/package.json web/svelte/bun.lock /tmp/dev/
+#RUN cd /tmp/dev && bun install --frozen-lockfile
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /tmp/prod
@@ -28,7 +28,9 @@ COPY --from=install /tmp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app/build/* .
 COPY --from=prerelease /usr/src/app/package.json .
 
+ENV NODE_ENV=production
+
 # run the app
 USER bun
 EXPOSE 3000/tcp
-ENTRYPOINT [ "bun", "index.js" ]
+CMD [ "bun", "run build" ]
