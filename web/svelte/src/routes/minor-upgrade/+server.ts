@@ -12,8 +12,8 @@ export async function connectionInitialization() {
             type: "greeting",
             message: "Hello Server!" }
         ));
-    //     "current step"
-    //     prepare response accordingly
+        //     "current step"
+        //     prepare response accordingly
     }
 
     socket.onmessage = (e) => {
