@@ -24,15 +24,16 @@ ENV NODE_ENV=production
 RUN bun test
 RUN bun run build
 
-#FROM base AS release
-#COPY --from=install /tmp/prod/node_modules node_modules
-#COPY --from=prerelease /usr/src/app/build/* .
-#COPY --from=prerelease /usr/src/app/package.json .
-#
-#ENV NODE_ENV=production
-#
-## run the app
-#USER bun
-#EXPOSE 3000/tcp
+FROM base AS release
+COPY --from=install /tmp/prod/node_modules node_modules
+COPY --from=prerelease /usr/src/app/build/ .
+COPY --from=prerelease /usr/src/app/.svelte-kit/ .
+COPY --from=prerelease /usr/src/app/package.json .
+
+ENV NODE_ENV=production
+
+# run the app
+USER bun
+EXPOSE 3000/tcp
 #ENTRYPOINT [ "bun", "run", "index.js" ]
 CMD ["/bin/bash", "-c", "while sleep 3600; do :; done"]
