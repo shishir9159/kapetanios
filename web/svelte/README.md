@@ -8,6 +8,7 @@ bunx sv create svelte
 
 ```bash
 bun run dev --open
+svelte-kit sync || echo ''
 bun install --lockfile-only
 ```
 

@@ -19,20 +19,20 @@ COPY web/svelte/.* .
 COPY web/svelte/.svelte-kit .
 
 ## [optional] tests & build
-#ENV NODE_ENV=production
-#RUN bun test
-#RUN bun run build
+ENV NODE_ENV=production
+RUN bun test
+RUN bun run build
 #
 ## copy production dependencies and source code into final image
 #FROM base AS release
-#COPY --from=install /tmp/prod/node_modules node_modules
-#COPY --from=prerelease /usr/src/app/build/* .
-#COPY --from=prerelease /usr/src/app/package.json .
-#
-#ENV NODE_ENV=production
-#
-## run the app
-#USER bun
-#EXPOSE 3000/tcp
-#CMD [ "bun", "run build" ]
-CMD ["/bin/bash", "-c", "while sleep 3600; do :; done"]
+COPY --from=install /tmp/prod/node_modules node_modules
+COPY --from=prerelease /usr/src/app/build/* .
+COPY --from=prerelease /usr/src/app/package.json .
+
+ENV NODE_ENV=production
+
+# run the app
+USER bun
+EXPOSE 3000/tcp
+CMD [ "bun", "run build" ]
+#CMD ["/bin/bash", "-c", "while sleep 3600; do :; done"]
