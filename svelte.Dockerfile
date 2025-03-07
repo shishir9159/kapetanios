@@ -9,7 +9,7 @@ FROM base AS install
 # install with --production (exclude devDependencies)
 RUN mkdir -p /tmp/prod
 COPY web/svelte/package.json web/svelte/bun.lock /tmp/prod/
-#RUN cd /tmp/prod && bun install --frozen-lockfile --production --modules-dir=node_modules
+#RUN cd /tmp/prod && bun install --frozen-lockfile --production
 RUN cd /tmp/prod && bun install
 
 FROM base AS prerelease
@@ -17,7 +17,6 @@ FROM base AS prerelease
 COPY --from=install /tmp/prod/node_modules node_modules
 COPY web/svelte/ .
 COPY web/svelte/.* .
-#COPY web/svelte/.svelte-kit .
 
 ## [optional] tests & build
 ENV NODE_ENV=production
@@ -25,10 +24,12 @@ RUN bun test
 RUN bun run build
 
 FROM base AS release
+
 COPY --from=install /tmp/prod/node_modules node_modules
+
 COPY --from=prerelease /usr/src/app/build build
 COPY --from=prerelease /usr/src/app/.svelte-kit svelte-kit
-COPY --from=prerelease /usr/src/app/package.json .
+COPY --from=prerelease /usr/src/app/package.json package.json
 
 ENV NODE_ENV=production
 

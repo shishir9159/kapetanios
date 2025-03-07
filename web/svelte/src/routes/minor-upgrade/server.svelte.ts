@@ -2,7 +2,8 @@ import { json } from '@sveltejs/kit';
 
 export async function connectionInitialization() {
 
-    const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
+    const socket = new WebSocket("ws://kapetanios.com/minor-upgrade");
+    // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
 
     socket.onopen = async () => {
 
@@ -28,7 +29,7 @@ export async function connectionInitialization() {
     }
 
     socket.onerror = (e) => {
-
+        console.error("WebSocket error:", e);
     }
 
     socket.onclose = async () => {
