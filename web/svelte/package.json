@@ -1,22 +1,6 @@
 {
 	"name": "svelte",
-	"private": true,
 	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"dev": "vite dev",
-		"build": "bunx --bun vite build",
-		"preview": "vite preview",
-		"_prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
-		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run",
-		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build"
-	},
 	"devDependencies": {
 		"@chromatic-com/storybook": "^3.2.5",
 		"@eslint/compat": "^1.2.7",
@@ -54,7 +38,20 @@
 		"vitest": "^3.0.8"
 	},
 	"packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
-	"dependencies": {
-		"flowbite-svelte": "^0.48.4"
-	}
+	"private": true,
+	"scripts": {
+		"dev": "vite dev",
+		"build": "bunx --bun vite build",
+		"preview": "vite preview",
+		"_prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"format": "prettier --write .",
+		"lint": "prettier --check . && eslint .",
+		"test:unit": "vitest",
+		"test": "npm run test:unit -- --run",
+		"storybook": "storybook dev -p 6006",
+		"build-storybook": "storybook build"
+	},
+	"type": "module"
 }
