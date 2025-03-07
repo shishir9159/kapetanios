@@ -36,4 +36,3 @@ ENV NODE_ENV=production
 USER bun
 EXPOSE 3000/tcp
 ENTRYPOINT [ "bun", "run", "build/index.js" ]
-#CMD ["/bin/bash", "-c", "while sleep 3600; do :; done"]
