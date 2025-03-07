@@ -34,5 +34,5 @@ ENV NODE_ENV=production
 # run the app
 USER bun
 EXPOSE 3000/tcp
-CMD [ "bun", "run build" ]
+CMD [ "bun", "run index.js" ]
 #CMD ["/bin/bash", "-c", "while sleep 3600; do :; done"]
