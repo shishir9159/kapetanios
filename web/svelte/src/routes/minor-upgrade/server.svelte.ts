@@ -8,7 +8,10 @@ export async function connectionInitialization() {
     socket.onopen = async () => {
 
         console.log("WebSocket connected!");
-        socket.send(JSON.stringify({ type: "greeting", message: "Hello Server!" }));
+        socket.send(JSON.stringify({
+            type: "greeting",
+            message: "Hello Server!" }
+        ));
     //     "current step"
     //     prepare response accordingly
     }
