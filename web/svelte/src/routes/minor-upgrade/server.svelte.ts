@@ -6,12 +6,8 @@ export async function connectionInitialization() {
     // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
 
     socket.onopen = async () => {
-
-        console.log("WebSocket connected!");
-        socket.send(JSON.stringify({
-            type: "greeting",
-            message: "Hello Server!" }
-        ));
+        console.log("connected to the server");
+        socket.send('next');
         //     "current step"
         //     prepare response accordingly
     }
@@ -21,10 +17,11 @@ export async function connectionInitialization() {
         // const utf8Array = e.data.split(' ');
 
         const utf8Array = e.data;
+        console.log(utf8Array);
         const decoder = new TextDecoder("utf-8");
 
         const str = decoder.decode(utf8Array);
-        console.log(str);
+        console.log("str: ", str);
 
         // const message = e.data.split(' ').map((b:Uint8Array) => String.fromCharCode(parseInt(b, 2))).join('');
         // console.log(message);
@@ -36,6 +33,6 @@ export async function connectionInitialization() {
     }
 
     socket.onclose = async () => {
-
+        console.log("WebSocket closed");
     }
 }
