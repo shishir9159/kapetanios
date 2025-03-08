@@ -5,8 +5,8 @@
 <style>
     .action {
         display: flex;
-        /*align-items: center;*/
-        justify-content: right;
+        align-items: center;
+        justify-content: flex-end;
     }
 </style>
 
