@@ -1,6 +1,8 @@
 <script lang="ts">
     import { ButtonGroup, Button } from 'flowbite-svelte';
     import { connectionInitialization } from './server.svelte.ts';
+
+    export let ppp = $state('');
 </script>
 
 <div class="action">
@@ -10,6 +12,10 @@
             <Button outline color="green">rollback</Button>
             <Button outline color="yellow">status</Button>
         </ButtonGroup>
+    </div>
+
+    <div class="processing">
+        <p>{ppp}</p>
     </div>
 </div>
 
