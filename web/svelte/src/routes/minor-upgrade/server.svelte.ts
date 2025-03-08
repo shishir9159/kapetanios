@@ -21,7 +21,6 @@ export async function connectionInitialization(logMessage: string): Promise<void
 	socket.onmessage = (e) => {
 
 		const utf8Array: string = e.data;
-		console.log(utf8Array);
 		logMessage = utf8Array;
 		console.log(logMessage);
 		// message = utf8Array;
@@ -29,10 +28,10 @@ export async function connectionInitialization(logMessage: string): Promise<void
 	};
 
 	socket.onerror = (e) => {
-		console.error('WebSocket error:', e);
+		console.error('websocket error:', e);
 	};
 
 	socket.onclose = async () => {
-		console.log('WebSocket closed');
+		console.log('websocket closed');
 	};
 }

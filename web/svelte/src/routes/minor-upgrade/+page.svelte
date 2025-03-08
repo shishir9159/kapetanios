@@ -2,7 +2,7 @@
     import { ButtonGroup, Button } from 'flowbite-svelte';
     import { connectionInitialization } from './server.svelte.js';
 
-    let logMessage = $state('');
+    const logMessage = $state('');
     console.log($state.snapshot(logMessage));
 </script>
 
@@ -18,12 +18,10 @@
 
 <div class="processing">
     <div class="nodes">
-
     </div>
     <div class="nodes">
         <p>Processing...</p>
-        <p>{logMessage}</p>
-
+        {logMessage}
     </div>
 </div>
 
@@ -54,7 +52,7 @@
     .nodes {
         display: flex;
         flex: 1;
-        padding: 500px;
+        padding: 50px;
         text-align: center;
     }
 </style>
