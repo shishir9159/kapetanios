@@ -1,12 +1,15 @@
 <script lang="ts">
     import { ButtonGroup, Button } from 'flowbite-svelte';
-    import { message, connectionInitialization } from './server.svelte.ts';
+    import { connectionInitialization } from './server.svelte.js';
+
+    let logMessage = $state('');
+    console.log($state.snapshot(logMessage));
 </script>
 
 <div class="action">
     <div class="button-group">
         <ButtonGroup>
-            <Button outline color="red" on:mousedown={connectionInitialization}>upgrade</Button>
+            <Button outline color="red" on:mousedown={connectionInitialization(logMessage)}>upgrade</Button>
             <Button outline color="green">rollback</Button>
             <Button outline color="yellow">status</Button>
         </ButtonGroup>
@@ -19,7 +22,8 @@
     </div>
     <div class="nodes">
         <p>Processing...</p>
-        <p>{message}</p>
+        <p>{logMessage}</p>
+
     </div>
 </div>
 
@@ -44,13 +48,13 @@
     .processing {
         display: flex;
         width: 80vw;
-        margin: 100px auto;
+        margin: auto;
         border: 1px solid #000000;
     }
     .nodes {
         display: flex;
         flex: 1;
-        padding: 50px;
+        padding: 500px;
         text-align: center;
     }
 </style>

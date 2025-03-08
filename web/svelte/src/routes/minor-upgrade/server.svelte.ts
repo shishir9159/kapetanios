@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
+import { message } from './upgrading/upgrading.svelte.ts';
 
 class TestClass {
 	prop = $state('test');
 }
 
-export let message: string;
 
 export async function connectionInitialization(logMessage: string): Promise<void> {
 
@@ -22,7 +22,9 @@ export async function connectionInitialization(logMessage: string): Promise<void
 
 		const utf8Array: string = e.data;
 		console.log(utf8Array);
-		message = utf8Array;
+		logMessage = utf8Array;
+		console.log(logMessage);
+		// message = utf8Array;
 		// const message = JSON.parse(e.data);
 	};
 
