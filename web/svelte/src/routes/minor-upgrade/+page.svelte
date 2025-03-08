@@ -45,13 +45,12 @@
         display: flex;
         width: 80vw;
         margin: 100px auto;
-        /*margin-right: 100px;*/
+        border: 1px solid #000000;
     }
     .nodes {
         display: flex;
         flex: 1;
         padding: 50px;
         text-align: center;
-        border: 1px solid #000000;
     }
 </style>
