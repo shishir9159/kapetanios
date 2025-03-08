@@ -5,14 +5,15 @@
 
 <div class="action">
     <div class="button-group">
-<ButtonGroup>
-    <Button outline color="red" on:mousedown={connectionInitialization}>minor-upgrade</Button>
-    <Button outline color="green">Settings</Button>
-    <Button outline color="yellow">Messages</Button>
-</ButtonGroup>
+        <ButtonGroup>
+            <Button outline color="red" on:mousedown={connectionInitialization}>minor-upgrade</Button>
+            <Button outline color="green">Settings</Button>
+            <Button outline color="yellow">Messages</Button>
+        </ButtonGroup>
     </div>
 </div>
 
+<!-- TODO: fix the height -->
 <style>
     .action {
         display: flex;
@@ -30,8 +31,4 @@
         justify-content: flex-start;
     }
 
-    /*:global(.main) {*/
-    /*    display: flex;*/
-
-    /*}*/
 </style>
