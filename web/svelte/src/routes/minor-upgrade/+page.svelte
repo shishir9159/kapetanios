@@ -1,8 +1,37 @@
 <script lang="ts">
-    import { Button } from 'flowbite-svelte';
+    import { ButtonGroup, Button } from 'flowbite-svelte';
     import { connectionInitialization } from './server.svelte.ts';
 </script>
 
 <div class="action">
-    <Button on:mousedown={connectionInitialization}>minor-upgrade</Button>
+    <div class="button-group">
+<ButtonGroup>
+    <Button outline color="red" on:mousedown={connectionInitialization}>minor-upgrade</Button>
+    <Button outline color="green">Settings</Button>
+    <Button outline color="yellow">Messages</Button>
+</ButtonGroup>
+    </div>
 </div>
+
+<style>
+    .action {
+        display: flex;
+        /*flex: 0 0 100%;*/
+        /*height: 100px;*/
+        /*margin: 100px;*/
+        width: 100vw;
+        padding: 50px;
+        /*margin: 10px 150px 100px 80px;*/
+    }
+    .button-group {
+        margin-left: auto;
+        padding: 50px;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
+
+    /*:global(.main) {*/
+    /*    display: flex;*/
+
+    /*}*/
+</style>
