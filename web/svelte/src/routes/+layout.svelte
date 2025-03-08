@@ -4,6 +4,7 @@
 	let { children } = $props();
 </script>
 
+<!--<svelte:head>-->
 <Navbar>
     <NavBrand>Kapetanios</NavBrand>
     <NavUl>
@@ -11,5 +12,6 @@
         <NavLi href="/certificate">certificate</NavLi>
     </NavUl>
 </Navbar>
+<!--</svelte:head>-->
 
 {@render children()}
