@@ -40,12 +40,12 @@ spec:
             - containerPort: 50051
               name: kapetanios-grpc
           resources:
-#            requests:
-#              memory: "64Mi"
-#              cpu: "250m"
-            limits:
-              memory: "128Mi"
-              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "2000m"
+#            limits:
+#              memory: "128Mi"
+#              cpu: "500m"
 #          TODO: GOMAXPROCS
 #          livenessProbe:
 #            failureThreshold: 10

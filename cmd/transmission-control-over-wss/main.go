@@ -83,13 +83,6 @@ type upgradeConfig struct {
 	Redhat9K8sVersion  string `yaml:"redhat9K8sVersion"`
 }
 
-func expiration(w http.ResponseWriter, _ *http.Request) {
-
-	go Expiration("default")
-
-	w.WriteHeader(http.StatusOK)
-}
-
 func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
 	// todo: mount configMap
@@ -112,6 +105,7 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 		UbuntuK8sVersion:  configMap.Data["UBUNTU_K8S_VERSION"],
 		Redhat8K8sVersion: configMap.Data["REDHAT8_K8S_VERSION"],
 		Redhat9K8sVersion: configMap.Data["REDHAT9_K8S_VERSION"],
+		//	TODO: failed to upgrade nodes
 	}
 
 	//nefario.log.Debug("reading config",
@@ -379,7 +373,6 @@ func main() {
 	}
 
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
-	http.HandleFunc("/expiration", expiration)
 	http.HandleFunc("/livez", livez)
 
 	upgrade.nefario.log.Info("starting kapetanios server on :80")

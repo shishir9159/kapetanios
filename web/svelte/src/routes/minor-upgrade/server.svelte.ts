@@ -1,5 +1,9 @@
 import { json } from '@sveltejs/kit';
 
+class TestClass {
+	prop = $state('test');
+}
+
 export let message: string;
 
 export async function connectionInitialization(logMessage: string): Promise<void> {
@@ -15,19 +19,10 @@ export async function connectionInitialization(logMessage: string): Promise<void
 	};
 
 	socket.onmessage = (e) => {
-		// const utf8Array = e.data.split(' ');
 
 		const utf8Array: string = e.data;
-
 		console.log(utf8Array);
-		const decoder = new TextDecoder('utf-8');
-
-		// const str = decoder.decode(utf8Array);
-		// console.log('str: ', str);
-
 		message = utf8Array;
-		// const message = e.data.split(' ').map((b:Uint8Array) => String.fromCharCode(parseInt(b, 2))).join('');
-		// console.log(message);
 		// const message = JSON.parse(e.data);
 	};
 
