@@ -4,15 +4,6 @@
     let activeUrl = page.url.pathname;
 </script>
 
-<Navbar>
-    <NavBrand>Kapetanios</NavBrand>
-    <NavUl>
-        <NavLi href="/minor-upgrade">minor upgrade</NavLi>
-        <NavLi href="/certificate">certificate</NavLi>
-    </NavUl>
-</Navbar>
-
-
 <style>
     ul {
         list-style-type: none;

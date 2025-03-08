@@ -3,4 +3,6 @@
     import { Button } from 'flowbite-svelte';
 </script>
 
-<Button on:mousedown={connectionInitialization}>minor-upgrade</Button>
+<div class="action">
+    <Button on:mousedown={connectionInitialization}>minor-upgrade</Button>
+</div>

@@ -1,1 +1,1 @@
-export { default as component } from "../../../../src/routes/+page.svelte";
+export { default as component } from "../../../../src/routes/minor-upgrade-bk/+layout.svelte";
