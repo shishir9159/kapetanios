@@ -6,9 +6,9 @@
 <div class="action">
     <div class="button-group">
         <ButtonGroup>
-            <Button outline color="red" on:mousedown={connectionInitialization}>minor-upgrade</Button>
-            <Button outline color="green">Settings</Button>
-            <Button outline color="yellow">Messages</Button>
+            <Button outline color="red" on:mousedown={connectionInitialization}>upgrade</Button>
+            <Button outline color="green">rollback</Button>
+            <Button outline color="yellow">status</Button>
         </ButtonGroup>
     </div>
 </div>
@@ -30,5 +30,4 @@
         flex-direction: row-reverse;
         justify-content: flex-start;
     }
-
 </style>

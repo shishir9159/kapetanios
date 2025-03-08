@@ -1,18 +1,17 @@
 <script lang="ts">
 	import '../app.css';
     import { page } from '$app/state';
-    import {Navbar, NavBrand, NavLi, NavUl} from "flowbite-svelte";
+    import { AccordionItem, Accordion, Navbar, NavBrand, NavLi, NavUl } from "flowbite-svelte";
 	let { children } = $props();
+    let activeUrl = $derived(page.url.pathname)
 </script>
 
-<header>
 <Navbar>
     <NavBrand>Kapetanios</NavBrand>
-    <NavUl>
-        <NavLi href="/minor-upgrade" aria-current={page.url.pathname === '/minor-upgrade'}>minor upgrade</NavLi>
+    <NavUl {activeUrl}>
+        <NavLi href="/minor-upgrade">minor upgrade</NavLi>
         <NavLi href="/certificate">certificate</NavLi>
     </NavUl>
 </Navbar>
-</header>
 
 {@render children()}
