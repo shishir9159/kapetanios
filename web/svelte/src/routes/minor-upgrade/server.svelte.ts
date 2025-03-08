@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { ppp } from './+page.svelte';
 
-export async function connectionInitialization() {
+export async function connectionInitialization(logMessage: string): Promise<void> {
     let message: string = $state('');
 
 	const socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
@@ -24,7 +23,7 @@ export async function connectionInitialization() {
 		const str = decoder.decode(utf8Array);
 		console.log('str: ', str);
 
-		ppp = str;
+		logMessage = str;
 		// const message = e.data.split(' ').map((b:Uint8Array) => String.fromCharCode(parseInt(b, 2))).join('');
 		// console.log(message);
 		// const message = JSON.parse(e.data);
