@@ -215,12 +215,12 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	connection := pb.NewMinorUpdateClient(conn)
 
-	rpc, err := connection.ClusterHealthChecking(c.ctx,
-		&pb.PrerequisitesMinorUpgrade{
-			EtcdStatus: true,
-			// TODO: refactor
-			StorageAvailability: 50,
-			Err:                 "",
+	rpc, err := connection.PrerequisitesCheck(c.ctx,
+		&pb.PrerequisitesMinorUpdate{
+			RepoURL:  "",
+			RepoName: "",
+			Log:      "",
+			Err:      "",
 		})
 
 	if err != nil {
