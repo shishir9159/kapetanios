@@ -117,21 +117,24 @@ func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL s
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
 
+	//yum repolist --repo kubernetes -v enabled
+
 	//var repoName string
-	var packageSearch string
+	var repoNameCmd string
 	if distro == "rhel" {
 		//repoName = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
-		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes | grep .x86_64 | awk '{ print $2 }'"
-	} else if distro == "ubuntu" {
-		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
+		repoNameCmd = "yum info kubectl --installed | grep \"From repo\" | awk '{ print $4 }'"
 	}
+	// TODO:
+	//  UBUNTU + Debian
+	//else if distro == "ubuntu" {
+	//	repoNameCmd = "apt-cache madison kubeadm | awk '{ print $3 }'"
+	//}
 
-	cmd = exec.Command("/bin/bash", "-c", packageSearch)
+	cmd = exec.Command("/bin/bash", "-c", repoNameCmd)
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
-	// output delimiter is " | "
-	// extract second and the third column
 
 	if err != nil {
 		log.Fatal().Err(err).
@@ -139,34 +142,42 @@ func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL s
 		// TODO: refactor this to send the error : return false, "", err
 	}
 
-	log.Debug().
-		Str("stdout", stdoutBuf.String()).
-		Str("stderr", stderrBuf.String()).
+	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info().
+		Str("stdOut", repoName).
+		Str("stdErr", errStr).
 		Msg("successfully fetched repository updates")
 
-	//outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	//c.log.Info().
-	//	Str("out", outStr).
-	//	Str("err", errStr).
-	//	Msg("outString & errString")
-
-	availableVersionSlice := strings.Split(stdoutBuf.String(), "\n")
-
-	if len(availableVersionSlice) == 0 {
-		log.Error().Err(err).
-			Msg("no available versions found for minor upgrade")
-		// todo: return false, "", err
+	var repoBaseURLCMD string
+	if distro == "rhel" {
+		repoBaseURLCMD = "yum repolist --repo " + repoName + " -v enabled -q | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
+		//repoName = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
+		repoNameCmd = "yum info kubectl --installed | grep \"From repo\" | awk '{ print $4 }'"
 	}
 
-	// TODO:
-	//  sort them based on the delimiter "." and "-' + give a score by adding them ups with positional
-	//  values
+	cmd = exec.Command("/bin/bash", "-c", repoNameCmd)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+
+	if err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to list available versions")
+		// TODO: refactor this to send the error : return false, "", err
+	}
+
+	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info().
+		Str("stdOut", repoName).
+		Str("stdErr", errStr).
+		Msg("successfully fetched repository updates")
 
 	if err = changedRoot(); err != nil {
 		log.Fatal().Err(err).
 			Msg("failed to exit from the updated root")
 	}
 
+	return repoName, repoURLCMD, nil
 }
 
 func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
