@@ -334,6 +334,9 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		availableOS := make(map[string]string)
 		for _, no := range nodes.Items {
 			availableOS[no.Status.NodeInfo.OperatingSystem] = no.Name
+			upgrade.nefario.log.Info("map",
+				zap.String("node name", no.Name),
+				zap.String("node name", no.Status.NodeInfo.OperatingSystem))
 		}
 
 		// configMap should be populated already for the second run

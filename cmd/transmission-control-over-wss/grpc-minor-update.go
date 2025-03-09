@@ -48,7 +48,8 @@ type availableVersion struct {
 // PrerequisitesCheck implements proto.MinorUpdateServer
 func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.PrerequisitesMinorUpdate) (*pb.UpdateResponse, error) {
 
-	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+	// TODO:
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, true, false
 
 	nodeHealth := prerequisitesCheck{
 		RepoName:       in.GetRepoName(),
@@ -66,38 +67,37 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	}
 
 	s.connectionPool.BroadcastMessage(payload)
-	response, err := s.connectionPool.ReadMessages()
-	if err != nil {
-		// return nil, err
-	}
 
-	// debugging
-	// TODO: make a separate function
-	//  make an specific field for each response
-	//  dedicated for the decision --
+	// TODO: take prompt from user,
+	//  only if an error occurs
 
-	// TODO:
-	//  onPromptError: you already know the answer
-	switch response {
-	case "retry":
-		retryCurrentStep = true
-		break
-	case "next step":
-		proceedNextStep = true
-		break
-	case "terminate application":
-		terminateApplication = true
-		break
-	default:
-		s.connectionPool.BroadcastMessage(payload)
-		response, err = s.connectionPool.ReadMessages()
-		if err != nil {
-			s.log.Error("error reporting cluster health",
-				zap.Error(err))
-		}
-		s.log.Error("unknown response from frontend",
-			zap.String("response", response))
-	}
+	//response, err := s.connectionPool.ReadMessages()
+	//if err != nil {
+	//	// return nil, err
+	//}
+	//
+	//// TODO:
+	////  onPromptError: you already know the answer
+	//switch response {
+	//case "retry":
+	//	retryCurrentStep = true
+	//	break
+	//case "next step":
+	//	proceedNextStep = true
+	//	break
+	//case "terminate application":
+	//	terminateApplication = true
+	//	break
+	//default:
+	//	s.connectionPool.BroadcastMessage(payload)
+	//	response, err = s.connectionPool.ReadMessages()
+	//	if err != nil {
+	//		s.log.Error("error reporting cluster health",
+	//			zap.Error(err))
+	//	}
+	//	s.log.Error("unknown response from frontend",
+	//		zap.String("response", response))
+	//}
 
 	s.log.Info("received cluster health status",
 		zap.String("repo name", in.GetRepoName()),
@@ -131,6 +131,11 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	if err != nil {
 
 	}
+
+	// debugging
+	// TODO: make a separate function
+	//  make an specific field for each response
+	//  dedicated for the decision --
 
 	s.connectionPool.BroadcastMessage(payload)
 	response, err := s.connectionPool.ReadMessages()
