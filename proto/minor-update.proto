@@ -2,10 +2,11 @@ syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
 message PrerequisitesMinorUpdate {
-  string repoURL = 1;
-  string repoName = 2;
-  string log = 3;
-  string err = 4;
+  string repoName = 1;
+  string repoBaseURL = 2;
+  string currentVersion = 3;
+  string log = 4;
+  string err = 5;
 }
 
 message UpdateResponse {
