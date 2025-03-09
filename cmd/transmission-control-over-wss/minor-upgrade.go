@@ -186,7 +186,7 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)
-	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, ch)
+	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, *upgrade.config, ch)
 
 	for osImage, nodeName := range availableOS {
 

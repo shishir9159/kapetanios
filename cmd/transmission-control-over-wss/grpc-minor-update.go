@@ -195,7 +195,7 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	}, nil
 }
 
-func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.Server) {
+func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *upgradeConfig, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -207,6 +207,7 @@ func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.
 	s := grpc.NewServer()
 	server := minorUpdateServer{
 		connectionPool: pool,
+		upgradeConfig:  config,
 		log:            log,
 	}
 
