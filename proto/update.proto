@@ -2,8 +2,8 @@ syntax = "proto3";
 option go_package = "github.com/shishir9159/kapetanios/proto";
 
 message PrerequisitesMinorUpdate {
-  bool etcdStatus = 1;
-  uint64 storageAvailability = 2;
+  string repoURL = 1;
+  string repoName = 2;
   string log = 3;
   string err = 4;
 }
@@ -11,60 +11,20 @@ message PrerequisitesMinorUpdate {
 message UpdateResponse {
   bool proceedNextStep = 1;
   bool retryCurrentStep = 2;
-  bool terminateApplication = 3;
+  bool terminateApplication = 3; // TODO: try another healthy VM of the same OS
 }
 
-message AvailableVersionss {
+message AvailableVersions {
   repeated string version = 1;
   string err = 2;
 }
 
-message ClusterUpdateResponse {
-  bool proceedNextStep = 1;
+message UpdateFinalizer {
+  bool responseReceived = 1;
   bool retryCurrentStep = 2;
-  bool terminateApplication = 3;
-  bool certificateRenewal = 4;
-  string version = 5;
-}
-
-message UpdateCompatibility {
-  bool osCompatibility = 1;
-  string diff = 2;
-  string err = 3;
-}
-
-message ComponentUpdateStatus {
-  bool componentUpgradeSuccess = 1;
-  string component = 2;
-  string log = 3;
-  string err = 4;
-}
-
-message UpdatePlan {
-  string currentClusterVersion = 1;
-  string log = 2;
-  string err = 3;
-}
-
-message UpdateStatus {
-  bool UpdateSuccess = 1;
-  string log = 2;
-  string err = 3;
-}
-
-message ComponentsUpdateStatus {
-  bool componentRestartSuccess = 1;
-  string component = 2;
-  string log = 3;
-  string err = 4;
 }
 
 service MinorUpdate {
-  rpc ClusterHealthChecking(PrerequisitesMinorUpdate) returns (UpdateResponse);
-  rpc UpgradeVersionSelection(AvailableVersionss) returns (ClusterUpdateResponse);
-  rpc ClusterCompatibility(UpdateCompatibility) returns (UpdateResponse);
-  rpc ClusterComponentUpgrade(ComponentUpdateStatus) returns (UpdateResponse);
-  rpc ClusterUpgradePlan(UpdatePlan) returns (UpdateResponse);
-  rpc ClusterUpgrade(UpdateStatus) returns(UpdateResponse);
-  rpc ClusterComponentRestart(ComponentsUpdateStatus) returns(UpdateResponse);
+  rpc PrerequisitesCheck(PrerequisitesMinorUpdate) returns (UpdateResponse);
+  rpc UpdateVersionSelection(AvailableVersions) returns (UpdateFinalizer);
 }
