@@ -222,6 +222,9 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 	//upgrade.nefario.log.Error("failed to create a watcher for the pod",
 	//	zap.Error(err))
 	// handle the error
+
+	// TODO:
+	//  update the selected version together
 	time.Sleep(600 * time.Second)
 	(<-ch).Stop()
 

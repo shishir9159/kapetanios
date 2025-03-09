@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
+	"slices"
 	"strings"
 )
 
@@ -165,6 +166,14 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 		break
 	default:
 		if slices.Contains(in.GetVersion(), response) {
+			if in.GetDistro() == "rhel" {
+				if strings.Contains(in.GetDistroVersion(), "8.") {
+					s.upgradeConfig.Rhel8TargetK8sVersion = response
+				} else if strings.Contains(in.GetDistroVersion(), "9.") {
+					s.upgradeConfig.Rhel9TargetK8sVersion = response
+				}
+			}
+			break
 		}
 		s.connectionPool.BroadcastMessage(payload)
 		response, err = s.connectionPool.ReadMessages()
@@ -174,14 +183,6 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 		}
 		s.log.Error("unknown response from frontend",
 			zap.String("response", response))
-	}
-
-	if in.GetDistro() == "rhel" {
-		if strings.Contains(in.GetDistroVersion(), "8.") {
-			s.upgradeConfig.Redhat8K8sVersion = in.GetCurrentVersion()
-		} else if strings.Contains(in.GetDistroVersion(), "9.") {
-			s.upgradeConfig.Redhat9K8sVersion = in.GetCurrentVersion()
-		}
 	}
 
 	s.log.Info("available version list",
