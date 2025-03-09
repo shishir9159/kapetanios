@@ -81,8 +81,14 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			// TODO: concurrent map reading writing failure
 			//pool.Mutex.RLock()
 			for client := range pool.Clients {
-				// maybe not only writeJson will work
 				//err := client.Conn.WriteJSON(message)
+				if client.Conn == nil {
+					log.Error("error writing message:",
+						zap.String("message body:", string(message)),
+						zap.Int("remaining clients", len(pool.Clients)))
+					pool.unregister <- client
+				}
+
 				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
 					log.Error("error writing message:",

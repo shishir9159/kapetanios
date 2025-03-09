@@ -13,8 +13,7 @@ import (
 	"net"
 )
 
-// TODO: rpc stream
-// TODO: error handle
+// TODO: error handle per action
 
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
@@ -24,9 +23,6 @@ type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
 }
 
-// TODO:
-//  retry current step
-
 type clusterHealth struct {
 	// todo: whose responsibility is EtcdStatus bool?
 	EtcdStatus          bool   `json:"etcdStatus"`
@@ -34,7 +30,7 @@ type clusterHealth struct {
 	Err                 string `json:"err"`
 }
 
-type availableVersion struct {
+type versionToUpgrade struct {
 	CurrentVersion   string   `json:"currentVersion"`
 	AvailableVersion []string `json:"availableVersion"`
 	Err              string   `json:"err"`
@@ -183,7 +179,8 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	versions := availableVersion{
+	// TODO:
+	versions := versionToUpgrade{
 		CurrentVersion:   "",
 		AvailableVersion: in.GetVersion(),
 		Err:              in.GetErr(),

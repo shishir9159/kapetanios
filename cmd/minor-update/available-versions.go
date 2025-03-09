@@ -5,12 +5,11 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
-	"os"
 	"os/exec"
 	"strings"
 )
 
-func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error) {
+func availableVersions(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -74,19 +73,15 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		// todo: return false, "", err
 	}
 
-	// TODO:
-	//  sort them based on the delimiter "." and "-' + give a score by adding them ups with positional
-	//  values
-
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to exit from the updated root")
 	}
 
 	conn.ResetConnectBackoff()
-	connection := pb.NewMinorUpgradeClient(conn)
+	connection := pb.NewMinorUpdateClient(conn)
 
-	rpc, err := connection.UpgradeVersionSelection(c.ctx,
+	rpc, err := connection.UpdateVersionSelection(c.ctx,
 		&pb.AvailableVersions{
 			Version: availableVersionSlice,
 			Err:     "",
@@ -95,24 +90,17 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("could not send status update")
-		return false, "", err
+		return false, err
 	}
 
 	c.log.Info().
-		Bool("proceed to next step", rpc.GetProceedNextStep()).
 		Bool("retry current step", rpc.GetRetryCurrentStep()).
-		Bool("terminate application", rpc.GetTerminateApplication()).
-		Bool("certificate renewal", rpc.GetCertificateRenewal()).
-		Str("fetch the version to upgrade", rpc.GetVersion()).
+		Bool("response received", rpc.GetResponseReceived()).
 		Msg("available versions")
 
-	if rpc.GetTerminateApplication() {
-		os.Exit(0)
-	}
-
 	if rpc.GetRetryCurrentStep() {
-		return false, "", nil
+		return false, nil
 	}
 
-	return rpc.GetProceedNextStep(), rpc.GetVersion(), nil
+	return true, nil
 }
