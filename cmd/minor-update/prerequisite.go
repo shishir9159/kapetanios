@@ -177,7 +177,8 @@ func getRepoInfo(distro string, log *zerolog.Logger) (currentVersion string, rep
 	err = cmd.Run()
 
 	if err != nil {
-		log.Fatal().Err(err).
+		// should be fatal
+		log.Error().Err(err).
 			Msg("failed to list available versions")
 	}
 
