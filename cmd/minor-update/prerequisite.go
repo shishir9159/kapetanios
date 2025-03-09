@@ -80,10 +80,10 @@ func getDistro(c Controller) (string, error) {
 	return distro, err
 }
 
-func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL string, err error) {
+func getRepoInfo(distro string, log *zerolog.Logger) (currentVersion string, repoName string, repoBaseURL string, err error) {
 
 	if distro == "" {
-		return "", "", errors.New("distro is required")
+		return "", "", "", errors.New("distro is required")
 	}
 
 	changedRoot, err := utils.ChangeRoot("/host")
@@ -117,12 +117,30 @@ func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL s
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
 
-	//yum repolist --repo kubernetes -v enabled
+	var currentVersionCMD string
+	if distro == "rhel" {
+		currentVersionCMD = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
+	}
 
-	//var repoName string
+	cmd = exec.Command("/bin/bash", "-c", currentVersionCMD)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+
+	if err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to list available versions")
+		// TODO: refactor this to send the error : return false, "", err
+	}
+
+	currentVersion, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info().
+		Str("stdOut", currentVersion).
+		Str("stdErr", errStr).
+		Msg("successfully fetched repository updates")
+
 	var repoNameCmd string
 	if distro == "rhel" {
-		//repoName = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
 		repoNameCmd = "yum info kubectl --installed | grep \"From repo\" | awk '{ print $4 }'"
 	}
 	// TODO:
@@ -142,7 +160,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL s
 		// TODO: refactor this to send the error : return false, "", err
 	}
 
-	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	repoName, errStr = string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Info().
 		Str("stdOut", repoName).
 		Str("stdErr", errStr).
@@ -151,11 +169,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL s
 	var repoBaseURLCMD string
 	if distro == "rhel" {
 		repoBaseURLCMD = "yum repolist --repo " + repoName + " -v enabled -q | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
-		//repoName = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
-		repoNameCmd = "yum info kubectl --installed | grep \"From repo\" | awk '{ print $4 }'"
 	}
 
-	cmd = exec.Command("/bin/bash", "-c", repoNameCmd)
+	cmd = exec.Command("/bin/bash", "-c", repoBaseURLCMD)
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
@@ -163,10 +179,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL s
 	if err != nil {
 		log.Fatal().Err(err).
 			Msg("failed to list available versions")
-		// TODO: refactor this to send the error : return false, "", err
 	}
 
-	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	repoBaseURL, errStr = string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Info().
 		Str("stdOut", repoName).
 		Str("stdErr", errStr).
@@ -177,7 +192,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL s
 			Msg("failed to exit from the updated root")
 	}
 
-	return repoName, repoURLCMD, nil
+	return currentVersion, repoName, repoBaseURL, nil
 }
 
 func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
@@ -189,6 +204,8 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	distro, err := getDistro(c)
 
+	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
+
 	etcdNode := os.Getenv("ETCD_NODE")
 	if etcdNode == "false" {
 		return false, distro, errors.New("ETCD_NODE environment variable set false")
@@ -196,7 +213,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		return false, distro, errors.New("ETCD_NODE environment variable set to be True")
 	}
 
-	connection := pb.NewMinorUpgradeClient(conn)
+	connection := pb.NewMinorUpdateClient(conn)
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesMinorUpgrade{
