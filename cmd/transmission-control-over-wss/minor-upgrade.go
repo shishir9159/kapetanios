@@ -185,9 +185,10 @@ func recovery(namespace string) {
 func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 	roleName := "minor-upgrade"
 
-	go MinorUpdateGrpc(upgrade.nefario.log)
+	ch := make(chan *grpc.Server, 1)
+	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, ch)
 
-	for os, nodeName := range availableOS {
+	for osName, nodeName := range availableOS {
 
 		upgrade.nefario.log.Info("updating nodes info",
 			zap.String("node", nodeName))
@@ -195,7 +196,35 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
 
+		descriptor.Spec.HostNetwork = true
+		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
+
+		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
+			Create(context.Background(), descriptor, metav1.CreateOptions{})
+		if er != nil {
+			upgrade.nefario.log.Error("minor upgrade pod creation failed: ",
+				zap.Error(er))
+
+			upgrade.pool.BroadcastMessage([]byte("minor upgrade pod creation failed " + err.Error()))
+			return
+		}
+
+		upgrade.nefario.log.Info("minor upgrade pod created",
+			zap.String("pod name", minion.Name),
+			zap.String("os", osName))
+
+		upgrade.pool.BroadcastMessage([]byte("minor upgrade pod created successfully: " + minion.Name))
+
 	}
+
+	// TODO: watcher
+	// TODO: broadcast and wait for version
+	upgrade.pool.BroadcastMessage([]byte("failed to create a watcher for the pod: " + minion.Name))
+	upgrade.nefario.log.Error("failed to create a watcher for the pod",
+		zap.Error(err))
+	// handle the error
+	time.Sleep(600 * time.Second)
+	(<-ch).Stop()
 
 	os.Exit(0)
 }
@@ -332,12 +361,12 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			zap.String("node to be name:", node))
 
 		// todo: populate with user input
-		//targetedVersion := "1.26.6-1.1"
+		//  targetedVersion := "1.26.6-1.1"
 
 		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node)
 
-		// TODO: instead of pod monitoring for creation, monitor for successful restarts
+		// TODO: instead of pod monitoring only for creation, monitor for successful restarts
 		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 		//  if er != nil {
 		//  	c.log.Error("error restarting pods for certificate renewal",
