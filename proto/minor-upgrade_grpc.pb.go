@@ -33,7 +33,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MinorUpgradeClient interface {
 	ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*UpgradeResponse, error)
-	UpgradeVersionSelection(ctx context.Context, in *AvailableVersions, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error)
+	UpgradeVersionSelection(ctx context.Context, in *VersionCheck, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error)
 	ClusterCompatibility(ctx context.Context, in *UpgradeCompatibility, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterComponentUpgrade(ctx context.Context, in *ComponentUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterUpgradePlan(ctx context.Context, in *UpgradePlan, opts ...grpc.CallOption) (*UpgradeResponse, error)
@@ -59,7 +59,7 @@ func (c *minorUpgradeClient) ClusterHealthChecking(ctx context.Context, in *Prer
 	return out, nil
 }
 
-func (c *minorUpgradeClient) UpgradeVersionSelection(ctx context.Context, in *AvailableVersions, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error) {
+func (c *minorUpgradeClient) UpgradeVersionSelection(ctx context.Context, in *VersionCheck, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ClusterUpgradeResponse)
 	err := c.cc.Invoke(ctx, MinorUpgrade_UpgradeVersionSelection_FullMethodName, in, out, cOpts...)
@@ -124,7 +124,7 @@ func (c *minorUpgradeClient) ClusterComponentRestart(ctx context.Context, in *Co
 // for forward compatibility.
 type MinorUpgradeServer interface {
 	ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*UpgradeResponse, error)
-	UpgradeVersionSelection(context.Context, *AvailableVersions) (*ClusterUpgradeResponse, error)
+	UpgradeVersionSelection(context.Context, *VersionCheck) (*ClusterUpgradeResponse, error)
 	ClusterCompatibility(context.Context, *UpgradeCompatibility) (*UpgradeResponse, error)
 	ClusterComponentUpgrade(context.Context, *ComponentUpgradeStatus) (*UpgradeResponse, error)
 	ClusterUpgradePlan(context.Context, *UpgradePlan) (*UpgradeResponse, error)
@@ -143,7 +143,7 @@ type UnimplementedMinorUpgradeServer struct{}
 func (UnimplementedMinorUpgradeServer) ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*UpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
 }
-func (UnimplementedMinorUpgradeServer) UpgradeVersionSelection(context.Context, *AvailableVersions) (*ClusterUpgradeResponse, error) {
+func (UnimplementedMinorUpgradeServer) UpgradeVersionSelection(context.Context, *VersionCheck) (*ClusterUpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpgradeVersionSelection not implemented")
 }
 func (UnimplementedMinorUpgradeServer) ClusterCompatibility(context.Context, *UpgradeCompatibility) (*UpgradeResponse, error) {
@@ -201,7 +201,7 @@ func _MinorUpgrade_ClusterHealthChecking_Handler(srv interface{}, ctx context.Co
 }
 
 func _MinorUpgrade_UpgradeVersionSelection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AvailableVersions)
+	in := new(VersionCheck)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func _MinorUpgrade_UpgradeVersionSelection_Handler(srv interface{}, ctx context.
 		FullMethod: MinorUpgrade_UpgradeVersionSelection_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MinorUpgradeServer).UpgradeVersionSelection(ctx, req.(*AvailableVersions))
+		return srv.(MinorUpgradeServer).UpgradeVersionSelection(ctx, req.(*VersionCheck))
 	}
 	return interceptor(ctx, in, info, handler)
 }

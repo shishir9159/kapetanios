@@ -14,8 +14,8 @@ message UpgradeResponse {
   bool terminateApplication = 3;
 }
 
-message AvailableVersions {
-  repeated string version = 1;
+message VersionCheck {
+  bool consistentVersioning = 1;
   string err = 2;
 }
 
@@ -61,7 +61,7 @@ message ComponentRestartStatus {
 
 service MinorUpgrade {
   rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (UpgradeResponse);
-  rpc UpgradeVersionSelection(AvailableVersions) returns (ClusterUpgradeResponse);
+  rpc UpgradeVersionSelection(VersionCheck) returns (ClusterUpgradeResponse);
   rpc ClusterCompatibility(UpgradeCompatibility) returns (UpgradeResponse);
   rpc ClusterComponentUpgrade(ComponentUpgradeStatus) returns (UpgradeResponse);
   rpc ClusterUpgradePlan(UpgradePlan) returns (UpgradeResponse);
