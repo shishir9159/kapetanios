@@ -217,10 +217,11 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	rpc, err := connection.PrerequisitesCheck(c.ctx,
 		&pb.PrerequisitesMinorUpdate{
-			RepoURL:  "",
-			RepoName: "",
-			Log:      "",
-			Err:      "",
+			RepoName:       repoName,
+			RepoBaseURL:    repoBaseURL,
+			CurrentVersion: currentVersion,
+			Log:            "",
+			Err:            "",
 		})
 
 	if err != nil {
