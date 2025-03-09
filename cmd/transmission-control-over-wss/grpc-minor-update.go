@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
+	"strings"
 )
 
 // TODO: rpc stream
@@ -98,6 +99,10 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	//	s.log.Error("unknown response from frontend",
 	//		zap.String("response", response))
 	//}
+
+	if strings.Contains(osImage, "Red Hat Enterprise Linux 8") {
+		upgrade.config.Rh
+	}
 
 	s.log.Info("received cluster health status",
 		zap.String("repo name", in.GetRepoName()),

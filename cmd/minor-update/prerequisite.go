@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func getDistro(c Controller) (string, error) {
+func getDistro(c Controller) (string, string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -52,18 +52,26 @@ func getDistro(c Controller) (string, error) {
 	//}
 
 	var distro string
+	var distroVersion string
 
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "ID=") {
-			// Trim leading 'ID=' and remove quotes if present
-			idValue := strings.TrimPrefix(line, "ID=")
-			idValue = strings.Trim(idValue, `"`)
-			distro = idValue
-			c.log.Info().
-				Str("distro name", idValue).
-				Msg("~distro~")
+		// Trim leading 'ID=' and remove quotes if present
+		idValue := strings.TrimPrefix(line, "ID=")
+		idValue = strings.Trim(idValue, `"`)
+		distro = idValue
+
+		versionValue := strings.TrimPrefix(line, "VERSION_ID=")
+		versionValue = strings.Trim(versionValue, `"`)
+		distroVersion = versionValue
+		c.log.Debug().
+			Str("distro version", versionValue).
+			Str("distro name", idValue).
+			Msg("~distro~")
+
+		if strings.HasPrefix(line, "VERSION_ID=") {
+
 		}
 	}
 
@@ -77,7 +85,7 @@ func getDistro(c Controller) (string, error) {
 			Msg("failed to exit from the updated root")
 	}
 
-	return distro, err
+	return distro, distroVersion, err
 }
 
 func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, error) {
@@ -205,7 +213,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	//		- how to get the hostname and ip address
 	//  check if external etcd running if it's an etcd node
 
-	distro, err := getDistro(c)
+	distro, distroVersion, err := getDistro(c)
 
 	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
 
@@ -220,6 +228,8 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	rpc, err := connection.PrerequisitesCheck(c.ctx,
 		&pb.PrerequisitesMinorUpdate{
+			Distro:         distro,
+			DistroVersion:  distroVersion,
 			RepoName:       repoName,
 			RepoBaseURL:    repoBaseURL,
 			CurrentVersion: currentVersion,

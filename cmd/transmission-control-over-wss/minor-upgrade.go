@@ -188,7 +188,7 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, ch)
 
-	for osName, nodeName := range availableOS {
+	for osImage, nodeName := range availableOS {
 
 		upgrade.nefario.log.Info("updating nodes info",
 			zap.String("node", nodeName))
@@ -211,7 +211,7 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 
 		upgrade.nefario.log.Info("minor upgrade pod created",
 			zap.String("pod name", minion.Name),
-			zap.String("os", osName))
+			zap.String("os", osImage))
 
 		upgrade.pool.BroadcastMessage([]byte("minor update pod created successfully: " + minion.Name))
 	}
@@ -333,10 +333,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		availableOS := make(map[string]string)
 		for _, no := range nodes.Items {
-			availableOS[no.Status.NodeInfo.OperatingSystem] = no.Name
-			upgrade.nefario.log.Info("map",
-				zap.String("node name", no.Name),
-				zap.String("node name", no.Status.NodeInfo.OperatingSystem))
+			availableOS[no.Status.NodeInfo.OSImage] = no.Name
 		}
 
 		// configMap should be populated already for the second run
