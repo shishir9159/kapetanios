@@ -57,17 +57,20 @@ func getDistro(c Controller) (string, string, error) {
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 		line := scanner.Text()
-		// Trim leading 'ID=' and remove quotes if present
-		idValue := strings.TrimPrefix(line, "ID=")
-		idValue = strings.Trim(idValue, `"`)
-		distro = idValue
+		if strings.HasPrefix(line, "ID=") {
+			// Trim leading 'ID=' and remove quotes if present
+			idValue := strings.TrimPrefix(line, "ID=")
+			idValue = strings.Trim(idValue, `"`)
+			distro = idValue
+		} else if strings.HasPrefix(line, "VERSION_ID=") {
+			versionValue := strings.TrimPrefix(line, "VERSION_ID=")
+			versionValue = strings.Trim(versionValue, `"`)
+			distroVersion = versionValue
+		}
 
-		versionValue := strings.TrimPrefix(line, "VERSION_ID=")
-		versionValue = strings.Trim(versionValue, `"`)
-		distroVersion = versionValue
 		c.log.Debug().
-			Str("distro version", versionValue).
-			Str("distro name", idValue).
+			Str("distro version", distroVersion).
+			Str("distro name", distro).
 			Msg("~distro~")
 
 		if strings.HasPrefix(line, "VERSION_ID=") {
