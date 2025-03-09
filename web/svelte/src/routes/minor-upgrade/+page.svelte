@@ -17,7 +17,6 @@
 
         socket.onmessage = (e) => {
             logMessage = e.data;
-            console.log(logMessage);
             // message = utf8Array;
             // const message = JSON.parse(e.data);
         };
