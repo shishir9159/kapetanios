@@ -1,403 +1,263 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"github.com/gorilla/websocket"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
-	"github.com/shishir9159/kapetanios/internal/wss"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"log"
-	"net/http"
+	"fmt"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"os"
-	"sync"
-)
-
-package main
-
-import (
-"context"
-"flag"
-"github.com/gorilla/websocket"
-jsoniter "github.com/json-iterator/go"
-"github.com/shishir9159/kapetanios/internal/orchestration"
-"github.com/shishir9159/kapetanios/internal/wss"
-_ "go.uber.org/automaxprocs"
-"go.uber.org/zap"
-"go.uber.org/zap/zapcore"
-"io"
-metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-"log"
-"net/http"
-"os"
-"sync"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 var (
-	port = flag.Int("port", 50051, "The server port")
-	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
+	maxAttempts = 3
+	addr        = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	retryPolicy = `{
+		"methodConfig": [{
+		  "retryPolicy": {
+			  "MaxAttempts": 4,
+			  "InitialBackoff": ".01s",
+			  "MaxBackoff": ".01s",
+			  "BackoffMultiplier": 4.0,
+			  "RetryableStatusCodes": [ "UNAVAILABLE", "DEADLINE_EXCEEDED" ]
+		  }
+		}]}`
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:   0,
-	WriteBufferSize:  0,
-	WriteBufferPool:  nil,
-	HandshakeTimeout: 0,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-	Error:             nil,
-	Subprotocols:      nil,
-	EnableCompression: false,
+// todo:
+//  yum repository for kubernetes
+//  find in which repo the package belongs to
+//  multiple repo handle
+
+type Controller struct {
+	ctx    context.Context
+	log    zerolog.Logger
+	distro string
 }
-
-type nodeInfo struct {
-	os                string
-	kernelVersion     string
-	kubernetesVersion string
-}
-
-// should it be foreman?
-
-type Nefario struct {
-	client    *orchestration.Client
-	ctx       context.Context
-	cancel    context.CancelFunc
-	log       *zap.Logger
-	mu        sync.Mutex
-	namespace string
-}
-
-// TODO: update -- should it be query to one vm or all the vm?
-
-type Upgrade struct {
-	nefario  *Nefario
-	mu       sync.Mutex
-	upgraded chan bool
-	pool     *wss.ConnectionPool
-	config   *upgradeConfig
-	nodeInfo nodeInfo
-}
-
-type upgradeProgression struct {
-	CurrentStep           uint8  `yaml:"currentStep"`
-	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
-}
-
-// todo: should I keep track record if nodes were already
-//  tainted before draining
-
-type upgradeConfig struct {
-	drainNodes         bool   `yaml:"drainNodes"`
-	certificateRenewal bool   `yaml:"certificateRenewal"`
-	promptOnError      bool   `yaml:"promptOnLock"`
-	NodesUpgraded      string `yaml:"nodesUpgraded"`
-	NodesToBeUpgraded  string `yaml:"nodesToBeUpgraded"`
-	UbuntuK8sVersion   string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
-	Redhat8K8sVersion  string `yaml:"redhat8K8sVersion"`
-	Redhat9K8sVersion  string `yaml:"redhat9K8sVersion"`
-}
-
-func readConfig(nefario *Nefario) (upgradeConfig, error) {
-
-	// todo: mount configMap
-	configMapName := "kapetanios"
-
-	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
-		Get(nefario.ctx, configMapName, metav1.GetOptions{})
-	if er != nil {
-		nefario.log.Error("error fetching the configMap",
-			zap.Error(er))
-		return upgradeConfig{}, er
-	}
-
-	report := upgradeConfig{
-		certificateRenewal: false,
-		drainNodes:         false,
-		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
-		NodesUpgraded:     configMap.Data["NODES_UPGRADED"],
-		NodesToBeUpgraded: configMap.Data["NODES_TO_BE_UPGRADED"],
-		UbuntuK8sVersion:  configMap.Data["UBUNTU_K8S_VERSION"],
-		Redhat8K8sVersion: configMap.Data["REDHAT8_K8S_VERSION"],
-		Redhat9K8sVersion: configMap.Data["REDHAT9_K8S_VERSION"],
-		//	TODO: failed to upgrade nodes
-	}
-
-	//nefario.log.Debug("reading config",
-	//	zap.String("nodes upgraded", configMap.Data["NODES_UPGRADED"]),
-	//	zap.String("ubuntu k8s version", configMap.Data["UBUNTU_K8S_VERSION"]),
-	//	zap.String("redhat k8s version", configMap.Data["REDHAT8_K8S_VERSION"]),
-	//	zap.String("redhat 9 k8s version", configMap.Data["REDHAT9_K8S_VERSION"]),
-	//	zap.String("nodes to be upgraded", configMap.Data["NODES_TO_BE_UPGRADED"]))
-	//
-	//nefario.log.Debug("updated config",
-	//	zap.String("nodes upgraded", report.NodesUpgraded),
-	//	zap.String("ubuntu k8s version", report.UbuntuK8sVersion),
-	//	zap.String("redhat k8s version", report.Redhat8K8sVersion),
-	//	zap.String("redhat 9 k8s version", report.Redhat9K8sVersion),
-	//	zap.String("nodes to be upgraded", report.NodesToBeUpgraded))
-
-	return report, nil
-}
-
-func writeConfig(nefario *Nefario, report upgradeConfig) error {
-
-	configMapName := "kapetanios"
-
-	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
-		Get(context.Background(), configMapName, metav1.GetOptions{})
-	if er != nil {
-		nefario.log.Error("error fetching the configMap",
-			zap.Error(er))
-	}
-
-	configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion
-	configMap.Data["REDHAT8_K8S_VERSION"] = report.Redhat8K8sVersion
-	configMap.Data["REDHAT9_K8S_VERSION"] = report.Redhat9K8sVersion
-	configMap.Data["NODES_UPGRADED"] = report.NodesUpgraded
-	configMap.Data["NODES_TO_BE_UPGRADED"] = report.NodesToBeUpgraded
-
-	_, er = nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
-		Update(context.TODO(), configMap, metav1.UpdateOptions{})
-	if er != nil {
-		nefario.log.Error("error updating configMap",
-			zap.Error(er))
-	}
-
-	nefario.log.Info("writing config",
-		zap.String("nodes upgraded", report.NodesUpgraded),
-		zap.String("nodes to be upgraded", report.NodesToBeUpgraded))
-
-	return nil
-}
-
-// healthz is a liveness probe.
-func livez(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("shuttle", "launched")
-	w.WriteHeader(http.StatusOK)
-}
-
-//func readyz(isReady *atomic.Value) http.HandlerFunc {
-//	return func(w http.ResponseWriter, _ *http.Request) {
-//		if isReady == nil || !isReady.Load().(bool) {
-//			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
-//			return
-//		}
-//		w.WriteHeader(http.StatusOK)
-//	}
-//}
-
-// TODO: lifetime - cleanup
-
-func (nefario *Nefario) report(w http.ResponseWriter, _ *http.Request) {
-	config, err := readConfig(nefario)
-	if err != nil {
-		return
-	}
-
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-
-	payload, err := json.Marshal(&config)
-	if err != nil {
-		panic(err)
-	}
-
-	w.Write(payload)
-}
-
-func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
-
-	//var Json = jsoniter.ConfigFastest
-	//decoder := Json.NewDecoder(r.Body)
-	//var t upgradeProgression
-	//err := decoder.Decode(&t)
-	//if err != nil {
-	//	http.Error(w, err.Error(), http.StatusBadRequest)
-	//	panic(err)
-	//}
-	//
-	//log.Println(t)
-
-	if len(upgrade.pool.Clients) > 5 {
-		io.WriteString(w, "maximum number of concurrent connection exceeded!")
-
-		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
-		if er != nil {
-			upgrade.nefario.log.Info("error writing concurrent connections warning:",
-				zap.Error(er))
-		}
-
-		return
-	}
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		upgrade.nefario.log.Info("connection upgrade error:",
-			zap.Error(err))
-		return
-	}
-
-	client := &wss.Client{
-		Conn: conn,
-	}
-
-	upgrade.pool.AddClient(client)
-	//defer upgrade.pool.RemoveClient(client)
-
-	// TODO:
-	//client.Conn.SetCloseHandler(func(code int, text string) error {
-	//
-	//	return nil
-	//})
-
-	// todo: add on prerequisite
-	//if upgrade.nefario.mu.TryLock() {
-	//	// only allow one api would run at a time
-	//	defer upgrade.nefario.mu.Unlock()
-	//}
-
-	if upgrade.mu.TryLock() {
-		//defer upgrade.mu.Unlock()
-
-		// TODO: race condition - readCtx can be cancelled
-
-		upgrade.nefario.log.Info("registered client: ",
-			zap.String("client address: ", client.Conn.RemoteAddr().String()))
-
-		config, err := readConfig(upgrade.nefario)
-		if err != nil {
-			// TODO: no restart mode or draining
-			log.Println("error reading config map:", err)
-			//c.log.Error("could not read config map",
-			//	zap.Error(err))
-		}
-
-		upgrade.config = &config
-		upgrade.upgraded = make(chan bool, 1)
-		upgrade.MinorUpgrade()
-
-		// todo:
-		//  handle the error when only one persistent connection ran
-
-		return
-	}
-
-	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
-	go upgrade.pool.ReadMessageFromConn(ctx, client)
-	// TODO: propagate the context
-
-	<-upgrade.upgraded
-
-	// can fail
-	upgrade.pool.CancelReadContext()
-
-	// TODO: should there be any mutex for removing clients?
-	for client = range upgrade.pool.Clients {
-		upgrade.pool.RemoveClient(client)
-	}
-
-}
-
-//func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {
-//
-//	if nefario.mu.TryLock() {
-//
-//	}
-//
-//	// cleanup
-//
-//	nefario.log.Info("stopping all minions and ongoing process")
-//	// all connection closed
-//	// stop channel to stop all the connections
-//
-//	nefario.ctx = context.Background()
-//}
 
 func main() {
 
-	cfg := zap.Config{
-		Encoding:         "json",
-		Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-		EncoderConfig: zapcore.EncoderConfig{
-			MessageKey:   "message",
-			LevelKey:     "level",
-			EncodeLevel:  zapcore.CapitalLevelEncoder,
-			TimeKey:      "time",
-			EncodeTime:   zapcore.ISO8601TimeEncoder,
-			CallerKey:    "caller",
-			EncodeCaller: zapcore.ShortCallerEncoder,
+	// TODO: handle the following errors
+	//  [azureuser@robi-infra-poc-1 ~]$ yum info kubectl
+	//  Docker CE Stable - x86_64                                                                                                                                                         677 kB/s |  66 kB     00:00
+	//  Kubernetes                                                                                                                                                                         47 kB/s |  33 kB     00:00
+	//  Red Hat Enterprise Linux 8 for x86_64 - BaseOS from RHUI (RPMs)                                                                                                                   0.0  B/s |   0  B     00:00
+	//  Errors during downloading metadata for repository 'rhel-8-for-x86_64-baseos-rhui-rpms':
+	//    - Curl error (58): Problem with the local SSL certificate for https://rhui4-1.microsoft.com/pulp/repos/content/dist/rhel8/rhui/8/x86_64/baseos/os/repodata/repomd.xml [could not load PEM client certificate, OpenSSL error error:0200100D:system library:fopen:Permission denied, (no key found, wrong pass phrase, or wrong file format?)]
+	//  Error: Failed to download metadata for repo 'rhel-8-for-x86_64-baseos-rhui-rpms': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+
+	// yum info -b kubectl
+	// rpm -q kubectl
+
+	// TODO: optional backups
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	defer cancel()
+
+	//if debug == true {
+	//	out := os.Stdout
+	//	logLevel := zerolog.DebugLevel
+	//}
+
+	logger := zerolog.New(zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: time.RFC3339Nano,
+		FormatLevel: func(i interface{}) string {
+			return strings.ToUpper(fmt.Sprintf("[%s]", i))
 		},
+		FormatMessage: func(i interface{}) string {
+			return fmt.Sprintf("| %s |", i)
+		},
+		FormatCaller: func(i interface{}) string {
+			return filepath.Base(fmt.Sprintf("%s", i))
+		},
+		PartsExclude: []string{
+			zerolog.TimestampFieldName,
+		},
+	}).With().Timestamp().Caller().Stack().Logger()
+	//.Level(zerolog.InfoLevel)
+
+	c := Controller{
+		ctx: ctx,
+		log: logger,
 	}
 
-	logger := zap.Must(cfg.Build())
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
+	flag.Parse()
+
+	// Set up a connection to the server.
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(retryPolicy))
+	if err != nil {
+		c.log.Error().Err(err).
+			Msg("couldn't connect to the kapetanios")
+
+	}
+
+	//grpc.WithDisableServiceConfig()
+	defer func(conn *grpc.ClientConn) {
+		er := conn.Close()
 		if er != nil {
-			logger.Info("error syncing logger before application terminates",
-				zap.Error(er))
+			c.log.Error().Err(er).
+				Msg("failed to close the grpc connection")
 		}
-	}(logger)
+	}(conn)
 
-	Client, err := orchestration.NewClient()
-	if err != nil {
-		logger.Error("error creating orchestration client",
-			zap.Error(err))
-	}
+	var distro string
 
-	ctx, cancel := context.WithCancel(context.Background())
+	for i := 0; i < maxAttempts; i++ {
+		var skip bool
+		skip, distro, err = Prerequisites(c, conn)
+		if err != nil {
+			c.log.Error().Err(err).
+				Int("attempt", i).
+				Msg("failed to check prerequisites for cluster upgrade")
+		}
 
-	nefario := Nefario{
-		client:    Client,
-		ctx:       ctx,
-		cancel:    cancel,
-		namespace: os.Getenv("KAPETANIOS_NAMESPACE"),
-		log:       logger,
-	}
-
-	// TODO: refactor read write,
-	//  be conservative what you send
-	config, err := readConfig(&nefario)
-	if err != nil {
-		nefario.log.Info("failed to read config map: ",
-			zap.Error(err))
-	}
-
-	pool := wss.NewPool()
-	// TODO: remove all the clients when the job ends
-	go pool.Run(nefario.log)
-
-	upgrade := Upgrade{
-		pool:    pool,
-		config:  &config,
-		nefario: &nefario,
-	}
-	nefario.log.Debug("nodes to be upgraded",
-		zap.String("nodesToBeUpgraded", upgrade.config.NodesToBeUpgraded))
-
-	// ------
-	upgrade.config.promptOnError = true
-
-	if upgrade.config.NodesToBeUpgraded != "" {
-		er := Prerequisites(&upgrade)
-		if er != nil {
-			upgrade.nefario.log.Info("error writing prerequisites warning:",
-				zap.Error(er))
+		if skip {
+			break
 		}
 	}
 
-	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
-	http.HandleFunc("/livez", livez)
+	c.distro = distro
 
-	upgrade.nefario.log.Info("starting kapetanios server on :80")
-	err = http.ListenAndServe(":80", nil)
-	if err != nil {
-		upgrade.nefario.log.Error("error starting kapetanios server",
-			zap.Error(err))
-		panic(err)
+	var version string
+
+	for i := 0; i < maxAttempts; i++ {
+		var skip bool
+		skip, version, err = availableVersions(c, conn)
+
+		if err != nil {
+			c.log.Error().Err(err).
+				Int("attempt", i).
+				Msg("failed to fetch minor versions for the kubernetes upgrade")
+		}
+
+		if skip {
+			break
+		}
 	}
+
+	// todo: include in the testing
+	testing := false
+	version = "1.29.4-150500.2.1"
+	//version = "1.26.6-1.1"
+
+	if testing {
+		//version = kubernetesVersion
+	}
+
+	// TODO: refactor
+	//   plan := "v1.26.6"
+	//   clusterVersion should be separated from package(+) or components(-) version?
+
+	var diff string
+	for i := 0; i < maxAttempts; i++ {
+		var skip bool
+		skip, diff, err = compatibility(c, "v1.29.0", conn)
+		if err != nil {
+			c.log.Error().Err(err).
+				Int("attempt", i).
+				Msg("failed to diff")
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	c.log.Info().
+		Str("version", version).
+		Str("diff", diff).
+		Msg("diff for upgrade plan")
+
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := k8sComponentsUpgrade(c, "kubeadm", version, conn)
+		if er != nil {
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade kubeadm")
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	var plan string
+	for i := 0; i < maxAttempts; i++ {
+		var skip bool
+		skip, plan, err = upgradePlan(c, conn)
+		if err != nil {
+			c.log.Error().Err(err).
+				Int("attempt", i).
+				Msg("failed to get upgrade plan")
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	fmt.Println(plan)
+
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := clusterUpgrade(c, version, conn)
+		if er != nil {
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade cluster")
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := k8sComponentsUpgrade(c, "kubelet", version, conn)
+		if er != nil {
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade kubelet")
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := restartComponent(c, "kubelet", conn)
+		if er != nil {
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to restart kubelet")
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	// TODO: etcd node restart based
+	//  on condition
+
+	for i := 0; i < maxAttempts; i++ {
+		skip, er := k8sComponentsUpgrade(c, "kubectl", version, conn)
+		if er != nil {
+			c.log.Error().Err(er).
+				Int("attempt", i).
+				Msg("failed to upgrade kubectl")
+		}
+
+		if skip {
+			break
+		}
+	}
+
+	// TODO: sanityCheck/validation for cluster upgrade & finalizer
 }
