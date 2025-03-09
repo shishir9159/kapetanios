@@ -1,15 +1,41 @@
 <script lang="ts">
     import { ButtonGroup, Button } from 'flowbite-svelte';
-    import { connectionInitialization } from './server.svelte.js';
 
-    const logMessage = $state('');
-    console.log($state.snapshot(logMessage));
+    let logMessage: string = $state("didn't change");
+
+    async function connectionInitialization(): Promise<void> {
+
+        const socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
+        // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
+
+        socket.onopen = async () => {
+            console.log('connected to the server');
+            socket.send('next');
+            //     "current step"
+            //     prepare response accordingly
+        };
+
+        socket.onmessage = (e) => {
+            logMessage = e.data;
+            console.log(logMessage);
+            // message = utf8Array;
+            // const message = JSON.parse(e.data);
+        };
+
+        socket.onerror = (e) => {
+            console.error('websocket error:', e);
+        };
+
+        socket.onclose = async () => {
+            console.log('websocket closed');
+        };
+    }
 </script>
 
 <div class="action">
     <div class="button-group">
         <ButtonGroup>
-            <Button outline color="red" on:mousedown={connectionInitialization(logMessage)}>upgrade</Button>
+            <Button outline color="red" on:mousedown={connectionInitialization()}>upgrade</Button>
             <Button outline color="green">rollback</Button>
             <Button outline color="yellow">status</Button>
         </ButtonGroup>
@@ -20,11 +46,10 @@
     <div class="nodes">
     </div>
     <div class="nodes">
-        <p>Processing...</p>
-        {logMessage}
+<!--        <p>Processing...</p>-->
+        <p style="color: red;">{logMessage}</p>
     </div>
 </div>
-
 
 <!-- TODO: fix the height -->
 <style>
@@ -47,12 +72,31 @@
         display: flex;
         width: 80vw;
         margin: auto;
-        border: 1px solid #000000;
+        flex-wrap: nowrap;
+        /*border: 1px solid #000000;*/
     }
     .nodes {
         display: flex;
         flex: 1;
         padding: 50px;
-        text-align: center;
+        text-align: justify-all;
+        align-items: stretch;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+    .processing {
+        display: grid;
+        width: 80vw;
+        margin: auto;
+        /*border: 1px solid #000000;*/
+    }
+    .nodes {
+        display: grid;
+        flex: 1;
+        padding: 50px;
+        background-color: green;
+        text-align: justify-all;
+        white-space: normal;
+        word-wrap: break-word;
     }
 </style>

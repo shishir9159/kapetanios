@@ -20,8 +20,7 @@ export async function connectionInitialization(logMessage: string): Promise<void
 
 	socket.onmessage = (e) => {
 
-		const utf8Array: string = e.data;
-		logMessage = utf8Array;
+		logMessage = e.data;
 		console.log(logMessage);
 		// message = utf8Array;
 		// const message = JSON.parse(e.data);
