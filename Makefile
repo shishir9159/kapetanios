@@ -22,10 +22,11 @@ go-protogen:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	export PATH="$PATH:$(go env GOPATH)/bin"
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-expiration.proto
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/rollback.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-expirati.on.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-update.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 
 clean:
 	@printf $(COLOR) "Removing built binaries with the build directory..."
@@ -33,7 +34,7 @@ clean:
 
 ##### Docker #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios certs-renewal certs-expiration etcd-restart rollback
+docker-build-and-push: kapetanios certs-renewal certs-expiration etcd-restart rollback minor-update
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
@@ -63,6 +64,12 @@ etcd-restart:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile
  	docker push quay.io/klovercloud/etcd-restart:latest
+
+.PHONY: minor-update
+minor-update:
+	@printf $(COLOR) "Building docker image for minor-update minions and pushing it to the registry..."
+	docker build . -t quay.io/klovercloud/minor-update:latest -f minor-update.Dockerfile
+	docker push quay.io/klovercloud/minor-update:latest
 
 .PHONY: minor-upgrade
 minor-upgrade:

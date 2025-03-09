@@ -182,6 +182,22 @@ func recovery(namespace string) {
 
 }
 
+func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
+	roleName := "minor-upgrade"
+
+	for os, nodeName := range availableOS {
+
+		upgrade.nefario.log.Info("updating nodes info",
+			zap.String("node", nodeName))
+
+		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
+		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
+
+	}
+
+	os.Exit(0)
+}
+
 func (upgrade *Upgrade) MinorUpgrade() {
 
 	defer upgrade.mu.Unlock()
@@ -284,6 +300,18 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			)
 			nodeNames = append(nodeNames, no.Name)
 		}
+
+		availableOS := make(map[string]string)
+		for _, no := range nodes.Items {
+			availableOS[no.Status.NodeInfo.OperatingSystem] = no.Name
+		}
+
+		// configMap should be populated already for the second run
+		upgrade.MinorUpdate(availableOS)
+
+		// TODO:
+		//  Validation on OS version, Kernel Version, Selected Item compatibilities table
+
 	}
 
 	upgrade.nefario.log.Debug("nodes to be upgraded",

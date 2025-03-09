@@ -3,7 +3,7 @@
 
     let logMessage: string = $state("didn't change");
 
-    async function connectionInitialization(): Promise<void> {
+    function connectionInitialization() {
 
         const socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
         // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
