@@ -1,0 +1,217 @@
+package main
+
+import (
+	"bufio"
+	"bytes"
+	"errors"
+	"github.com/rs/zerolog"
+	pb "github.com/shishir9159/kapetanios/proto"
+	"github.com/shishir9159/kapetanios/utils"
+	"google.golang.org/grpc"
+	"os"
+	"os/exec"
+	"strings"
+)
+
+func getDistro(c Controller) (string, error) {
+
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
+	}
+
+	fi, err := os.Open("/etc/os-release")
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to open /etc/os-release")
+	}
+
+	//defer func() {
+	//	if er := fi.Close(); er != nil {
+	//		c.log.Fatal().Err(er).
+	//			Msg("failed to close /etc/os-release")
+	//	}
+	//}()
+	//
+	//// try double buffering the chunks
+	//buf := make([]byte, 1024)
+	//for {
+	//	// read a chunk
+	//	n, er := fi.Read(buf)
+	//	if er != nil && er != io.EOF {
+	//		c.log.Error().Err(er).
+	//			Msg("failed to read chunk by chunk from /etc/os-release")
+	//	}
+	//
+	//	if substring(buf[:n], 0) == "ID" {}
+	//
+	//	if n == 0 {
+	//		break
+	//	}
+	//}
+
+	var distro string
+
+	scanner := bufio.NewScanner(fi)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "ID=") {
+			// Trim leading 'ID=' and remove quotes if present
+			idValue := strings.TrimPrefix(line, "ID=")
+			idValue = strings.Trim(idValue, `"`)
+			distro = idValue
+			c.log.Info().
+				Str("distro name", idValue).
+				Msg("~distro~")
+		}
+	}
+
+	if er := scanner.Err(); er != nil {
+		c.log.Error().Err(er).
+			Msg("failed to read the file /etc/os-release")
+	}
+
+	if err = changedRoot(); err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
+	}
+
+	return distro, err
+}
+
+func getRepoInfo(distro string, log *zerolog.Logger) (repoName string, repoURL string, err error) {
+
+	if distro == "" {
+		return "", "", errors.New("distro is required")
+	}
+
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
+	}
+
+	var updateCommand string
+
+	if distro == "rhel" {
+		updateCommand = "yum update -y"
+	} else if distro == "ubuntu" {
+		updateCommand = "apt update -y"
+	}
+
+	// TODO: re test on ubuntu and debian
+	cmd := exec.Command("/bin/bash", "-c", updateCommand)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+	if err != nil {
+		log.Error().Err(err).
+			Msg("failed to fetch repository updates")
+	}
+
+	log.Debug().
+		Str("stdout", stdoutBuf.String()).
+		Str("stderr", stderrBuf.String()).
+		Msg("successfully fetched repository updates")
+
+	//var repoName string
+	var packageSearch string
+	if distro == "rhel" {
+		//repoName = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
+		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes | grep .x86_64 | awk '{ print $2 }'"
+	} else if distro == "ubuntu" {
+		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
+	}
+
+	cmd = exec.Command("/bin/bash", "-c", packageSearch)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+	// output delimiter is " | "
+	// extract second and the third column
+
+	if err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to list available versions")
+		// TODO: refactor this to send the error : return false, "", err
+	}
+
+	log.Debug().
+		Str("stdout", stdoutBuf.String()).
+		Str("stderr", stderrBuf.String()).
+		Msg("successfully fetched repository updates")
+
+	//outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	//c.log.Info().
+	//	Str("out", outStr).
+	//	Str("err", errStr).
+	//	Msg("outString & errString")
+
+	availableVersionSlice := strings.Split(stdoutBuf.String(), "\n")
+
+	if len(availableVersionSlice) == 0 {
+		log.Error().Err(err).
+			Msg("no available versions found for minor upgrade")
+		// todo: return false, "", err
+	}
+
+	// TODO:
+	//  sort them based on the delimiter "." and "-' + give a score by adding them ups with positional
+	//  values
+
+	if err = changedRoot(); err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
+	}
+
+}
+
+func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
+
+	// TODO: how to know the current node is etcd with clientSet?
+	//  	- etcd cluster from the cm
+	//		- how to get the hostname and ip address
+	//  check if external etcd running if it's an etcd node
+
+	distro, err := getDistro(c)
+
+	etcdNode := os.Getenv("ETCD_NODE")
+	if etcdNode == "false" {
+		return false, distro, errors.New("ETCD_NODE environment variable set false")
+	} else if etcdNode == "true" {
+		return false, distro, errors.New("ETCD_NODE environment variable set to be True")
+	}
+
+	connection := pb.NewMinorUpgradeClient(conn)
+
+	rpc, err := connection.ClusterHealthChecking(c.ctx,
+		&pb.PrerequisitesMinorUpgrade{
+			EtcdStatus: true,
+			// TODO: refactor
+			StorageAvailability: 50,
+			Err:                 "",
+		})
+
+	if err != nil {
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		return false, distro, err
+	}
+
+	c.log.Info().
+		Bool("next step", rpc.GetProceedNextStep()).
+		Bool("retry current step", rpc.GetRetryCurrentStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("prerequisite step response")
+
+	if rpc.GetTerminateApplication() {
+		os.Exit(0)
+	} else if rpc.GetRetryCurrentStep() {
+		return false, "", nil
+	}
+
+	return rpc.GetProceedNextStep(), distro, nil
+}

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.2
-// source: proto/update.proto
+// source: proto/minor-update.proto
 
 package proto
 
@@ -155,5 +155,5 @@ var MinorUpdate_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/update.proto",
+	Metadata: "proto/minor-update.proto",
 }
