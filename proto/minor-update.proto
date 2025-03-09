@@ -17,7 +17,9 @@ message UpdateResponse {
 
 message AvailableVersions {
   repeated string version = 1;
-  string err = 2;
+  string distro = 2;
+  string currentVersion = 3;
+  string err = 4;
 }
 
 message UpdateFinalizer {

@@ -33,14 +33,11 @@ type prerequisitesCheck struct {
 }
 
 type availableVersion struct {
-	UbuntuCurrentK8sVersion   string   `json:"ubuntuCurrentK8sVersion"`
-	Rhel8CurrentK8sVersion    string   `json:"rhel8CurrentK8sVersion"`
-	Rhel9CurrentK8sVersion    string   `json:"rhel9CurrentK8sVersion"`
-	UbuntuAvailableK8sVersion []string `json:"ubuntuAvailableK8sVersion"`
-	Rhel8AvailableK8sVersion  []string `json:"rhel8AvailableK8sVersion"`
-	Rhel9AvailableK8sVersion  []string `json:"rhel9AvailableK8sVersion"`
-	Log                       string   `json:"log"`
-	Err                       string   `json:"err"`
+	Distro              string `json:"distro"`
+	CurrentK8sVersion   string `json:"currentK8sVersion"`
+	AvailableK8sVersion string `json:"availableK8sVersion"`
+	Log                 string `json:"log"`
+	Err                 string `json:"err"`
 }
 
 // TODO: Create an interface instead of generic that
@@ -121,14 +118,11 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	versions := availableVersion{
-		UbuntuCurrentK8sVersion:   "",
-		Rhel8CurrentK8sVersion:    "",
-		Rhel9CurrentK8sVersion:    "",
-		UbuntuAvailableK8sVersion: nil,
-		Rhel8AvailableK8sVersion:  nil,
-		Rhel9AvailableK8sVersion:  nil,
-		Log:                       "",
-		Err:                       in.GetErr(),
+		Distro:              in.GetDistro(),
+		CurrentK8sVersion:   in.GetCurrentVersion(),
+		AvailableK8sVersion: in.GetVersion(),
+		Log:                 in.Get,
+		Err:                 in.GetErr(),
 	}
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
