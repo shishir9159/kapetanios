@@ -21,7 +21,7 @@ type minorUpdateServer struct {
 	log            *zap.Logger
 	upgradeConfig  *upgradeConfig
 	connectionPool *wss.ConnectionPool
-	pb.MinorUpdateServer
+	pb.MinorUpgradeServer
 }
 
 type prerequisitesCheck struct {
@@ -33,14 +33,80 @@ type prerequisitesCheck struct {
 }
 
 type availableVersion struct {
-	UbuntuCurrentK8sVersion   string   `json:"ubuntuCurrentK8sVersion"`
-	Rhel8CurrentK8sVersion    string   `json:"rhel8CurrentK8sVersion"`
-	Rhel9CurrentK8sVersion    string   `json:"rhel9CurrentK8sVersion"`
-	UbuntuAvailableK8sVersion []string `json:"ubuntuAvailableK8sVersion"`
-	Rhel8AvailableK8sVersion  []string `json:"rhel8AvailableK8sVersion"`
-	Rhel9AvailableK8sVersion  []string `json:"rhel9AvailableK8sVersion"`
-	Log                       string   `json:"log"`
+	UbuntuCurrentK8sVersion   string   `json:"currentVersion"`
+	UbuntuAvailableK8sVersion []string `json:"availableVersion"`
+	Rhel8CurrentK8sVersion    string   `json:"currentVersion"`
+	rhel9CurrentK8sVersion    string   `json:"currentVersion"`
 	Err                       string   `json:"err"`
+}
+
+type clusterCompatability struct {
+	OSCompatability bool   `json:"osCompatability"`
+	Diff            string `json:"diff"`
+	Err             string `json:"err"`
+}
+
+type clusterComponentUpgrade struct {
+	ComponentUpgradeSuccess bool   `json:"componentUpgradeSuccess"`
+	Component               string `json:"component"`
+	Log                     string `json:"log"`
+	Err                     string `json:"err"`
+}
+
+type clusterUpgradePlan struct {
+	ClusterVersion string `json:"clusterVersion"`
+	Log            string `json:"log"`
+	Err            string `json:"err"`
+}
+
+type clusterUpgradeSuccess struct {
+	UpgradeSuccess bool   `json:"upgradeSuccess"`
+	Log            string `json:"log"`
+	Err            string `json:"err"`
+}
+
+type componentRestartSuccess struct {
+	ComponentRestartSuccess bool   `json:"componentRestartSuccess"`
+	Component               string `json:"component"`
+	Log                     string `json:"log"`
+	Err                     string `json:"err"`
+}
+
+// TODO:
+//  pass a generic???
+//  receive a generic too???
+
+func actionResponse(payload []byte, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool, error) {
+
+	pool.BroadcastMessage(payload)
+	response, err := pool.ReadMessages()
+	if err != nil {
+		log.Error("Error reading response",
+			zap.Error(err))
+		// return false, false, false, err
+	}
+
+	switch response {
+	case "retry":
+		return true, false, false, nil
+	case "next step":
+		return false, true, true, nil
+	case "terminate application":
+		return false, false, true, nil
+	default:
+		pool.BroadcastMessage(payload)
+		response, err = pool.ReadMessages()
+		if err != nil {
+			log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	// TODO: this should not happen as there is no
+	//  break statement in the switch
+	return false, false, false, nil
 }
 
 // TODO: Create an interface instead of generic that
@@ -48,17 +114,15 @@ type availableVersion struct {
 //  and wait for reading
 // TODO: state id ---------
 
-// PrerequisitesCheck implements proto.MinorUpdateServer
-func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.PrerequisitesMinorUpdate) (*pb.UpgradeResponse, error) {
+// ClusterHealthChecking implements proto.MinorUpgradeServer
+func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	nodeHealth := prerequisitesCheck{
-		RepoName:       in.GetRepoName(),
-		RepoBaseURL:    in.GetRepoBaseURL(),
-		CurrentVersion: in.GetCurrentVersion(),
-		Log:            in.GetLog(),
-		Err:            in.GetErr(),
+	nodeHealth := clusterHealth{
+		EtcdStatus:          in.GetEtcdStatus(),
+		StorageAvailability: in.GetStorageAvailability(),
+		Err:                 in.GetErr(),
 	}
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -103,9 +167,8 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	}
 
 	s.log.Info("received cluster health status",
-		zap.String("repo name", in.GetRepoName()),
-		zap.String("repo baseURL", in.GetRepoBaseURL()),
-		zap.String("received storage availability", in.GetCurrentVersion()),
+		zap.Bool("etcd status", in.GetEtcdStatus()),
+		zap.Uint64("received storage availability", in.GetStorageAvailability()),
 		zap.String("received error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
@@ -115,8 +178,8 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	}, nil
 }
 
-// UpdateVersionSelection implements proto.MinorUpdateServer
-func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
+// UpgradeVersionSelection implements proto.MinorUpgradeServer
+func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
@@ -174,7 +237,296 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	}, nil
 }
 
-func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.Server) {
+// ClusterCompatibility implements proto.Upgrade
+func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.UpgradeCompatibility) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	compatability := clusterCompatability{
+		OSCompatability: in.GetOsCompatibility(),
+		Diff:            in.GetDiff(),
+		Err:             in.GetErr(),
+	}
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&compatability)
+	if err != nil {
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
+	}
+
+	switch response {
+	case "retry":
+		retryCurrentStep = true
+		break
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
+		if err != nil {
+			s.log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	s.log.Info("received cluster compatibility report",
+		zap.Bool("os compatibility", in.GetOsCompatibility()),
+		zap.String("kubernetes version diff", in.GetDiff()),
+		zap.String("error", in.GetErr()))
+
+	return &pb.UpgradeResponse{
+		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
+		TerminateApplication: terminateApplication,
+	}, nil
+}
+
+// ClusterComponentUpgrade implements proto.Upgrade
+func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.ComponentUpgradeStatus) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	componentUpgrade := clusterComponentUpgrade{
+		ComponentUpgradeSuccess: in.ComponentUpgradeSuccess,
+		Component:               in.GetComponent(),
+		Log:                     in.GetLog(),
+		Err:                     in.GetErr(),
+	}
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&componentUpgrade)
+	if err != nil {
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
+	}
+
+	switch response {
+	case "retry":
+		retryCurrentStep = true
+		break
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
+		if err != nil {
+			s.log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	s.log.Info("received cluster component Upgrade status",
+		zap.Bool("component successful Upgrade", in.GetComponentUpgradeSuccess()),
+		zap.String("component", in.GetComponent()),
+		zap.String("log", in.GetLog()),
+		zap.String("error", in.GetErr()))
+
+	return &pb.UpgradeResponse{
+		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
+		TerminateApplication: terminateApplication,
+	}, nil
+}
+
+// ClusterUpgradePlan implements proto.Upgrade
+func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.UpgradePlan) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	upgradePlan := clusterUpgradePlan{
+		ClusterVersion: in.GetCurrentClusterVersion(),
+		Log:            in.GetLog(),
+		Err:            in.GetErr(),
+	}
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&upgradePlan)
+	if err != nil {
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
+	}
+
+	switch response {
+	case "retry":
+		retryCurrentStep = true
+		break
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
+		if err != nil {
+			s.log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	s.log.Info("received cluster Upgrade plan",
+		zap.String("cluster version", in.GetCurrentClusterVersion()),
+		zap.String("received log", in.GetLog()),
+		zap.String("error", in.GetErr()))
+
+	return &pb.UpgradeResponse{
+		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
+		TerminateApplication: terminateApplication,
+	}, nil
+}
+
+// ClusterUpgrade implements proto.Upgrade
+func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeStatus) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	upgradeSuccess := clusterUpgradeSuccess{
+		UpgradeSuccess: in.GetUpgradeSuccess(),
+		Log:            in.GetLog(),
+		Err:            in.GetErr(),
+	}
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&upgradeSuccess)
+	if err != nil {
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
+	}
+
+	switch response {
+	case "retry":
+		retryCurrentStep = true
+		break
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
+		if err != nil {
+			s.log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	s.log.Info("received cluster Upgrade plan",
+		zap.Bool("cluster Upgrade status", in.GetUpgradeSuccess()),
+		zap.String("log", in.GetLog()),
+		zap.String("error", in.GetErr()))
+
+	return &pb.UpgradeResponse{
+		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
+		TerminateApplication: terminateApplication,
+	}, nil
+}
+
+// ClusterComponentRestart implements proto.Upgrade
+func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.ComponentRestartStatus) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	restartSuccess := componentRestartSuccess{
+		ComponentRestartSuccess: false,
+		Component:               "",
+		Log:                     "",
+		Err:                     "",
+	}
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	payload, err := json.Marshal(&restartSuccess)
+	if err != nil {
+
+	}
+
+	s.connectionPool.BroadcastMessage(payload)
+	response, err := s.connectionPool.ReadMessages()
+	if err != nil {
+		//return nil, err
+	}
+
+	switch response {
+	case "retry":
+		retryCurrentStep = true
+		break
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
+		if err != nil {
+			s.log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	s.log.Info("received cluster component restart status",
+		zap.Bool("component restart success", in.GetComponentRestartSuccess()),
+		zap.String("component", in.GetComponent()),
+		zap.String("log", in.GetLog()),
+		zap.String("error", in.GetErr()))
+
+	return &pb.UpgradeResponse{
+		ProceedNextStep:      proceedNextStep,
+		RetryCurrentStep:     retryCurrentStep,
+		TerminateApplication: terminateApplication,
+	}, nil
+}
+
+func MinorUpgradeGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
