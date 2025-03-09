@@ -84,19 +84,4 @@
         white-space: normal;
         word-wrap: break-word;
     }
-    /*.processing {*/
-    /*    display: grid;*/
-    /*    width: 80vw;*/
-    /*    margin: auto;*/
-    /*    !*border: 1px solid #000000;*!*/
-    /*}*/
-    /*.nodes {*/
-    /*    display: grid;*/
-    /*    flex: 1;*/
-    /*    padding: 50px;*/
-    /*    background-color: green;*/
-    /*    text-align: justify-all;*/
-    /*    white-space: normal;*/
-    /*    word-wrap: break-word;*/
-    /*}*/
 </style>
