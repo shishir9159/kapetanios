@@ -44,7 +44,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	var packageSearch string
 	if c.distro == "rhel" {
-		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes | grep .x86_64 | awk '{ print $2 }'"
+		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes --quiet | grep .x86_64 | awk '{ print $2 }'"
 	} else if c.distro == "ubuntu" {
 		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
 	}

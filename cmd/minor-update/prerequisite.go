@@ -80,7 +80,7 @@ func getDistro(c Controller) (string, error) {
 	return distro, err
 }
 
-func getRepoInfo(distro string, log *zerolog.Logger) (currentVersion string, repoName string, repoBaseURL string, err error) {
+func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, error) {
 
 	if distro == "" {
 		return "", "", "", errors.New("distro is required")
@@ -160,7 +160,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (currentVersion string, rep
 		// TODO: refactor this to send the error : return false, "", err
 	}
 
-	repoName, errStr = string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Info().
 		Str("stdOut", repoName).
 		Str("stdErr", errStr).
@@ -182,7 +182,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (currentVersion string, rep
 			Msg("failed to list available versions")
 	}
 
-	repoBaseURL, errStr = string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	repoBaseURL, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Info().
 		Str("stdOut", repoName).
 		Str("stdErr", errStr).
