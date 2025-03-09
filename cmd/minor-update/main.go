@@ -1,13 +1,11 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
-	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
@@ -16,6 +14,26 @@ import (
 	"net/http"
 	"os"
 	"sync"
+)
+
+package main
+
+import (
+"context"
+"flag"
+"github.com/gorilla/websocket"
+jsoniter "github.com/json-iterator/go"
+"github.com/shishir9159/kapetanios/internal/orchestration"
+"github.com/shishir9159/kapetanios/internal/wss"
+_ "go.uber.org/automaxprocs"
+"go.uber.org/zap"
+"go.uber.org/zap/zapcore"
+"io"
+metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+"log"
+"net/http"
+"os"
+"sync"
 )
 
 var (
