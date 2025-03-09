@@ -81,9 +81,9 @@ type upgradeConfig struct {
 	UbuntuK8sVersion          string   `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
 	Redhat8K8sVersion         string   `yaml:"redhat8K8sVersion"`
 	Redhat9K8sVersion         string   `yaml:"redhat9K8sVersion"`
-	UbuntuCurrentK8sVersion   string   `yaml:"ubuntuCurrentK8sVersion"`
-	Rhel8CurrentK8sVersion    string   `yaml:"rhel8CurrentK8sVersion"`
-	Rhel9CurrentK8sVersion    string   `yaml:"rhel9CurrentK8sVersion"`
+	UbuntuTargetK8sVersion    string   `yaml:"ubuntuTargetK8sVersion"`
+	Rhel8TargetK8sVersion     string   `yaml:"rhel8TargetK8sVersion"`
+	Rhel9TargetK8sVersion     string   `yaml:"rhel9TargetK8sVersion"`
 	UbuntuAvailableK8sVersion []string `yaml:"ubuntuAvailableK8sVersion"`
 	Rhel8AvailableK8sVersion  []string `yaml:"rhel8AvailableK8sVersion"`
 	Rhel9AvailableK8sVersion  []string `yaml:"rhel9AvailableK8sVersion"`

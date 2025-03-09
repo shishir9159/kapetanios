@@ -26,6 +26,8 @@ type minorUpdateServer struct {
 }
 
 type prerequisitesCheck struct {
+	Distro         string `json:"distro"`
+	DistroVersion  string `json:"distroVersion"`
 	RepoName       string `json:"repoName"`
 	RepoBaseURL    string `json:"repoBaseUrl"`
 	CurrentVersion string `json:"currentVersion"`
@@ -35,6 +37,7 @@ type prerequisitesCheck struct {
 
 type availableVersion struct {
 	Distro              string   `json:"distro"`
+	DistroVersion       string   `json:"distroVersion"`
 	CurrentK8sVersion   string   `json:"currentK8sVersion"`
 	AvailableK8sVersion []string `json:"availableK8sVersion"`
 	Log                 string   `json:"log"`
@@ -53,6 +56,8 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, true, false
 
 	nodeHealth := prerequisitesCheck{
+		Distro:         in.GetDistro(),
+		DistroVersion:  in.GetDistroVersion(),
 		RepoName:       in.GetRepoName(),
 		RepoBaseURL:    in.GetRepoBaseURL(),
 		CurrentVersion: in.GetCurrentVersion(),
@@ -100,8 +105,12 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	//		zap.String("response", response))
 	//}
 
-	if strings.Contains(osImage, "Red Hat Enterprise Linux 8") {
-		upgrade.config.Rh
+	if in.GetDistro() == "rhel" {
+		if strings.Contains(in.GetDistroVersion(), "8.") {
+			s.upgradeConfig.Redhat8K8sVersion = in.GetCurrentVersion()
+		} else if strings.Contains(in.GetDistroVersion(), "9.") {
+			s.upgradeConfig.Redhat9K8sVersion = in.GetCurrentVersion()
+		}
 	}
 
 	s.log.Info("received cluster health status",
@@ -124,6 +133,7 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 
 	versions := availableVersion{
 		Distro:              in.GetDistro(),
+		DistroVersion:       in.GetDistroVersion(),
 		CurrentK8sVersion:   in.GetCurrentVersion(),
 		AvailableK8sVersion: in.GetVersion(),
 		Log:                 in.GetLog(),
@@ -140,7 +150,7 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	// debugging
 	// TODO: make a separate function
 	//  make an specific field for each response
-	//  dedicated for the decision --
+	//  dedicated for the decision
 
 	s.connectionPool.BroadcastMessage(payload)
 	response, err := s.connectionPool.ReadMessages()
@@ -153,10 +163,9 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	case "retry":
 		retryCurrentStep = true
 		break
-	case "response received":
-		responseReceived = true
-		break
 	default:
+		if slices.Contains(in.GetVersion(), response) {
+		}
 		s.connectionPool.BroadcastMessage(payload)
 		response, err = s.connectionPool.ReadMessages()
 		if err != nil {
@@ -165,6 +174,14 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 		}
 		s.log.Error("unknown response from frontend",
 			zap.String("response", response))
+	}
+
+	if in.GetDistro() == "rhel" {
+		if strings.Contains(in.GetDistroVersion(), "8.") {
+			s.upgradeConfig.Redhat8K8sVersion = in.GetCurrentVersion()
+		} else if strings.Contains(in.GetDistroVersion(), "9.") {
+			s.upgradeConfig.Redhat9K8sVersion = in.GetCurrentVersion()
+		}
 	}
 
 	s.log.Info("available version list",
