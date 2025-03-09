@@ -19,7 +19,8 @@ message AvailableVersions {
   repeated string version = 1;
   string distro = 2;
   string currentVersion = 3;
-  string err = 4;
+  string log = 4;
+  string err = 5;
 }
 
 message UpdateFinalizer {

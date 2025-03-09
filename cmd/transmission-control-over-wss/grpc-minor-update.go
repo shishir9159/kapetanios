@@ -33,11 +33,11 @@ type prerequisitesCheck struct {
 }
 
 type availableVersion struct {
-	Distro              string `json:"distro"`
-	CurrentK8sVersion   string `json:"currentK8sVersion"`
-	AvailableK8sVersion string `json:"availableK8sVersion"`
-	Log                 string `json:"log"`
-	Err                 string `json:"err"`
+	Distro              string   `json:"distro"`
+	CurrentK8sVersion   string   `json:"currentK8sVersion"`
+	AvailableK8sVersion []string `json:"availableK8sVersion"`
+	Log                 string   `json:"log"`
+	Err                 string   `json:"err"`
 }
 
 // TODO: Create an interface instead of generic that
@@ -46,7 +46,7 @@ type availableVersion struct {
 // TODO: state id ---------
 
 // PrerequisitesCheck implements proto.MinorUpdateServer
-func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.PrerequisitesMinorUpdate) (*pb.UpgradeResponse, error) {
+func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.PrerequisitesMinorUpdate) (*pb.UpdateResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
@@ -105,7 +105,7 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 		zap.String("received storage availability", in.GetCurrentVersion()),
 		zap.String("received error", in.GetErr()))
 
-	return &pb.UpgradeResponse{
+	return &pb.UpdateResponse{
 		ProceedNextStep:      proceedNextStep,
 		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
@@ -113,15 +113,15 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 }
 
 // UpdateVersionSelection implements proto.MinorUpdateServer
-func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
+func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.UpdateFinalizer, error) {
 
-	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+	var retryCurrentStep, responseReceived = false, false
 
 	versions := availableVersion{
 		Distro:              in.GetDistro(),
 		CurrentK8sVersion:   in.GetCurrentVersion(),
 		AvailableK8sVersion: in.GetVersion(),
-		Log:                 in.Get,
+		Log:                 in.GetLog(),
 		Err:                 in.GetErr(),
 	}
 
@@ -143,11 +143,8 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	case "retry":
 		retryCurrentStep = true
 		break
-	case "next step":
-		proceedNextStep = true
-		break
-	case "terminate application":
-		terminateApplication = true
+	case "response received":
+		responseReceived = true
 		break
 	default:
 		s.connectionPool.BroadcastMessage(payload)
@@ -164,12 +161,9 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 		zap.Strings("k8s component version", in.GetVersion()),
 		zap.String("error", in.GetErr()))
 
-	return &pb.ClusterUpgradeResponse{
-		ProceedNextStep:      proceedNextStep,
-		RetryCurrentStep:     retryCurrentStep,
-		TerminateApplication: terminateApplication,
-		CertificateRenewal:   certificateRenewal,
-		Version:              "",
+	return &pb.UpdateFinalizer{
+		ResponseReceived: responseReceived,
+		RetryCurrentStep: retryCurrentStep,
 	}, nil
 }
 
@@ -183,14 +177,14 @@ func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.
 	}
 
 	s := grpc.NewServer()
-	server := minorUpgradeServer{
+	server := minorUpdateServer{
 		connectionPool: pool,
 		log:            log,
 	}
 
 	// in dev mode
 	reflection.Register(s)
-	pb.RegisterMinorUpgradeServer(s, &server)
+	pb.RegisterMinorUpdateServer(s, &server)
 
 	server.log.Info("Upgrade server listening")
 
