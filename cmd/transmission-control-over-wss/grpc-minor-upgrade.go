@@ -31,7 +31,6 @@ type clusterHealth struct {
 }
 
 type versionToUpgrade struct {
-	CurrentVersion       string `json:"currentVersion"`
 	ConsistentVersioning bool   `json:"consistentVersioning"`
 	Err                  string `json:"err"`
 }
@@ -220,8 +219,8 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 			zap.String("response", response))
 	}
 
-	s.log.Info("available version list",
-		zap.Strings("k8s component version", in.GetVersion()),
+	s.log.Info("consistent versioning",
+		zap.Bool("k8s component version are matched", in.GetConsistentVersioning()),
 		zap.String("error", in.GetErr()))
 
 	return &pb.ClusterUpgradeResponse{

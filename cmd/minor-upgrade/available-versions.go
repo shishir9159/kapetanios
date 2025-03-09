@@ -97,9 +97,11 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.UpgradeVersionSelection(c.ctx,
-		&pb.AvailableVersions{
-			Version: availableVersionSlice,
-			Err:     "",
+
+		&pb.VersionCheck{
+			//TODO: check installed/running component versions
+			ConsistentVersioning: true,
+			Err:                  "",
 		})
 
 	if err != nil {
