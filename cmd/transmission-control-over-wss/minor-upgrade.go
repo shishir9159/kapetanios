@@ -202,10 +202,10 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
 			Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			upgrade.nefario.log.Error("minor upgrade pod creation failed: ",
+			upgrade.nefario.log.Error("minor update pod creation failed: ",
 				zap.Error(er))
 
-			upgrade.pool.BroadcastMessage([]byte("minor upgrade pod creation failed " + err.Error()))
+			upgrade.pool.BroadcastMessage([]byte("minor update pod creation failed " + er.Error()))
 			return
 		}
 
@@ -214,14 +214,13 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 			zap.String("os", osName))
 
 		upgrade.pool.BroadcastMessage([]byte("minor upgrade pod created successfully: " + minion.Name))
-
 	}
 
 	// TODO: watcher
 	// TODO: broadcast and wait for version
-	upgrade.pool.BroadcastMessage([]byte("failed to create a watcher for the pod: " + minion.Name))
-	upgrade.nefario.log.Error("failed to create a watcher for the pod",
-		zap.Error(err))
+	//upgrade.pool.BroadcastMessage([]byte("failed to create a watcher for the pod: " + minion.Name))
+	//upgrade.nefario.log.Error("failed to create a watcher for the pod",
+	//	zap.Error(err))
 	// handle the error
 	time.Sleep(600 * time.Second)
 	(<-ch).Stop()
@@ -537,6 +536,8 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			(<-ch).Stop()
 		}
 
+		// TODO: create a function for monitoring two events
+		//  one after another: terminated and restarted/started - RevisionHistory Count Increased
 	outerLoop:
 		for event := range watcher.ResultChan() {
 			pod, ok := event.Object.(*corev1.Pod)
