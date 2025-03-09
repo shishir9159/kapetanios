@@ -86,11 +86,9 @@ func main() {
 		}
 	}(conn)
 
-	var distro string
-
 	for i := 0; i < maxAttempts; i++ {
 		var skip bool
-		skip, distro, err = Prerequisites(c, conn)
+		skip, c.distro, err = Prerequisites(c, conn)
 		if err != nil {
 			c.log.Error().Err(err).
 				Int("attempt", i).
@@ -102,7 +100,10 @@ func main() {
 		}
 	}
 
-	c.distro = distro
+	if c.distro == "" {
+		c.log.Fatal().Err(err).
+			Msg("couldn't fetch distro info")
+	}
 
 	for i := 0; i < maxAttempts; i++ {
 		var skip bool
