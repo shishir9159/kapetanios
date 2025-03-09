@@ -86,6 +86,8 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		return "", "", "", errors.New("distro is required")
 	}
 
+	log.Info().Msg("DISTRO: " + distro)
+
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		log.Fatal().Err(err).
@@ -141,7 +143,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	var repoNameCmd string
 	if distro == "rhel" {
-		repoNameCmd = "yum info kubectl --installed | grep \"From repo\" | awk '{ print $4 }'"
+		repoNameCmd = "yum info kubectl --installed --quiet | grep 'From repo' | awk '{ print $4 }'"
 	}
 	// TODO:
 	//  UBUNTU + Debian
@@ -168,7 +170,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	var repoBaseURLCMD string
 	if distro == "rhel" {
-		repoBaseURLCMD = "yum repolist --repo " + repoName + " -v enabled -q | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
+		repoBaseURLCMD = "yum repolist --repo " + repoName + " -v enabled --quiet | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
 	}
 
 	cmd = exec.Command("/bin/bash", "-c", repoBaseURLCMD)
@@ -184,7 +186,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	repoBaseURL, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Info().
-		Str("stdOut", repoName).
+		Str("stdOut", repoBaseURL).
 		Str("stdErr", errStr).
 		Msg("successfully fetched repository updates")
 

@@ -213,7 +213,7 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 			zap.String("pod name", minion.Name),
 			zap.String("os", osName))
 
-		upgrade.pool.BroadcastMessage([]byte("minor upgrade pod created successfully: " + minion.Name))
+		upgrade.pool.BroadcastMessage([]byte("minor update pod created successfully: " + minion.Name))
 	}
 
 	// TODO: watcher
