@@ -185,6 +185,8 @@ func recovery(namespace string) {
 func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 	roleName := "minor-upgrade"
 
+	go MinorUpdateGrpc(upgrade.nefario.log)
+
 	for os, nodeName := range availableOS {
 
 		upgrade.nefario.log.Info("updating nodes info",
