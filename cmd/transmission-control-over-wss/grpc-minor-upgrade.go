@@ -31,9 +31,9 @@ type clusterHealth struct {
 }
 
 type versionToUpgrade struct {
-	CurrentVersion   string   `json:"currentVersion"`
-	AvailableVersion []string `json:"availableVersion"`
-	Err              string   `json:"err"`
+	CurrentVersion       string `json:"currentVersion"`
+	ConsistentVersioning bool   `json:"consistentVersioning"`
+	Err                  string `json:"err"`
 }
 
 type clusterCompatability struct {
@@ -175,15 +175,14 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 }
 
 // UpgradeVersionSelection implements proto.MinorUpgradeServer
-func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
+func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.VersionCheck) (*pb.ClusterUpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	// TODO:
 	versions := versionToUpgrade{
-		CurrentVersion:   "",
-		AvailableVersion: in.GetVersion(),
-		Err:              in.GetErr(),
+		ConsistentVersioning: in.GetConsistentVersioning(),
+		Err:                  in.GetErr(),
 	}
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
