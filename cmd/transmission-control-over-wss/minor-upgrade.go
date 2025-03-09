@@ -214,6 +214,7 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 			zap.String("os", osImage))
 
 		upgrade.pool.BroadcastMessage([]byte("minor update pod created successfully: " + minion.Name))
+		time.Sleep(600 * time.Second)
 	}
 
 	// TODO: watcher
@@ -224,8 +225,8 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 	// handle the error
 
 	// TODO:
-	//  update the selected version together
-	time.Sleep(600 * time.Second)
+	//  update the selected version from aggregation
+
 	(<-ch).Stop()
 
 	os.Exit(0)
