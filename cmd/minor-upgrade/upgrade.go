@@ -7,7 +7,15 @@ import (
 	"google.golang.org/grpc"
 	"os"
 	"os/exec"
+	"regexp"
 )
+
+func tillHypen(s string) string {
+	// Regular expression to match two or more consecutive spaces
+	re := regexp.MustCompile(`/^[^-]*/`)
+	// Replace matches with "-"
+	return re.ReplaceAllString(s, "+")
+}
 
 func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, error) {
 

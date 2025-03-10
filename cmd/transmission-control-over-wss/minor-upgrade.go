@@ -469,9 +469,23 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			continue
 		}
 
-		if no.Status.NodeInfo.OSImage == "rhel" {
-
+		var packageVersion string
+		if strings.Contains(no.Status.NodeInfo.OSImage, "Red Hat Enterprise Linux 8.") {
+			packageVersion = upgrade.config.Rhel8TargetK8sVersion
+		} else if strings.Contains(no.Status.NodeInfo.OSImage, "RedHat Enterprise Linux 9.") {
+			packageVersion = upgrade.config.Rhel9TargetK8sVersion
+		} else if strings.Contains(no.Status.NodeInfo.OSImage, "???ubuntu???") {
+			//	TODO:
+		} else {
+			upgrade.nefario.log.Fatal("no appropriate os image available")
 		}
+
+		componentVersion := corev1.EnvVar{
+			Name:  "KUBERNETES_COMPONENT_VERSION",
+			Value: packageVersion,
+		}
+
+		env = append(env, componentVersion)
 
 		descriptor.Spec.Containers[0].Env = env
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet

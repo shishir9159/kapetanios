@@ -19,7 +19,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	var updateCommand string
 
-	if c.distro == "rhel" {
+	if strings.Contains(c.distro, "Red Hat Enterprise Linux") {
 		updateCommand = "yum update -y"
 	} else if c.distro == "ubuntu" {
 		updateCommand = "apt update -y"
@@ -43,7 +43,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, error) {
 		Msg("successfully fetched repository updates")
 
 	var packageSearch string
-	if c.distro == "rhel" {
+	if strings.Contains(c.distro, "Red Hat Enterprise Linux") {
 		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes --quiet | grep .x86_64 | awk '{ print $2 }'"
 	} else if c.distro == "ubuntu" {
 		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
@@ -73,6 +73,10 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, error) {
 		// todo: return false, "", err
 	}
 
+	// TODO:
+	//  send 2 component: kubectl, kubeadm version
+	//  and match it from the controller side's kubelet
+
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to exit from the updated root")
@@ -83,8 +87,12 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	rpc, err := connection.UpdateVersionSelection(c.ctx,
 		&pb.AvailableVersions{
-			Version: availableVersionSlice,
-			Err:     "",
+			Version:        availableVersionSlice,
+			Distro:         c.distro,
+			DistroVersion:  "",
+			CurrentVersion: "",
+			Log:            "",
+			Err:            "",
 		})
 
 	if err != nil {

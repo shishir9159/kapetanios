@@ -106,12 +106,10 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	//		zap.String("response", response))
 	//}
 
-	if nodeHealth.Distro == "rhel" {
-		if strings.Contains(nodeHealth.DistroVersion, "8.") {
-			s.upgradeConfig.Redhat8K8sVersion = nodeHealth.CurrentVersion
-		} else if strings.Contains(nodeHealth.DistroVersion, "9.") {
-			s.upgradeConfig.Redhat9K8sVersion = nodeHealth.CurrentVersion
-		}
+	if strings.Contains(nodeHealth.Distro, "Red Hat Enterprise Linux 8.") {
+		s.upgradeConfig.Redhat8K8sVersion = nodeHealth.CurrentVersion
+	} else if strings.Contains(nodeHealth.Distro, "Red Hat Enterprise Linux 9.") {
+		s.upgradeConfig.Redhat9K8sVersion = nodeHealth.CurrentVersion
 	}
 
 	s.log.Info("received cluster health status",
@@ -134,7 +132,7 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 
 	versions := availableVersion{
 		Distro:              in.GetDistro(),
-		DistroVersion:       in.GetDistroVersion(),
+		DistroVersion:       "", // TODO
 		CurrentK8sVersion:   in.GetCurrentVersion(),
 		AvailableK8sVersion: in.GetVersion(),
 		Log:                 in.GetLog(),
@@ -166,12 +164,10 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 		break
 	default:
 		if slices.Contains(versions.AvailableK8sVersion, response) {
-			if in.GetDistro() == "rhel" {
-				if strings.Contains(versions.DistroVersion, "8.") {
-					s.upgradeConfig.Rhel8TargetK8sVersion = response
-				} else if strings.Contains(versions.DistroVersion, "9.") {
-					s.upgradeConfig.Rhel9TargetK8sVersion = response
-				}
+			if strings.Contains(versions.Distro, "Red Hat Enterprise Linux 8.") {
+				s.upgradeConfig.Rhel8TargetK8sVersion = response
+			} else if strings.Contains(versions.Distro, "Red Hat Enterprise Linux 9.") {
+				s.upgradeConfig.Rhel9TargetK8sVersion = response
 			}
 
 			responseReceived = true

@@ -72,6 +72,9 @@ type upgradeProgression struct {
 // todo: should I keep track record if nodes were already
 //  tainted before draining
 
+// TODO:
+//  separate struct for all the distros
+
 type upgradeConfig struct {
 	drainNodes                bool     `yaml:"drainNodes"`
 	certificateRenewal        bool     `yaml:"certificateRenewal"`
@@ -104,13 +107,12 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
 	report := upgradeConfig{
 		certificateRenewal: false,
-		drainNodes:         false,
-		//drainNodes:        bool(configMap.Data["DRAIN_NODES"]),
-		NodesUpgraded:     configMap.Data["NODES_UPGRADED"],
-		NodesToBeUpgraded: configMap.Data["NODES_TO_BE_UPGRADED"],
-		UbuntuK8sVersion:  configMap.Data["UBUNTU_K8S_VERSION"],
-		Redhat8K8sVersion: configMap.Data["REDHAT8_K8S_VERSION"],
-		Redhat9K8sVersion: configMap.Data["REDHAT9_K8S_VERSION"],
+		drainNodes:         false, //  bool(configMap.Data["DRAIN_NODES"]),
+		NodesUpgraded:      configMap.Data["NODES_UPGRADED"],
+		NodesToBeUpgraded:  configMap.Data["NODES_TO_BE_UPGRADED"],
+		UbuntuK8sVersion:   configMap.Data["UBUNTU_K8S_VERSION"],
+		Redhat8K8sVersion:  configMap.Data["REDHAT8_K8S_VERSION"],
+		Redhat9K8sVersion:  configMap.Data["REDHAT9_K8S_VERSION"],
 		//	TODO: failed to upgrade nodes
 	}
 

@@ -27,39 +27,14 @@ func getDistro(c Controller) (string, string, error) {
 			Msg("failed to open /etc/os-release")
 	}
 
-	//defer func() {
-	//	if er := fi.Close(); er != nil {
-	//		c.log.Fatal().Err(er).
-	//			Msg("failed to close /etc/os-release")
-	//	}
-	//}()
-	//
-	//// try double buffering the chunks
-	//buf := make([]byte, 1024)
-	//for {
-	//	// read a chunk
-	//	n, er := fi.Read(buf)
-	//	if er != nil && er != io.EOF {
-	//		c.log.Error().Err(er).
-	//			Msg("failed to read chunk by chunk from /etc/os-release")
-	//	}
-	//
-	//	if substring(buf[:n], 0) == "ID" {}
-	//
-	//	if n == 0 {
-	//		break
-	//	}
-	//}
-
 	var distro string
 	var distroVersion string
 
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "ID=") {
-			// Trim leading 'ID=' and remove quotes if present
-			idValue := strings.TrimPrefix(line, "ID=")
+		if strings.HasPrefix(line, "PRETTY_NAME=") {
+			idValue := strings.TrimPrefix(line, "PRETTY_NAME=")
 			idValue = strings.Trim(idValue, `"`)
 			distro = idValue
 		} else if strings.HasPrefix(line, "VERSION_ID=") {
@@ -72,10 +47,6 @@ func getDistro(c Controller) (string, string, error) {
 			Str("distro version", distroVersion).
 			Str("distro name", distro).
 			Msg("~distro~")
-
-		if strings.HasPrefix(line, "VERSION_ID=") {
-
-		}
 	}
 
 	if er := scanner.Err(); er != nil {
@@ -97,8 +68,6 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		return "", "", "", errors.New("distro is required")
 	}
 
-	log.Info().Msg("DISTRO: " + distro)
-
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		log.Fatal().Err(err).
@@ -107,7 +76,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	var updateCommand string
 
-	if distro == "rhel" {
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
 		updateCommand = "yum update -y"
 	} else if distro == "ubuntu" {
 		updateCommand = "apt update -y"
@@ -131,7 +100,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		Msg("successfully fetched repository updates")
 
 	var currentVersionCMD string
-	if distro == "rhel" {
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
 		currentVersionCMD = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
 	}
 
@@ -153,7 +122,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		Msg("successfully fetched repository updates")
 
 	var repoNameCmd string
-	if distro == "rhel" {
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
 		repoNameCmd = "yum info kubectl --installed --quiet | grep 'From repo' | awk '{ print $4 }'"
 	}
 	// TODO:
@@ -180,7 +149,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		Msg("successfully fetched repository updates")
 
 	var repoBaseURLCMD string
-	if distro == "rhel" {
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
 		repoBaseURLCMD = "yum repolist --repo " + repoName + " -v enabled --quiet | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
 	}
 
