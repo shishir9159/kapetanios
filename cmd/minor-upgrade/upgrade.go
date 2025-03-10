@@ -10,11 +10,10 @@ import (
 	"regexp"
 )
 
-func tillHypen(s string) string {
-	// Regular expression to match two or more consecutive spaces
-	re := regexp.MustCompile(`/^[^-]*/`)
-	// Replace matches with "-"
-	return re.ReplaceAllString(s, "+")
+func tillHyphen(s string) string {
+	re := regexp.MustCompile(`^[^-]+`)
+	match := re.FindString(s)
+	return match
 }
 
 func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, error) {
@@ -31,7 +30,7 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	}
 
 	// TODO: get the version number from the upgrade plan
-	k8sVersion := "v" + version[:6]
+	k8sVersion := "v" + tillHyphen(version)
 
 	// TODO: certificate-renewal boolean
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade node --certificate-renewal="+certRenewal+" -y")
