@@ -50,9 +50,6 @@ func main() {
 	//    - Curl error (58): Problem with the local SSL certificate for https://rhui4-1.microsoft.com/pulp/repos/content/dist/rhel8/rhui/8/x86_64/baseos/os/repodata/repomd.xml [could not load PEM client certificate, OpenSSL error error:0200100D:system library:fopen:Permission denied, (no key found, wrong pass phrase, or wrong file format?)]
 	//  Error: Failed to download metadata for repo 'rhel-8-for-x86_64-baseos-rhui-rpms': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
 
-	// yum info -b kubectl
-	// rpm -q kubectl
-
 	// TODO: optional backups
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
@@ -148,10 +145,6 @@ func main() {
 	if testing {
 		//version = kubernetesVersion
 	}
-
-	// TODO: refactor
-	//   plan := "v1.26.6"
-	//   clusterVersion should be separated from package(+) or components(-) version?
 
 	var diff string
 	for i := 0; i < maxAttempts; i++ {
