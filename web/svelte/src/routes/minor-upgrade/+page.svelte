@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Input, ButtonGroup, Button, Modal, Label ,Select, Checkbox } from 'flowbite-svelte';
+    import { Input, ButtonGroup, Button, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
 
     let rhel8AvailableVersions = $state([""]);
     let selected = $state();
@@ -56,17 +56,15 @@
 <Button on:click={() => (formModal = true)}>Form modal</Button>
 <Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
 
+    <Label>
+        Select an option
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
-    <select
+    </Label>
+    <Select class="mt-2"
+            items="{rhel8AvailableVersions}"
             bind:value={selected}
             onchange={() => (console.log('selected'))}
-            class="flex flex-col space-y-6">
-        {#each rhel8AvailableVersions as version}
-            <option value={version}>
-                {version}
-            </option>
-        {/each}
-    </select>
+    />
     <form class="flex flex-col space-y-6" action="#">
         <Label class="space-y-2">
             <span>Email</span>
