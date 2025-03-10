@@ -43,6 +43,9 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
 
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
+
 	// TODO:
 	//  check: var repoName string
 	var packageSearch string
