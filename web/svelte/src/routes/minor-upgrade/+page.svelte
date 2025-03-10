@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { Input, ButtonGroup, Button, Modal, Label, Checkbox } from 'flowbite-svelte';
+    import { Input, ButtonGroup, Button, Modal, Label ,Select, Checkbox } from 'flowbite-svelte';
 
     let rhel8AvailableVersions = $state([""]);
     let selected = $state();
-    let formModal = false;
+    let formModal = $state(false);
 
     let logMessage: string = $state("didn't change");
 
@@ -55,8 +55,19 @@
 
 <Button on:click={() => (formModal = true)}>Form modal</Button>
 <Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
+
+    <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
+    <select
+            bind:value={selected}
+            onchange={() => (console.log('selected'))}
+            class="flex flex-col space-y-6">
+        {#each rhel8AvailableVersions as version}
+            <option value={version}>
+                {version}
+            </option>
+        {/each}
+    </select>
     <form class="flex flex-col space-y-6" action="#">
-        <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Sign in to our platform</h3>
         <Label class="space-y-2">
             <span>Email</span>
             <Input type="email" name="email" placeholder="name@company.com" required />
@@ -66,26 +77,14 @@
             <Input type="password" name="password" placeholder="•••••" required />
         </Label>
         <div class="flex items-start">
-            <Checkbox>Remember me</Checkbox>
-            <a href="/" class="ms-auto text-sm text-primary-700 hover:underline dark:text-primary-500"> Lost password? </a>
+            <Checkbox>Certificate Renewal</Checkbox>
+        </div>
+        <div class="flex items-start">
+            <Checkbox>Drain Nodes</Checkbox>
         </div>
         <Button type="submit" class="w-full1">Login to your account</Button>
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-300">
-            Not registered? <a href="/" class="text-primary-700 hover:underline dark:text-primary-500"> Create account </a>
-        </div>
     </form>
 </Modal>
-
-<select
-        bind:value={selected}
-        onchange={() => (console.log('selected'))}
->
-    {#each rhel8AvailableVersions as version}
-        <option value={version}>
-            {version}
-        </option>
-    {/each}
-</select>
 
 <!--<button disabled={!answer} type="submit">-->
 <!--    Submit-->
