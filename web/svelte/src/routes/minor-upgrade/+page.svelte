@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Input, ButtonGroup, Button, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
+    import {  ButtonGroup, Button, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
 
     let rhel8AvailableVersions = $state([""]);
     let selected = $state();
@@ -59,21 +59,12 @@
     <Label>
         Select an option
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
-    </Label>
     <Select class="mt-2"
             items="{rhel8AvailableVersions}"
             bind:value={selected}
             onchange={() => (console.log('selected'))}
     />
-    <form class="flex flex-col space-y-6" action="#">
-        <Label class="space-y-2">
-            <span>Email</span>
-            <Input type="email" name="email" placeholder="name@company.com" required />
-        </Label>
-        <Label class="space-y-2">
-            <span>Your password</span>
-            <Input type="password" name="password" placeholder="•••••" required />
-        </Label>
+    </Label>
         <div class="flex items-start">
             <Checkbox>Certificate Renewal</Checkbox>
         </div>
@@ -81,7 +72,6 @@
             <Checkbox>Drain Nodes</Checkbox>
         </div>
         <Button type="submit" class="w-full1">Login to your account</Button>
-    </form>
 </Modal>
 
 <!--<button disabled={!answer} type="submit">-->
