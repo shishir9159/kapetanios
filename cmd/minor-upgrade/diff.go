@@ -17,11 +17,13 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 			Msg("failed to create chroot on /host")
 	}
 
+	k8sVersion := "v" + tillHyphen(version)
+
 	// upgrade plan to list available upgrade options
 	// --config is not necessary as it is saved in the cm
 
 	//kubeadm upgrade diff to see the changes
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade diff v"+tillHyphen(version)+" --config /etc/kubernetes/kubeadm/kubeadm-config.yaml")
+	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade diff "+k8sVersion+" --config /etc/kubernetes/kubeadm/kubeadm-config.yaml")
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
