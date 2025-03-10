@@ -217,6 +217,9 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 		time.Sleep(600 * time.Second)
 	}
 
+	// TODO: practice on multiple nodes
+	//  with multiple distro image and versions
+
 	// TODO: watcher
 	// TODO: broadcast and wait for version
 	//upgrade.pool.BroadcastMessage([]byte("failed to create a watcher for the pod: " + minion.Name))
@@ -229,7 +232,11 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 
 	(<-ch).Stop()
 
-	os.Exit(0)
+	err := writeConfig(upgrade.nefario, *upgrade.config)
+	if err != nil {
+		upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
+		upgrade.nefario.log.Fatal("configMap update failed " + err.Error())
+	}
 }
 
 func (upgrade *Upgrade) MinorUpgrade() {
@@ -423,16 +430,8 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		// TODO -- take input
 
-		if upgrade.config.UbuntuK8sVersion != "" {
-
-		}
-
-		if upgrade.config.Redhat8K8sVersion != "" {
-
-		}
-
-		if upgrade.config.Redhat9K8sVersion != "" {
-
+		if upgrade.config.UbuntuTargetK8sVersion == "" && upgrade.config.Rhel8TargetK8sVersion == "" && upgrade.config.Rhel9TargetK8sVersion == "" {
+			upgrade.nefario.log.Fatal("target k8s version is not set")
 		}
 
 		certRenewalEnv := corev1.EnvVar{
@@ -453,9 +452,6 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			env = append(env, firstNodeToUpgradeEnv)
 		}
 
-		descriptor.Spec.Containers[0].Env = env
-		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
-
 		//descriptor.Spec.DNSConfig = &corev1.PodDNSConfig{
 		//	Nameservers: []string{"10.96.0.10"},
 		//	Searches:    []string{"svc.cluster.local"},
@@ -472,6 +468,13 @@ func (upgrade *Upgrade) MinorUpgrade() {
 				zap.Error(err))
 			continue
 		}
+
+		if no.Status.NodeInfo.OSImage == "rhel" {
+
+		}
+
+		descriptor.Spec.Containers[0].Env = env
+		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
 		// TODO: should wait for the coredns restart
 

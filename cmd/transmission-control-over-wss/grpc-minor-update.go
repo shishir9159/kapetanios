@@ -173,6 +173,8 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 					s.upgradeConfig.Rhel9TargetK8sVersion = response
 				}
 			}
+
+			responseReceived = true
 			break
 		}
 		s.connectionPool.BroadcastMessage(payload)
