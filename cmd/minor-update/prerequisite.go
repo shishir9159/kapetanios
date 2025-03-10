@@ -213,7 +213,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 			DistroVersion:  distroVersion,
 			RepoName:       repoName,
 			RepoBaseURL:    repoBaseURL,
-			CurrentVersion: currentVersion,
+			CurrentVersion: strings.TrimSpace(currentVersion),
 			Log:            "",
 			Err:            "",
 		})
