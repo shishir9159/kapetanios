@@ -214,7 +214,7 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 			zap.String("os", osImage))
 
 		upgrade.pool.BroadcastMessage([]byte("minor update pod created successfully: " + minion.Name))
-		time.Sleep(600 * time.Second)
+		time.Sleep(27 * time.Second)
 	}
 
 	// TODO: practice on multiple nodes

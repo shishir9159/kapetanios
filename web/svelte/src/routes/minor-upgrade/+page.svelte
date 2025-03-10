@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {  ButtonGroup, Button, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
+    import {   Button, ButtonGroup, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
 
     let rhel8AvailableVersions = $state([""]);
     let selected = $state();
@@ -14,7 +14,7 @@
 
         socket.onopen = async () => {
             console.log('connected to the server');
-            socket.send('next');
+            socket.send('current state');
             //     "current step"
             //     prepare response accordingly
         };
