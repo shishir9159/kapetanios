@@ -42,6 +42,9 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, error) {
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
 
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
+
 	var packageSearch string
 	if strings.Contains(c.distro, "Red Hat Enterprise Linux") {
 		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes --quiet | grep .x86_64 | awk '{ print $2 }'"

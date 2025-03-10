@@ -99,6 +99,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
 
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
+
 	var currentVersionCMD string
 	if strings.Contains(distro, "Red Hat Enterprise Linux") {
 		currentVersionCMD = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
@@ -120,6 +123,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		Str("stdOut", currentVersion).
 		Str("stdErr", errStr).
 		Msg("successfully fetched repository updates")
+
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
 
 	var repoNameCmd string
 	if strings.Contains(distro, "Red Hat Enterprise Linux") {
@@ -147,6 +153,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 		Str("stdOut", repoName).
 		Str("stdErr", errStr).
 		Msg("successfully fetched repository updates")
+
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
 
 	var repoBaseURLCMD string
 	if strings.Contains(distro, "Red Hat Enterprise Linux") {

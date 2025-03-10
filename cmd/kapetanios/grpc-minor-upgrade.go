@@ -43,7 +43,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 }
 
 // UpgradeVersionSelection implements proto.MinorUpgradeServer
-func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.ClusterUpgradeResponse, error) {
+func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.VersionCheck) (*pb.ClusterUpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
@@ -52,8 +52,8 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.A
 
 	}
 
-	s.log.Info("available version list",
-		zap.Strings("k8s component version", in.GetVersion()),
+	s.log.Info("uniform package version availability",
+		zap.Bool("k8s component version", in.GetConsistentVersioning()),
 		zap.String("error", in.GetErr()))
 
 	return &pb.ClusterUpgradeResponse{

@@ -113,9 +113,9 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	}
 
 	s.log.Info("received cluster health status",
-		zap.String("repo name", in.GetRepoName()),
-		zap.String("repo baseURL", in.GetRepoBaseURL()),
-		zap.String("received storage availability", in.GetCurrentVersion()),
+		zap.String("repo name", nodeHealth.RepoName),
+		zap.String("repo baseURL", nodeHealth.RepoBaseURL),
+		zap.String("available versions for upgrade", in.GetCurrentVersion()),
 		zap.String("received error", in.GetErr()))
 
 	return &pb.UpdateResponse{
