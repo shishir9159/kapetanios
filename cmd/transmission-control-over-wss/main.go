@@ -73,6 +73,10 @@ type upgradeProgression struct {
 //  tainted before draining
 
 // TODO:
+//  generalize distro and repo description to extend support to all
+//  and add a list for all
+
+// TODO:
 //  separate struct for all the distros
 
 type upgradeConfig struct {
@@ -82,8 +86,14 @@ type upgradeConfig struct {
 	NodesUpgraded             string   `yaml:"nodesUpgraded"`
 	NodesToBeUpgraded         string   `yaml:"nodesToBeUpgraded"`
 	UbuntuK8sVersion          string   `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
+	UbuntuK8sRepoName         string   `yaml:"ubuntuK8sRepoName"`
+	UbuntuK8sRepoBaseURL      string   `yaml:"ubuntuK8sRepoBaseURL"`
 	Redhat8K8sVersion         string   `yaml:"redhat8K8sVersion"`
+	Redhat8K8sRepoName        string   `yaml:"redhat8K8sRepoName"`
+	Redhat8K8sRepoBaseURL     string   `yaml:"redhat8K8sRepoBaseURL"`
 	Redhat9K8sVersion         string   `yaml:"redhat9K8sVersion"`
+	Redhat9K8sRepoName        string   `yaml:"redhat9K8sRepoName"`
+	Redhat9K8sRepoBaseURL     string   `yaml:"redhat9K8sRepoBaseURL"`
 	UbuntuTargetK8sVersion    string   `yaml:"ubuntuTargetK8sVersion"`
 	Rhel8TargetK8sVersion     string   `yaml:"rhel8TargetK8sVersion"`
 	Rhel9TargetK8sVersion     string   `yaml:"rhel9TargetK8sVersion"`

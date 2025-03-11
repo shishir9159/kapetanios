@@ -1,0 +1,288 @@
+package main
+
+import (
+	"bufio"
+	"bytes"
+	"errors"
+	"github.com/rs/zerolog"
+	pb "github.com/shishir9159/kapetanios/proto"
+	"github.com/shishir9159/kapetanios/utils"
+	"google.golang.org/grpc"
+	"os"
+	"os/exec"
+	"strings"
+)
+
+// TODO:
+//  it belongs to the utils
+
+// TODO: change root defer
+
+func getDistro(c Controller) (string, string, error) {
+
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
+	}
+
+	fi, err := os.Open("/etc/os-release")
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to open /etc/os-release")
+	}
+
+	var distro string
+	var distroVersion string
+
+	scanner := bufio.NewScanner(fi)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "PRETTY_NAME=") {
+			idValue := strings.TrimPrefix(line, "PRETTY_NAME=")
+			idValue = strings.Trim(idValue, `"`)
+			distro = idValue
+		} else if strings.HasPrefix(line, "VERSION_ID=") {
+			versionValue := strings.TrimPrefix(line, "VERSION_ID=")
+			versionValue = strings.Trim(versionValue, `"`)
+			distroVersion = versionValue
+		}
+
+		c.log.Debug().
+			Str("distro version", distroVersion).
+			Str("distro name", distro).
+			Msg("~distro~")
+	}
+
+	if er := scanner.Err(); er != nil {
+		c.log.Error().Err(er).
+			Msg("failed to read the file /etc/os-release")
+	}
+
+	if err = changedRoot(); err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
+	}
+
+	return distro, distroVersion, err
+}
+
+// TODO: defer change root
+
+func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, error) {
+
+	if distro == "" {
+		return "", "", "", errors.New("distro is required")
+	}
+
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
+	}
+
+	var currentVersionCMD string
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
+		currentVersionCMD = "rpm -qi kubeadm | awk '{ print $3 }' | tail -n +2 | head -n 1"
+	}
+
+	cmd := exec.Command("/bin/bash", "-c", currentVersionCMD)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+
+	if err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to list available versions")
+		// TODO: refactor this to send the error : return false, "", err
+	}
+
+	currentVersion, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info().
+		Str("currentVersion", currentVersion).
+		Str("errStr", errStr).
+		Msg("current version of kubeadm")
+
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
+
+	var repoNameCmd string
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
+		repoNameCmd = "yum info kubectl --installed --quiet | grep 'From repo' | awk '{ print $4 }'"
+	}
+	// TODO:
+	//  UBUNTU + Debian
+	//else if distro == "ubuntu" {
+	//	repoNameCmd = "apt-cache madison kubeadm | awk '{ print $3 }'"
+	//}
+
+	cmd = exec.Command("/bin/bash", "-c", repoNameCmd)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+
+	if err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to list available versions")
+		// TODO: refactor this to send the error : return false, "", err
+	}
+
+	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info().
+		Str("repoName", repoName).
+		Str("errStr", errStr).
+		Msg("repo name information")
+
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
+
+	var repoBaseURLCMD string
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
+		repoBaseURLCMD = "yum repolist --repo " + repoName + " -v enabled --quiet | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
+	}
+
+	cmd = exec.Command("/bin/bash", "-c", repoBaseURLCMD)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+
+	if err != nil {
+		log.Error().Err(err).
+			Msg("failed to list available versions")
+		// TODO: early return?
+	}
+
+	repoBaseURL, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	log.Info().
+		Str("stdOut", repoBaseURL).
+		Str("stdErr", errStr).
+		Msg("successfully fetched repository updates")
+
+	if err = changedRoot(); err != nil {
+		log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
+	}
+
+	return currentVersion, repoName, repoBaseURL, nil
+}
+
+func availableVersions(c Controller, distro string, conn *grpc.ClientConn) ([]string, error) {
+
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
+	}
+
+	var updateCommand string
+
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
+		updateCommand = "yum update -y"
+	} else if distro == "ubuntu" {
+		updateCommand = "apt update -y"
+	}
+
+	// TODO: re test on ubuntu and debian
+	cmd := exec.Command("/bin/bash", "-c", updateCommand)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+	if err != nil {
+		c.log.Error().Err(err).
+			Msg("failed to fetch repository updates")
+	}
+
+	c.log.Debug().
+		Str("stdout", stdoutBuf.String()).
+		Str("stderr", stderrBuf.String()).
+		Msg("successfully fetched repository updates")
+
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
+
+	var packageSearch string
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
+		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes --quiet | grep .x86_64 | awk '{ print $2 }'"
+	} else if distro == "ubuntu" {
+		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
+	}
+
+	cmd = exec.Command("/bin/bash", "-c", packageSearch)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to list available versions")
+		// TODO: refactor this to send the error : return false, "", err
+	}
+
+	c.log.Debug().
+		Str("stdout", stdoutBuf.String()).
+		Str("stderr", stderrBuf.String()).
+		Msg("successfully fetched repository updates")
+
+	availableVersionSlice := strings.Split(stdoutBuf.String(), "\n")
+
+	if len(availableVersionSlice) == 0 {
+		c.log.Error().Err(err).
+			Msg("no available versions found for minor upgrade")
+		// todo: return false, "", err
+	}
+
+	// TODO:
+	//  send 2 component: kubectl, kubeadm version
+	//  and match it from the controller side's kubelet
+
+	if err = changedRoot(); err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
+	}
+
+	return availableVersionSlice, nil
+}
+
+func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
+
+	distro, distroVersion, err := getDistro(c)
+
+	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
+
+	connection := pb.NewMinorUpdateClient(conn)
+
+	availableVersionSlice, err := availableVersions(c, distro, conn)
+
+	rpc, err := connection.PackageInfoUpdate(c.ctx,
+		&pb.PackageInfo{
+			Version:        availableVersionSlice,
+			Distro:         distro,
+			DistroVersion:  distroVersion,
+			RepoName:       strings.TrimSuffix(repoName, "\n"),
+			RepoBaseURL:    strings.TrimSuffix(repoBaseURL, "\n"),
+			CurrentVersion: strings.TrimSuffix(currentVersion, "\n"),
+			Log:            "",
+			Err:            "",
+		})
+
+	if err != nil {
+		c.log.Error().Err(err).
+			Msg("could not send status update")
+		return false, err
+	}
+
+	c.log.Info().
+		Bool("retry current step", rpc.GetRetryCurrentStep()).
+		Bool("terminate application", rpc.GetTerminateApplication()).
+		Msg("prerequisite step response")
+
+	if rpc.GetTerminateApplication() {
+		os.Exit(0)
+	}
+
+	return !rpc.GetRetryCurrentStep(), nil
+}

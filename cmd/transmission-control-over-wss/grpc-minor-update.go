@@ -27,19 +27,11 @@ type minorUpdateServer struct {
 	pb.MinorUpdateServer
 }
 
-type prerequisitesCheck struct {
-	Distro         string `json:"distro"`
-	DistroVersion  string `json:"distroVersion"`
-	RepoName       string `json:"repoName"`
-	RepoBaseURL    string `json:"repoBaseUrl"`
-	CurrentVersion string `json:"currentVersion"`
-	Log            string `json:"log"`
-	Err            string `json:"err"`
-}
-
-type availableVersion struct {
+type PackageInfo struct {
 	Distro              string   `json:"distro"`
 	DistroVersion       string   `json:"distroVersion"`
+	RepoName            string   `json:"repoName"`
+	RepoBaseURL         string   `json:"repoBaseUrl"`
 	CurrentK8sVersion   string   `json:"currentK8sVersion"`
 	AvailableK8sVersion []string `json:"availableK8sVersion"`
 	Log                 string   `json:"log"`
@@ -51,33 +43,28 @@ type availableVersion struct {
 //  and wait for reading
 // TODO: state id ---------
 
-// PrerequisitesCheck implements proto.MinorUpdateServer
-func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.PrerequisitesMinorUpdate) (*pb.UpdateResponse, error) {
+// PackageInfoUpdate implements proto.MinorUpdateServer
+func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageInfo) (*pb.UpdateFinalizer, error) {
 
-	// TODO:
-	var retryCurrentStep, proceedNextStep, terminateApplication = false, true, false
+	var retryCurrentStep, responseReceived = false, false
 
-	// TODO: move the distro infos to the next step
-	//  or merge everything in one step
-	//  -- reasons -- updates can fail
-	nodeHealth := prerequisitesCheck{
-		Distro:         in.GetDistro(),
-		DistroVersion:  in.GetDistroVersion(),
-		RepoName:       in.GetRepoName(),
-		RepoBaseURL:    in.GetRepoBaseURL(),
-		CurrentVersion: in.GetCurrentVersion(),
-		Log:            in.GetLog(),
-		Err:            in.GetErr(),
+	packageInfo := &PackageInfo{
+		Distro:              in.GetDistro(),
+		DistroVersion:       in.GetDistroVersion(), // TODO
+		RepoName:            in.GetRepoName(),
+		RepoBaseURL:         in.GetRepoBaseURL(),
+		CurrentK8sVersion:   in.GetCurrentVersion(),
+		AvailableK8sVersion: in.GetVersion(),
+		Log:                 in.GetLog(),
+		Err:                 in.GetErr(),
 	}
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-	payload, err := json.Marshal(&nodeHealth)
+	payload, err := json.Marshal(packageInfo)
 	if err != nil {
 
 	}
-
-	s.connectionPool.BroadcastMessage(payload)
 
 	// TODO: take prompt from user,
 	//  only if an error occurs
@@ -110,55 +97,9 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	//		zap.String("response", response))
 	//}
 
-	if strings.Contains(nodeHealth.Distro, "Red Hat Enterprise Linux 8.") {
-		s.upgradeConfig.Redhat8K8sVersion = nodeHealth.CurrentVersion
-	} else if strings.Contains(nodeHealth.Distro, "Red Hat Enterprise Linux 9.") {
-		s.upgradeConfig.Redhat9K8sVersion = nodeHealth.CurrentVersion
-	}
-
-	s.log.Info("received cluster health status",
-		zap.String("repo name", nodeHealth.RepoName),
-		zap.String("repo baseURL", nodeHealth.RepoBaseURL),
-		zap.String("available versions for upgrade", in.GetCurrentVersion()),
-		zap.String("received error", in.GetErr()))
-
-	return &pb.UpdateResponse{
-		ProceedNextStep:      proceedNextStep,
-		RetryCurrentStep:     retryCurrentStep,
-		TerminateApplication: terminateApplication,
-	}, nil
-}
-
-// UpdateVersionSelection implements proto.MinorUpdateServer
-func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.AvailableVersions) (*pb.UpdateFinalizer, error) {
-
-	var retryCurrentStep, responseReceived = false, false
-
-	versions := availableVersion{
-		Distro:              in.GetDistro(),
-		DistroVersion:       "", // TODO
-		CurrentK8sVersion:   in.GetCurrentVersion(),
-		AvailableK8sVersion: in.GetVersion(),
-		Log:                 in.GetLog(),
-		Err:                 in.GetErr(),
-	}
-
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-
-	payload, err := json.Marshal(&versions)
-	if err != nil {
-
-	}
-
-	// debugging
-	// TODO: make a separate function
-	//  make an specific field for each response
-	//  dedicated for the decision
-
 	s.connectionPool.BroadcastMessage(payload)
 	response, err := s.connectionPool.ReadMessages()
 	if err != nil {
-
 		//return nil, err
 	}
 
@@ -172,11 +113,15 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 		retryCurrentStep = true
 		break
 	default:
-		if slices.Contains(versions.AvailableK8sVersion, response) {
-			if strings.Contains(versions.Distro, "Red Hat Enterprise Linux 8.") {
+		if slices.Contains(packageInfo.AvailableK8sVersion, response) {
+			if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
 				s.upgradeConfig.Rhel8TargetK8sVersion = response
-			} else if strings.Contains(versions.Distro, "Red Hat Enterprise Linux 9.") {
+				s.upgradeConfig.Redhat8K8sRepoName = packageInfo.RepoName
+				s.upgradeConfig.Redhat8K8sRepoBaseURL = packageInfo.RepoBaseURL
+			} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
 				s.upgradeConfig.Rhel9TargetK8sVersion = response
+				s.upgradeConfig.Redhat9K8sRepoName = packageInfo.RepoName
+				s.upgradeConfig.Redhat9K8sRepoBaseURL = packageInfo.RepoBaseURL
 			}
 
 			responseReceived = true
@@ -197,8 +142,9 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpdateFinalizer{
-		ResponseReceived: responseReceived,
-		RetryCurrentStep: retryCurrentStep,
+		ResponseReceived:     responseReceived,
+		RetryCurrentStep:     retryCurrentStep,
+		TerminateApplication: false,
 	}, nil
 }
 
@@ -222,7 +168,7 @@ func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *upgradeC
 	reflection.Register(s)
 	pb.RegisterMinorUpdateServer(s, &server)
 
-	server.log.Info("Upgrade server listening")
+	server.log.Info("update server listening")
 
 	ch <- s
 	if er := s.Serve(lis); er != nil {
@@ -230,5 +176,5 @@ func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *upgradeC
 			zap.Error(er))
 	}
 
-	server.log.Info("Shutting down gRPC server...")
+	server.log.Info("Shutting down update gRPC server...")
 }
