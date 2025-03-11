@@ -81,8 +81,12 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	}
 
 	minorUpdate := &MinorUpdate{
-		Step:  "minor update",
 		State: s.upgradeConfig,
+	}
+
+	state := &State{
+		Step:        "0",
+		MinorUpdate: minorUpdate,
 	}
 
 	if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
@@ -95,8 +99,9 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 		minorUpdate.State.Rhel9AvailableK8sVersion = packageInfo.AvailableK8sVersion
 	}
 
-	payload, err = json.Marshal(packageInfo)
+	payload, err = json.Marshal(state)
 	if err != nil {
+
 	}
 
 	// TODO: take prompt from user,

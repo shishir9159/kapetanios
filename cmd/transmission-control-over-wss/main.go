@@ -63,17 +63,17 @@ type Upgrade struct {
 	nodeInfo nodeInfo
 }
 
+type State struct {
+	ID          uint32       `json:"id"`
+	Step        string       `json:"step"`
+	MinorUpdate *MinorUpdate `json:"minor_update"`
+}
+
 // TODO:
 //  https://web.archive.org/web/20160818125551/https://joneisen.tumblr.com/post/53695478114/golang-and-default-values
 
 type MinorUpdate struct {
-	Step  string         `json:"step"`
 	State *upgradeConfig `json:"state"`
-}
-
-type State struct {
-	ID    uint32        `json:"id"`
-	State upgradeConfig `json:"state"`
 }
 
 // todo: should I keep track record if nodes were already
