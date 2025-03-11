@@ -138,13 +138,7 @@ func main() {
 		}
 	}
 
-	// todo: include in the testing
-	testing := false
 	version = os.Getenv("KUBERNETES_COMPONENT_VERSION")
-
-	if testing {
-		//version = kubernetesVersion
-	}
 
 	var diff string
 	for i := 0; i < maxAttempts; i++ {

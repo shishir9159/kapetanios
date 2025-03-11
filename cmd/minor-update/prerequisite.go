@@ -13,6 +13,9 @@ import (
 	"strings"
 )
 
+// TODO:
+//  it belongs to the internal
+
 func getDistro(c Controller) (string, string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
@@ -104,7 +107,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	var currentVersionCMD string
 	if strings.Contains(distro, "Red Hat Enterprise Linux") {
-		currentVersionCMD = "rpm -qi kubectl | awk '{ print $3 }' | tail -n +2 | head -n 1"
+		currentVersionCMD = "rpm -qi kubeadm | awk '{ print $3 }' | tail -n +2 | head -n 1"
 	}
 
 	cmd = exec.Command("/bin/bash", "-c", currentVersionCMD)
@@ -120,9 +123,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	currentVersion, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Info().
-		Str("stdOut", currentVersion).
-		Str("stdErr", errStr).
-		Msg("successfully fetched repository updates")
+		Str("currentVersion", currentVersion).
+		Str("errStr", errStr).
+		Msg("current version of kubeadm")
 
 	stdoutBuf.Reset()
 	stderrBuf.Reset()
@@ -150,9 +153,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Info().
-		Str("stdOut", repoName).
-		Str("stdErr", errStr).
-		Msg("successfully fetched repository updates")
+		Str("repoName", repoName).
+		Str("errStr", errStr).
+		Msg("repo name information")
 
 	stdoutBuf.Reset()
 	stderrBuf.Reset()
@@ -198,19 +201,12 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
 
-	etcdNode := os.Getenv("ETCD_NODE")
-	if etcdNode == "false" {
-		return false, distro, errors.New("ETCD_NODE environment variable set false")
-	} else if etcdNode == "true" {
-		return false, distro, errors.New("ETCD_NODE environment variable set to be True")
-	}
-
 	connection := pb.NewMinorUpdateClient(conn)
 
 	rpc, err := connection.PrerequisitesCheck(c.ctx,
 		&pb.PrerequisitesMinorUpdate{
 			Distro:         distro,
-			DistroVersion:  strings.TrimSuffix(distroVersion, "\n"),
+			DistroVersion:  distroVersion,
 			RepoName:       strings.TrimSuffix(repoName, "\n"),
 			RepoBaseURL:    strings.TrimSuffix(repoBaseURL, "\n"),
 			CurrentVersion: strings.TrimSuffix(currentVersion, "\n"),

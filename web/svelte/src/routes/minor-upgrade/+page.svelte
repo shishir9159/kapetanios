@@ -68,7 +68,10 @@
             <Checkbox>Certificate Renewal</Checkbox>
         </div>
         <div class="flex items-start">
-            <Checkbox>Drain Nodes</Checkbox>
+            <Checkbox>Node Draining before Upgrade</Checkbox>
+        </div>
+        <div class="flex items-start">
+            <Checkbox>Allow different repo for the same OS</Checkbox>
         </div>
         <Button type="submit" class="w-full1">Submit</Button>
 </Modal>

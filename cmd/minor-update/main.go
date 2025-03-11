@@ -120,15 +120,7 @@ func main() {
 		}
 	}
 
-	// todo: include in the testing
-	//version = "1.29.4-150500.2.1"
-	//version = "1.26.6-1.1"
-
 	if os.Getenv("DEBUG") == "true" {
-		//version = kubernetesVersion
+		//TODO: version = current kubernetesVersion
 	}
-
-	// TODO: refactor
-	//   plan := "v1.26.6"
-	//   clusterVersion should be separated from package(+) or components(-) version?
 }
