@@ -16,6 +16,8 @@ import (
 // TODO:
 //  it belongs to the utils
 
+// TODO: change root defer
+
 func getDistro(c Controller) (string, string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
@@ -65,6 +67,8 @@ func getDistro(c Controller) (string, string, error) {
 	return distro, distroVersion, err
 }
 
+// TODO: defer change root
+
 func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, error) {
 
 	if distro == "" {
@@ -77,40 +81,14 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 			Msg("failed to create chroot on /host")
 	}
 
-	var updateCommand string
-
-	if strings.Contains(distro, "Red Hat Enterprise Linux") {
-		updateCommand = "yum update -y"
-	} else if distro == "ubuntu" {
-		updateCommand = "apt update -y"
-	}
-
-	// TODO: re test on ubuntu and debian
-	cmd := exec.Command("/bin/bash", "-c", updateCommand)
-
-	var stdoutBuf, stderrBuf bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
-
-	err = cmd.Run()
-	if err != nil {
-		log.Error().Err(err).
-			Msg("failed to fetch repository updates")
-	}
-
-	log.Debug().
-		Str("stdout", stdoutBuf.String()).
-		Str("stderr", stderrBuf.String()).
-		Msg("successfully fetched repository updates")
-
-	stdoutBuf.Reset()
-	stderrBuf.Reset()
-
 	var currentVersionCMD string
 	if strings.Contains(distro, "Red Hat Enterprise Linux") {
 		currentVersionCMD = "rpm -qi kubeadm | awk '{ print $3 }' | tail -n +2 | head -n 1"
 	}
 
-	cmd = exec.Command("/bin/bash", "-c", currentVersionCMD)
+	cmd := exec.Command("/bin/bash", "-c", currentVersionCMD)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
@@ -171,9 +149,9 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 	err = cmd.Run()
 
 	if err != nil {
-		// should be fatal
 		log.Error().Err(err).
 			Msg("failed to list available versions")
+		// TODO: early return?
 	}
 
 	repoBaseURL, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
@@ -292,20 +270,19 @@ func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("could not send status update")
-		return false, distro, err
+		return false, err
 	}
 
 	c.log.Info().
-		Bool("next step", rpc.GetProceedNextStep()).
 		Bool("retry current step", rpc.GetRetryCurrentStep()).
 		Bool("terminate application", rpc.GetTerminateApplication()).
 		Msg("prerequisite step response")
 
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
-	} else if rpc.GetRetryCurrentStep() {
-		return false, "", nil
+	} else if !rpc.GetRetryCurrentStep() {
+		return false, nil
 	}
 
-	return rpc.GetProceedNextStep(), distro, nil
+	return true, nil
 }
