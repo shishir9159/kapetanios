@@ -38,10 +38,14 @@ type PackageInfo struct {
 	Err                 string   `json:"err"`
 }
 
+type packageInfoForVersionSelection struct {
+	State        string         `json:"state"` // TODO: (default value)
+	ClusterState *upgradeConfig `json:"clusterState"`
+}
+
 // TODO: Create an interface instead of generic that
 //  takes the structs write them in the connection
 //  and wait for reading
-// TODO: state id ---------
 
 // PackageInfoUpdate implements proto.MinorUpdateServer
 func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageInfo) (*pb.UpdateFinalizer, error) {

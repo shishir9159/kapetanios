@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"log"
 	"net/http"
 	"os"
 	"sync"
@@ -64,11 +63,6 @@ type Upgrade struct {
 	nodeInfo nodeInfo
 }
 
-type upgradeProgression struct {
-	CurrentStep           uint8  `yaml:"currentStep"`
-	MinorUpgradeNamespace string `yaml:"minorUpgradeNamespace"`
-}
-
 // todo: should I keep track record if nodes were already
 //  tainted before draining
 
@@ -80,23 +74,26 @@ type upgradeProgression struct {
 //  separate struct for all the distros
 
 type upgradeConfig struct {
-	drainNodes                bool     `yaml:"drainNodes"`
-	certificateRenewal        bool     `yaml:"certificateRenewal"`
-	promptOnError             bool     `yaml:"promptOnLock"`
-	NodesUpgraded             string   `yaml:"nodesUpgraded"`
-	NodesToBeUpgraded         string   `yaml:"nodesToBeUpgraded"`
-	UbuntuK8sVersion          string   `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
-	UbuntuK8sRepoName         string   `yaml:"ubuntuK8sRepoName"`
-	UbuntuK8sRepoBaseURL      string   `yaml:"ubuntuK8sRepoBaseURL"`
-	Redhat8K8sVersion         string   `yaml:"redhat8K8sVersion"`
-	Redhat8K8sRepoName        string   `yaml:"redhat8K8sRepoName"`
-	Redhat8K8sRepoBaseURL     string   `yaml:"redhat8K8sRepoBaseURL"`
-	Redhat9K8sVersion         string   `yaml:"redhat9K8sVersion"`
-	Redhat9K8sRepoName        string   `yaml:"redhat9K8sRepoName"`
-	Redhat9K8sRepoBaseURL     string   `yaml:"redhat9K8sRepoBaseURL"`
-	UbuntuTargetK8sVersion    string   `yaml:"ubuntuTargetK8sVersion"`
-	Rhel8TargetK8sVersion     string   `yaml:"rhel8TargetK8sVersion"`
-	Rhel9TargetK8sVersion     string   `yaml:"rhel9TargetK8sVersion"`
+	// TODO: make em all json
+	drainNodes         bool `yaml:"drainNodes"`
+	certificateRenewal bool `yaml:"certificateRenewal"`
+	promptOnError      bool `yaml:"promptOnLock"`
+	// TODO: should be a list
+	NodesUpgraded          string `yaml:"nodesUpgraded"`
+	NodesToBeUpgraded      string `yaml:"nodesToBeUpgraded"`
+	UbuntuK8sVersion       string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
+	UbuntuK8sRepoName      string `yaml:"ubuntuK8sRepoName"`
+	UbuntuK8sRepoBaseURL   string `yaml:"ubuntuK8sRepoBaseURL"`
+	Redhat8K8sVersion      string `yaml:"redhat8K8sVersion"`
+	Redhat8K8sRepoName     string `yaml:"redhat8K8sRepoName"`
+	Redhat8K8sRepoBaseURL  string `yaml:"redhat8K8sRepoBaseURL"`
+	Redhat9K8sVersion      string `yaml:"redhat9K8sVersion"`
+	Redhat9K8sRepoName     string `yaml:"redhat9K8sRepoName"`
+	Redhat9K8sRepoBaseURL  string `yaml:"redhat9K8sRepoBaseURL"`
+	UbuntuTargetK8sVersion string `yaml:"ubuntuTargetK8sVersion"`
+	Rhel8TargetK8sVersion  string `yaml:"rhel8TargetK8sVersion"`
+	Rhel9TargetK8sVersion  string `yaml:"rhel9TargetK8sVersion"`
+	// TODO: store these too - as we might restart
 	UbuntuAvailableK8sVersion []string `yaml:"ubuntuAvailableK8sVersion"`
 	Rhel8AvailableK8sVersion  []string `yaml:"rhel8AvailableK8sVersion"`
 	Rhel9AvailableK8sVersion  []string `yaml:"rhel9AvailableK8sVersion"`
@@ -116,7 +113,7 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 	}
 
 	report := upgradeConfig{
-		drainNodes:             false, //  bool(configMap.Data["DRAIN_NODES"]),
+		drainNodes:             false,
 		certificateRenewal:     false,
 		promptOnError:          false,
 		NodesUpgraded:          configMap.Data["NODES_UPGRADED"],
@@ -216,6 +213,7 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	if len(upgrade.pool.Clients) > 5 {
 		io.WriteString(w, "maximum number of concurrent connection exceeded!")
 
+		// TODO: -- wrap it in one of the error state(possible other: certificate renewal) --
 		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
 		if er != nil {
 			upgrade.nefario.log.Info("error writing concurrent connections warning:",
@@ -227,6 +225,7 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		// TODO: wrap it in error state
 		upgrade.nefario.log.Info("connection upgrade error:",
 			zap.Error(err))
 		return
@@ -237,18 +236,11 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	}
 
 	upgrade.pool.AddClient(client)
-	//defer upgrade.pool.RemoveClient(client)
-
-	// TODO:
-	//client.Conn.SetCloseHandler(func(code int, text string) error {
-	//
-	//	return nil
-	//})
 
 	// todo: add on prerequisite
-	//if upgrade.nefario.mu.TryLock() {
-	//	// only allow one api would run at a time
-	//	defer upgrade.nefario.mu.Unlock()
+	//  if upgrade.nefario.mu.TryLock() {
+	//	 // only allow one api would run at a time
+	//	 defer upgrade.nefario.mu.Unlock()
 	//}
 
 	if upgrade.mu.TryLock() {
@@ -259,27 +251,21 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 		upgrade.nefario.log.Info("registered client: ",
 			zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
-		config, err := readConfig(upgrade.nefario)
-		if err != nil {
-			// TODO: no restart mode or draining
-			log.Println("error reading config map:", err)
-			//c.log.Error("could not read config map",
-			//	zap.Error(err))
+		config, er := readConfig(upgrade.nefario)
+		if er != nil {
+			upgrade.nefario.log.Info("error reading config",
+				zap.Error(er))
 		}
 
 		upgrade.config = &config
 		upgrade.upgraded = make(chan bool, 1)
 		upgrade.MinorUpgrade()
 
-		// todo:
-		//  handle the error when only one persistent connection ran
-
 		return
 	}
 
 	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
 	go upgrade.pool.ReadMessageFromConn(ctx, client)
-	// TODO: propagate the context
 
 	<-upgrade.upgraded
 

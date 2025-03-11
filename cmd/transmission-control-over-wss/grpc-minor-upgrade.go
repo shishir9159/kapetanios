@@ -237,7 +237,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	compatability := clusterCompatability{
+	compatability := &clusterCompatability{
 		OSCompatability: in.GetOsCompatibility(),
 		Diff:            in.GetDiff(),
 		Err:             in.GetErr(),
@@ -245,7 +245,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-	payload, err := json.Marshal(&compatability)
+	payload, err := json.Marshal(compatability)
 	if err != nil {
 
 	}
@@ -294,7 +294,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	componentUpgrade := clusterComponentUpgrade{
+	componentUpgrade := &clusterComponentUpgrade{
 		ComponentUpgradeSuccess: in.ComponentUpgradeSuccess,
 		Component:               in.GetComponent(),
 		Log:                     in.GetLog(),
@@ -303,7 +303,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-	payload, err := json.Marshal(&componentUpgrade)
+	payload, err := json.Marshal(componentUpgrade)
 	if err != nil {
 
 	}

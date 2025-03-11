@@ -258,11 +258,13 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 	if kapetaniosPod == nil {
 		if err != nil {
-			upgrade.pool.BroadcastMessage([]byte("kapetanios pod discovery error: " +
+			// TODO: wrap it in error state
+			// TODO: shouldn't it be log fatal?
+			upgrade.pool.BroadcastMessage([]byte("kapetanios pod discovery error: check cluster health and communication to kubernetes api server" +
 				err.Error()))
 		}
 
-		upgrade.nefario.log.Error("check cluster health and communication to kubernetes api server",
+		upgrade.nefario.log.Error("kapetanios pod discovery error: ",
 			zap.Error(err))
 
 		// handle gracefully
@@ -297,10 +299,10 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		//  for _, no := range nodes.Items {
 		//	  c.log.Debug("nodes before sorting",
 		//	    	zap.String("nodes", no.ObjectMeta.Name))
-		//}
+		//  }
 
-		// TODO: wouldn't work on one master node where lighthouse is scheduled
-		// TODO: possible error, lighthouse can be on a master node, that would be mistakenly upgraded at the last
+		// TODO: wouldn't work on one master node where kapetanios is scheduled
+		// TODO: possible error, kapetanios can be on a master node, that would be mistakenly upgraded at the last
 		//  and sort the list from the smallest worker node by resources
 		// TODO: check if node-role.kubernetes.io/control-plane matches with the annotations
 
@@ -323,10 +325,6 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		//		zap.String("nodes", no.ObjectMeta.Name))
 		//}
 
-		// TODO:
-		//  based on the os version
-		//  select an appropriate package version
-
 		for _, no := range nodes.Items {
 			upgrade.nefario.log.Info("status",
 				//zap.String("node config assigned", no.Status.Config.Assigned.String()),
@@ -347,12 +345,10 @@ func (upgrade *Upgrade) MinorUpgrade() {
 			availableOS[no.Status.NodeInfo.OSImage] = no.Name
 		}
 
-		// configMap should be populated already for the second run
 		upgrade.MinorUpdate(availableOS)
 
 		// TODO:
 		//  Validation on OS version, Kernel Version, Selected Item compatibilities table
-
 	}
 
 	upgrade.nefario.log.Debug("nodes to be upgraded",
