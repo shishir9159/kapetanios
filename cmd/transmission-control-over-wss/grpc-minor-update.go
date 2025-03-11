@@ -56,6 +56,9 @@ func (s *minorUpdateServer) PrerequisitesCheck(_ context.Context, in *pb.Prerequ
 	// TODO:
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, true, false
 
+	// TODO: move the distro infos to the next step
+	//  or merge everything in one step
+	//  -- reasons -- updates can fail
 	nodeHealth := prerequisitesCheck{
 		Distro:         in.GetDistro(),
 		DistroVersion:  in.GetDistroVersion(),

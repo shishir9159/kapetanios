@@ -1,11 +1,10 @@
 <script lang="ts">
-    import {   Button, ButtonGroup, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
+    import { Button, ButtonGroup, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
+    import { message } from './upgrading.svelte.ts'
 
     let rhel8AvailableVersions = $state([""]);
     let selected = $state();
     let formModal = $state(false);
-
-    let logMessage: string = $state("didn't change");
 
     function connectionInitialization() {
 
@@ -20,7 +19,7 @@
         };
 
         socket.onmessage = (e) => {
-            logMessage = e.data;
+            message.logMessage = e.data;
             // message = utf8Array;
             // const message = JSON.parse(e.data);
         };
@@ -49,7 +48,7 @@
     <div class="nodes">
     </div>
     <div class="nodes">
-        <p style="color: red;">{logMessage}</p>
+        <p style="color: red;">{message.logMessage}</p>
     </div>
 </div>
 

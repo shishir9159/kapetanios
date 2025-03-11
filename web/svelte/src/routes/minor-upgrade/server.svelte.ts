@@ -1,5 +1,4 @@
 import { json } from '@sveltejs/kit';
-import { message } from './upgrading/upgrading.svelte.ts';
 
 class TestClass {
 	prop = $state('test');
