@@ -38,7 +38,7 @@
 <div class="action">
     <div class="button-group">
         <ButtonGroup>
-            <Button outline color="red" on:mousedown={connectionInitialization()}>upgrade</Button>
+            <Button outline color="red" on:mousedown={connectionInitialization}>upgrade</Button>
             <Button outline color="green">rollback</Button>
             <Button outline color="yellow">status</Button>
         </ButtonGroup>
@@ -57,7 +57,7 @@
 <Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
 
     <Label>
-        Select an option
+        Select K8s version for each OS
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
     <Select class="mt-2"
             items="{rhel8AvailableVersions}"
@@ -71,7 +71,7 @@
         <div class="flex items-start">
             <Checkbox>Drain Nodes</Checkbox>
         </div>
-        <Button type="submit" class="w-full1">Login to your account</Button>
+        <Button type="submit" class="w-full1">Submit</Button>
 </Modal>
 
 <!--<button disabled={!answer} type="submit">-->

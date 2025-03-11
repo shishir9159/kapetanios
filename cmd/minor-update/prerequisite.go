@@ -210,9 +210,9 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	rpc, err := connection.PrerequisitesCheck(c.ctx,
 		&pb.PrerequisitesMinorUpdate{
 			Distro:         distro,
-			DistroVersion:  distroVersion,
-			RepoName:       repoName,
-			RepoBaseURL:    repoBaseURL,
+			DistroVersion:  strings.TrimSuffix(distroVersion, "\n"),
+			RepoName:       strings.TrimSuffix(repoName, "\n"),
+			RepoBaseURL:    strings.TrimSuffix(repoBaseURL, "\n"),
 			CurrentVersion: strings.TrimSuffix(currentVersion, "\n"),
 			Log:            "",
 			Err:            "",
