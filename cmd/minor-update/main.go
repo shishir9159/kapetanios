@@ -98,19 +98,4 @@ func main() {
 			break
 		}
 	}
-
-	for i := 0; i < maxAttempts; i++ {
-		var skip bool
-		skip, err = availableVersions(c, conn)
-
-		if err != nil {
-			c.log.Error().Err(err).
-				Int("attempt", i).
-				Msg("failed to fetch minor versions for the kubernetes upgrade")
-		}
-
-		if skip {
-			break
-		}
-	}
 }

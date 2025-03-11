@@ -255,9 +255,11 @@ func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	connection := pb.NewMinorUpdateClient(conn)
 
+	availableVersionSlice, err := availableVersions(c, distro, conn)
+
 	rpc, err := connection.PackageInfoUpdate(c.ctx,
 		&pb.PackageInfo{
-			Version:        nil,
+			Version:        availableVersionSlice,
 			Distro:         distro,
 			DistroVersion:  distroVersion,
 			RepoName:       strings.TrimSuffix(repoName, "\n"),
@@ -280,9 +282,7 @@ func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
-	} else if !rpc.GetRetryCurrentStep() {
-		return false, nil
 	}
 
-	return true, nil
+	return !rpc.GetRetryCurrentStep(), nil
 }
