@@ -38,9 +38,10 @@ type PackageInfo struct {
 	Err                 string   `json:"err"`
 }
 
-type packageInfoForVersionSelection struct {
-	State        string         `json:"state"` // TODO: (default value)
-	ClusterState *upgradeConfig `json:"clusterState"`
+// TODO:
+//  make slices of struct to choose from
+
+type UpgradeConfiguration struct {
 }
 
 // TODO: Create an interface instead of generic that

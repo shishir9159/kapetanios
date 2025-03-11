@@ -63,9 +63,13 @@ type Upgrade struct {
 	nodeInfo nodeInfo
 }
 
+type Stat interface {
+}
+
 type State struct {
 	ID        uint32       `json:"id"`
 	StateName string       `json:"stateName"`
+	Stat      Stat         `json:"stat"`
 	State     *MinorUpdate `json:"state"`
 }
 
@@ -89,8 +93,8 @@ type MinorUpdate struct {
 type upgradeConfig struct {
 	// TODO: make em all json
 	DrainNodes         bool `json:"drainNodes"`
-	CertificateRenewal bool `json:"certificateRenewal"`
 	PromptOnError      bool `json:"promptOnLock"`
+	CertificateRenewal bool `json:"certificateRenewal"`
 	// TODO: should be a list
 	NodesUpgraded          string `json:"nodesUpgraded"`
 	NodesToBeUpgraded      string `json:"nodesToBeUpgraded"`
@@ -114,7 +118,6 @@ type upgradeConfig struct {
 
 func readConfig(nefario *Nefario) (upgradeConfig, error) {
 
-	// todo: mount configMap
 	configMapName := "kapetanios"
 
 	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).

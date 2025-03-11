@@ -12,10 +12,9 @@
         // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
 
         socket.onopen = async () => {
-            console.log('connected to the server');
-            socket.send('current state');
-            //     "current step"
-            //     prepare response accordingly
+            socket.send('connected to the server');
+            //TODO:    "current step"
+            //  prepare response accordingly
         };
 
         socket.onmessage = (e) => {
@@ -32,6 +31,8 @@
                 })
                 console.log($state.snapshot(rhel8AvailableVersions));
             }
+
+            socket.send('current state');
         };
 
         socket.onerror = (e) => {
