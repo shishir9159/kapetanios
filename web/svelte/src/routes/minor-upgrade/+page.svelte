@@ -8,8 +8,6 @@
     let formModal = $state(false);
 
     function connectionInitialization() {
-
-        let state = new State();
         const socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
         // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
 
@@ -22,9 +20,9 @@
 
         socket.onmessage = (e) => {
             message.logMessage = e.data;
-            state = JSON.parse(e.data);
-            // message = utf8Array;
-            // const message = JSON.parse(e.data);
+
+            let state: State = JSON.parse(e.data);;
+            console.log(state);
         };
 
         socket.onerror = (e) => {

@@ -31,20 +31,8 @@ interface UpdateVersionSelection {
     state: upgradeConfig
 }
 
-abstract class State {
-    protected context: Context;
-
-    public setContext(context: Context) {
-        this.context = context;
-    }
-
-    public abstract handle1(): void;
-
-    public abstract handle2(): void;
-}
-
 interface State {
-    id: number;
-    step: ""
-    state: MinorUpdate | UpdateVersionSelection;
+    id: number
+    step: "minor update"
+    state: MinorUpdate | UpdateVersionSelection
 }

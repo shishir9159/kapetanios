@@ -67,7 +67,12 @@ type Upgrade struct {
 //  https://web.archive.org/web/20160818125551/https://joneisen.tumblr.com/post/53695478114/golang-and-default-values
 
 type MinorUpdate struct {
-	Step  string        `json:"step"`
+	Step  string         `json:"step"`
+	State *upgradeConfig `json:"state"`
+}
+
+type State struct {
+	ID    uint32        `json:"id"`
 	State upgradeConfig `json:"state"`
 }
 
