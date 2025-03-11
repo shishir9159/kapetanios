@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { Button, ButtonGroup, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
+    import { Button, Checkbox, ButtonGroup, Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts'
     import type { State } from './ambient.d.ts'
 
-    let rhel8AvailableVersions = $state([""]);
+    let rhel8AvailableVersions = $state([{}]);
     let selected = $state();
     let formModal = $state(false);
 
@@ -19,17 +19,18 @@
         };
 
         socket.onmessage = (e) => {
-            message.logMessage = e.data;
-            console.log(message.logMessage);
+            // message.logMessage = e.data;
+            // console.log(message.logMessage);
 
-            let state: State = JSON.parse(e.data);;
-            console.log(state);
-            if (state.state.step == "minor update") {
+            let uistate: State = JSON.parse(e.data);;
+            console.log(uistate);
+            if (uistate.stateName == "minor update") {
                 formModal = true
-                // rhel8AvailableVersions = state.state.
-                rhel8AvailableVersions = state.state.state.rhel8AvailableK8sVersion;
-
-                console.log("rhel8AvailableVersions", rhel8AvailableVersions);
+                let availableVersions = uistate.state.state.rhel8AvailableK8sVersion;
+                availableVersions.forEach( (element) => {
+                    rhel8AvailableVersions.push({name: element, value: "rhel"});
+                })
+                console.log($state.snapshot(rhel8AvailableVersions));
             }
         };
 
