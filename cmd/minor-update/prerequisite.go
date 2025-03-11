@@ -14,7 +14,7 @@ import (
 )
 
 // TODO:
-//  it belongs to the internal
+//  it belongs to the utils
 
 func getDistro(c Controller) (string, string, error) {
 
@@ -190,12 +190,86 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 	return currentVersion, repoName, repoBaseURL, nil
 }
 
-func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
+func availableVersions(c Controller, distro string, conn *grpc.ClientConn) ([]string, error) {
 
-	// TODO: how to know the current node is etcd with clientSet?
-	//  	- etcd cluster from the cm
-	//		- how to get the hostname and ip address
-	//  check if external etcd running if it's an etcd node
+	changedRoot, err := utils.ChangeRoot("/host")
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to create chroot on /host")
+	}
+
+	var updateCommand string
+
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
+		updateCommand = "yum update -y"
+	} else if distro == "ubuntu" {
+		updateCommand = "apt update -y"
+	}
+
+	// TODO: re test on ubuntu and debian
+	cmd := exec.Command("/bin/bash", "-c", updateCommand)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+	if err != nil {
+		c.log.Error().Err(err).
+			Msg("failed to fetch repository updates")
+	}
+
+	c.log.Debug().
+		Str("stdout", stdoutBuf.String()).
+		Str("stderr", stderrBuf.String()).
+		Msg("successfully fetched repository updates")
+
+	stdoutBuf.Reset()
+	stderrBuf.Reset()
+
+	var packageSearch string
+	if strings.Contains(distro, "Red Hat Enterprise Linux") {
+		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes --quiet | grep .x86_64 | awk '{ print $2 }'"
+	} else if distro == "ubuntu" {
+		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
+	}
+
+	cmd = exec.Command("/bin/bash", "-c", packageSearch)
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err = cmd.Run()
+
+	if err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to list available versions")
+		// TODO: refactor this to send the error : return false, "", err
+	}
+
+	c.log.Debug().
+		Str("stdout", stdoutBuf.String()).
+		Str("stderr", stderrBuf.String()).
+		Msg("successfully fetched repository updates")
+
+	availableVersionSlice := strings.Split(stdoutBuf.String(), "\n")
+
+	if len(availableVersionSlice) == 0 {
+		c.log.Error().Err(err).
+			Msg("no available versions found for minor upgrade")
+		// todo: return false, "", err
+	}
+
+	// TODO:
+	//  send 2 component: kubectl, kubeadm version
+	//  and match it from the controller side's kubelet
+
+	if err = changedRoot(); err != nil {
+		c.log.Fatal().Err(err).
+			Msg("failed to exit from the updated root")
+	}
+
+	return availableVersionSlice, nil
+}
+
+func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	distro, distroVersion, err := getDistro(c)
 
@@ -203,8 +277,9 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	connection := pb.NewMinorUpdateClient(conn)
 
-	rpc, err := connection.PrerequisitesCheck(c.ctx,
-		&pb.PrerequisitesMinorUpdate{
+	rpc, err := connection.PackageInfoUpdate(c.ctx,
+		&pb.PackageInfo{
+			Version:        nil,
 			Distro:         distro,
 			DistroVersion:  distroVersion,
 			RepoName:       strings.TrimSuffix(repoName, "\n"),

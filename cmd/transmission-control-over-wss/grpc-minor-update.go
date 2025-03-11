@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
+	"os"
 	"slices"
 	"strings"
 )
@@ -159,6 +160,11 @@ func (s *minorUpdateServer) UpdateVersionSelection(_ context.Context, in *pb.Ava
 	if err != nil {
 
 		//return nil, err
+	}
+
+	if os.Getenv("DEBUG") == "true" {
+		//TODO: response = currentVersion
+		// skip broadcast
 	}
 
 	switch response {

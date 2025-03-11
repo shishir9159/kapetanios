@@ -19,16 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MinorUpdate_PrerequisitesCheck_FullMethodName     = "/MinorUpdate/PrerequisitesCheck"
-	MinorUpdate_UpdateVersionSelection_FullMethodName = "/MinorUpdate/UpdateVersionSelection"
+	MinorUpdate_PackageInfoUpdate_FullMethodName = "/MinorUpdate/PackageInfoUpdate"
 )
 
 // MinorUpdateClient is the client API for MinorUpdate service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MinorUpdateClient interface {
-	PrerequisitesCheck(ctx context.Context, in *PrerequisitesMinorUpdate, opts ...grpc.CallOption) (*UpdateResponse, error)
-	UpdateVersionSelection(ctx context.Context, in *AvailableVersions, opts ...grpc.CallOption) (*UpdateFinalizer, error)
+	PackageInfoUpdate(ctx context.Context, in *PackageInfo, opts ...grpc.CallOption) (*UpdateFinalizer, error)
 }
 
 type minorUpdateClient struct {
@@ -39,20 +37,10 @@ func NewMinorUpdateClient(cc grpc.ClientConnInterface) MinorUpdateClient {
 	return &minorUpdateClient{cc}
 }
 
-func (c *minorUpdateClient) PrerequisitesCheck(ctx context.Context, in *PrerequisitesMinorUpdate, opts ...grpc.CallOption) (*UpdateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateResponse)
-	err := c.cc.Invoke(ctx, MinorUpdate_PrerequisitesCheck_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *minorUpdateClient) UpdateVersionSelection(ctx context.Context, in *AvailableVersions, opts ...grpc.CallOption) (*UpdateFinalizer, error) {
+func (c *minorUpdateClient) PackageInfoUpdate(ctx context.Context, in *PackageInfo, opts ...grpc.CallOption) (*UpdateFinalizer, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateFinalizer)
-	err := c.cc.Invoke(ctx, MinorUpdate_UpdateVersionSelection_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, MinorUpdate_PackageInfoUpdate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +51,7 @@ func (c *minorUpdateClient) UpdateVersionSelection(ctx context.Context, in *Avai
 // All implementations must embed UnimplementedMinorUpdateServer
 // for forward compatibility.
 type MinorUpdateServer interface {
-	PrerequisitesCheck(context.Context, *PrerequisitesMinorUpdate) (*UpdateResponse, error)
-	UpdateVersionSelection(context.Context, *AvailableVersions) (*UpdateFinalizer, error)
+	PackageInfoUpdate(context.Context, *PackageInfo) (*UpdateFinalizer, error)
 	mustEmbedUnimplementedMinorUpdateServer()
 }
 
@@ -75,11 +62,8 @@ type MinorUpdateServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMinorUpdateServer struct{}
 
-func (UnimplementedMinorUpdateServer) PrerequisitesCheck(context.Context, *PrerequisitesMinorUpdate) (*UpdateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PrerequisitesCheck not implemented")
-}
-func (UnimplementedMinorUpdateServer) UpdateVersionSelection(context.Context, *AvailableVersions) (*UpdateFinalizer, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateVersionSelection not implemented")
+func (UnimplementedMinorUpdateServer) PackageInfoUpdate(context.Context, *PackageInfo) (*UpdateFinalizer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PackageInfoUpdate not implemented")
 }
 func (UnimplementedMinorUpdateServer) mustEmbedUnimplementedMinorUpdateServer() {}
 func (UnimplementedMinorUpdateServer) testEmbeddedByValue()                     {}
@@ -102,38 +86,20 @@ func RegisterMinorUpdateServer(s grpc.ServiceRegistrar, srv MinorUpdateServer) {
 	s.RegisterService(&MinorUpdate_ServiceDesc, srv)
 }
 
-func _MinorUpdate_PrerequisitesCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PrerequisitesMinorUpdate)
+func _MinorUpdate_PackageInfoUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PackageInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MinorUpdateServer).PrerequisitesCheck(ctx, in)
+		return srv.(MinorUpdateServer).PackageInfoUpdate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MinorUpdate_PrerequisitesCheck_FullMethodName,
+		FullMethod: MinorUpdate_PackageInfoUpdate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MinorUpdateServer).PrerequisitesCheck(ctx, req.(*PrerequisitesMinorUpdate))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MinorUpdate_UpdateVersionSelection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AvailableVersions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MinorUpdateServer).UpdateVersionSelection(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MinorUpdate_UpdateVersionSelection_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MinorUpdateServer).UpdateVersionSelection(ctx, req.(*AvailableVersions))
+		return srv.(MinorUpdateServer).PackageInfoUpdate(ctx, req.(*PackageInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -146,12 +112,8 @@ var MinorUpdate_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*MinorUpdateServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PrerequisitesCheck",
-			Handler:    _MinorUpdate_PrerequisitesCheck_Handler,
-		},
-		{
-			MethodName: "UpdateVersionSelection",
-			Handler:    _MinorUpdate_UpdateVersionSelection_Handler,
+			MethodName: "PackageInfoUpdate",
+			Handler:    _MinorUpdate_PackageInfoUpdate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -29,9 +29,8 @@ var (
 )
 
 type Controller struct {
-	ctx    context.Context
-	log    zerolog.Logger
-	distro string
+	ctx context.Context
+	log zerolog.Logger
 }
 
 func main() {
@@ -88,7 +87,7 @@ func main() {
 
 	for i := 0; i < maxAttempts; i++ {
 		var skip bool
-		skip, c.distro, err = Prerequisites(c, conn)
+		skip, err = minorUpdate(c, conn)
 		if err != nil {
 			c.log.Error().Err(err).
 				Int("attempt", i).
@@ -98,11 +97,6 @@ func main() {
 		if skip {
 			break
 		}
-	}
-
-	if c.distro == "" {
-		c.log.Fatal().Err(err).
-			Msg("couldn't fetch distro info")
 	}
 
 	for i := 0; i < maxAttempts; i++ {
@@ -118,9 +112,5 @@ func main() {
 		if skip {
 			break
 		}
-	}
-
-	if os.Getenv("DEBUG") == "true" {
-		//TODO: version = current kubernetesVersion
 	}
 }
