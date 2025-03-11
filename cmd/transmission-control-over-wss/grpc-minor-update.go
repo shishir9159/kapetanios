@@ -81,7 +81,7 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	}
 
 	minorUpdate := &MinorUpdate{
-		Step:  "0",
+		Step:  "minor update",
 		State: s.upgradeConfig,
 	}
 

@@ -25,7 +25,11 @@
             let state: State = JSON.parse(e.data);;
             console.log(state);
             if (state.step == "minor update") {
+                formModal = true
                 // rhel8AvailableVersions = state.state.
+                rhel8AvailableVersions = state.state.state.rhel8AvailableK8sVersion;
+
+                console.log("rhel8AvailableVersions", rhel8AvailableVersions);
             }
         };
 
