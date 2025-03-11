@@ -15,8 +15,9 @@ message PackageInfo {
 message UpdateFinalizer {
   bool responseReceived = 1;
   bool retryCurrentStep = 2;
-  bool terminateApplication = 3; // TODO: try another healthy VM of the same OS
-                                 //  if error occurs
+  bool terminateApplication = 3;
+  // TODO: try another healthy VM of the same OS
+  //  if error occurs
 }
 
 service MinorUpdate {

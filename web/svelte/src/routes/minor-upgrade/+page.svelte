@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Button, ButtonGroup, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts'
+    import { State } from './ambient.d.ts'
 
     let rhel8AvailableVersions = $state([""]);
     let selected = $state();
@@ -8,6 +9,7 @@
 
     function connectionInitialization() {
 
+        let state = new State();
         const socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
         // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
 
@@ -20,6 +22,7 @@
 
         socket.onmessage = (e) => {
             message.logMessage = e.data;
+            state = JSON.parse(e.data);
             // message = utf8Array;
             // const message = JSON.parse(e.data);
         };

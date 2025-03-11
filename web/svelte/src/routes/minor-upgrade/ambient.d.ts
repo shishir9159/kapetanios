@@ -2,37 +2,49 @@ interface upgradeConfig {
     drainNodes: boolean;
     certificateRenewal: boolean;
     promptOnError: boolean;
-    NodesUpgraded: string;
-    NodesToBeUpgraded: string;
-    UbuntuK8sVersion: string;
-    UbuntuK8sRepoName: string;
-    UbuntuK8sRepoBaseURL: string;
-    Redhat8K8sVersion: string;
-    Redhat8K8sRepoName: string;
-    Redhat8K8sRepoBaseURL: string;
-    Redhat9K8sVersion: string;
-    Redhat9K8sRepoName: string;
-    Redhat9K8sRepoBaseURL: string;
-    UbuntuTargetK8sVersion: string;
-    Rhel8TargetK8sVersion: string;
-    Rhel9TargetK8sVersion: string;
-    UbuntuAvailableK8sVersion: [""];
-    Rhel8AvailableK8sVersion: [""];
-    Rhel9AvailableK8sVersion: [""];
+    nodesUpgraded: string;
+    nodesToBeUpgraded: string;
+    ubuntuK8sVersion: string;
+    ubuntuK8sRepoName: string;
+    ubuntuK8sRepoBaseURL: string;
+    redhat8K8sVersion: string;
+    redhat8K8sRepoName: string;
+    redhat8K8sRepoBaseURL: string;
+    redhat9K8sVersion: string;
+    redhat9K8sRepoName: string;
+    redhat9K8sRepoBaseURL: string;
+    ubuntuTargetK8sVersion: string;
+    rhel8TargetK8sVersion: string;
+    rhel9TargetK8sVersion: string;
+    ubuntuAvailableK8sVersion: [""];
+    rhel8AvailableK8sVersion: [""];
+    rhel9AvailableK8sVersion: [""];
 }
 
-
-interface PrerequisitesCheck {
-    state: "prerequisites"
-    log: ""
+interface MinorUpdate {
+    step: "minor update"
+    state: upgradeConfig
 }
 
 interface UpdateVersionSelection {
-    state: "updateVersionSelection"
-    log: ""
+    step: "updateVersionSelection"
+    state: upgradeConfig
 }
 
-interface Request {
+abstract class State {
+    protected context: Context;
+
+    public setContext(context: Context) {
+        this.context = context;
+    }
+
+    public abstract handle1(): void;
+
+    public abstract handle2(): void;
+}
+
+interface State {
     id: number;
-    state: PrerequisitesCheck | UpdateVersionSelection;
+    step: ""
+    state: MinorUpdate | UpdateVersionSelection;
 }

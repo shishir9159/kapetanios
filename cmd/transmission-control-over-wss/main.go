@@ -63,6 +63,14 @@ type Upgrade struct {
 	nodeInfo nodeInfo
 }
 
+// TODO:
+//  https://web.archive.org/web/20160818125551/https://joneisen.tumblr.com/post/53695478114/golang-and-default-values
+
+type MinorUpdate struct {
+	Step  string        `json:"step"`
+	State upgradeConfig `json:"state"`
+}
+
 // todo: should I keep track record if nodes were already
 //  tainted before draining
 
@@ -75,28 +83,28 @@ type Upgrade struct {
 
 type upgradeConfig struct {
 	// TODO: make em all json
-	drainNodes         bool `yaml:"drainNodes"`
-	certificateRenewal bool `yaml:"certificateRenewal"`
-	promptOnError      bool `yaml:"promptOnLock"`
+	DrainNodes         bool `json:"drainNodes"`
+	CertificateRenewal bool `json:"certificateRenewal"`
+	PromptOnError      bool `json:"promptOnLock"`
 	// TODO: should be a list
-	NodesUpgraded          string `yaml:"nodesUpgraded"`
-	NodesToBeUpgraded      string `yaml:"nodesToBeUpgraded"`
-	UbuntuK8sVersion       string `yaml:"ubuntuK8sVersion"` // currently only works with 24.02
-	UbuntuK8sRepoName      string `yaml:"ubuntuK8sRepoName"`
-	UbuntuK8sRepoBaseURL   string `yaml:"ubuntuK8sRepoBaseURL"`
-	Redhat8K8sVersion      string `yaml:"redhat8K8sVersion"`
-	Redhat8K8sRepoName     string `yaml:"redhat8K8sRepoName"`
-	Redhat8K8sRepoBaseURL  string `yaml:"redhat8K8sRepoBaseURL"`
-	Redhat9K8sVersion      string `yaml:"redhat9K8sVersion"`
-	Redhat9K8sRepoName     string `yaml:"redhat9K8sRepoName"`
-	Redhat9K8sRepoBaseURL  string `yaml:"redhat9K8sRepoBaseURL"`
-	UbuntuTargetK8sVersion string `yaml:"ubuntuTargetK8sVersion"`
-	Rhel8TargetK8sVersion  string `yaml:"rhel8TargetK8sVersion"`
-	Rhel9TargetK8sVersion  string `yaml:"rhel9TargetK8sVersion"`
-	// TODO: store these too - as we might restart
-	UbuntuAvailableK8sVersion []string `yaml:"ubuntuAvailableK8sVersion"`
-	Rhel8AvailableK8sVersion  []string `yaml:"rhel8AvailableK8sVersion"`
-	Rhel9AvailableK8sVersion  []string `yaml:"rhel9AvailableK8sVersion"`
+	NodesUpgraded          string `json:"nodesUpgraded"`
+	NodesToBeUpgraded      string `json:"nodesToBeUpgraded"`
+	UbuntuK8sVersion       string `json:"ubuntuK8sVersion"` // currently only works with 24.02
+	UbuntuK8sRepoName      string `json:"ubuntuK8sRepoName"`
+	UbuntuK8sRepoBaseURL   string `json:"ubuntuK8sRepoBaseURL"`
+	Redhat8K8sVersion      string `json:"redhat8K8sVersion"`
+	Redhat8K8sRepoName     string `json:"redhat8K8sRepoName"`
+	Redhat8K8sRepoBaseURL  string `json:"redhat8K8sRepoBaseURL"`
+	Redhat9K8sVersion      string `json:"redhat9K8sVersion"`
+	Redhat9K8sRepoName     string `json:"redhat9K8sRepoName"`
+	Redhat9K8sRepoBaseURL  string `json:"redhat9K8sRepoBaseURL"`
+	UbuntuTargetK8sVersion string `json:"ubuntuTargetK8sVersion"`
+	Rhel8TargetK8sVersion  string `json:"rhel8TargetK8sVersion"`
+	Rhel9TargetK8sVersion  string `json:"rhel9TargetK8sVersion"`
+	// TODO: store these too for we might restart
+	UbuntuAvailableK8sVersion []string `json:"ubuntuAvailableK8sVersion"`
+	Rhel8AvailableK8sVersion  []string `json:"rhel8AvailableK8sVersion"`
+	Rhel9AvailableK8sVersion  []string `json:"rhel9AvailableK8sVersion"`
 }
 
 func readConfig(nefario *Nefario) (upgradeConfig, error) {
@@ -113,9 +121,9 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 	}
 
 	report := upgradeConfig{
-		drainNodes:             false,
-		certificateRenewal:     false,
-		promptOnError:          false,
+		DrainNodes:             false,
+		CertificateRenewal:     false,
+		PromptOnError:          false,
 		NodesUpgraded:          configMap.Data["NODES_UPGRADED"],
 		NodesToBeUpgraded:      configMap.Data["NODES_TO_BE_UPGRADED"],
 		UbuntuK8sVersion:       configMap.Data["UBUNTU_K8S_VERSION"],
@@ -358,7 +366,7 @@ func main() {
 		zap.String("nodesToBeUpgraded", upgrade.config.NodesToBeUpgraded))
 
 	// ------
-	upgrade.config.promptOnError = true
+	upgrade.config.PromptOnError = true
 
 	if upgrade.config.NodesToBeUpgraded != "" {
 		er := Prerequisites(&upgrade)

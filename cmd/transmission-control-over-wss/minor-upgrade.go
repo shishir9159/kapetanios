@@ -432,7 +432,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		certRenewalEnv := corev1.EnvVar{
 			Name:  "CERTIFICATE_RENEWAL",
-			Value: strconv.FormatBool(upgrade.config.certificateRenewal),
+			Value: strconv.FormatBool(upgrade.config.CertificateRenewal),
 		}
 
 		env := descriptor.Spec.Containers[0].Env
@@ -488,7 +488,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		// TODO: should wait for the coredns restart
 
-		if upgrade.config.drainNodes {
+		if upgrade.config.DrainNodes {
 
 			upgrade.nefario.log.Info("cordoning and draining node",
 				zap.String("node name", node))
