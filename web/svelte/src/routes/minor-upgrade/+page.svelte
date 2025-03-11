@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button, ButtonGroup, Modal, Label , Select, Checkbox } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts'
-    import { State } from './ambient.d.ts'
+    import type { State } from './ambient.d.ts'
 
     let rhel8AvailableVersions = $state([""]);
     let selected = $state();
@@ -20,9 +20,13 @@
 
         socket.onmessage = (e) => {
             message.logMessage = e.data;
+            console.log(message.logMessage);
 
             let state: State = JSON.parse(e.data);;
             console.log(state);
+            if (state.step == "minor update") {
+                // rhel8AvailableVersions = state.state.
+            }
         };
 
         socket.onerror = (e) => {
@@ -60,7 +64,7 @@
         Select K8s version for each OS
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
     <Select class="mt-2"
-            items="{rhel8AvailableVersions}"
+            items={rhel8AvailableVersions}
             bind:value={selected}
             onchange={() => (console.log('selected'))}
     />
