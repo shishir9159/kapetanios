@@ -22,17 +22,17 @@ interface upgradeConfig {
 }
 
 interface MinorUpdate {
-    step: 0 
+    step: 0
     state: upgradeConfig
 }
 
 interface UpdateVersionSelection {
-    step: "updateVersionSelection"
+    step: 1
     state: upgradeConfig
 }
 
 export interface State {
     id: number
-    step: ""
+    stateName: string
     state: MinorUpdate | UpdateVersionSelection
 }

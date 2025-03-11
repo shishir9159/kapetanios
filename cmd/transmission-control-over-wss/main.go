@@ -64,9 +64,9 @@ type Upgrade struct {
 }
 
 type State struct {
-	ID          uint32       `json:"id"`
-	Step        string       `json:"step"`
-	MinorUpdate *MinorUpdate `json:"minor_update"`
+	ID        uint32       `json:"id"`
+	StateName string       `json:"stateName"`
+	State     *MinorUpdate `json:"state"`
 }
 
 // TODO:

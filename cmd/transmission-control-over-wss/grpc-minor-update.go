@@ -85,8 +85,8 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	}
 
 	state := &State{
-		Step:        "0",
-		MinorUpdate: minorUpdate,
+		StateName: "minor update",
+		State:     minorUpdate,
 	}
 
 	if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
