@@ -61,11 +61,21 @@ func main() {
 			Receiver:  s,
 		}
 
-		payload, err := json.MarshalIndent(messenger, "", "    ")
+		payload, err := json.Marshal(&messenger)
 		configMap.Data["kapetanios"] = string(payload)
 
 		_, err = clientSet.CoreV1().ConfigMaps("default").
 			Update(ctx, configMap, metav1.UpdateOptions{})
+
+		m := Messenger{}
+
+		load := []byte(configMap.Data["kapetanios"])
+		err = json.Unmarshal(load, &m)
+		if err != nil {
+			log.Print(string(load))
+			log.Print("---")
+			log.Print(load)
+		}
 	} else {
 		log.Println("clientSet is nil")
 	}
