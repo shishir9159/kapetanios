@@ -93,10 +93,12 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
 		minorUpdate.State.Rhel8K8sRepoName = packageInfo.RepoName
 		minorUpdate.State.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
+		minorUpdate.State.Rhel8K8sVersion = packageInfo.CurrentK8sVersion
 		minorUpdate.State.Rhel8AvailableK8sVersion = packageInfo.AvailableK8sVersion
 	} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
 		minorUpdate.State.Rhel9K8sRepoName = packageInfo.RepoName
 		minorUpdate.State.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
+		minorUpdate.State.Rhel9K8sVersion = packageInfo.CurrentK8sVersion
 		minorUpdate.State.Rhel9AvailableK8sVersion = packageInfo.AvailableK8sVersion
 	}
 
