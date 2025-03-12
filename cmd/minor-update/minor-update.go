@@ -126,7 +126,6 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 	if err != nil {
 		log.Fatal().Err(err).
 			Msg("failed to list available versions")
-		// TODO: refactor this to send the error : return false, "", err
 	}
 
 	repoName, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
@@ -168,7 +167,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 	return currentVersion, repoName, repoBaseURL, nil
 }
 
-func availableVersions(c Controller, distro string, conn *grpc.ClientConn) ([]string, error) {
+func availableVersions(c Controller, distro string) ([]string, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -250,13 +249,10 @@ func availableVersions(c Controller, distro string, conn *grpc.ClientConn) ([]st
 func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	distro, distroVersion, err := getDistro(c)
-
 	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
+	availableVersionSlice, err := availableVersions(c, distro)
 
 	connection := pb.NewMinorUpdateClient(conn)
-
-	availableVersionSlice, err := availableVersions(c, distro, conn)
-
 	rpc, err := connection.PackageInfoUpdate(c.ctx,
 		&pb.PackageInfo{
 			Version:        availableVersionSlice,

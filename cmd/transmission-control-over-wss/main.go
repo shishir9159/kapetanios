@@ -84,25 +84,22 @@ type MinorUpdate struct {
 // todo: should I keep track record if nodes were already
 //  tainted before draining
 
-// TODO:
-//  generalize distro and repo description to extend support to all
-//  and add a list for all
-
-// TODO:
-//  separate struct for all the distros
+type K8sVersion struct {
+	DistroPrettyName string `json:"distroPrettyName"`
+	TargetK8sVersion string `json:"targetK8sVersion"`
+}
 
 type selectedConfig struct {
-	DrainNodes         bool `json:"drainNodes"`
-	PromptOnError      bool `json:"promptOnLock"`
-	CertificateRenewal bool `json:"certificateRenewal"`
+	DrainNodes         bool         `json:"drainNodes"`
+	PromptOnError      bool         `json:"promptOnLock"`
+	CertificateRenewal bool         `json:"certificateRenewal"`
+	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
 type upgradeConfig struct {
-	// TODO: make em all json
-	DrainNodes         bool `json:"drainNodes"`
-	PromptOnError      bool `json:"promptOnLock"`
-	CertificateRenewal bool `json:"certificateRenewal"`
-	// TODO: should be a list
+	DrainNodes             bool   `json:"drainNodes"`
+	PromptOnError          bool   `json:"promptOnLock"`
+	CertificateRenewal     bool   `json:"certificateRenewal"`
 	NodesUpgraded          string `json:"nodesUpgraded"`
 	NodesToBeUpgraded      string `json:"nodesToBeUpgraded"`
 	UbuntuK8sVersion       string `json:"ubuntuK8sVersion"` // currently only works with 24.02
