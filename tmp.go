@@ -72,6 +72,8 @@ func main() {
 		load := []byte(configMap.Data["kapetanios"])
 		err = json.Unmarshal(load, &m)
 		if err != nil {
+			log.Print(m.Receiver)
+			log.Print("---")
 			log.Print(string(load))
 			log.Print("---")
 			log.Print(load)
