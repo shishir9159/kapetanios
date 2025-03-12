@@ -61,7 +61,7 @@ func main() {
 			Receiver:  s,
 		}
 
-		payload, err := json.Marshal(&messenger)
+		payload, err := json.MarshalIndent(messenger, "", "  ")
 		configMap.Data["kapetanios"] = string(payload)
 
 		_, err = clientSet.CoreV1().ConfigMaps("default").
