@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button, Checkbox, ButtonGroup, Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts'
-    import type { State } from './ambient.d.ts'
+    import type { UpgradeProgression } from './ambient.d.ts'
 
     let rhel8AvailableVersions = $state([{}]);
     let selected = $state();
@@ -21,7 +21,7 @@
             // message.logMessage = e.data;
             // console.log(message.logMessage);
 
-            let uistate: State = JSON.parse(e.data);;
+            let uistate: UpgradeProgression = JSON.parse(e.data);;
             console.log(uistate);
             if (uistate.stateName == "minor update") {
                 formModal = true

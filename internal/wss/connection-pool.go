@@ -125,7 +125,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	for {
 		if len(pool.Clients) == 0 {
-			time.Sleep(5 * time.Second)
+			time.Sleep(3 * time.Second)
 			continue
 		}
 		break
@@ -138,8 +138,6 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 			go pool.ReadMessageFromConn(ctx, client)
 		}
 	}
-
-	// conn.setReadDeadline???!!!
 
 	message := <-pool.MessageChan
 	pool.CancelReadContext()

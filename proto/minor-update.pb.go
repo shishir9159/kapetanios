@@ -128,7 +128,7 @@ type UpdateFinalizer struct {
 
 	ResponseReceived     bool `protobuf:"varint,1,opt,name=responseReceived,proto3" json:"responseReceived,omitempty"`
 	RetryCurrentStep     bool `protobuf:"varint,2,opt,name=retryCurrentStep,proto3" json:"retryCurrentStep,omitempty"`
-	TerminateApplication bool `protobuf:"varint,3,opt,name=terminateApplication,proto3" json:"terminateApplication,omitempty"` // TODO: try another healthy VM of the same OS
+	TerminateApplication bool `protobuf:"varint,3,opt,name=terminateApplication,proto3" json:"terminateApplication,omitempty"`
 }
 
 func (x *UpdateFinalizer) Reset() {

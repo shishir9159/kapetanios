@@ -74,29 +74,29 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	// TODO:
 
 	if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
-		s.upgradeConfig.Redhat8K8sRepoName = packageInfo.RepoName
-		s.upgradeConfig.Redhat8K8sRepoBaseURL = packageInfo.RepoBaseURL
+		s.upgradeConfig.Rhel8K8sRepoName = packageInfo.RepoName
+		s.upgradeConfig.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
 	} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
-		s.upgradeConfig.Redhat9K8sRepoName = packageInfo.RepoName
-		s.upgradeConfig.Redhat9K8sRepoBaseURL = packageInfo.RepoBaseURL
+		s.upgradeConfig.Rhel9K8sRepoName = packageInfo.RepoName
+		s.upgradeConfig.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
 	}
 
 	minorUpdate := &MinorUpdate{
 		State: s.upgradeConfig,
 	}
 
-	state := &State{
+	state := &UpgradeProgression{
 		StateName: "minor update",
 		State:     minorUpdate,
 	}
 
 	if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
-		minorUpdate.State.Redhat8K8sRepoName = packageInfo.RepoName
-		minorUpdate.State.Redhat8K8sRepoBaseURL = packageInfo.RepoBaseURL
+		minorUpdate.State.Rhel8K8sRepoName = packageInfo.RepoName
+		minorUpdate.State.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
 		minorUpdate.State.Rhel8AvailableK8sVersion = packageInfo.AvailableK8sVersion
 	} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
-		minorUpdate.State.Redhat9K8sRepoName = packageInfo.RepoName
-		minorUpdate.State.Redhat9K8sRepoBaseURL = packageInfo.RepoBaseURL
+		minorUpdate.State.Rhel9K8sRepoName = packageInfo.RepoName
+		minorUpdate.State.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
 		minorUpdate.State.Rhel9AvailableK8sVersion = packageInfo.AvailableK8sVersion
 	}
 
@@ -155,12 +155,12 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 		if slices.Contains(packageInfo.AvailableK8sVersion, response) {
 			if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
 				s.upgradeConfig.Rhel8TargetK8sVersion = response
-				s.upgradeConfig.Redhat8K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Redhat8K8sRepoBaseURL = packageInfo.RepoBaseURL
+				s.upgradeConfig.Rhel8K8sRepoName = packageInfo.RepoName
+				s.upgradeConfig.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
 			} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
 				s.upgradeConfig.Rhel9TargetK8sVersion = response
-				s.upgradeConfig.Redhat9K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Redhat9K8sRepoBaseURL = packageInfo.RepoBaseURL
+				s.upgradeConfig.Rhel9K8sRepoName = packageInfo.RepoName
+				s.upgradeConfig.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
 			}
 
 			responseReceived = true

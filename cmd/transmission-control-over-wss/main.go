@@ -41,8 +41,6 @@ type nodeInfo struct {
 	kubernetesVersion string
 }
 
-// should it be foreman?
-
 type Nefario struct {
 	client    *orchestration.Client
 	ctx       context.Context
@@ -51,8 +49,6 @@ type Nefario struct {
 	mu        sync.Mutex
 	namespace string
 }
-
-// TODO: update -- should it be query to one vm or all the vm?
 
 type Upgrade struct {
 	nefario  *Nefario
@@ -63,10 +59,15 @@ type Upgrade struct {
 	nodeInfo nodeInfo
 }
 
-type Stat interface {
+type State interface {
+	ReadMessage() (bool, bool, bool)
 }
 
-type State struct {
+type Stat interface {
+	placeHolderForNow()
+}
+
+type UpgradeProgression struct {
 	ID        uint32       `json:"id"`
 	StateName string       `json:"stateName"`
 	Stat      Stat         `json:"stat"`
@@ -90,6 +91,12 @@ type MinorUpdate struct {
 // TODO:
 //  separate struct for all the distros
 
+type selectedConfig struct {
+	DrainNodes         bool `json:"drainNodes"`
+	PromptOnError      bool `json:"promptOnLock"`
+	CertificateRenewal bool `json:"certificateRenewal"`
+}
+
 type upgradeConfig struct {
 	// TODO: make em all json
 	DrainNodes         bool `json:"drainNodes"`
@@ -101,12 +108,12 @@ type upgradeConfig struct {
 	UbuntuK8sVersion       string `json:"ubuntuK8sVersion"` // currently only works with 24.02
 	UbuntuK8sRepoName      string `json:"ubuntuK8sRepoName"`
 	UbuntuK8sRepoBaseURL   string `json:"ubuntuK8sRepoBaseURL"`
-	Redhat8K8sVersion      string `json:"redhat8K8sVersion"`
-	Redhat8K8sRepoName     string `json:"redhat8K8sRepoName"`
-	Redhat8K8sRepoBaseURL  string `json:"redhat8K8sRepoBaseURL"`
-	Redhat9K8sVersion      string `json:"redhat9K8sVersion"`
-	Redhat9K8sRepoName     string `json:"redhat9K8sRepoName"`
-	Redhat9K8sRepoBaseURL  string `json:"redhat9K8sRepoBaseURL"`
+	Rhel8K8sVersion        string `json:"rhel8K8sVersion"`
+	Rhel8K8sRepoName       string `json:"rhel8K8sRepoName"`
+	Rhel8K8sRepoBaseURL    string `json:"rhel8K8sRepoBaseURL"`
+	Rhel9K8sVersion        string `json:"rhel9K8sVersion"`
+	Rhel9K8sRepoName       string `json:"rhel9K8sRepoName"`
+	Rhel9K8sRepoBaseURL    string `json:"rhel9K8sRepoBaseURL"`
 	UbuntuTargetK8sVersion string `json:"ubuntuTargetK8sVersion"`
 	Rhel8TargetK8sVersion  string `json:"rhel8TargetK8sVersion"`
 	Rhel9TargetK8sVersion  string `json:"rhel9TargetK8sVersion"`
@@ -135,8 +142,8 @@ func readConfig(nefario *Nefario) (upgradeConfig, error) {
 		NodesUpgraded:          configMap.Data["NODES_UPGRADED"],
 		NodesToBeUpgraded:      configMap.Data["NODES_TO_BE_UPGRADED"],
 		UbuntuK8sVersion:       configMap.Data["UBUNTU_K8S_VERSION"],
-		Redhat8K8sVersion:      configMap.Data["REDHAT8_K8S_VERSION"],
-		Redhat9K8sVersion:      configMap.Data["REDHAT9_K8S_VERSION"],
+		Rhel8K8sVersion:        configMap.Data["REDHAT8_K8S_VERSION"],
+		Rhel9K8sVersion:        configMap.Data["REDHAT9_K8S_VERSION"],
 		UbuntuTargetK8sVersion: configMap.Data["UBUNTU_TARGET_K8S_VERSION"],
 		Rhel8TargetK8sVersion:  configMap.Data["RHEL8_TARGET_K8S_VERSION"],
 		Rhel9TargetK8sVersion:  configMap.Data["RHEL9_TARGET_K8S_VERSION"],
@@ -163,8 +170,8 @@ func writeConfig(nefario *Nefario, report upgradeConfig) error {
 	//configMap.Data["NODES_UPGRADED"] = report.NodesUpgraded
 	//configMap.Data["NODES_TO_BE_UPGRADED"] = report.NodesToBeUpgraded
 	//configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion
-	configMap.Data["REDHAT8_K8S_VERSION"] = report.Redhat8K8sVersion
-	//configMap.Data["REDHAT9_K8S_VERSION"] = report.Redhat9K8sVersion
+	configMap.Data["REDHAT8_K8S_VERSION"] = report.Rhel8K8sVersion
+	//configMap.Data["REDHAT9_K8S_VERSION"] = report.Rhel9K8sVersion
 	//configMap.Data["UBUNTU_TARGET_K8S_VERSION"] = report.UbuntuTargetK8sVersion
 	configMap.Data["RHEL8_TARGET_K8S_VERSION"] = report.Rhel8TargetK8sVersion
 	//configMap.Data["RHEL9_TARGET_K8S_VERSION"] = report.Rhel9TargetK8sVersion
