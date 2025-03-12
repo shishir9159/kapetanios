@@ -113,16 +113,17 @@ type upgradeStatus struct {
 }
 
 type upgradeReport struct {
-	Log string
-	Err string
+	StepCount uint8
+	Log       string
+	Err       string
 }
 
 type MinorUpgrade struct {
-	K8sPackages        []k8sPackageInfo    `json:"k8sPackages"`
-	SelectedConfig     *selectedConfig     `json:"selectedConfig"`
-	NodeInfo           []nodeInfo          `json:"nodeInfo"`
-	UpgradeStatus      *upgradeStatus      `json:"upgradeStatus"`
-	UpgradeProgression *UpgradeProgression `json:"upgradeProgression"`
+	K8sPackages    []k8sPackageInfo `json:"k8sPackages"`
+	SelectedConfig *selectedConfig  `json:"selectedConfig"`
+	NodeInfo       []nodeInfo       `json:"nodeInfo"`
+	UpgradeStatus  *upgradeStatus   `json:"upgradeStatus"`
+	UpgradeReport  []upgradeReport  `json:"upgradeProgression"`
 }
 
 func readConfig(nefario *Nefario) (MinorUpgrade, error) {
@@ -138,20 +139,16 @@ func readConfig(nefario *Nefario) (MinorUpgrade, error) {
 	}
 
 	config := MinorUpgrade{
+		K8sPackages: nil,
 		SelectedConfig: &selectedConfig{
 			DrainNodes:         false,
 			PromptOnError:      false,
 			CertificateRenewal: false,
 			K8sVersion:         nil,
 		},
-		NodesUpgraded:          configMap.Data["NODES_UPGRADED"],
-		NodesToBeUpgraded:      configMap.Data["NODES_TO_BE_UPGRADED"],
-		UbuntuK8sVersion:       configMap.Data["UBUNTU_K8S_VERSION"],
-		Rhel8K8sVersion:        configMap.Data["REDHAT8_K8S_VERSION"],
-		Rhel9K8sVersion:        configMap.Data["REDHAT9_K8S_VERSION"],
-		UbuntuTargetK8sVersion: configMap.Data["UBUNTU_TARGET_K8S_VERSION"],
-		Rhel8TargetK8sVersion:  configMap.Data["RHEL8_TARGET_K8S_VERSION"],
-		Rhel9TargetK8sVersion:  configMap.Data["RHEL9_TARGET_K8S_VERSION"],
+		NodeInfo:      nil,
+		UpgradeStatus: nil,
+		UpgradeReport: nil,
 	}
 
 	return config, nil
