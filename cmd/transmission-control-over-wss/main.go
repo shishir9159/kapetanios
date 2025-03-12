@@ -107,30 +107,20 @@ type k8sPackageInfo struct {
 }
 
 type upgradeStatus struct {
+	NodesUpgraded     string `json:"nodesUpgraded"`
+	NodesToBeUpgraded string `json:"nodesToBeUpgraded"`
+
+	NodesUpgraded     []string `json:"nodesUpgraded"`
+	NodesToBeUpgraded []string `json:"nodesToBeUpgraded"`
 }
 
 type upgradeReport struct {
 }
 
 type MinorUpgrade struct {
-	SelectedConfig            *selectedConfig `json:"selectedConfig"`
-	NodesUpgraded             string          `json:"nodesUpgraded"`
-	NodesToBeUpgraded         string          `json:"nodesToBeUpgraded"`
-	UbuntuK8sVersion          string          `json:"ubuntuK8sVersion"` // currently only works with 24.02
-	UbuntuK8sRepoName         string          `json:"ubuntuK8sRepoName"`
-	UbuntuK8sRepoBaseURL      string          `json:"ubuntuK8sRepoBaseURL"`
-	Rhel8K8sVersion           string          `json:"rhel8K8sVersion"`
-	Rhel8K8sRepoName          string          `json:"rhel8K8sRepoName"`
-	Rhel8K8sRepoBaseURL       string          `json:"rhel8K8sRepoBaseURL"`
-	Rhel9K8sVersion           string          `json:"rhel9K8sVersion"`
-	Rhel9K8sRepoName          string          `json:"rhel9K8sRepoName"`
-	Rhel9K8sRepoBaseURL       string          `json:"rhel9K8sRepoBaseURL"`
-	UbuntuTargetK8sVersion    string          `json:"ubuntuTargetK8sVersion"`
-	Rhel8TargetK8sVersion     string          `json:"rhel8TargetK8sVersion"`
-	Rhel9TargetK8sVersion     string          `json:"rhel9TargetK8sVersion"`
-	UbuntuAvailableK8sVersion []string        `json:"ubuntuAvailableK8sVersion"`
-	Rhel8AvailableK8sVersion  []string        `json:"rhel8AvailableK8sVersion"`
-	Rhel9AvailableK8sVersion  []string        `json:"rhel9AvailableK8sVersion"`
+	K8sPackages    []k8sPackageInfo `json:"k8sPackages"`
+	SelectedConfig *selectedConfig  `json:"selectedConfig"`
+	NodeInfo       nodeInfo         `json:"nodeInfo"`
 }
 
 func readConfig(nefario *Nefario) (MinorUpgrade, error) {
