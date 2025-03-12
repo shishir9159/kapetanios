@@ -107,20 +107,22 @@ type k8sPackageInfo struct {
 }
 
 type upgradeStatus struct {
-	NodesUpgraded     string `json:"nodesUpgraded"`
-	NodesToBeUpgraded string `json:"nodesToBeUpgraded"`
-
-	NodesUpgraded     []string `json:"nodesUpgraded"`
-	NodesToBeUpgraded []string `json:"nodesToBeUpgraded"`
+	NodesUpgraded           []string `json:"nodesUpgraded"`
+	NodesToBeUpgraded       []string `json:"nodesToBeUpgraded"`
+	NodesFailedToBeUpgraded []string `json:"nodesFailedToBeUpgraded"`
 }
 
 type upgradeReport struct {
+	Log string
+	Err string
 }
 
 type MinorUpgrade struct {
-	K8sPackages    []k8sPackageInfo `json:"k8sPackages"`
-	SelectedConfig *selectedConfig  `json:"selectedConfig"`
-	NodeInfo       nodeInfo         `json:"nodeInfo"`
+	K8sPackages        []k8sPackageInfo    `json:"k8sPackages"`
+	SelectedConfig     *selectedConfig     `json:"selectedConfig"`
+	NodeInfo           []nodeInfo          `json:"nodeInfo"`
+	UpgradeStatus      *upgradeStatus      `json:"upgradeStatus"`
+	UpgradeProgression *UpgradeProgression `json:"upgradeProgression"`
 }
 
 func readConfig(nefario *Nefario) (MinorUpgrade, error) {
