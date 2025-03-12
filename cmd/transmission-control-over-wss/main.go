@@ -19,7 +19,6 @@ import (
 
 var (
 	port = flag.Int("port", 50051, "The server port")
-	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:80", "http service address")
 )
 
 var upgrader = websocket.Upgrader{
@@ -74,9 +73,6 @@ type UpgradeProgression struct {
 	State     *MinorUpdate `json:"state"`
 }
 
-// TODO:
-//  https://web.archive.org/web/20160818125551/https://joneisen.tumblr.com/post/53695478114/golang-and-default-values
-
 type MinorUpdate struct {
 	State *MinorUpgrade `json:"state"`
 }
@@ -96,7 +92,7 @@ type selectedConfig struct {
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
-// RHEL8, RHEL9, Ubuntu 24.02
+// only RHEL8, RHEL9, Ubuntu 24.02 supported for now
 type k8sPackageInfo struct {
 	Distro            string   `json:"distro"`
 	DistroVersion     string   `json:"distroVersion"`
@@ -106,24 +102,24 @@ type k8sPackageInfo struct {
 	AvailableVersions []string `json:"availableVersions"`
 }
 
-type upgradeStatus struct {
+type nodeStatus struct {
 	NodesUpgraded           []string `json:"nodesUpgraded"`
 	NodesToBeUpgraded       []string `json:"nodesToBeUpgraded"`
 	NodesFailedToBeUpgraded []string `json:"nodesFailedToBeUpgraded"`
 }
 
-type upgradeReport struct {
+type upgradeProgress struct {
 	StepCount uint8
 	Log       string
 	Err       string
 }
 
 type MinorUpgrade struct {
-	K8sPackages    []k8sPackageInfo `json:"k8sPackages"`
-	SelectedConfig *selectedConfig  `json:"selectedConfig"`
-	NodeInfo       []nodeInfo       `json:"nodeInfo"`
-	UpgradeStatus  *upgradeStatus   `json:"upgradeStatus"`
-	UpgradeReport  []upgradeReport  `json:"upgradeProgression"`
+	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
+	NodeStatus      *nodeStatus       `json:"nodeStatus"`
+	Nodes           []nodeInfo        `json:"nodes"`
+	K8sPackages     []k8sPackageInfo  `json:"k8sPackages"`
+	UpgradeProgress []upgradeProgress `json:"upgradeProgress"`
 }
 
 func readConfig(nefario *Nefario) (MinorUpgrade, error) {
@@ -207,8 +203,6 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //		w.WriteHeader(http.StatusOK)
 //	}
 //}
-
-// TODO: lifetime - cleanup
 
 func (nefario *Nefario) report(w http.ResponseWriter, _ *http.Request) {
 	config, err := readConfig(nefario)
