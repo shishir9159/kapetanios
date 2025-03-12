@@ -96,44 +96,41 @@ type selectedConfig struct {
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
+// RHEL8, RHEL9, Ubuntu 24.02
 type k8sPackageInfo struct {
-	Distro string `json:"distro"`
-	DistroVersion string `json:"distroVersion"`
-	DistroPrettyName string `json:"distroPrettyName"`
-	RepoName string `json:"repoName"`
-	RepoVersion string `json:"repoVersion"`
+	Distro            string   `json:"distro"`
+	DistroVersion     string   `json:"distroVersion"`
+	DistroPrettyName  string   `json:"distroPrettyName"`
+	RepoName          string   `json:"repoName"`
+	RepoBaseURL       string   `json:"repoBaseUrl"`
 	AvailableVersions []string `json:"availableVersions"`
-
 }
 
-packageInfo := &PackageInfo{
-Distro:              in.GetDistro(),
-DistroVersion:       in.GetDistroVersion(), // TODO
-RepoName:            in.GetRepoName(),
-RepoBaseURL:         in.GetRepoBaseURL(),
-CurrentK8sVersion:   in.GetCurrentVersion(),
-AvailableK8sVersion: in.GetVersion(),
+type upgradeStatus struct {
+}
+
+type upgradeReport struct {
+}
 
 type MinorUpgrade struct {
-	SelectedConfig         *selectedConfig `json:"selectedConfig"`
-	NodesUpgraded          string          `json:"nodesUpgraded"`
-	NodesToBeUpgraded      string          `json:"nodesToBeUpgraded"`
-	UbuntuK8sVersion       string          `json:"ubuntuK8sVersion"` // currently only works with 24.02
-	UbuntuK8sRepoName      string          `json:"ubuntuK8sRepoName"`
-	UbuntuK8sRepoBaseURL   string          `json:"ubuntuK8sRepoBaseURL"`
-	Rhel8K8sVersion        string          `json:"rhel8K8sVersion"`
-	Rhel8K8sRepoName       string          `json:"rhel8K8sRepoName"`
-	Rhel8K8sRepoBaseURL    string          `json:"rhel8K8sRepoBaseURL"`
-	Rhel9K8sVersion        string          `json:"rhel9K8sVersion"`
-	Rhel9K8sRepoName       string          `json:"rhel9K8sRepoName"`
-	Rhel9K8sRepoBaseURL    string          `json:"rhel9K8sRepoBaseURL"`
-	UbuntuTargetK8sVersion string          `json:"ubuntuTargetK8sVersion"`
-	Rhel8TargetK8sVersion  string          `json:"rhel8TargetK8sVersion"`
-	Rhel9TargetK8sVersion  string          `json:"rhel9TargetK8sVersion"`
-	// TODO: store these too for we might restart
-	UbuntuAvailableK8sVersion []string `json:"ubuntuAvailableK8sVersion"`
-	Rhel8AvailableK8sVersion  []string `json:"rhel8AvailableK8sVersion"`
-	Rhel9AvailableK8sVersion  []string `json:"rhel9AvailableK8sVersion"`
+	SelectedConfig            *selectedConfig `json:"selectedConfig"`
+	NodesUpgraded             string          `json:"nodesUpgraded"`
+	NodesToBeUpgraded         string          `json:"nodesToBeUpgraded"`
+	UbuntuK8sVersion          string          `json:"ubuntuK8sVersion"` // currently only works with 24.02
+	UbuntuK8sRepoName         string          `json:"ubuntuK8sRepoName"`
+	UbuntuK8sRepoBaseURL      string          `json:"ubuntuK8sRepoBaseURL"`
+	Rhel8K8sVersion           string          `json:"rhel8K8sVersion"`
+	Rhel8K8sRepoName          string          `json:"rhel8K8sRepoName"`
+	Rhel8K8sRepoBaseURL       string          `json:"rhel8K8sRepoBaseURL"`
+	Rhel9K8sVersion           string          `json:"rhel9K8sVersion"`
+	Rhel9K8sRepoName          string          `json:"rhel9K8sRepoName"`
+	Rhel9K8sRepoBaseURL       string          `json:"rhel9K8sRepoBaseURL"`
+	UbuntuTargetK8sVersion    string          `json:"ubuntuTargetK8sVersion"`
+	Rhel8TargetK8sVersion     string          `json:"rhel8TargetK8sVersion"`
+	Rhel9TargetK8sVersion     string          `json:"rhel9TargetK8sVersion"`
+	UbuntuAvailableK8sVersion []string        `json:"ubuntuAvailableK8sVersion"`
+	Rhel8AvailableK8sVersion  []string        `json:"rhel8AvailableK8sVersion"`
+	Rhel9AvailableK8sVersion  []string        `json:"rhel9AvailableK8sVersion"`
 }
 
 func readConfig(nefario *Nefario) (MinorUpgrade, error) {
