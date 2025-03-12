@@ -6,7 +6,6 @@ import (
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"log"
 )
@@ -30,15 +29,13 @@ type Messenger struct {
 }
 
 func main() {
-	config, err := rest.InClusterConfig()
+
+	kubeConfigPath := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
+	config, err := clientcmd.BuildConfigFromFlags("", "./config")
 	if err != nil {
-		kubeConfigPath := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
-		config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-		if err != nil {
-			log.Print(fmt.Errorf(
-				"unable to load kubeconfig from %s: %v",
-				kubeConfigPath, err))
-		}
+		log.Print(fmt.Errorf(
+			"unable to load kubeconfig from %s: %v",
+			kubeConfigPath, err))
 	}
 
 	clientSet, err := kubernetes.NewForConfig(config)
@@ -46,25 +43,30 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	configMap, err := clientSet.CoreV1().ConfigMaps("default").
-		Get(ctx, "kapetanios", metav1.GetOptions{})
+	if clientSet != nil {
 
-	if err != nil {
-		log.Print(err)
+		configMap, err := clientSet.CoreV1().ConfigMaps("default").
+			Get(ctx, "kapetanios", metav1.GetOptions{})
+
+		if err != nil {
+			log.Print(err)
+		}
+
+		s := Sender{
+			SomeOtherValue: "something in the way",
+		}
+
+		messenger := Messenger{
+			SomeValue: "light will guide you home",
+			Receiver:  s,
+		}
+
+		payload, err := json.MarshalIndent(messenger, "", "  ")
+		configMap.Data["kapetanios"] = string(payload)
+
+		_, err = clientSet.CoreV1().ConfigMaps("default").
+			Update(ctx, configMap, metav1.UpdateOptions{})
+	} else {
+		log.Println("clientSet is nil")
 	}
-
-	s := Sender{
-		SomeOtherValue: "something in the way",
-	}
-
-	messenger := Messenger{
-		SomeValue: "light will guide you home",
-		Receiver:  s,
-	}
-
-	payload, err := json.MarshalIndent(messenger, "", "  ")
-	configMap.Data["kapetanios"] = string(payload)
-
-	_, err = clientSet.CoreV1().ConfigMaps("default").
-		Update(ctx, configMap, metav1.UpdateOptions{})
 }
