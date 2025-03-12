@@ -96,6 +96,24 @@ type selectedConfig struct {
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
+type k8sPackageInfo struct {
+	Distro string `json:"distro"`
+	DistroVersion string `json:"distroVersion"`
+	DistroPrettyName string `json:"distroPrettyName"`
+	RepoName string `json:"repoName"`
+	RepoVersion string `json:"repoVersion"`
+	AvailableVersions []string `json:"availableVersions"`
+
+}
+
+packageInfo := &PackageInfo{
+Distro:              in.GetDistro(),
+DistroVersion:       in.GetDistroVersion(), // TODO
+RepoName:            in.GetRepoName(),
+RepoBaseURL:         in.GetRepoBaseURL(),
+CurrentK8sVersion:   in.GetCurrentVersion(),
+AvailableK8sVersion: in.GetVersion(),
+
 type MinorUpgrade struct {
 	SelectedConfig         *selectedConfig `json:"selectedConfig"`
 	NodesUpgraded          string          `json:"nodesUpgraded"`
