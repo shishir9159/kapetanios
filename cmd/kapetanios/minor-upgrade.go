@@ -435,6 +435,7 @@ func MinorUpgradeFirstRun(namespace string) {
 		//   check if previously listed pods are all successfully restarted before untainted
 
 		removeTaint(&node)
+
 	}
 }
 
