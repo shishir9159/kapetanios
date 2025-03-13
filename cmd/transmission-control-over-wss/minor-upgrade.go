@@ -28,7 +28,7 @@ type upgradeConfigSelection struct {
 func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool, bool) {
 
 	upgradeProgression := &UpgradeProgression{
-		StateName: "version selection",
+		StateName: "upgrade config selection",
 		State:     u,
 	}
 

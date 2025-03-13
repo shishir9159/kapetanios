@@ -66,11 +66,9 @@ declare module '$env/static/private' {
 	export const MOTD_SHOWN: string;
 	export const GTK2_RC_FILES: string;
 	export const HOME: string;
-	export const MCFLY_HISTORY: string;
 	export const LANG: string;
 	export const LC_PAPER: string;
 	export const FNM_COREPACK_ENABLED: string;
-	export const MCFLY_HISTFILE: string;
 	export const LS_COLORS: string;
 	export const XDG_CURRENT_DESKTOP: string;
 	export const npm_package_version: string;
@@ -78,7 +76,6 @@ declare module '$env/static/private' {
 	export const XDG_SEAT_PATH: string;
 	export const INVOCATION_ID: string;
 	export const MANAGERPID: string;
-	export const MCFLY_SESSION_ID: string;
 	export const KDE_SESSION_UID: string;
 	export const npm_lifecycle_script: string;
 	export const XDG_SESSION_CLASS: string;
@@ -94,7 +91,6 @@ declare module '$env/static/private' {
 	export const QT_WAYLAND_RECONNECT: string;
 	export const KDE_SESSION_VERSION: string;
 	export const PAM_KWALLET5_LOGIN: string;
-	export const MCFLY_HISTORY_FORMAT: string;
 	export const DISPLAY: string;
 	export const npm_lifecycle_event: string;
 	export const LESS_TERMCAP_ue: string;
@@ -203,11 +199,9 @@ declare module '$env/dynamic/private' {
 		MOTD_SHOWN: string;
 		GTK2_RC_FILES: string;
 		HOME: string;
-		MCFLY_HISTORY: string;
 		LANG: string;
 		LC_PAPER: string;
 		FNM_COREPACK_ENABLED: string;
-		MCFLY_HISTFILE: string;
 		LS_COLORS: string;
 		XDG_CURRENT_DESKTOP: string;
 		npm_package_version: string;
@@ -215,7 +209,6 @@ declare module '$env/dynamic/private' {
 		XDG_SEAT_PATH: string;
 		INVOCATION_ID: string;
 		MANAGERPID: string;
-		MCFLY_SESSION_ID: string;
 		KDE_SESSION_UID: string;
 		npm_lifecycle_script: string;
 		XDG_SESSION_CLASS: string;
@@ -231,7 +224,6 @@ declare module '$env/dynamic/private' {
 		QT_WAYLAND_RECONNECT: string;
 		KDE_SESSION_VERSION: string;
 		PAM_KWALLET5_LOGIN: string;
-		MCFLY_HISTORY_FORMAT: string;
 		DISPLAY: string;
 		npm_lifecycle_event: string;
 		LESS_TERMCAP_ue: string;

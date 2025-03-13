@@ -26,35 +26,25 @@ interface MinorUpdate {
     state: upgradeConfig
 }
 
-export interface UpdateVersionSelection {
+interface UpdateVersionSelection {
     step: 1
-    state: upgradeConfig
+    log: string
 }
 
-export class k8Version {
+interface k8Version {
     distroPrettyName: string
     targetK8sVersion: string
 }
 
-export interface SelectedConfig {
+interface SelectedConfig {
+    step: 2
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;
     k8sVersion:         [k8Version];
 }
 
-export class UpgradeProgression {
+export interface UpgradeProgression {
     stateName: string;
-    state: SelectedConfig | UpdateVersionSelection
-
-    constructor() {
-        let StateName: string = this.stateName;
-        switch (StateName) {
-        case "upgrade config selection":
-
-        }
-
-
-        this.state = state;
-    }
+    state: MinorUpdate | UpdateVersionSelection;
 }
