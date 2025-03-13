@@ -20,6 +20,42 @@ import (
 	"time"
 )
 
+type upgradeConfigSelction struct {
+	K8sPackageInfo []k8sPackageInfo `json:"k8sPackageInfo"`
+}
+
+func (u *upgradeConfigSelction) ReadMessage() (bool, bool, bool) {
+	switch response {
+	case "retry":
+		retryCurrentStep = true
+		break
+	default:
+		if slices.Contains(packageInfo.AvailableK8sVersion, response) {
+			if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
+				s.upgradeConfig.Rhel8TargetK8sVersion = response
+				s.upgradeConfig.Rhel8K8sRepoName = packageInfo.RepoName
+				s.upgradeConfig.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
+			} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
+				s.upgradeConfig.Rhel9TargetK8sVersion = response
+				s.upgradeConfig.Rhel9K8sRepoName = packageInfo.RepoName
+				s.upgradeConfig.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
+			}
+
+			responseReceived = true
+			break
+		}
+		s.connectionPool.BroadcastMessage(payload)
+		response, err = s.connectionPool.ReadMessages()
+		if err != nil {
+			s.log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		s.log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+	return true, false, false
+}
+
 // todo: move to utils, add node interface
 func drainAndCordonNode(nefario *Nefario, node *corev1.Node) error {
 
@@ -223,35 +259,6 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	//upgrade.nefario.log.Error("failed to create a watcher for the pod",
 	//	zap.Error(err))
 	// handle the error
-
-	switch response {
-	case "retry":
-		retryCurrentStep = true
-		break
-	default:
-		if slices.Contains(packageInfo.AvailableK8sVersion, response) {
-			if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
-				s.upgradeConfig.Rhel8TargetK8sVersion = response
-				s.upgradeConfig.Rhel8K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
-			} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
-				s.upgradeConfig.Rhel9TargetK8sVersion = response
-				s.upgradeConfig.Rhel9K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
-			}
-
-			responseReceived = true
-			break
-		}
-		s.connectionPool.BroadcastMessage(payload)
-		response, err = s.connectionPool.ReadMessages()
-		if err != nil {
-			s.log.Error("error reporting cluster health",
-				zap.Error(err))
-		}
-		s.log.Error("unknown response from frontend",
-			zap.String("response", response))
-	}
 
 	(<-ch).Stop()
 

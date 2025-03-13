@@ -4,13 +4,12 @@ option go_package = "github.com/shishir9159/kapetanios/proto";
 message PackageInfo {
   repeated string version = 1;
   string distro = 2;
-  string distroVersion = 3;
-  string distroPrettyName = 4;
-  string repoName = 5;
-  string repoBaseURL = 6;
-  string currentVersion = 7;
-  string log = 8;
-  string err = 9;
+  string distroPrettyName = 3;
+  string repoName = 4;
+  string repoBaseURL = 5;
+  string currentVersion = 6;
+  string log = 7;
+  string err = 8;
 }
 
 message UpdateFinalizer {

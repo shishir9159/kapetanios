@@ -33,7 +33,6 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 
 	packageInfo := k8sPackageInfo{
 		Distro:            in.GetDistro(),
-		DistroVersion:     in.GetDistroVersion(),
 		DistroPrettyName:  in.GetDistroPrettyName(),
 		RepoName:          in.GetRepoName(),
 		RepoBaseURL:       in.GetRepoBaseURL(),

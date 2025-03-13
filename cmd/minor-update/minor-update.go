@@ -38,12 +38,12 @@ func getDistro(c Controller) (string, string, error) {
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "PRETTY_NAME=") {
-			idValue := strings.TrimPrefix(line, "PRETTY_NAME=")
+		if strings.HasPrefix(line, "ID=") {
+			idValue := strings.TrimPrefix(line, "ID=")
 			idValue = strings.Trim(idValue, `"`)
 			distro = idValue
-		} else if strings.HasPrefix(line, "VERSION_ID=") {
-			versionValue := strings.TrimPrefix(line, "VERSION_ID=")
+		} else if strings.HasPrefix(line, "PRETTY_NAME=") {
+			versionValue := strings.TrimPrefix(line, "PRETTY_NAME=")
 			versionValue = strings.Trim(versionValue, `"`)
 			distroVersion = versionValue
 		}
@@ -248,20 +248,16 @@ func availableVersions(c Controller, distro string) ([]string, error) {
 
 func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 
-	distro, distroVersion, err := getDistro(c)
+	distro, distroPrettyName, err := getDistro(c)
 	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
 	availableVersionSlice, err := availableVersions(c, distro)
-
-	// TODO:
-	distroPrettyName := ""
 
 	connection := pb.NewMinorUpdateClient(conn)
 	rpc, err := connection.PackageInfoUpdate(c.ctx,
 		&pb.PackageInfo{
-			Version:          availableVersionSlice,
 			Distro:           distro,
-			DistroVersion:    distroVersion,
 			DistroPrettyName: distroPrettyName,
+			Version:          availableVersionSlice,
 			RepoName:         strings.TrimSuffix(repoName, "\n"),
 			RepoBaseURL:      strings.TrimSuffix(repoBaseURL, "\n"),
 			CurrentVersion:   strings.TrimSuffix(currentVersion, "\n"),
