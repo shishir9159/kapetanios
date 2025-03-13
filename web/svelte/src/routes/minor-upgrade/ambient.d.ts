@@ -36,3 +36,15 @@ export interface UpgradeProgression {
     stateName: string
     state: MinorUpdate | UpdateVersionSelection
 }
+
+type UpgradeProgression struct {
+    StateName string `json:"stateName"`
+    State     State  `json:"state"`
+}
+
+type selectedConfig struct {
+    DrainNodes         bool         `json:"drainNodes"`
+    PromptOnError      bool         `json:"promptOnLock"`
+    CertificateRenewal bool         `json:"certificateRenewal"`
+    K8sVersion         []K8sVersion `json:"k8sVersion"`
+}
