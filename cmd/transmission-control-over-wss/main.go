@@ -133,8 +133,10 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 		nefario.log.Error("error unmarshaling the configMap")
 	}
 
-	if state.NodeStatus.NodesToBeUpgraded == nil {
-		state.NodeStatus.NodesToBeUpgraded = []string{}
+	if state.NodeStatus == nil {
+		state.NodeStatus = &nodeStatus{
+			NodesToBeUpgraded: []string{},
+		}
 	}
 
 	return state, nil
