@@ -21,15 +21,16 @@ interface upgradeConfig {
     rhel9AvailableK8sVersion: [""];
 }
 
+interface UpdateVersionSelection {
+    step: 1
+    log: string
+}
+
 interface MinorUpdate {
     step: 0
     state: upgradeConfig
 }
 
-interface UpdateVersionSelection {
-    step: 1
-    log: string
-}
 
 interface k8Version {
     distroPrettyName: string
@@ -38,6 +39,7 @@ interface k8Version {
 
 interface SelectedConfig {
     step: 2
+    state: upgradeConfig
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;
@@ -46,5 +48,5 @@ interface SelectedConfig {
 
 export interface UpgradeProgression {
     stateName: string;
-    state: MinorUpdate | UpdateVersionSelection;
+    state: MinorUpdate | SelectedConfig;
 }

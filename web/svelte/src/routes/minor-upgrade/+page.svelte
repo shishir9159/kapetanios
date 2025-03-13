@@ -1,7 +1,32 @@
 <script lang="ts">
     import { Button, Checkbox, ButtonGroup, Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import type { SelectedConfig, k8Version, UpgradeProgression} from './ambient.d.ts';
+    import type {upgradeConfig} from "./ambient";
+    // import type { SelectedConfig, k8Version, UpgradeProgression} from './ambient.d.ts';
+
+    interface MinorUpdate {
+        step: 0
+        state: upgradeConfig
+    }
+
+    interface k8Version {
+        distroPrettyName: string
+        targetK8sVersion: string
+    }
+
+    interface SelectedConfig {
+        step: 2
+        state: upgradeConfig
+        drainNodes:         boolean;
+        promptOnError:      boolean;
+        certificateRenewal: boolean;
+        k8sVersion:         [k8Version];
+    }
+
+    export interface UpgradeProgression {
+        stateName: string;
+        state: MinorUpdate | SelectedConfig;
+    }
 
     let rhel8AvailableVersions = $state([{}]);
     let selected = $state();
@@ -20,7 +45,9 @@
             let progression: UpgradeProgression = JSON.parse(e.data);
             if (progression.stateName == "upgradeConfigSelection") {
                 formModal = true;
-                let availableVersions = progression.state.k8sVersion;
+                if ("drainNodes" in progression.state) {
+                    let availableVersions: boolean = progression.state.drainNodes;
+                }
                 availableVersions.forEach( (element) => {
                     rhel8AvailableVersions.push({name: element, value: "rhel"});
                 })
