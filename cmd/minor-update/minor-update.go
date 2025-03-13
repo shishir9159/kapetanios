@@ -32,8 +32,8 @@ func getDistro(c Controller) (string, string, error) {
 			Msg("failed to open /etc/os-release")
 	}
 
-	var distro string
-	var distroVersion string
+	var distroID string
+	var distroPrettyName string
 
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
@@ -41,17 +41,16 @@ func getDistro(c Controller) (string, string, error) {
 		if strings.HasPrefix(line, "ID=") {
 			idValue := strings.TrimPrefix(line, "ID=")
 			idValue = strings.Trim(idValue, `"`)
-			distro = idValue
+			distroID = idValue
 		} else if strings.HasPrefix(line, "PRETTY_NAME=") {
-			versionValue := strings.TrimPrefix(line, "PRETTY_NAME=")
-			versionValue = strings.Trim(versionValue, `"`)
-			distroVersion = versionValue
+			prettyName := strings.TrimPrefix(line, "PRETTY_NAME=")
+			prettyName = strings.Trim(prettyName, `"`)
+			distroPrettyName = prettyName
 		}
 
 		c.log.Debug().
-			Str("distro version", distroVersion).
-			Str("distro name", distro).
-			Msg("~distro~")
+			Str("distro version", distroPrettyName).
+			Str("distro id", distroID)
 	}
 
 	if er := scanner.Err(); er != nil {
@@ -64,7 +63,7 @@ func getDistro(c Controller) (string, string, error) {
 			Msg("failed to exit from the updated root")
 	}
 
-	return distro, distroVersion, err
+	return distroID, distroPrettyName, err
 }
 
 // TODO: defer change root
@@ -250,14 +249,14 @@ func availableVersions(c Controller, distro string) ([]string, error) {
 
 func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 
-	distro, distroPrettyName, err := getDistro(c)
-	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
-	availableVersionSlice, err := availableVersions(c, distro)
+	distroID, distroPrettyName, err := getDistro(c)
+	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distroPrettyName, &c.log)
+	availableVersionSlice, err := availableVersions(c, distroPrettyName)
 
 	connection := pb.NewMinorUpdateClient(conn)
 	rpc, err := connection.PackageInfoUpdate(c.ctx,
 		&pb.PackageInfo{
-			Distro:           distro,
+			Distro:           distroID,
 			DistroPrettyName: distroPrettyName,
 			Version:          availableVersionSlice,
 			RepoName:         strings.TrimSuffix(repoName, "\n"),
