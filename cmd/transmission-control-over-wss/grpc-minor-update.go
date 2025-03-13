@@ -70,7 +70,7 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 		Err:                 in.GetErr(),
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(packageInfo)
 	if err != nil {

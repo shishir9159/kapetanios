@@ -130,7 +130,7 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	state := UpgradeState{}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	err = json.Unmarshal([]byte(configMap.Data["UPGRADE_STATE"]), &state)
 	if err != nil {
@@ -151,7 +151,7 @@ func writeConfig(nefario *Nefario, state UpgradeState) error {
 			zap.Error(er))
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
@@ -192,7 +192,7 @@ func (nefario *Nefario) report(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(&config)
 	if err != nil {
@@ -203,17 +203,6 @@ func (nefario *Nefario) report(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
-
-	//var Json = jsoniter.ConfigFastest
-	//decoder := Json.NewDecoder(r.Body)
-	//var t upgradeProgression
-	//err := decoder.Decode(&t)
-	//if err != nil {
-	//	http.Error(w, err.Error(), http.StatusBadRequest)
-	//	panic(err)
-	//}
-	//
-	//log.Println(t)
 
 	if len(upgrade.pool.Clients) > 5 {
 		io.WriteString(w, "maximum number of concurrent connection exceeded!")

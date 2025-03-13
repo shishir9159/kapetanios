@@ -120,7 +120,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		Err:                 in.GetErr(),
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(&nodeHealth)
 	if err != nil {
@@ -184,7 +184,7 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 		Err:                  in.GetErr(),
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(&versions)
 	if err != nil {
@@ -243,7 +243,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 		Err:             in.GetErr(),
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(compatability)
 	if err != nil {
@@ -301,7 +301,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 		Err:                     in.GetErr(),
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(componentUpgrade)
 	if err != nil {
@@ -359,7 +359,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		Err:            in.GetErr(),
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(&upgradePlan)
 	if err != nil {
@@ -416,7 +416,7 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 		Err:            in.GetErr(),
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(&upgradeSuccess)
 	if err != nil {
@@ -474,7 +474,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 		Err:                     "",
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	var json = jsoniter.ConfigFastest
 
 	payload, err := json.Marshal(&restartSuccess)
 	if err != nil {
