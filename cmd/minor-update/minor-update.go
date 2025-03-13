@@ -252,17 +252,21 @@ func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 	currentVersion, repoName, repoBaseURL, err := getRepoInfo(distro, &c.log)
 	availableVersionSlice, err := availableVersions(c, distro)
 
+	// TODO:
+	distroPrettyName := ""
+
 	connection := pb.NewMinorUpdateClient(conn)
 	rpc, err := connection.PackageInfoUpdate(c.ctx,
 		&pb.PackageInfo{
-			Version:        availableVersionSlice,
-			Distro:         distro,
-			DistroVersion:  distroVersion,
-			RepoName:       strings.TrimSuffix(repoName, "\n"),
-			RepoBaseURL:    strings.TrimSuffix(repoBaseURL, "\n"),
-			CurrentVersion: strings.TrimSuffix(currentVersion, "\n"),
-			Log:            "",
-			Err:            "",
+			Version:          availableVersionSlice,
+			Distro:           distro,
+			DistroVersion:    distroVersion,
+			DistroPrettyName: distroPrettyName,
+			RepoName:         strings.TrimSuffix(repoName, "\n"),
+			RepoBaseURL:      strings.TrimSuffix(repoBaseURL, "\n"),
+			CurrentVersion:   strings.TrimSuffix(currentVersion, "\n"),
+			Log:              "",
+			Err:              "",
 		})
 
 	if err != nil {
