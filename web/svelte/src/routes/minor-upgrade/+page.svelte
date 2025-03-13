@@ -26,21 +26,9 @@
                 formModal = true;
                 if ("k8sPackageInfo" in progression.state) {
                     packagesInfo = progression.state.k8sPackageInfo;
-
-                    packageInfo.forEach((element: k8sPackageInfo) => {
-                        element.availableVersions.forEach((version: string) => {
-
-                        })
-
-                    })
-
-
-                    availableVersions.forEach( (element) => {
-                        rhel8AvailableVersions.push({name: element, value: "package version"});
-                    })
                 }
 
-                console.log($state.snapshot(rhel8AvailableVersions));
+                console.log($state.snapshot(packagesInfo));
             }
 
             socket.send('current state');
@@ -87,11 +75,6 @@
                 onchange={() => (console.log('selected'))}
         />
     {/each}
-    <Select class="mt-2"
-            items={rhel8AvailableVersions}
-            bind:value={selected}
-            onchange={() => (console.log('selected'))}
-    />
     </Label>
         <div class="flex items-start">
             <Checkbox>Certificate Renewal</Checkbox>
