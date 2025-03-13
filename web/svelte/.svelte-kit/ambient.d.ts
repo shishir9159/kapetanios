@@ -96,7 +96,6 @@ declare module '$env/static/private' {
 	export const LESS_TERMCAP_ue: string;
 	export const SHLVL: string;
 	export const LESS_TERMCAP_us: string;
-	export const IJ_RESTARTER_LOG: string;
 	export const LC_TELEPHONE: string;
 	export const _P9K_SSH_TTY: string;
 	export const LC_MEASUREMENT: string;
@@ -230,7 +229,6 @@ declare module '$env/dynamic/private' {
 		LESS_TERMCAP_ue: string;
 		SHLVL: string;
 		LESS_TERMCAP_us: string;
-		IJ_RESTARTER_LOG: string;
 		LC_TELEPHONE: string;
 		_P9K_SSH_TTY: string;
 		LC_MEASUREMENT: string;
