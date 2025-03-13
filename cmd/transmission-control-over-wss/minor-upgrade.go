@@ -14,10 +14,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/kubectl/pkg/drain"
+	"log"
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -48,54 +48,15 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 		//throw error
 	}
 
-	var packageVersion string
-	for _, pkg := range selections.K8sVersion {
-		if pkg.DistroPrettyName == no.Status.NodeInfo.OSImage {
-			packageVersion = pkg.TargetK8sVersion
-			break
-		}
-	}
+	// TODO:
+	//  check if corrupted message could be unmarshaled
 
-	if packageVersion == "" {
-		// TODO: throw an error on the frontend and cancel the process
-		upgrade.nefario.log.Fatal("no appropriate os image available")
-	}
+	upgrade.upgradeState.SelectedConfig = &selections
 
-	var retryCurrentStep = false
+	// TODO: debug and remove
+	log.Println(upgrade.upgradeState.SelectedConfig)
 
-	for {
-
-	}
-
-	switch response {
-	case "retry":
-		retryCurrentStep = true
-		break
-	default:
-		if slices.Contains(packageInfo.AvailableK8sVersion, response) {
-			if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
-				s.upgradeConfig.Rhel8TargetK8sVersion = response
-				s.upgradeConfig.Rhel8K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
-			} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
-				s.upgradeConfig.Rhel9TargetK8sVersion = response
-				s.upgradeConfig.Rhel9K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
-			}
-
-			responseReceived = true
-			break
-		}
-		s.connectionPool.BroadcastMessage(payload)
-		response, err = s.connectionPool.ReadMessages()
-		if err != nil {
-			s.log.Error("error reporting cluster health",
-				zap.Error(err))
-		}
-		s.log.Error("unknown response from frontend",
-			zap.String("response", response))
-	}
-	return retryCurrentStep, false, false
+	return false, false, false
 }
 
 // todo: move to utils, add node interface
