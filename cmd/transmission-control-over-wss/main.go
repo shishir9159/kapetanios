@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	port = flag.Int("port", 50051, "The server port")
+	port = flag.Int("port", 50051, "the server port")
 )
 
 var upgrader = websocket.Upgrader{
@@ -120,31 +120,27 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	configMapName := "kapetanios"
 
-	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
+	configMap, err := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
 		Get(nefario.ctx, configMapName, metav1.GetOptions{})
-	if er != nil {
+	if err != nil {
 		nefario.log.Error("error fetching the configMap",
-			zap.Error(er))
-		return UpgradeState{}, er
+			zap.Error(err))
+		return UpgradeState{}, err
 	}
 
-	config := UpgradeState{
-		K8sPackages: nil,
-		SelectedConfig: &selectedConfig{
-			DrainNodes:         false,
-			PromptOnError:      false,
-			CertificateRenewal: false,
-			K8sVersion:         nil,
-		},
-		NodeInfo:      nil,
-		UpgradeStatus: nil,
-		UpgradeReport: nil,
+	state := UpgradeState{}
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	err = json.Unmarshal([]byte(configMap.Data["UPGRADE_STATE"]), &state)
+	if err != nil {
+		nefario.log.Error("error unmarshaling the configMap")
 	}
 
-	return config, nil
+	return state, nil
 }
 
-func writeConfig(nefario *Nefario, report UpgradeState) error {
+func writeConfig(nefario *Nefario, state UpgradeState) error {
 
 	configMapName := "kapetanios"
 
@@ -155,18 +151,14 @@ func writeConfig(nefario *Nefario, report UpgradeState) error {
 			zap.Error(er))
 	}
 
-	// TODO: duct taped for now
-	//  make a function that uses reflect to put the values
-	//  or use a json on the configMap
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-	configMap.Data["NODES_UPGRADED"] = report.NodesUpgraded
-	configMap.Data["NODES_TO_BE_UPGRADED"] = report.NodesToBeUpgraded
-	configMap.Data["UBUNTU_K8S_VERSION"] = report.UbuntuK8sVersion
-	configMap.Data["REDHAT8_K8S_VERSION"] = report.Rhel8K8sVersion
-	configMap.Data["REDHAT9_K8S_VERSION"] = report.Rhel9K8sVersion
-	configMap.Data["UBUNTU_TARGET_K8S_VERSION"] = report.UbuntuTargetK8sVersion
-	configMap.Data["RHEL8_TARGET_K8S_VERSION"] = report.Rhel8TargetK8sVersion
-	configMap.Data["RHEL9_TARGET_K8S_VERSION"] = report.Rhel9TargetK8sVersion
+	payload, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		nefario.log.Error("error marshaling the configMap")
+	}
+
+	configMap.Data["UPGRADE_STATE"] = string(payload)
 
 	_, er = nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
 		Update(context.TODO(), configMap, metav1.UpdateOptions{})
@@ -174,10 +166,6 @@ func writeConfig(nefario *Nefario, report UpgradeState) error {
 		nefario.log.Error("error updating configMap",
 			zap.Error(er))
 	}
-
-	nefario.log.Info("writing config",
-		zap.String("nodes upgraded", report.NodesUpgraded),
-		zap.String("nodes to be upgraded", report.NodesToBeUpgraded))
 
 	return nil
 }
@@ -372,13 +360,9 @@ func main() {
 		nefario:      &nefario,
 	}
 	nefario.log.Debug("nodes to be upgraded",
-		zap.String("nodesToBeUpgraded", upgrade.upgradeState.NodesToBeUpgraded))
+		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodeStatus.NodesToBeUpgraded))
 
-	// TODO:
-	//  read the configMap on how to
-	//  upgrade using selected Config
-
-	if upgrade.upgradeState.NodesToBeUpgraded != "" {
+	if len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
 		er := Prerequisites(&upgrade)
 		if er != nil {
 			upgrade.nefario.log.Info("error writing prerequisites warning:",
