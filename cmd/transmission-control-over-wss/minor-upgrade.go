@@ -16,7 +16,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -59,7 +58,7 @@ func drainAndCordonNode(nefario *Nefario, node *corev1.Node) error {
 }
 
 // TODO: move to utils, interface
-// todo: use remove taint again
+// todo: use defer remove taint
 
 func removeTaint(node *corev1.Node) {
 
@@ -91,7 +90,6 @@ func addTaint(node *corev1.Node) {
 
 	taints := node.Spec.Taints
 
-	// TODO: declare as a struct maybe?
 	taintToAdd := corev1.Taint{
 		Key:    "minor-upgrade-running",
 		Value:  "processing",
@@ -275,9 +273,12 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 	var nodeNames []string
 	var nodesUpgraded []string
-	if upgrade.upgradeState.NodesUpgraded != "" && upgrade.upgradeState.NodesToBeUpgraded != "" {
-		nodeNames = strings.Split(upgrade.upgradeState.NodesToBeUpgraded, ";")
-		nodesUpgraded = strings.Split(upgrade.upgradeState.NodesUpgraded, ";")
+
+	// Caution: will fail in the scenario of one master node
+	// and kapetanios started in that master node
+	if len(upgrade.upgradeState.NodeStatus.NodesUpgraded) != 0 && len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
+		nodeNames = upgrade.upgradeState.NodeStatus.NodesToBeUpgraded
+		nodesUpgraded = upgrade.upgradeState.NodeStatus.NodesUpgraded
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
@@ -350,7 +351,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	}
 
 	upgrade.nefario.log.Debug("nodes to be upgraded",
-		zap.String("nodesToBeUpgraded", upgrade.upgradeState.NodesToBeUpgraded),
+		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodeStatus.NodesToBeUpgraded),
 		zap.Strings("nodeNames:", nodeNames))
 
 	roleName := "minor-upgrade"
@@ -363,9 +364,6 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		upgrade.nefario.log.Info("nodes to be upgraded",
 			zap.String("node to be name:", node))
-
-		// todo: populate with user input
-		//  targetedVersion := "1.26.6-1.1"
 
 		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node)
@@ -388,21 +386,22 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//   if failed, must be tainted again to
 		//   schedule nodes
 
-		upgrade.upgradeState.NodesUpgraded = strings.Join(nodeNames[:index], ";")
-		upgrade.upgradeState.NodesToBeUpgraded = strings.Join(nodeNames[index:], ";")
+		upgrade.upgradeState.NodeStatus.NodesUpgraded = nodeNames[:index]
+		upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = nodeNames[index:]
 
+		// TODO: should this be one case only
+		//  as without delimiter
 		if len(nodesUpgraded) != 0 && index != 0 {
-			upgrade.upgradeState.NodesUpgraded = strings.Join([]string{upgrade.upgradeState.NodesUpgraded,
-				strings.Join(nodesUpgraded, ";")}, ";")
+			upgrade.upgradeState.NodeStatus.NodesUpgraded = append(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded,
+				nodesUpgraded...)
 
-			upgrade.nefario.log.Info("nodes that upgraded",
-				zap.String("nodes upgraded", upgrade.upgradeState.NodesUpgraded))
+			upgrade.nefario.log.Info("nodes that have been upgraded",
+				zap.Strings("nodes upgraded", upgrade.upgradeState.NodeStatus.NodesUpgraded))
 		} else if len(nodesUpgraded) != 0 {
-
-			upgrade.upgradeState.NodesUpgraded = strings.Join(nodesUpgraded, ";")
+			upgrade.upgradeState.NodeStatus.NodesUpgraded = nodesUpgraded
 
 			upgrade.nefario.log.Info("nodes that upgraded",
-				zap.String("nodes upgraded", upgrade.upgradeState.NodesUpgraded))
+				zap.Strings("nodes upgraded", upgrade.upgradeState.NodeStatus.NodesUpgraded))
 		}
 
 		err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
@@ -422,9 +421,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		descriptor.Spec.HostNetwork = true
 
-		// TODO -- take input
-
-		if upgrade.upgradeState.UbuntuTargetK8sVersion == "" && upgrade.upgradeState.Rhel8TargetK8sVersion == "" && upgrade.upgradeState.Rhel9TargetK8sVersion == "" {
+		if len(upgrade.upgradeState.SelectedConfig.K8sVersion) == 0 {
 			upgrade.nefario.log.Fatal("target k8s version is not set")
 		}
 
@@ -436,7 +433,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		env := descriptor.Spec.Containers[0].Env
 		env = append(env, certRenewalEnv)
 
-		if index == 0 && upgrade.upgradeState.NodesUpgraded == "" {
+		if index == 0 && len(upgrade.upgradeState.NodeStatus.NodesUpgraded) == 0 {
 
 			firstNodeToUpgradeEnv := corev1.EnvVar{
 				Name:  "FIRST_NODE_TO_BE_UPGRADED",
@@ -464,13 +461,17 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		}
 
 		var packageVersion string
-		if strings.Contains(no.Status.NodeInfo.OSImage, "Red Hat Enterprise Linux 8.") {
-			packageVersion = upgrade.upgradeState.Rhel8TargetK8sVersion
-		} else if strings.Contains(no.Status.NodeInfo.OSImage, "RedHat Enterprise Linux 9.") {
-			packageVersion = upgrade.upgradeState.Rhel9TargetK8sVersion
-		} else if strings.Contains(no.Status.NodeInfo.OSImage, "???ubuntu???") {
-			//	TODO:
-		} else {
+		packagesInfo := upgrade.upgradeState.SelectedConfig.K8sVersion
+
+		for _, pkg := range packagesInfo {
+			if pkg.DistroPrettyName == no.Status.NodeInfo.OSImage {
+				packageVersion = pkg.TargetK8sVersion
+				break
+			}
+		}
+
+		if packageVersion == "" {
+			// TODO: throw an error on the frontend and cancel the process
 			upgrade.nefario.log.Fatal("no appropriate os image available")
 		}
 
@@ -602,8 +603,8 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	}
 	(<-ch).Stop()
 
-	upgrade.upgradeState.NodesUpgraded = ""
-	upgrade.upgradeState.NodesToBeUpgraded = ""
+	upgrade.upgradeState.NodeStatus.NodesUpgraded = []string{}
+	upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = []string{}
 
 	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {
