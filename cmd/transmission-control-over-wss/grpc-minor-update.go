@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
@@ -12,8 +11,6 @@ import (
 	"google.golang.org/grpc/reflection"
 	"net"
 	"os"
-	"slices"
-	"strings"
 )
 
 // TODO:
@@ -34,123 +31,25 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	// TODO:
 	var retryCurrentStep, responseReceived = false, true
 
-	//	TODO:
-	//   WRITE MUTEX for append
 	packageInfo := k8sPackageInfo{
 		Distro:            in.GetDistro(),
 		DistroVersion:     in.GetDistroVersion(),
+		DistroPrettyName:  in.GetDistroPrettyName(),
 		RepoName:          in.GetRepoName(),
 		RepoBaseURL:       in.GetRepoBaseURL(),
 		AvailableVersions: in.GetVersion(),
 	}
 
-	s.upgradeConfig.K8sPackages
-
-	// TODO:
-
-	if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
-		s.upgradeConfig.Rhel8K8sRepoName = packageInfo.RepoName
-		s.upgradeConfig.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
-	} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
-		s.upgradeConfig.Rhel9K8sRepoName = packageInfo.RepoName
-		s.upgradeConfig.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
-	}
-
-	minorUpdate := &MinorUpdate{
-		State: s.upgradeConfig,
-	}
-
-	state := &UpgradeProgression{
-		StateName: "minor update",
-		State:     minorUpdate,
-	}
-
-	if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
-		minorUpdate.State.Rhel8K8sRepoName = packageInfo.RepoName
-		minorUpdate.State.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
-		minorUpdate.State.Rhel8K8sVersion = packageInfo.CurrentK8sVersion
-		minorUpdate.State.Rhel8AvailableK8sVersion = packageInfo.AvailableK8sVersion
-	} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
-		minorUpdate.State.Rhel9K8sRepoName = packageInfo.RepoName
-		minorUpdate.State.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
-		minorUpdate.State.Rhel9K8sVersion = packageInfo.CurrentK8sVersion
-		minorUpdate.State.Rhel9AvailableK8sVersion = packageInfo.AvailableK8sVersion
-	}
-
-	payload, err = json.Marshal(state)
-	if err != nil {
-
-	}
+	//	TODO:
+	//   WRITE MUTEX for append
+	s.upgradeConfig.K8sPackages = append(s.upgradeConfig.K8sPackages, packageInfo)
 
 	// TODO: take prompt from user,
 	//  only if an error occurs
 
-	//response, err := s.connectionPool.ReadMessages()
-	//if err != nil {
-	//	// return nil, err
-	//}
-	//
-	//// TODO:
-	////  onPromptError: you already know the answer
-	//switch response {
-	//case "retry":
-	//	retryCurrentStep = true
-	//	break
-	//case "next step":
-	//	proceedNextStep = true
-	//	break
-	//case "terminate application":
-	//	terminateApplication = true
-	//	break
-	//default:
-	//	s.connectionPool.BroadcastMessage(payload)
-	//	response, err = s.connectionPool.ReadMessages()
-	//	if err != nil {
-	//		s.log.Error("error reporting cluster health",
-	//			zap.Error(err))
-	//	}
-	//	s.log.Error("unknown response from frontend",
-	//		zap.String("response", response))
-	//}
-
-	s.connectionPool.BroadcastMessage(payload)
-	response, err := s.connectionPool.ReadMessages()
-	if err != nil {
-		//return nil, err
-	}
-
-	if os.Getenv("DEBUG") == "true" {
+	if os.Getenv("TESTING") == "true" {
 		//TODO: response = currentVersion
 		// skip broadcast
-	}
-
-	switch response {
-	case "retry":
-		retryCurrentStep = true
-		break
-	default:
-		if slices.Contains(packageInfo.AvailableK8sVersion, response) {
-			if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 8.") {
-				s.upgradeConfig.Rhel8TargetK8sVersion = response
-				s.upgradeConfig.Rhel8K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Rhel8K8sRepoBaseURL = packageInfo.RepoBaseURL
-			} else if strings.Contains(packageInfo.Distro, "Red Hat Enterprise Linux 9.") {
-				s.upgradeConfig.Rhel9TargetK8sVersion = response
-				s.upgradeConfig.Rhel9K8sRepoName = packageInfo.RepoName
-				s.upgradeConfig.Rhel9K8sRepoBaseURL = packageInfo.RepoBaseURL
-			}
-
-			responseReceived = true
-			break
-		}
-		s.connectionPool.BroadcastMessage(payload)
-		response, err = s.connectionPool.ReadMessages()
-		if err != nil {
-			s.log.Error("error reporting cluster health",
-				zap.Error(err))
-		}
-		s.log.Error("unknown response from frontend",
-			zap.String("response", response))
 	}
 
 	s.log.Info("available version list",
