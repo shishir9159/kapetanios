@@ -68,7 +68,13 @@
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
     {#each packagesInfo as packageInfo}
         <Select class="mt-2"
-                items={packageInfo.availableVersions}
+                items={(packageInfo.availableVersions).forEach((element) => {
+                    return {
+                        name: packageInfo.distroPrettyName,
+                        value: element,
+                    }
+
+                })}
                 bind:value={selected}
                 onchange={() => (console.log('selected'))}
         />
