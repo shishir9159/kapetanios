@@ -48,7 +48,24 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 		//throw error
 	}
 
-	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+	var packageVersion string
+	for _, pkg := range selections.K8sVersion {
+		if pkg.DistroPrettyName == no.Status.NodeInfo.OSImage {
+			packageVersion = pkg.TargetK8sVersion
+			break
+		}
+	}
+
+	if packageVersion == "" {
+		// TODO: throw an error on the frontend and cancel the process
+		upgrade.nefario.log.Fatal("no appropriate os image available")
+	}
+
+	var retryCurrentStep = false
+
+	for {
+
+	}
 
 	switch response {
 	case "retry":
