@@ -8,6 +8,7 @@
 
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected = $state();
+    console.log($state.snapshot(selected));
     let formModal = $state(false);
 
     function connectionInitialization() {
@@ -26,14 +27,17 @@
                     packagesInfo = u.state.k8sPackageInfo;
                 }
 
-                console.log($state.snapshot(packagesInfo));
+                await    function() onSubmit() {
+
+                }
+
             }
 
             socket.send('current state');
         };
 
-        socket.onerror = (e) => {
-            console.error('websocket error:', e);
+        socket.onerror = (error) => {
+            console.error('websocket error:', error);
         };
 
         socket.onclose = async () => {
@@ -83,14 +87,9 @@
         <div class="flex items-start">
             <Checkbox>Allow different repo for the same OS</Checkbox>
         </div>
-        <Button type="submit" class="w-full1">Submit</Button>
+        <Button type="submit" class="w-full1" disabled={!selected}>Submit</Button>
 </Modal>
 
-<!--<button disabled={!answer} type="submit">-->
-<!--    Submit-->
-<!--</button>-->
-
-<!-- TODO: fix the height -->
 <style>
     .action {
         display: flex;
