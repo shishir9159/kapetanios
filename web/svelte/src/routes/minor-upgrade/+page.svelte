@@ -1,7 +1,8 @@
 <script lang="ts">
     import { Button, Checkbox, ButtonGroup, Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts'
-    import { UpgradeProgression } from './ambient.d.ts'
+    import { UpgradeProgression} from './ambient.d.ts'
+    import type {SelectedConfig, k8Version} from './ambient.d.ts'
 
     let rhel8AvailableVersions = $state([{}]);
     let selected = $state();
@@ -23,9 +24,9 @@
 
             let upgradeProgression: UpgradeProgression = JSON.parse(e.data);
             console.log(upgradeProgression);
-            if (upgradeProgression.stateName == "version selection") {
+            if (upgradeProgression.stateName == "upgrade config selection") {
                 formModal = true
-                let availableVersions = upgradeProgression.state.state.rhel8AvailableK8sVersion;
+                let availableVersions = upgradeProgression.stat;
                 availableVersions.forEach( (element) => {
                     rhel8AvailableVersions.push({name: element, value: "rhel"});
                 })
