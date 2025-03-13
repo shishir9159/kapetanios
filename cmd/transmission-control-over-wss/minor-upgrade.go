@@ -385,6 +385,9 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		availableOS := make(map[string]string)
 		for _, no := range nodes.Items {
 			availableOS[no.Status.NodeInfo.OSImage] = no.Name
+			upgrade.nefario.log.Info("node to update",
+				zap.String("nodeNames", no.Name),
+				zap.String("no.Status.NodeInfo.OSImage", no.Status.NodeInfo.OSImage))
 		}
 
 		upgrade.MinorUpdate(availableOS)
