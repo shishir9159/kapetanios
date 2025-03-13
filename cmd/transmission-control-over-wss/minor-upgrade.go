@@ -20,10 +20,6 @@ import (
 	"time"
 )
 
-var (
-	certificateRenewal = false
-)
-
 // todo: move to utils, add node interface
 func drainAndCordonNode(nefario *Nefario, node *corev1.Node) error {
 
@@ -62,7 +58,9 @@ func drainAndCordonNode(nefario *Nefario, node *corev1.Node) error {
 	return nil
 }
 
-// todo: move to utils, interface
+// TODO: move to utils, interface
+// todo: use remove taint again
+
 func removeTaint(node *corev1.Node) {
 
 	taints := node.Spec.Taints

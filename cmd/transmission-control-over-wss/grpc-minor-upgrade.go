@@ -18,7 +18,7 @@ import (
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	log            *zap.Logger
-	upgradeConfig  *UpgradeState
+	state          *UpgradeState
 	connectionPool *wss.ConnectionPool
 	pb.MinorUpgradeServer
 }
@@ -227,7 +227,7 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 		ProceedNextStep:      proceedNextStep,
 		RetryCurrentStep:     retryCurrentStep,
 		TerminateApplication: terminateApplication,
-		CertificateRenewal:   certificateRenewal,
+		CertificateRenewal:   s.state.SelectedConfig.CertificateRenewal,
 		Version:              "",
 	}, nil
 }
