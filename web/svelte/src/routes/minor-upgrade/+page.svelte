@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { Button, Checkbox, ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
+    import { Button, Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import type { k8sPackageInfo , UpgradeProgression} from './ambient';
+    import type { k8sPackageInfo , SelectedConfig,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
@@ -107,6 +107,7 @@
         flex-direction: row-reverse;
         justify-content: flex-start;
     }
+
     .processing {
         display: flex;
         width: 80vw;

@@ -56,8 +56,6 @@ interface k8sVersion {
 }
 
 interface SelectedConfig {
-    step: 2
-    state: upgradeConfig
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;
