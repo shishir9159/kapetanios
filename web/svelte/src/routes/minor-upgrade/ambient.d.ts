@@ -31,20 +31,19 @@ interface UpdateVersionSelection {
     state: upgradeConfig
 }
 
-export interface UpgradeProgression {
-    id: number
+class k8Version {
+    distroPrettyName: string
+    targetK8sVersion: string
+}
+
+class selectedConfig {
+    drainNodes:         boolean
+    PromptOnError:      bool
+    CertificateRenewal: bool
+    k8sVersion:         [k8Version]
+}
+
+class UpgradeProgression {
     stateName: string
-    state: MinorUpdate | UpdateVersionSelection
-}
-
-type UpgradeProgression struct {
-    StateName string `json:"stateName"`
-    State     State  `json:"state"`
-}
-
-type selectedConfig struct {
-    DrainNodes         bool         `json:"drainNodes"`
-    PromptOnError      bool         `json:"promptOnLock"`
-    CertificateRenewal bool         `json:"certificateRenewal"`
-    K8sVersion         []K8sVersion `json:"k8sVersion"`
+    state: selectedConfig | UpdateVersionSelection
 }
