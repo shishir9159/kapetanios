@@ -1,10 +1,14 @@
 <script lang="ts">
-    import { Button, Checkbox, ButtonGroup, Modal, Label , Select } from 'flowbite-svelte';
+    import { Button, Checkbox, ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import type {upgradeConfig} from "./ambient";
-    import type { SelectedConfig, k8Version, UpgradeProgression} from './ambient.d.ts';
+    import type { k8sPackageInfo , upgradeProgression} from './ambient.d.ts';
 
     let rhel8AvailableVersions = $state([{}]);
+    // let packageInfo = $state([{
+    //
+    // }]);
+    let packagesInfo= $state([k8sPackageInfo]);
+
     let selected = $state();
     let formModal = $state(false);
 
@@ -17,12 +21,20 @@
         };
 
         socket.onmessage = (e) => {
-
-            let progression: UpgradeProgression = JSON.parse(e.data);
+            let progression: upgradeProgression = JSON.parse(e.data);
             if (progression.stateName == "upgrade config selection") {
                 formModal = true;
-                if ("k8sVersion" in progression.state) {
-                    let availableVersions = progression.state.k8sVersion;
+                if ("k8sPackageInfo" in progression.state) {
+                    packagesInfo = progression.state.k8sPackageInfo;
+
+                    packageInfo.forEach((element: k8sPackageInfo) => {
+                        element.availableVersions.forEach((version: string) => {
+
+                        })
+
+                    })
+
+
                     availableVersions.forEach( (element) => {
                         rhel8AvailableVersions.push({name: element, value: "package version"});
                     })
@@ -68,6 +80,13 @@
     <Label>
         Select K8s version for each OS
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
+    {#each packagesInfo as packageInfo}
+        <Select class="mt-2"
+                items={packageInfo.availableVersions}
+                bind:value={selected}
+                onchange={() => (console.log('selected'))}
+        />
+    {/each}
     <Select class="mt-2"
             items={rhel8AvailableVersions}
             bind:value={selected}

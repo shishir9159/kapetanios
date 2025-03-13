@@ -31,6 +31,24 @@ interface MinorUpdate {
     state: upgradeConfig
 }
 
+interface k8sPackageInfo {
+    distro:            string
+    distroVersion:     string
+    distroPrettyName:  string
+    repoName:          string
+    repoBaseUrl:       string
+    availableVersions: [string]
+}
+
+interface upgradeConfigSelection{
+    K8sPackageInfo: [k8sPackageInfo]
+}
+
+
+export interface upgradeProgression {
+    stateName: string;
+    state: MinorUpdate | upgradeConfigSelection;
+}
 
 interface k8sVersion {
     distroPrettyName: string
@@ -44,9 +62,4 @@ interface SelectedConfig {
     promptOnError:      boolean;
     certificateRenewal: boolean;
     k8sVersion:         [k8sVersion];
-}
-
-export interface UpgradeProgression {
-    stateName: string;
-    state: MinorUpdate | SelectedConfig;
 }
