@@ -16,8 +16,9 @@ import (
 	"strings"
 )
 
-// TODO: rpc stream
-// TODO: error handle
+// TODO:
+//  what if the update fails?
+//  throw error or try another vm
 
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpdateServer struct {
@@ -27,55 +28,23 @@ type minorUpdateServer struct {
 	pb.MinorUpdateServer
 }
 
-type response struct {
-	ProceedNextStep      bool `json:"proceedNextStep"`
-	RetryCurrentStep     bool `json:"retryCurrentStep"`
-	TerminateApplication bool `json:"terminateApplication"`
-}
-
-type PackageInfo struct {
-	Distro              string   `json:"distro"`
-	DistroVersion       string   `json:"distroVersion"`
-	RepoName            string   `json:"repoName"`
-	RepoBaseURL         string   `json:"repoBaseUrl"`
-	CurrentK8sVersion   string   `json:"currentK8sVersion"`
-	AvailableK8sVersion []string `json:"availableK8sVersion"`
-	Log                 string   `json:"log"`
-	Err                 string   `json:"err"`
-}
-
-// TODO:
-//  make slices of struct to choose from
-
-type UpgradeConfiguration struct {
-}
-
-// TODO: Create an interface instead of generic that
-//  takes the structs write them in the connection
-//  and wait for reading
-
 // PackageInfoUpdate implements proto.MinorUpdateServer
 func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageInfo) (*pb.UpdateFinalizer, error) {
 
-	var retryCurrentStep, responseReceived = false, false
+	// TODO:
+	var retryCurrentStep, responseReceived = false, true
 
-	packageInfo := &PackageInfo{
-		Distro:              in.GetDistro(),
-		DistroVersion:       in.GetDistroVersion(), // TODO
-		RepoName:            in.GetRepoName(),
-		RepoBaseURL:         in.GetRepoBaseURL(),
-		CurrentK8sVersion:   in.GetCurrentVersion(),
-		AvailableK8sVersion: in.GetVersion(),
-		Log:                 in.GetLog(),
-		Err:                 in.GetErr(),
+	//	TODO:
+	//   WRITE MUTEX for append
+	packageInfo := k8sPackageInfo{
+		Distro:            in.GetDistro(),
+		DistroVersion:     in.GetDistroVersion(),
+		RepoName:          in.GetRepoName(),
+		RepoBaseURL:       in.GetRepoBaseURL(),
+		AvailableVersions: in.GetVersion(),
 	}
 
-	var json = jsoniter.ConfigFastest
-
-	payload, err := json.Marshal(packageInfo)
-	if err != nil {
-
-	}
+	s.upgradeConfig.K8sPackages
 
 	// TODO:
 

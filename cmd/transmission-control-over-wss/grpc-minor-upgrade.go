@@ -67,9 +67,11 @@ type componentRestartSuccess struct {
 	Err                     string `json:"err"`
 }
 
-// TODO:
-//  pass a generic???
-//  receive a generic too???
+type response struct {
+	ProceedNextStep      bool `json:"proceedNextStep"`
+	RetryCurrentStep     bool `json:"retryCurrentStep"`
+	TerminateApplication bool `json:"terminateApplication"`
+}
 
 func actionResponse(payload []byte, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool, error) {
 
