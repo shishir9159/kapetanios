@@ -33,7 +33,7 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 
 	// TODO: race condition - readCtx can be cancelled
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
-		zap.String("nodes to be upgraded", upgrade.state.NodesToBeUpgraded))
+		zap.String("nodes to be upgraded", upgrade.upgradeState.NodesToBeUpgraded))
 
 	// TODO: CONTAINER-RUNTIME compatibility
 

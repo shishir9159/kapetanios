@@ -50,26 +50,20 @@ type Nefario struct {
 }
 
 type MinorUpgrade struct {
-	mu        sync.Mutex
-	pool      *wss.ConnectionPool
-	finalizer chan bool
-	nefario   *Nefario
-	state     *UpgradeState
+	mu           sync.Mutex
+	finalizer    chan bool
+	nefario      *Nefario
+	upgradeState *UpgradeState
+	pool         *wss.ConnectionPool
 }
 
 type State interface {
 	ReadMessage() (bool, bool, bool)
 }
 
-type Stat interface {
-	placeHolderForNow()
-}
-
 type UpgradeProgression struct {
-	ID        uint32       `json:"id"`
-	StateName string       `json:"stateName"`
-	Stat      Stat         `json:"stat"`
-	State     *MinorUpdate `json:"state"`
+	StateName string `json:"stateName"`
+	State     *State `json:"state"`
 }
 
 type MinorUpdate struct {
@@ -280,7 +274,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 				zap.Error(er))
 		}
 
-		upgrade.state = &config
+		upgrade.upgradeState = &config
 		upgrade.finalizer = make(chan bool, 1)
 		upgrade.MinorUpgrade()
 
@@ -373,18 +367,18 @@ func main() {
 	go pool.Run(nefario.log)
 
 	upgrade := MinorUpgrade{
-		pool:    pool,
-		state:   &config,
-		nefario: &nefario,
+		pool:         pool,
+		upgradeState: &config,
+		nefario:      &nefario,
 	}
 	nefario.log.Debug("nodes to be upgraded",
-		zap.String("nodesToBeUpgraded", upgrade.state.NodesToBeUpgraded))
+		zap.String("nodesToBeUpgraded", upgrade.upgradeState.NodesToBeUpgraded))
 
 	// TODO:
 	//  read the configMap on how to
 	//  upgrade using selected Config
 
-	if upgrade.state.NodesToBeUpgraded != "" {
+	if upgrade.upgradeState.NodesToBeUpgraded != "" {
 		er := Prerequisites(&upgrade)
 		if er != nil {
 			upgrade.nefario.log.Info("error writing prerequisites warning:",
