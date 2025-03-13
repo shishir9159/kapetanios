@@ -45,7 +45,7 @@ interface upgradeConfigSelection{
 }
 
 
-export interface upgradeProgression {
+export interface UpgradeProgression {
     stateName: string;
     state: MinorUpdate | upgradeConfigSelection;
 }

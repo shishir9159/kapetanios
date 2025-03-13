@@ -186,8 +186,8 @@ func availableVersions(c Controller, distro string) ([]string, error) {
 	// TODO: re test on ubuntu and debian
 	cmd := exec.Command("/bin/bash", "-c", updateCommand)
 
-	var stdoutBuf, stderrBuf bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+	//var stdoutBuf, stderrBuf bytes.Buffer
+	//cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
 	if err != nil {
@@ -195,13 +195,13 @@ func availableVersions(c Controller, distro string) ([]string, error) {
 			Msg("failed to fetch repository updates")
 	}
 
-	c.log.Debug().
-		Str("stdout", stdoutBuf.String()).
-		Str("stderr", stderrBuf.String()).
-		Msg("successfully fetched repository updates")
+	//c.log.Debug().
+	//	Str("stdout", stdoutBuf.String()).
+	//	Str("stderr", stderrBuf.String()).
+	//	Msg("successfully fetched repository updates")
 
-	stdoutBuf.Reset()
-	stderrBuf.Reset()
+	//stdoutBuf.Reset()
+	//stderrBuf.Reset()
 
 	var packageSearch string
 	if strings.Contains(distro, "Red Hat Enterprise Linux") {
@@ -211,6 +211,8 @@ func availableVersions(c Controller, distro string) ([]string, error) {
 	}
 
 	cmd = exec.Command("/bin/bash", "-c", packageSearch)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()

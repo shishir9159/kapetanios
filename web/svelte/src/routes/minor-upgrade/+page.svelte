@@ -1,14 +1,12 @@
 <script lang="ts">
     import { Button, Checkbox, ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import type { k8sPackageInfo , upgradeProgression} from './ambient.d.ts';
+    import type { k8sPackageInfo , UpgradeProgression} from './ambient';
 
-    let rhel8AvailableVersions = $state([{}]);
-    // let packageInfo = $state([{
-    //
-    // }]);
-    let packagesInfo= $state([k8sPackageInfo]);
+    let progression: UpgradeProgression;
+    let u: UpgradeProgression = $state(progression);
 
+    let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected = $state();
     let formModal = $state(false);
 
@@ -21,11 +19,11 @@
         };
 
         socket.onmessage = (e) => {
-            let progression: upgradeProgression = JSON.parse(e.data);
-            if (progression.stateName == "upgrade config selection") {
+            u = JSON.parse(e.data);
+            if (u.stateName == "upgrade config selection") {
                 formModal = true;
-                if ("k8sPackageInfo" in progression.state) {
-                    packagesInfo = progression.state.k8sPackageInfo;
+                if ("k8sPackageInfo" in u.state) {
+                    packagesInfo = u.state.k8sPackageInfo;
                 }
 
                 console.log($state.snapshot(packagesInfo));
