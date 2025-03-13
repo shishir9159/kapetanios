@@ -22,7 +22,7 @@ import (
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpdateServer struct {
 	log            *zap.Logger
-	upgradeConfig  *MinorUpgrade
+	upgradeConfig  *UpgradeState
 	connectionPool *wss.ConnectionPool
 	pb.MinorUpdateServer
 }
@@ -195,7 +195,7 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	}, nil
 }
 
-func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *MinorUpgrade, ch chan<- *grpc.Server) {
+func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *UpgradeState, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))

@@ -13,7 +13,7 @@ import (
 
 // TODO: node - role name
 
-func Prerequisites(upgrade *Upgrade) error {
+func Prerequisites(upgrade *MinorUpgrade) error {
 
 	// if cm shows updated nodes to a certain value
 	// and desired kubernetesVersion version must exist on the cm
@@ -33,11 +33,11 @@ func Prerequisites(upgrade *Upgrade) error {
 
 	// TODO: race condition - readCtx can be cancelled
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
-		zap.String("nodes to be upgraded", upgrade.config.NodesToBeUpgraded))
+		zap.String("nodes to be upgraded", upgrade.state.NodesToBeUpgraded))
 
 	// TODO: CONTAINER-RUNTIME compatibility
 
-	upgrade.upgraded = make(chan bool, 1)
+	upgrade.finalizer = make(chan bool, 1)
 
 	upgrade.mu.Lock()
 	go upgrade.MinorUpgrade()

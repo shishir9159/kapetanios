@@ -182,11 +182,11 @@ func recovery(namespace string) {
 
 }
 
-func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
+func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)
-	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.config, ch)
+	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.state, ch)
 
 	for osImage, nodeName := range availableOS {
 
@@ -232,14 +232,14 @@ func (upgrade *Upgrade) MinorUpdate(availableOS map[string]string) {
 
 	(<-ch).Stop()
 
-	err := writeConfig(upgrade.nefario, *upgrade.config)
+	err := writeConfig(upgrade.nefario, *upgrade.state)
 	if err != nil {
 		upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
 		upgrade.nefario.log.Fatal("configMap update failed " + err.Error())
 	}
 }
 
-func (upgrade *Upgrade) MinorUpgrade() {
+func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 	defer upgrade.mu.Unlock()
 
@@ -277,9 +277,9 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 	var nodeNames []string
 	var nodesUpgraded []string
-	if upgrade.config.NodesUpgraded != "" && upgrade.config.NodesToBeUpgraded != "" {
-		nodeNames = strings.Split(upgrade.config.NodesToBeUpgraded, ";")
-		nodesUpgraded = strings.Split(upgrade.config.NodesUpgraded, ";")
+	if upgrade.state.NodesUpgraded != "" && upgrade.state.NodesToBeUpgraded != "" {
+		nodeNames = strings.Split(upgrade.state.NodesToBeUpgraded, ";")
+		nodesUpgraded = strings.Split(upgrade.state.NodesUpgraded, ";")
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
@@ -352,7 +352,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 	}
 
 	upgrade.nefario.log.Debug("nodes to be upgraded",
-		zap.String("nodesToBeUpgraded", upgrade.config.NodesToBeUpgraded),
+		zap.String("nodesToBeUpgraded", upgrade.state.NodesToBeUpgraded),
 		zap.Strings("nodeNames:", nodeNames))
 
 	roleName := "minor-upgrade"
@@ -390,24 +390,24 @@ func (upgrade *Upgrade) MinorUpgrade() {
 		//   if failed, must be tainted again to
 		//   schedule nodes
 
-		upgrade.config.NodesUpgraded = strings.Join(nodeNames[:index], ";")
-		upgrade.config.NodesToBeUpgraded = strings.Join(nodeNames[index:], ";")
+		upgrade.state.NodesUpgraded = strings.Join(nodeNames[:index], ";")
+		upgrade.state.NodesToBeUpgraded = strings.Join(nodeNames[index:], ";")
 
 		if len(nodesUpgraded) != 0 && index != 0 {
-			upgrade.config.NodesUpgraded = strings.Join([]string{upgrade.config.NodesUpgraded,
+			upgrade.state.NodesUpgraded = strings.Join([]string{upgrade.state.NodesUpgraded,
 				strings.Join(nodesUpgraded, ";")}, ";")
 
 			upgrade.nefario.log.Info("nodes that upgraded",
-				zap.String("nodes upgraded", upgrade.config.NodesUpgraded))
+				zap.String("nodes upgraded", upgrade.state.NodesUpgraded))
 		} else if len(nodesUpgraded) != 0 {
 
-			upgrade.config.NodesUpgraded = strings.Join(nodesUpgraded, ";")
+			upgrade.state.NodesUpgraded = strings.Join(nodesUpgraded, ";")
 
 			upgrade.nefario.log.Info("nodes that upgraded",
-				zap.String("nodes upgraded", upgrade.config.NodesUpgraded))
+				zap.String("nodes upgraded", upgrade.state.NodesUpgraded))
 		}
 
-		err = writeConfig(upgrade.nefario, *upgrade.config)
+		err = writeConfig(upgrade.nefario, *upgrade.state)
 		if err != nil {
 			upgrade.nefario.log.Error("error writing reporting",
 				zap.Error(err))
@@ -426,19 +426,19 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		// TODO -- take input
 
-		if upgrade.config.UbuntuTargetK8sVersion == "" && upgrade.config.Rhel8TargetK8sVersion == "" && upgrade.config.Rhel9TargetK8sVersion == "" {
+		if upgrade.state.UbuntuTargetK8sVersion == "" && upgrade.state.Rhel8TargetK8sVersion == "" && upgrade.state.Rhel9TargetK8sVersion == "" {
 			upgrade.nefario.log.Fatal("target k8s version is not set")
 		}
 
 		certRenewalEnv := corev1.EnvVar{
 			Name:  "CERTIFICATE_RENEWAL",
-			Value: strconv.FormatBool(upgrade.config.SelectedConfig.CertificateRenewal),
+			Value: strconv.FormatBool(upgrade.state.SelectedConfig.CertificateRenewal),
 		}
 
 		env := descriptor.Spec.Containers[0].Env
 		env = append(env, certRenewalEnv)
 
-		if index == 0 && upgrade.config.NodesUpgraded == "" {
+		if index == 0 && upgrade.state.NodesUpgraded == "" {
 
 			firstNodeToUpgradeEnv := corev1.EnvVar{
 				Name:  "FIRST_NODE_TO_BE_UPGRADED",
@@ -467,9 +467,9 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		var packageVersion string
 		if strings.Contains(no.Status.NodeInfo.OSImage, "Red Hat Enterprise Linux 8.") {
-			packageVersion = upgrade.config.Rhel8TargetK8sVersion
+			packageVersion = upgrade.state.Rhel8TargetK8sVersion
 		} else if strings.Contains(no.Status.NodeInfo.OSImage, "RedHat Enterprise Linux 9.") {
-			packageVersion = upgrade.config.Rhel9TargetK8sVersion
+			packageVersion = upgrade.state.Rhel9TargetK8sVersion
 		} else if strings.Contains(no.Status.NodeInfo.OSImage, "???ubuntu???") {
 			//	TODO:
 		} else {
@@ -488,7 +488,7 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 		// TODO: should wait for the coredns restart
 
-		if upgrade.config.SelectedConfig.DrainNodes {
+		if upgrade.state.SelectedConfig.DrainNodes {
 			upgrade.nefario.log.Info("cordoning and draining node",
 				zap.String("node name", node))
 			err = prepareNode(upgrade.nefario, no)
@@ -604,10 +604,10 @@ func (upgrade *Upgrade) MinorUpgrade() {
 	}
 	(<-ch).Stop()
 
-	upgrade.config.NodesUpgraded = ""
-	upgrade.config.NodesToBeUpgraded = ""
+	upgrade.state.NodesUpgraded = ""
+	upgrade.state.NodesToBeUpgraded = ""
 
-	err = writeConfig(upgrade.nefario, *upgrade.config)
+	err = writeConfig(upgrade.nefario, *upgrade.state)
 	if err != nil {
 		upgrade.nefario.log.Error("error writing reporting",
 			zap.Error(err))
@@ -618,5 +618,5 @@ func (upgrade *Upgrade) MinorUpgrade() {
 
 	// TODO: notifications for upgrade complete
 
-	<-upgrade.upgraded
+	<-upgrade.finalizer
 }

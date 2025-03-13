@@ -49,13 +49,12 @@ type Nefario struct {
 	namespace string
 }
 
-type Upgrade struct {
-	nefario  *Nefario
-	mu       sync.Mutex
-	upgraded chan bool
-	pool     *wss.ConnectionPool
-	config   *MinorUpgrade
-	nodeInfo nodeInfo
+type MinorUpgrade struct {
+	mu        sync.Mutex
+	pool      *wss.ConnectionPool
+	finalizer chan bool
+	nefario   *Nefario
+	state     *UpgradeState
 }
 
 type State interface {
@@ -74,11 +73,12 @@ type UpgradeProgression struct {
 }
 
 type MinorUpdate struct {
-	State *MinorUpgrade `json:"state"`
+	State *UpgradeState `json:"state"`
 }
 
 // todo: should I keep track record if nodes were already
-//  tainted before draining
+//  tainted before draining TODO: set a specific label
+//  if you want to avoid upgrade
 
 type K8sVersion struct {
 	DistroPrettyName string `json:"distroPrettyName"`
@@ -108,21 +108,21 @@ type nodeStatus struct {
 	NodesFailedToBeUpgraded []string `json:"nodesFailedToBeUpgraded"`
 }
 
-type upgradeProgress struct {
+type progressDetails struct {
 	StepCount uint8
 	Log       string
 	Err       string
 }
 
-type MinorUpgrade struct {
+type UpgradeState struct {
 	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
 	NodeStatus      *nodeStatus       `json:"nodeStatus"`
 	Nodes           []nodeInfo        `json:"nodes"`
 	K8sPackages     []k8sPackageInfo  `json:"k8sPackages"`
-	UpgradeProgress []upgradeProgress `json:"upgradeProgress"`
+	ProgressDetails []progressDetails `json:"progressDetails"`
 }
 
-func readConfig(nefario *Nefario) (MinorUpgrade, error) {
+func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	configMapName := "kapetanios"
 
@@ -131,10 +131,10 @@ func readConfig(nefario *Nefario) (MinorUpgrade, error) {
 	if er != nil {
 		nefario.log.Error("error fetching the configMap",
 			zap.Error(er))
-		return MinorUpgrade{}, er
+		return UpgradeState{}, er
 	}
 
-	config := MinorUpgrade{
+	config := UpgradeState{
 		K8sPackages: nil,
 		SelectedConfig: &selectedConfig{
 			DrainNodes:         false,
@@ -150,7 +150,7 @@ func readConfig(nefario *Nefario) (MinorUpgrade, error) {
 	return config, nil
 }
 
-func writeConfig(nefario *Nefario, report MinorUpgrade) error {
+func writeConfig(nefario *Nefario, report UpgradeState) error {
 
 	configMapName := "kapetanios"
 
@@ -220,7 +220,7 @@ func (nefario *Nefario) report(w http.ResponseWriter, _ *http.Request) {
 	w.Write(payload)
 }
 
-func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
+func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	//var Json = jsoniter.ConfigFastest
 	//decoder := Json.NewDecoder(r.Body)
@@ -280,8 +280,8 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 				zap.Error(er))
 		}
 
-		upgrade.config = &config
-		upgrade.upgraded = make(chan bool, 1)
+		upgrade.state = &config
+		upgrade.finalizer = make(chan bool, 1)
 		upgrade.MinorUpgrade()
 
 		return
@@ -290,7 +290,7 @@ func (upgrade *Upgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
 	go upgrade.pool.ReadMessageFromConn(ctx, client)
 
-	<-upgrade.upgraded
+	<-upgrade.finalizer
 
 	// can fail
 	upgrade.pool.CancelReadContext()
@@ -372,19 +372,19 @@ func main() {
 	// TODO: remove all the clients when the job ends
 	go pool.Run(nefario.log)
 
-	upgrade := Upgrade{
+	upgrade := MinorUpgrade{
 		pool:    pool,
-		config:  &config,
+		state:   &config,
 		nefario: &nefario,
 	}
 	nefario.log.Debug("nodes to be upgraded",
-		zap.String("nodesToBeUpgraded", upgrade.config.NodesToBeUpgraded))
+		zap.String("nodesToBeUpgraded", upgrade.state.NodesToBeUpgraded))
 
 	// TODO:
 	//  read the configMap on how to
 	//  upgrade using selected Config
 
-	if upgrade.config.NodesToBeUpgraded != "" {
+	if upgrade.state.NodesToBeUpgraded != "" {
 		er := Prerequisites(&upgrade)
 		if er != nil {
 			upgrade.nefario.log.Info("error writing prerequisites warning:",

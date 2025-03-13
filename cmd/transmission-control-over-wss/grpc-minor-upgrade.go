@@ -18,7 +18,7 @@ import (
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	log            *zap.Logger
-	upgradeConfig  *MinorUpgrade
+	upgradeConfig  *UpgradeState
 	connectionPool *wss.ConnectionPool
 	pb.MinorUpgradeServer
 }
