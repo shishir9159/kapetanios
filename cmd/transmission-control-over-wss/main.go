@@ -58,16 +58,12 @@ type MinorUpgrade struct {
 }
 
 type State interface {
-	ReadMessage() (bool, bool, bool)
+	SendMessage(upgrade *MinorUpgrade) (bool, bool, bool)
 }
 
 type UpgradeProgression struct {
 	StateName string `json:"stateName"`
-	State     *State `json:"state"`
-}
-
-type MinorUpdate struct {
-	State *UpgradeState `json:"state"`
+	State     State  `json:"state"`
 }
 
 // todo: should I keep track record if nodes were already

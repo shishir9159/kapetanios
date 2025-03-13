@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -20,11 +21,35 @@ import (
 	"time"
 )
 
-type upgradeConfigSelction struct {
+type upgradeConfigSelection struct {
 	K8sPackageInfo []k8sPackageInfo `json:"k8sPackageInfo"`
 }
 
-func (u *upgradeConfigSelction) ReadMessage() (bool, bool, bool) {
+func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool, bool) {
+
+	upgradeProgression := &UpgradeProgression{
+		StateName: "version selection",
+		State:     u,
+	}
+
+	json := jsoniter.ConfigFastest
+	payload, err := json.Marshal(upgradeProgression)
+	if err != nil {
+		upgrade.nefario.log.Error("failed to marshal upgradeProgression",
+			zap.Error(err))
+	}
+
+	upgrade.pool.BroadcastMessage(payload)
+	response, err := upgrade.pool.ReadMessages()
+
+	selections := selectedConfig{}
+	err = json.Unmarshal([]byte(response), &selections)
+	if err != nil {
+		//throw error
+	}
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
 	switch response {
 	case "retry":
 		retryCurrentStep = true
@@ -53,7 +78,7 @@ func (u *upgradeConfigSelction) ReadMessage() (bool, bool, bool) {
 		s.log.Error("unknown response from frontend",
 			zap.String("response", response))
 	}
-	return true, false, false
+	return retryCurrentStep, false, false
 }
 
 // todo: move to utils, add node interface
@@ -261,6 +286,12 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	// handle the error
 
 	(<-ch).Stop()
+
+	selection := &upgradeConfigSelection{
+		K8sPackageInfo: upgrade.upgradeState.K8sPackages,
+	}
+
+	selection.SendMessage(upgrade)
 
 	err := writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {
