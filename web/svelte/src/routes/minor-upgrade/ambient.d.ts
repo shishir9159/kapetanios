@@ -32,7 +32,7 @@ interface MinorUpdate {
 }
 
 
-interface k8Version {
+interface k8sVersion {
     distroPrettyName: string
     targetK8sVersion: string
 }
@@ -43,7 +43,7 @@ interface SelectedConfig {
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;
-    k8sVersion:         [k8Version];
+    k8sVersion:         [k8sVersion];
 }
 
 export interface UpgradeProgression {

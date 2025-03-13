@@ -2,31 +2,7 @@
     import { Button, Checkbox, ButtonGroup, Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
     import type {upgradeConfig} from "./ambient";
-    // import type { SelectedConfig, k8Version, UpgradeProgression} from './ambient.d.ts';
-
-    interface MinorUpdate {
-        step: 0
-        state: upgradeConfig
-    }
-
-    interface k8Version {
-        distroPrettyName: string
-        targetK8sVersion: string
-    }
-
-    interface SelectedConfig {
-        step: 2
-        state: upgradeConfig
-        drainNodes:         boolean;
-        promptOnError:      boolean;
-        certificateRenewal: boolean;
-        k8sVersion:         [k8Version];
-    }
-
-    export interface UpgradeProgression {
-        stateName: string;
-        state: MinorUpdate | SelectedConfig;
-    }
+    import type { SelectedConfig, k8Version, UpgradeProgression} from './ambient.d.ts';
 
     let rhel8AvailableVersions = $state([{}]);
     let selected = $state();
@@ -43,14 +19,15 @@
         socket.onmessage = (e) => {
 
             let progression: UpgradeProgression = JSON.parse(e.data);
-            if (progression.stateName == "upgradeConfigSelection") {
+            if (progression.stateName == "upgrade config selection") {
                 formModal = true;
-                if ("drainNodes" in progression.state) {
-                    let availableVersions: boolean = progression.state.drainNodes;
+                if ("k8sVersion" in progression.state) {
+                    let availableVersions = progression.state.k8sVersion;
+                    availableVersions.forEach( (element) => {
+                        rhel8AvailableVersions.push({name: element, value: "package version"});
+                    })
                 }
-                availableVersions.forEach( (element) => {
-                    rhel8AvailableVersions.push({name: element, value: "rhel"});
-                })
+
                 console.log($state.snapshot(rhel8AvailableVersions));
             }
 
