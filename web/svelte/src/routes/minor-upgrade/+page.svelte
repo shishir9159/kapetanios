@@ -11,7 +11,7 @@
 
     export const userResponse = $state(<string | null>(null));
     let packagesInfo: [k8sPackageInfo]= $state([]);
-    let selected = $state();
+    let selected = $state([]);
     console.log($state.snapshot(selected));
     let formModal = $state(false);
 
@@ -53,6 +53,7 @@
             if (typeof selected === "string") {
                 selectedConfig.k8sVersion[0].distroPrettyName = selected;
             }
+            console.log($state.snapshot(selected));
             const payLoad = JSON.stringify(selectedConfig);
             socket.send(payLoad);
         } else {
@@ -82,6 +83,7 @@
 <Button on:click={() => (formModal = true)}>Form modal</Button>
 <Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
 
+<!--    https://svelte.dev/docs/svelte/bind#Function-bindings   -->
     <Label>
         Select K8s version for each OS
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>

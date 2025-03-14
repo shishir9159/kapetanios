@@ -31,6 +31,9 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 	//		zap.Error(er))
 	//}
 
+	// TODO: urgent
+	//  clean any remaining pod before continuing
+
 	// TODO: race condition - readCtx can be cancelled
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
 		zap.Strings("nodes to be upgraded", upgrade.upgradeState.NodeStatus.NodesToBeUpgraded))
