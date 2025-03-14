@@ -9,12 +9,9 @@
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
 
-    export const userResponse = $state(<string | null>(null));
+    // export const userResponse = $state(<string | null>(null));
     let packagesInfo: [k8sPackageInfo]= $state([]);
-
-    // TODO: selected should be a map
-    let selected: Map<string, string> | undefined = $state();
-    let packageSelection = new Map();
+    let selected: Map<string, string> = $state(new Map<string, string>());
     console.log($state.snapshot(selected));
     let formModal = $state(false);
 
@@ -96,11 +93,7 @@
     {#each packagesInfo as packageInfo}
         <Select class="mt-2"
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: packageInfo.distroPrettyName, name: value }))}
-<!--    #TODO: multiple select            -->
-                bind:value={selected}
-                onchange={() => (
-                    selected[packageInfo.distroPrettyName] = packageInfo.availableVersions)}
-        />
+                onchange={() => (selected[packageInfo.distroPrettyName] = packageInfo.availableVersions)} />
     {/each}
     </Label>
         <div class="flex items-start">
@@ -110,7 +103,6 @@
             <Checkbox bind:value={drainNodes}>Node Draining before Upgrade</Checkbox>
         </div>
         <div class="flex items-start">
-        <!--            #TODO            -->
             <Checkbox bind:value={promptOnError}>Allow different repo for the same OS</Checkbox>
         </div>
         <Button type="submit" class="w-full1" disabled={!selected} {onsubmit}>Submit</Button>

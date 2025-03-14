@@ -224,16 +224,16 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
 
+	renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
+	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
+
+	descriptor.Spec.HostNetwork = true
+	descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
+
 	for osImage, nodeName := range availableOS {
 
 		upgrade.nefario.log.Info("updating nodes info",
 			zap.String("node", nodeName))
-
-		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
-
-		descriptor.Spec.HostNetwork = true
-		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
 		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
 			Create(context.Background(), descriptor, metav1.CreateOptions{})
@@ -250,7 +250,6 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 			zap.String("os", osImage))
 
 		// todo: upgrade.pool.BroadcastMessage([]byte("minor update pod created successfully: " + minion.Name))
-		time.Sleep(30 * time.Second)
 	}
 
 	// TODO: practice on multiple nodes
@@ -262,6 +261,71 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	//upgrade.nefario.log.Error("failed to create a watcher for the pod",
 	//	zap.Error(err))
 	// handle the error
+
+	labelSelector := metav1.LabelSelector{
+		MatchLabels: map[string]string{"app": "minor-upgrade"},
+	}
+
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	// TODO:
+	//  all of the deployed minion completed
+
+	watcher, err := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
+		Watch(context.TODO(), metav1.ListOptions{
+			LabelSelector: listOptions.LabelSelector,
+			FieldSelector: "metadata.name=" + minion.Name,
+		})
+
+outerLoop:
+	for event := range watcher.ResultChan() {
+		pod, ok := event.Object.(*corev1.Pod)
+		if !ok {
+			upgrade.nefario.log.Error("watcher returned unexpected type",
+				zap.Reflect("event", event),
+				zap.Reflect("object", event.Object))
+			continue
+		}
+
+		switch event.Type {
+
+		// TODO:
+		//	 handle the following case
+		//	 Events:
+		//   Type     Reason   Age   From     Message
+		//   ----     ------   ----  ----     -------
+		//   Warning  Evicted  11s   kubelet  The node had condition: [DiskPressure].
+
+		case watch.Modified:
+			if pod.Status.Phase == corev1.PodSucceeded {
+				upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",
+					zap.String("pod name", pod.Name),
+					zap.String("pod namespace", pod.Namespace),
+					zap.String("minion name", minion.Name))
+				break outerLoop
+			} else if pod.Status.Phase == corev1.PodFailed {
+				upgrade.nefario.log.Info("minor upgrade pod has failed!",
+					zap.String("pod name", pod.Name),
+					zap.String("pod namespace", pod.Namespace),
+					zap.String("minion name", minion.Name))
+				// todo: handle pod failure
+				break outerLoop
+			}
+		case watch.Deleted:
+			upgrade.nefario.log.Info("minor upgrade pod was deleted!",
+				zap.String("pod name", pod.Name),
+				zap.String("pod namespace", pod.Namespace),
+				zap.String("minion name", minion.Name))
+			break outerLoop
+		}
+	}
+
+	// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
+	//  check if previously listed pods are all successfully restarted before untainted
+
+	watcher.Stop()
 
 	(<-ch).Stop()
 
