@@ -6,6 +6,7 @@
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
 
+    export const userResponse = $state(<string | null>(null));
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected = $state();
     console.log($state.snapshot(selected));
@@ -27,9 +28,7 @@
                     packagesInfo = u.state.k8sPackageInfo;
                 }
 
-                await    function() onSubmit() {
 
-                }
 
             }
 
@@ -43,6 +42,28 @@
         socket.onclose = async () => {
             console.log('websocket closed');
         };
+    }
+
+    function waitForSubmit():Promise<string> {
+        return new Promise((resolve) => {
+            $effect(() => {
+
+            })
+
+            const unsubscribe = userResponse.subscribe((value) => {
+                if (value) {
+                    resolve(value);
+                    userResponse.set(null); // Reset user response
+                    unsubscribe(); // Stop listening
+                }
+            });
+        });
+    }
+
+    function onsubmit() {
+
+        userResponse.set(userInput);
+        userInput = "";
     }
 </script>
 
@@ -87,7 +108,7 @@
         <div class="flex items-start">
             <Checkbox>Allow different repo for the same OS</Checkbox>
         </div>
-        <Button type="submit" class="w-full1" disabled={!selected}>Submit</Button>
+        <Button type="submit" class="w-full1" disabled={!selected} {onsubmit}>Submit</Button>
 </Modal>
 
 <style>
