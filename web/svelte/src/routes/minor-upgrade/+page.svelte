@@ -11,7 +11,10 @@
 
     export const userResponse = $state(<string | null>(null));
     let packagesInfo: [k8sPackageInfo]= $state([]);
-    let selected = $state([]);
+
+    // TODO: selected should be a map
+    let selected = $state();
+    let packageSelection = new Map();
     console.log($state.snapshot(selected));
     let formModal = $state(false);
 
@@ -92,7 +95,9 @@
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: packageInfo.distroPrettyName, name: value }))}
 <!--    #TODO: multiple select            -->
                 bind:value={selected}
-                onchange={() => (console.log('selected'))}
+                onchange={() => (
+
+                    console.log(selected))}
         />
     {/each}
     </Label>
