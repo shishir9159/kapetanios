@@ -50,7 +50,7 @@ export interface UpgradeProgression {
     state: MinorUpdate | upgradeConfigSelection;
 }
 
-interface k8sVersion {
+export interface k8sVersion {
     distroPrettyName: string
     targetK8sVersion: string
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button, Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import type { k8sPackageInfo , SelectedConfig,  UpgradeProgression} from './ambient';
+    import type { k8sPackageInfo , k8sVersion , SelectedConfig,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
@@ -13,7 +13,7 @@
     let packagesInfo: [k8sPackageInfo]= $state([]);
 
     // TODO: selected should be a map
-    let selected = $state();
+    let selected: Map<string, string> | undefined = $state();
     let packageSelection = new Map();
     console.log($state.snapshot(selected));
     let formModal = $state(false);
@@ -53,9 +53,12 @@
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
-            if (typeof selected === "string") {
-                selectedConfig.k8sVersion[0].distroPrettyName = selected;
-            }
+            selected.forEach((value:string, key: string) => {
+                const packageInfo = new k8sVersion();
+                packageInfo.distroPrettyName = key;
+                packageInfo.targetK8sVersion = value;
+                selectedConfig.k8sVersion.push(packageInfo);
+            })
             console.log($state.snapshot(selected));
             const payLoad = JSON.stringify(selectedConfig);
             socket.send(payLoad);
@@ -96,8 +99,7 @@
 <!--    #TODO: multiple select            -->
                 bind:value={selected}
                 onchange={() => (
-
-                    console.log(selected))}
+                    selected[packageInfo.distroPrettyName] = packageInfo.availableVersions)}
         />
     {/each}
     </Label>
