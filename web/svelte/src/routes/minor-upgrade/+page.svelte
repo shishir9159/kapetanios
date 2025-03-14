@@ -5,6 +5,9 @@
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
+    let certificateRenewal: boolean = $state(false);
+    let drainNodes: boolean = $state(false);
+    let promptOnError: boolean = $state(true);
 
     export const userResponse = $state(<string | null>(null));
     let packagesInfo: [k8sPackageInfo]= $state([]);
@@ -12,8 +15,10 @@
     console.log($state.snapshot(selected));
     let formModal = $state(false);
 
+    let socket: WebSocket;
+
     function connectionInitialization() {
-        const socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
+        socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
         // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
 
         socket.onopen = async () => {
@@ -27,12 +32,7 @@
                 if ("k8sPackageInfo" in u.state) {
                     packagesInfo = u.state.k8sPackageInfo;
                 }
-
-
-
             }
-
-            socket.send('current state');
         };
 
         socket.onerror = (error) => {
@@ -44,26 +44,20 @@
         };
     }
 
-    function waitForSubmit():Promise<string> {
-        return new Promise((resolve) => {
-            $effect(() => {
-
-            })
-
-            const unsubscribe = userResponse.subscribe((value) => {
-                if (value) {
-                    resolve(value);
-                    userResponse.set(null); // Reset user response
-                    unsubscribe(); // Stop listening
-                }
-            });
-        });
-    }
-
     function onsubmit() {
-
-        userResponse.set(userInput);
-        userInput = "";
+        if (socket.readyState == "connected") {
+            let selectedConfig = new SelectedConfig();
+            selectedConfig.certificateRenewal = certificateRenewal;
+            selectedConfig.drainNodes = drainNodes;
+            selectedConfig.promptOnError = promptOnError;
+            if (typeof selected === "string") {
+                selectedConfig.k8sVersion[0].distroPrettyName = selected;
+            }
+            const payLoad = JSON.stringify(selectedConfig);
+            socket.send(payLoad);
+        } else {
+        // TODO: throw error
+        }
     }
 </script>
 
@@ -94,19 +88,21 @@
     {#each packagesInfo as packageInfo}
         <Select class="mt-2"
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: packageInfo.distroPrettyName, name: value }))}
+<!--    #TODO: multiple select            -->
                 bind:value={selected}
                 onchange={() => (console.log('selected'))}
         />
     {/each}
     </Label>
         <div class="flex items-start">
-            <Checkbox>Certificate Renewal</Checkbox>
+            <Checkbox bind:value={certificateRenewal}>Certificate Renewal</Checkbox>
         </div>
         <div class="flex items-start">
-            <Checkbox>Node Draining before Upgrade</Checkbox>
+            <Checkbox bind:value={drainNodes}>Node Draining before Upgrade</Checkbox>
         </div>
         <div class="flex items-start">
-            <Checkbox>Allow different repo for the same OS</Checkbox>
+        <!--            #TODO            -->
+            <Checkbox bind:value={promptOnError}>Allow different repo for the same OS</Checkbox>
         </div>
         <Button type="submit" class="w-full1" disabled={!selected} {onsubmit}>Submit</Button>
 </Modal>
