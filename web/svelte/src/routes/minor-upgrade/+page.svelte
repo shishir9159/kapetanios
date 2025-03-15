@@ -1,7 +1,8 @@
 <script lang="ts">
     import { Button, Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import type { k8sPackageInfo , k8sVersion , SelectedConfig ,  UpgradeProgression} from './ambient';
+    import { SelectedConfig } from './ambient.d.ts';
+    import type { k8sPackageInfo , k8sVersion  ,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
@@ -47,7 +48,7 @@
         console.log($state.snapshot(selected));
         // if (socket.readyState == "connected") {
         //  TODO: fix
-            let selectedConfig: SelectedConfig = $state(selected);
+            let selectedConfig: SelectedConfig = new SelectedConfig();
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
@@ -106,7 +107,6 @@
             <Checkbox bind:value={promptOnError}>Allow different repo for the same OS</Checkbox>
         </div>
 <!--    TODO: disabled={all packages are selected}  -->
-        <button type="submit" {onsubmit}>Submit</button>
         <Button type="submit" class="w-full1" on:click={() => (onsubmit())}>Submit</Button>
 </Modal>
 

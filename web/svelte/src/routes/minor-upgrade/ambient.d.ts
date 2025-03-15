@@ -50,12 +50,12 @@ export interface UpgradeProgression {
     state: MinorUpdate | upgradeConfigSelection;
 }
 
-export interface k8sVersion {
+export class k8sVersion {
     distroPrettyName: string
     targetK8sVersion: string
 }
 
-export interface SelectedConfig {
+export class SelectedConfig {
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;

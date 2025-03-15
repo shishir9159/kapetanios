@@ -60,6 +60,10 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 	// TODO: debug and remove
 	log.Println(upgrade.upgradeState.SelectedConfig)
 
+	if len(upgrade.upgradeState.SelectedConfig.K8sVersion) == 0 {
+		log.Println("empty upgrade.upgradeState.SelectedConfig.K8sVersion")
+	}
+
 	return false, false, false
 }
 
