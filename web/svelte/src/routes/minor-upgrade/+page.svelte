@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Button, Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
+    import { Step } from './step.svelte';
     import { k8sVersion, SelectedConfig } from './ambient.d.ts';
     import type { k8sPackageInfo ,  UpgradeProgression} from './ambient';
 
@@ -13,7 +14,6 @@
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let formModal = $state(false);
-    $inspect(selected).with(console.trace);
 
     let socket: WebSocket;
 
@@ -45,12 +45,13 @@
     }
 
     function onsubmit() {
-        if (socket.readyState == "connected") {
+        // TODO: check connection
+        // if (socket.readyState == "connected") {
+            let k8sConfig = new Array<k8sVersion>();
             let selectedConfig: SelectedConfig = new SelectedConfig();
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
-            let k8sConfig = new Array<k8sVersion>();
             console.log("selected", selected);
             selected.forEach((value:string, key: string) => {
                 const packageInfo = new k8sVersion();
@@ -60,11 +61,10 @@
             });
             selectedConfig.k8sVersion = k8sConfig;
             const payLoad = JSON.stringify(selectedConfig);
-
             socket.send(payLoad);
-        } else {
-        // TODO: throw error
-        }
+        // } /else {
+        // // TODO: throw error
+        // }/
     }
 </script>
 

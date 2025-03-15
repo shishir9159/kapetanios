@@ -1,4 +1,4 @@
-<script lang="js">
+<script lang="ts">
     function toggleStep(stepNumber) {
         const content = document.getElementById(`step-${stepNumber}`);
 
@@ -14,7 +14,6 @@
     }
 </script>
 
-<body>
 <div class="step-container">
     <div class="step" onclick="toggleStep(1)">
         <div class="step-number">1</div>
@@ -57,7 +56,9 @@
     </div>
 </div>
 
-body {
+<style>
+
+.step-container {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     display: flex;
@@ -65,14 +66,10 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-}
-
-.step-container {
     width: 300px;
-    background: white;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .step {
@@ -118,3 +115,4 @@ body {
     margin: 5px 0;
     border-radius: 5px;
 }
+</style>
