@@ -223,7 +223,7 @@ func recovery(namespace string) {
 }
 
 func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
-	roleName := "minor-update"
+	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
