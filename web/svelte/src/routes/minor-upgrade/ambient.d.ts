@@ -55,7 +55,7 @@ export interface k8sVersion {
     targetK8sVersion: string
 }
 
-interface SelectedConfig {
+export interface SelectedConfig {
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;

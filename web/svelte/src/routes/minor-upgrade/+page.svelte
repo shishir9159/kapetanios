@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button, Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import type { k8sPackageInfo , k8sVersion , SelectedConfig,  UpgradeProgression} from './ambient';
+    import type { k8sPackageInfo , k8sVersion , SelectedConfig ,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
@@ -44,10 +44,10 @@
     }
 
     function onsubmit() {
-        alert(selected)
         console.log($state.snapshot(selected));
         // if (socket.readyState == "connected") {
-            let selectedConfig = new SelectedConfig();
+        //  TODO: fix
+            let selectedConfig: SelectedConfig = $state(selected);
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
