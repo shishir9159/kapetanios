@@ -12,7 +12,6 @@
     // export const userResponse = $state(<string | null>(null));
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected: Map<string, string> = $state(new Map<string, string>());
-    console.log($state.snapshot(selected));
     let formModal = $state(false);
 
     let socket: WebSocket;
@@ -45,7 +44,9 @@
     }
 
     function onsubmit() {
-        if (socket.readyState == "connected") {
+        alert(selected)
+        console.log($state.snapshot(selected));
+        // if (socket.readyState == "connected") {
             let selectedConfig = new SelectedConfig();
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
@@ -56,12 +57,11 @@
                 packageInfo.targetK8sVersion = value;
                 selectedConfig.k8sVersion.push(packageInfo);
             })
-            console.log($state.snapshot(selected));
             const payLoad = JSON.stringify(selectedConfig);
             socket.send(payLoad);
-        } else {
-        // TODO: throw error
-        }
+        // } else {
+        // // TODO: throw error
+        // }
     }
 </script>
 
@@ -105,7 +105,9 @@
         <div class="flex items-start">
             <Checkbox bind:value={promptOnError}>Allow different repo for the same OS</Checkbox>
         </div>
-        <Button type="submit" class="w-full1" disabled={!selected} {onsubmit}>Submit</Button>
+<!--    TODO: disabled={all packages are selected}  -->
+        <button type="submit" {onsubmit}>Submit</button>
+        <Button type="submit" class="w-full1" on:click={() => (onsubmit())}>Submit</Button>
 </Modal>
 
 <style>
