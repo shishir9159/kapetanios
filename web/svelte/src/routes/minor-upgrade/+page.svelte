@@ -9,10 +9,12 @@
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
-    let s: string;
+    let s: string = $state('');
+
 
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected: Map<string, string> = $state(new Map<string, string>());
+    $inspect(selected).with(console.trace);
     let formModal = $state(false);
 
     let socket: WebSocket;
@@ -90,16 +92,18 @@
     </div>
 </div>
 
-<Button on:click={() => (formModal = true)}>Form modal</Button>
 <Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
     <Label>
         Select K8s version for each OS
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
     {#each packagesInfo as packageInfo, i}
         <Select class="mt-2"
-                items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: packageInfo.distroPrettyName, name: value }))}
+                items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
                 bind:value={s}
-                on:select={() => selected[packageInfo.distroPrettyName] = s}
+                onselect={() => {
+                    console.log('selected', selected);
+                    selected[packageInfo.distroPrettyName] = s;
+                }}
         />
     {/each}
     </Label>
