@@ -60,6 +60,4 @@ export class SelectedConfig {
     promptOnError:      boolean;
     certificateRenewal: boolean;
     k8sVersion:         k8sVersion[];
-
-    
 }

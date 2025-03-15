@@ -1,16 +1,16 @@
 <script lang="ts">
     import { Button, Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import { SelectedConfig } from './ambient.d.ts';
-    import type { k8sPackageInfo , k8sVersion  ,  UpgradeProgression} from './ambient';
+    import { k8sVersion, SelectedConfig } from './ambient.d.ts';
+    import type { k8sPackageInfo ,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
+    let s: string = $state("");
 
-    // export const userResponse = $state(<string | null>(null));
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected: Map<string, string> = $state(new Map<string, string>());
     let formModal = $state(false);
@@ -52,13 +52,15 @@
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
+            let k8sConfig = [k8sVersion];
             console.log("selectedConfig.promptOnError", selectedConfig.promptOnError);
             selected.forEach((value:string, key: string) => {
                 const packageInfo = new k8sVersion();
                 packageInfo.distroPrettyName = key;
                 packageInfo.targetK8sVersion = value;
-                selectedConfig.k8sVersion.push(packageInfo);
+                k8sConfig.push(packageInfo);
             })
+            selectedConfig.k8sVersion = k8sConfig;
             console.log("selectedConfig", selectedConfig);
             console.log("selectedConfig.k8sVersion", selectedConfig.k8sVersion[0].targetK8sVersion);
             const payLoad = JSON.stringify(selectedConfig);
@@ -93,10 +95,11 @@
     <Label>
         Select K8s version for each OS
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
-    {#each packagesInfo as packageInfo}
+    {#each packagesInfo as packageInfo, i}
         <Select class="mt-2"
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: packageInfo.distroPrettyName, name: value }))}
-                onclick={() => selected[packageInfo.distroPrettyName] = packageInfo.availableVersions}
+                bind:value={s}
+                on:select={() => selected[packageInfo.distroPrettyName] = s}
         />
     {/each}
     </Label>
