@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
@@ -39,19 +40,27 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 			zap.Error(err))
 	}
 
-	upgrade.pool.BroadcastMessage(payload)
-	response, err := upgrade.pool.ReadMessages()
+	for {
 
-	selections := selectedConfig{}
-	err = json.Unmarshal([]byte(response), &selections)
-	if err != nil {
-		//throw error
+		upgrade.pool.BroadcastMessage(payload)
+
+		response, err := upgrade.pool.ReadMessages()
+
+		selections := selectedConfig{}
+		err = json.Unmarshal([]byte(response), &selections)
+		if err != nil {
+			//throw error
+		}
+
+		// TODO:
+		//  check if corrupted message could be unmarshaled
+
+		upgrade.upgradeState.SelectedConfig = &selections
+
+		if err != nil {
+			break
+		}
 	}
-
-	// TODO:
-	//  check if corrupted message could be unmarshaled
-
-	upgrade.upgradeState.SelectedConfig = &selections
 
 	// TODO: debug and remove
 	log.Println(upgrade.upgradeState.SelectedConfig)
@@ -219,7 +228,7 @@ func recovery(namespace string) {
 }
 
 func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
-	roleName := "minor-upgrade"
+	roleName := "minor-update"
 
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
@@ -263,23 +272,33 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	// handle the error
 
 	labelSelector := metav1.LabelSelector{
-		MatchLabels: map[string]string{"app": "minor-upgrade"},
+		MatchLabels: map[string]string{"app": roleName},
 	}
 
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	// TODO:
-	//  all of the deployed minion completed
-
 	watcher, err := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
 		Watch(context.TODO(), metav1.ListOptions{
 			LabelSelector: listOptions.LabelSelector,
-			FieldSelector: "metadata.name=" + minion.Name,
 		})
 
+	if err != nil {
+		upgrade.nefario.log.Error("minor update pod creation failed: ")
+	}
+
+	if watcher == nil {
+		upgrade.nefario.log.Error("could not create watcher",
+			zap.Error(fmt.Errorf("watcher is nil")))
+		//	TODO: avoid outLoop and pass after a timer
+	}
+
+	// TODO: timeout for the watcher
+	defer watcher.Stop()
+
 outerLoop:
+	// TODO: handle possible empty channel return
 	for event := range watcher.ResultChan() {
 		pod, ok := event.Object.(*corev1.Pod)
 		if !ok {
@@ -291,41 +310,26 @@ outerLoop:
 
 		switch event.Type {
 
-		// TODO:
-		//	 handle the following case
-		//	 Events:
-		//   Type     Reason   Age   From     Message
-		//   ----     ------   ----  ----     -------
-		//   Warning  Evicted  11s   kubelet  The node had condition: [DiskPressure].
-
 		case watch.Modified:
 			if pod.Status.Phase == corev1.PodSucceeded {
 				upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",
 					zap.String("pod name", pod.Name),
-					zap.String("pod namespace", pod.Namespace),
-					zap.String("minion name", minion.Name))
+					zap.String("pod namespace", pod.Namespace))
 				break outerLoop
 			} else if pod.Status.Phase == corev1.PodFailed {
 				upgrade.nefario.log.Info("minor upgrade pod has failed!",
 					zap.String("pod name", pod.Name),
-					zap.String("pod namespace", pod.Namespace),
-					zap.String("minion name", minion.Name))
+					zap.String("pod namespace", pod.Namespace))
 				// todo: handle pod failure
 				break outerLoop
 			}
 		case watch.Deleted:
 			upgrade.nefario.log.Info("minor upgrade pod was deleted!",
 				zap.String("pod name", pod.Name),
-				zap.String("pod namespace", pod.Namespace),
-				zap.String("minion name", minion.Name))
+				zap.String("pod namespace", pod.Namespace))
 			break outerLoop
 		}
 	}
-
-	// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
-	//  check if previously listed pods are all successfully restarted before untainted
-
-	watcher.Stop()
 
 	(<-ch).Stop()
 
@@ -335,7 +339,7 @@ outerLoop:
 
 	selection.SendMessage(upgrade)
 
-	err := writeConfig(upgrade.nefario, *upgrade.upgradeState)
+	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {
 		upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
 		upgrade.nefario.log.Fatal("configMap update failed " + err.Error())

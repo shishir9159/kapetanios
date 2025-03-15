@@ -175,6 +175,7 @@ func writeConfig(nefario *Nefario, state UpgradeState) error {
 // healthz is a liveness probe.
 func livez(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("shuttle", "launched")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 }
 
