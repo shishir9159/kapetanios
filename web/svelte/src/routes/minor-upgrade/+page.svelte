@@ -52,9 +52,11 @@
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
-            let k8sConfig = [k8sVersion];
-            console.log("selectedConfig.promptOnError", selectedConfig.promptOnError);
+            let k8sConfig = new Array<k8sVersion>();
+            console.log(selected);
             selected.forEach((value:string, key: string) => {
+                console.log('selected', selected);
+                console.log('k8sConfig', k8sConfig);
                 const packageInfo = new k8sVersion();
                 packageInfo.distroPrettyName = key;
                 packageInfo.targetK8sVersion = value;
@@ -95,14 +97,11 @@
     <Label>
         Select K8s version for each OS
     <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
-    {#each packagesInfo as packageInfo, i}
+    {#each packagesInfo as packageInfo}
         <Select class="mt-2"
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
                 bind:value={s}
-                onselect={() => {
-                    console.log('selected', selected);
-                    selected[packageInfo.distroPrettyName] = s;
-                }}
+                onchange={() => selected[packageInfo.distroPrettyName] = s }
         />
     {/each}
     </Label>
