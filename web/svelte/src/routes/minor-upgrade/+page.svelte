@@ -45,8 +45,7 @@
     }
 
     function onsubmit() {
-        // if (socket.readyState == "connected") {
-        //  TODO: fix
+        if (socket.readyState == "connected") {
             let selectedConfig: SelectedConfig = new SelectedConfig();
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
@@ -54,22 +53,18 @@
             let k8sConfig = new Array<k8sVersion>();
             console.log("selected", selected);
             selected.forEach((value:string, key: string) => {
-                console.log('selected', selected);
-                console.log('k8sConfig', k8sConfig);
                 const packageInfo = new k8sVersion();
                 packageInfo.distroPrettyName = key;
                 packageInfo.targetK8sVersion = value;
                 k8sConfig.push(packageInfo);
-            })
+            });
             selectedConfig.k8sVersion = k8sConfig;
-            console.log("selectedConfig", selectedConfig);
-            console.log("selectedConfig.k8sVersion", selectedConfig.k8sVersion[0].targetK8sVersion);
             const payLoad = JSON.stringify(selectedConfig);
 
             socket.send(payLoad);
-        // } else {
-        // // TODO: throw error
-        // }
+        } else {
+        // TODO: throw error
+        }
     }
 </script>
 
@@ -100,8 +95,7 @@
         <Select class="mt-2"
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
                 bind:value={s}
-                onchange={() => {selected[packageInfo.distroPrettyName] = s;
-                console.log(selected[packageInfo.distroPrettyName]);} }
+                onchange={() => selected.set(packageInfo.distroPrettyName, s) }
         />
     {/each}
     </Label>
