@@ -45,7 +45,6 @@
     }
 
     function onsubmit() {
-        console.log($state.snapshot(selected));
         // if (socket.readyState == "connected") {
         //  TODO: fix
             let selectedConfig: SelectedConfig = new SelectedConfig();
@@ -53,7 +52,7 @@
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
             let k8sConfig = new Array<k8sVersion>();
-            console.log(selected);
+            console.log("selected", selected);
             selected.forEach((value:string, key: string) => {
                 console.log('selected', selected);
                 console.log('k8sConfig', k8sConfig);
@@ -101,7 +100,8 @@
         <Select class="mt-2"
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
                 bind:value={s}
-                onchange={() => selected[packageInfo.distroPrettyName] = s }
+                onchange={() => {selected[packageInfo.distroPrettyName] = s;
+                console.log(selected[packageInfo.distroPrettyName]);} }
         />
     {/each}
     </Label>

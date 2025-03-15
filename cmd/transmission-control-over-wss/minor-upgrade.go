@@ -47,7 +47,7 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 		selections := selectedConfig{}
 		err = json.Unmarshal([]byte(response), &selections)
 
-		if err != nil || len(selections.K8sVersion) == 0 {
+		if err != nil || selections.K8sVersion == nil {
 			continue
 		}
 
