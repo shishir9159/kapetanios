@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { Button, Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
+    import { Button , Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
-    import { Step } from './step.svelte';
+    import Step from './Step.svelte';
     import { k8sVersion, SelectedConfig } from './ambient.d.ts';
     import type { k8sPackageInfo ,  UpgradeProgression} from './ambient';
 
@@ -80,7 +80,7 @@
 
 <div class="processing">
     <div class="nodes">
-
+        <Step />
     </div>
     <div class="nodes">
         <p style="color: red;">{message.logMessage}</p>
