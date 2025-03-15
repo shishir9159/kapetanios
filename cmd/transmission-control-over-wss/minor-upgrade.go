@@ -47,18 +47,25 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 		selections := selectedConfig{}
 		err = json.Unmarshal([]byte(response), &selections)
 
-		if err != nil {
+		if err != nil || len(selections.K8sVersion) == 0 {
 			continue
 		}
 
 		upgrade.upgradeState.SelectedConfig = &selections
 
 		break
-
 	}
 
 	// TODO: debug and remove
 	log.Println(upgrade.upgradeState.SelectedConfig)
+
+	// TODO:
+	//  HANDLE THE ERROR
+	//  error: rpmdb: BDB0113 Thread/process 1380430/139742582999936 failed: BDB1507 Thread died in Berkeley DB library
+	//  error: db5 error(-30973) from dbenv->failchk: BDB0087 DB_RUNRECOVERY: Fatal error, run database recovery
+	//  error: cannot open Packages index using db5 -  (-30973)
+	//  error: cannot open Packages database in /var/lib/rpm
+	//  Error: Error: rpmdb open failed
 
 	if len(upgrade.upgradeState.SelectedConfig.K8sVersion) == 0 {
 		log.Println("empty upgrade.upgradeState.SelectedConfig.K8sVersion")
@@ -322,6 +329,9 @@ outerLoop:
 	}
 
 	(<-ch).Stop()
+
+	// TODO: empty the configmap value
+	//upgrade.upgradeState.SelectedConfig.K8sVersion = []K8sVersion{}
 
 	selection := &upgradeConfigSelection{
 		K8sPackageInfo: upgrade.upgradeState.K8sPackages,

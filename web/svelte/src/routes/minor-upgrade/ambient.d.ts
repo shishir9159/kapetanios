@@ -59,5 +59,7 @@ export class SelectedConfig {
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;
-    k8sVersion:         [k8sVersion];
+    k8sVersion:         k8sVersion[];
+
+    
 }

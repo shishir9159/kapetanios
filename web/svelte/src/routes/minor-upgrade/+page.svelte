@@ -52,7 +52,7 @@
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;
-        console.log("selectedConfig.promptOnError", selectedConfig.promptOnError);
+            console.log("selectedConfig.promptOnError", selectedConfig.promptOnError);
             selected.forEach((value:string, key: string) => {
                 const packageInfo = new k8sVersion();
                 packageInfo.distroPrettyName = key;
@@ -60,7 +60,7 @@
                 selectedConfig.k8sVersion.push(packageInfo);
             })
             console.log("selectedConfig", selectedConfig);
-            console.log("selectedConfig.k8sVersion", selectedConfig.k8sVersion);
+            console.log("selectedConfig.k8sVersion", selectedConfig.k8sVersion[0].targetK8sVersion);
             const payLoad = JSON.stringify(selectedConfig);
 
             socket.send(payLoad);
@@ -96,10 +96,8 @@
     {#each packagesInfo as packageInfo}
         <Select class="mt-2"
                 items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: packageInfo.distroPrettyName, name: value }))}
-                onchange={() => {
-                    selected[packageInfo.distroPrettyName] = packageInfo.availableVersions;
-                    console.log(selected);
-                }} />
+                onclick={() => selected[packageInfo.distroPrettyName] = packageInfo.availableVersions}
+        />
     {/each}
     </Label>
         <div class="flex items-start">
