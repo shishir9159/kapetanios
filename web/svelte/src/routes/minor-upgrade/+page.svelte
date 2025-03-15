@@ -10,12 +10,10 @@
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
     let s: string = $state('');
-
-
-    let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected: Map<string, string> = $state(new Map<string, string>());
-    $inspect(selected).with(console.trace);
+    let packagesInfo: [k8sPackageInfo]= $state([]);
     let formModal = $state(false);
+    $inspect(selected).with(console.trace);
 
     let socket: WebSocket;
 
@@ -86,6 +84,7 @@
 
 <div class="processing">
     <div class="nodes">
+
     </div>
     <div class="nodes">
         <p style="color: red;">{message.logMessage}</p>
