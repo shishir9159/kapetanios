@@ -9,7 +9,7 @@
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
-    let s: string = $state("");
+    let s: string;
 
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let selected: Map<string, string> = $state(new Map<string, string>());

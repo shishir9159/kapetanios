@@ -241,6 +241,8 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 
 	renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
 
+	upgrade.upgradeState.K8sPackages = []k8sPackageInfo{}
+
 	for osImage, nodeName := range availableOS {
 
 		upgrade.nefario.log.Info("updating package info",
