@@ -67,7 +67,7 @@ type componentRestartSuccess struct {
 	Err                     string `json:"err"`
 }
 
-type response struct {
+type actionResponse struct {
 	ProceedNextStep      bool `json:"proceedNextStep"`
 	RetryCurrentStep     bool `json:"retryCurrentStep"`
 	TerminateApplication bool `json:"terminateApplication"`

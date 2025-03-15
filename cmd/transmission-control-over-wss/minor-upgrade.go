@@ -41,25 +41,20 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 	}
 
 	for {
-
 		upgrade.pool.BroadcastMessage(payload)
 
 		response, err := upgrade.pool.ReadMessages()
-
 		selections := selectedConfig{}
 		err = json.Unmarshal([]byte(response), &selections)
-		if err != nil {
-			//throw error
-		}
 
-		// TODO:
-		//  check if corrupted message could be unmarshaled
+		if err != nil {
+			continue
+		}
 
 		upgrade.upgradeState.SelectedConfig = &selections
 
-		if err != nil {
-			break
-		}
+		break
+
 	}
 
 	// TODO: debug and remove
@@ -234,15 +229,16 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
 
 	renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
-	descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
-
-	descriptor.Spec.HostNetwork = true
-	descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
 	for osImage, nodeName := range availableOS {
 
-		upgrade.nefario.log.Info("updating nodes info",
+		upgrade.nefario.log.Info("updating package info",
 			zap.String("node", nodeName))
+
+		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
+
+		descriptor.Spec.HostNetwork = true
+		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
 		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
 			Create(context.Background(), descriptor, metav1.CreateOptions{})
@@ -260,16 +256,6 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 
 		// todo: upgrade.pool.BroadcastMessage([]byte("minor update pod created successfully: " + minion.Name))
 	}
-
-	// TODO: practice on multiple nodes
-	//  with multiple distro image and versions
-
-	// TODO: watcher
-	// TODO: broadcast and wait for version
-	//upgrade.pool.BroadcastMessage([]byte("failed to create a watcher for the pod: " + minion.Name))
-	//upgrade.nefario.log.Error("failed to create a watcher for the pod",
-	//	zap.Error(err))
-	// handle the error
 
 	labelSelector := metav1.LabelSelector{
 		MatchLabels: map[string]string{"app": roleName},
