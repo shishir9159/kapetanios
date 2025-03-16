@@ -68,21 +68,82 @@ type componentRestartSuccess struct {
 	Err                     string `json:"err"`
 }
 
+type progressionState struct {
+	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
+	NodeStatus      *nodeStatus       `json:"nodeStatus"`
+	ProgressDetails []progressDetails `json:"progressDetails"`
+}
+
 type actionResponse struct {
 	ProceedNextStep      bool `json:"proceedNextStep"`
 	RetryCurrentStep     bool `json:"retryCurrentStep"`
 	TerminateApplication bool `json:"terminateApplication"`
 }
 
-func (state *UpgradeState) SendMessage(upgrade *MinorUpgrade) (bool, bool, bool) {
+func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
-	return false, true, false
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	upgradeProgression := &UpgradeProgression{
+		StateName: "cluster health check",
+		State:     progression,
+	}
+
+	json := jsoniter.ConfigFastest
+	payload, err := json.Marshal(upgradeProgression)
+	if err != nil {
+		log.Error("failed to marshal upgradeProgression",
+			zap.Error(err))
+	}
+
+	pool.BroadcastMessage(payload)
+
+	response, err := pool.ReadMessages()
+
+	if err != nil {
+		// return nil, err
+	}
+
+	// TODO:
+	//  if prompt on error
+
+	// TODO:
+	//  save the last payload???
+
+	switch response {
+	case "retry":
+		retryCurrentStep = true
+		break
+	case "next step":
+		proceedNextStep = true
+		break
+	case "terminate application":
+		terminateApplication = true
+		break
+	default:
+		pool.BroadcastMessage(payload)
+		response, err = pool.ReadMessages()
+		if err != nil {
+			log.Error("error reporting cluster health",
+				zap.Error(err))
+		}
+		log.Error("unknown response from frontend",
+			zap.String("response", response))
+	}
+
+	selections := selectedConfig{}
+	err = json.Unmarshal([]byte(response), &selections)
+	if err != nil {
+
+	}
+
+	upgradeState.SelectedConfig = &selections
+
+	return retryCurrentStep, proceedNextStep, terminateApplication
 }
 
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
-
-	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	//nodeHealth := clusterHealth{
 	//	EtcdStatus:          in.GetEtcdStatus(),
@@ -97,50 +158,17 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
 
-	s.state.SendMessage()
-	state := UpgradeProgression{
-		StateName: "cluster health check",
-		State:     s.state,
+	progress := progressionState{
+		SelectedConfig:  s.state.SelectedConfig,
+		NodeStatus:      s.state.NodeStatus,
+		ProgressDetails: s.state.ProgressDetails,
 	}
 
-	var json = jsoniter.ConfigFastest
-
-	payload, err := json.Marshal(&state)
-	//payload, err := json.Marshal(&nodeHealth)
-	if err != nil {
-
-	}
+	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
 
 	// TODO:
 	//  handle error if etcd is not healthy
 	//  or storage is or storage is not available
-
-	s.connectionPool.BroadcastMessage(payload)
-	response, err := s.connectionPool.ReadMessages()
-	if err != nil {
-		// return nil, err
-	}
-
-	switch response {
-	case "retry":
-		retryCurrentStep = true
-		break
-	case "next step":
-		proceedNextStep = true
-		break
-	case "terminate application":
-		terminateApplication = true
-		break
-	default:
-		s.connectionPool.BroadcastMessage(payload)
-		response, err = s.connectionPool.ReadMessages()
-		if err != nil {
-			s.log.Error("error reporting cluster health",
-				zap.Error(err))
-		}
-		s.log.Error("unknown response from frontend",
-			zap.String("response", response))
-	}
 
 	s.log.Info("received cluster health status",
 		zap.Bool("etcd status", in.GetEtcdStatus()),

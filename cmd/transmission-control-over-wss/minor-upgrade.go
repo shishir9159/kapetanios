@@ -8,6 +8,7 @@ import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
+	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
@@ -15,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/kubectl/pkg/drain"
-	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -26,7 +26,7 @@ type upgradeConfigSelection struct {
 	K8sPackageInfo []k8sPackageInfo `json:"k8sPackageInfo"`
 }
 
-func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState) (bool, bool, bool) {
+func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
 	upgradeProgression := &UpgradeProgression{
 		StateName: "upgrade config selection",
@@ -36,14 +36,17 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState) (bool, 
 	json := jsoniter.ConfigFastest
 	payload, err := json.Marshal(upgradeProgression)
 	if err != nil {
-		upgrade.nefario.log.Error("failed to marshal upgradeProgression",
+		log.Error("failed to marshal upgradeProgression",
 			zap.Error(err))
 	}
 
 	for {
-		upgrade.pool.BroadcastMessage(payload)
+		pool.BroadcastMessage(payload)
 
-		response, err := upgrade.pool.ReadMessages()
+		response, err := pool.ReadMessages()
+		if err != nil {
+			// return nil, err
+		}
 		selections := selectedConfig{}
 		err = json.Unmarshal([]byte(response), &selections)
 
@@ -332,7 +335,7 @@ outerLoop:
 		K8sPackageInfo: upgrade.upgradeState.K8sPackages,
 	}
 
-	selection.SendMessage(upgrade)
+	selection.SendMessage(upgrade.upgradeState, upgrade.nefario.log, upgrade.pool)
 
 	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {

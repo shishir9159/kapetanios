@@ -58,7 +58,7 @@ type MinorUpgrade struct {
 }
 
 type State interface {
-	SendMessage(upgradeState *UpgradeState) (bool, bool, bool)
+	SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool)
 }
 
 type UpgradeProgression struct {
