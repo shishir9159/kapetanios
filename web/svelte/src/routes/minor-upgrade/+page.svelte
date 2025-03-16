@@ -80,10 +80,10 @@
 
 <div class="processing">
     <div class="nodes">
-        <Step />
     </div>
     <div class="nodes">
-        <p style="color: red;">{message.logMessage}</p>
+        <Step />
+<!--        <p style="color: red;">{message.logMessage}</p>-->
     </div>
 </div>
 

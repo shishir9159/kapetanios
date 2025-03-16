@@ -57,11 +57,10 @@
 </div>
 
 <style>
-
     .step-container {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
-        display: flex;
+        /*display: flex;*/
         justify-content: center;
         align-items: center;
         height: 100vh;
@@ -71,7 +70,6 @@
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-
     .step {
         display: flex;
         align-items: center;
@@ -80,15 +78,12 @@
         border-bottom: 1px solid #ddd;
         transition: background 0.3s;
     }
-
     .step:last-child {
         border-bottom: none;
     }
-
     .step:hover {
         background: #f0f0f0;
     }
-
     .step-number {
         width: 30px;
         height: 30px;
@@ -101,12 +96,10 @@
         font-weight: bold;
         margin-right: 15px;
     }
-
     .step-title {
         font-size: 16px;
         font-weight: bold;
     }
-
     .step-content {
         display: none;
         padding: 10px;

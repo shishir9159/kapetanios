@@ -73,23 +73,46 @@ type actionResponse struct {
 	TerminateApplication bool `json:"terminateApplication"`
 }
 
+func (state *UpgradeState) SendMessage(upgrade *MinorUpgrade) (bool, bool, bool) {
+
+	return false, true, false
+}
+
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	nodeHealth := clusterHealth{
-		EtcdStatus:          in.GetEtcdStatus(),
-		StorageAvailability: in.GetStorageAvailability(),
-		Err:                 in.GetErr(),
+	//nodeHealth := clusterHealth{
+	//	EtcdStatus:          in.GetEtcdStatus(),
+	//	StorageAvailability: in.GetStorageAvailability(),
+	//	Err:                 in.GetErr(),
+	//}
+
+	var progressDetail progressDetails
+	progressDetail.StepCount = 1
+	progressDetail.Log = ""
+	progressDetail.Err = in.GetErr()
+
+	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+
+	s.state.SendMessage()
+	state := UpgradeProgression{
+		StateName: "cluster health check",
+		State:     s.state,
 	}
 
 	var json = jsoniter.ConfigFastest
 
-	payload, err := json.Marshal(&nodeHealth)
+	payload, err := json.Marshal(&state)
+	//payload, err := json.Marshal(&nodeHealth)
 	if err != nil {
 
 	}
+
+	// TODO:
+	//  handle error if etcd is not healthy
+	//  or storage is or storage is not available
 
 	s.connectionPool.BroadcastMessage(payload)
 	response, err := s.connectionPool.ReadMessages()
@@ -97,13 +120,6 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		// return nil, err
 	}
 
-	// debugging
-	// TODO: make a separate function
-	//  make an specific field for each response
-	//  dedicated for the decision --
-
-	// TODO:
-	//  onPromptError: you already know the answer
 	switch response {
 	case "retry":
 		retryCurrentStep = true
@@ -142,7 +158,6 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	// TODO:
 	versions := versionToUpgrade{
 		ConsistentVersioning: in.GetConsistentVersioning(),
 		Err:                  in.GetErr(),
@@ -158,7 +173,6 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 	s.connectionPool.BroadcastMessage(payload)
 	response, err := s.connectionPool.ReadMessages()
 	if err != nil {
-
 		//return nil, err
 	}
 

@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"net"
 	"os"
+	"sync"
 )
 
 // TODO:
@@ -19,8 +20,9 @@ import (
 
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpdateServer struct {
+	mu             *sync.Mutex
 	log            *zap.Logger
-	upgradeConfig  *UpgradeState
+	state          *UpgradeState
 	connectionPool *wss.ConnectionPool
 	pb.MinorUpdateServer
 }
@@ -41,7 +43,7 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 
 	//	TODO:
 	//   WRITE MUTEX for append
-	s.upgradeConfig.K8sPackages = append(s.upgradeConfig.K8sPackages, packageInfo)
+	s.state.K8sPackages = append(s.state.K8sPackages, packageInfo)
 
 	// TODO: take prompt from user,
 	//  only if an error occurs
@@ -74,7 +76,7 @@ func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *UpgradeS
 	s := grpc.NewServer()
 	server := minorUpdateServer{
 		connectionPool: pool,
-		upgradeConfig:  config,
+		state:          config,
 		log:            log,
 	}
 
