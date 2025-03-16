@@ -64,7 +64,7 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	}, nil
 }
 
-func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *UpgradeState, ch chan<- *grpc.Server) {
+func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, state *UpgradeState, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -76,7 +76,7 @@ func MinorUpdateGrpc(log *zap.Logger, pool *wss.ConnectionPool, config *UpgradeS
 	s := grpc.NewServer()
 	server := minorUpdateServer{
 		connectionPool: pool,
-		state:          config,
+		state:          state,
 		log:            log,
 	}
 

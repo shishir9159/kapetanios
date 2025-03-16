@@ -58,7 +58,7 @@ type MinorUpgrade struct {
 }
 
 type State interface {
-	SendMessage(upgrade *MinorUpgrade) (bool, bool, bool)
+	SendMessage(upgradeState *UpgradeState) (bool, bool, bool)
 }
 
 type UpgradeProgression struct {

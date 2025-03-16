@@ -26,7 +26,7 @@ type upgradeConfigSelection struct {
 	K8sPackageInfo []k8sPackageInfo `json:"k8sPackageInfo"`
 }
 
-func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool, bool) {
+func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState) (bool, bool, bool) {
 
 	upgradeProgression := &UpgradeProgression{
 		StateName: "upgrade config selection",
@@ -51,13 +51,10 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 			continue
 		}
 
-		upgrade.upgradeState.SelectedConfig = &selections
+		upgradeState.SelectedConfig = &selections
 
 		break
 	}
-
-	// TODO: debug and remove
-	log.Println(upgrade.upgradeState.SelectedConfig)
 
 	// TODO:
 	//  HANDLE THE ERROR
@@ -66,10 +63,6 @@ func (u *upgradeConfigSelection) SendMessage(upgrade *MinorUpgrade) (bool, bool,
 	//  error: cannot open Packages index using db5 -  (-30973)
 	//  error: cannot open Packages database in /var/lib/rpm
 	//  Error: Error: rpmdb open failed
-
-	if len(upgrade.upgradeState.SelectedConfig.K8sVersion) == 0 {
-		log.Println("empty upgrade.upgradeState.SelectedConfig.K8sVersion")
-	}
 
 	return false, false, false
 }
