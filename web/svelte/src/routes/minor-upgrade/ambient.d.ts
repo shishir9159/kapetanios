@@ -61,3 +61,27 @@ export class SelectedConfig {
     certificateRenewal: boolean;
     k8sVersion:         k8sVersion[];
 }
+
+export interface selectedConfig {
+    drainNodes: boolean;
+    promptOnError: boolean;
+    certificateRenewal: boolean;
+}
+
+export interface nodeStatus {
+    NodesUpgraded: [string];
+    NodesTobeUpgraded: [string];
+    NodesFailedToBeUpgraded: [string];
+}
+
+export interface progressDetails {
+    StepCount: number;
+    Log: string;
+    Error: string;
+}
+
+export interface progressionState {
+    selectedConfig: selectedConfig;
+    nodeStatus: nodeStatus;
+    progressDetails: [progressDetails];
+}
