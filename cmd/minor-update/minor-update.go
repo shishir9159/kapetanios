@@ -259,9 +259,9 @@ func minorUpdate(c Controller, conn *grpc.ClientConn) (bool, error) {
 			Distro:           distroID,
 			DistroPrettyName: distroPrettyName,
 			Version:          availableVersionSlice,
-			RepoName:         strings.TrimSuffix(repoName, "\n"),
-			RepoBaseURL:      strings.TrimSuffix(repoBaseURL, "\n"),
-			CurrentVersion:   strings.TrimSuffix(currentVersion, "\n"),
+			RepoName:         strings.Trim(repoName, "\n"),
+			RepoBaseURL:      strings.Trim(repoBaseURL, "\n"),
+			CurrentVersion:   strings.Trim(currentVersion, "\n"),
 			Log:              "",
 			Err:              "",
 		})

@@ -309,6 +309,10 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
+			// TODO:
+			//  instead of checking against rhel,
+			//  check against the distro pretty name
+			DistroPrettyName:      "",
 			CurrentClusterVersion: "",
 			Log:                   "",
 			Err:                   "",
