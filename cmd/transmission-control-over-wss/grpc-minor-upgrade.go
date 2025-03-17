@@ -150,7 +150,9 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	progressDetail.Log = ""
 	progressDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = []progressDetails{
+		progressDetail,
+	}
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -185,6 +187,8 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 		ConsistentVersioning: in.GetConsistentVersioning(),
 		Err:                  in.GetErr(),
 	}
+
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
 
 	var json = jsoniter.ConfigFastest
 
