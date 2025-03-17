@@ -64,6 +64,10 @@
             selectedConfig.k8sVersion = k8sConfig;
             const payLoad = JSON.stringify(selectedConfig);
             socket.send(payLoad);
+        //  TODO:
+        //   check error
+            formModal = false;
+
         // } /else {
         // // TODO: throw error
         // }/
