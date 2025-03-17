@@ -55,17 +55,12 @@ export class k8sVersion {
     targetK8sVersion: string
 }
 
+// TODO: camel case
 export class SelectedConfig {
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;
     k8sVersion:         k8sVersion[];
-}
-
-export interface selectedConfig {
-    drainNodes: boolean;
-    promptOnError: boolean;
-    certificateRenewal: boolean;
 }
 
 export interface nodeStatus {
@@ -81,7 +76,7 @@ export interface progressDetails {
 }
 
 export interface progressionState {
-    selectedConfig: selectedConfig;
+    selectedConfig: SelectedConfig;
     nodeStatus: nodeStatus;
     progressDetails: [progressDetails];
 }

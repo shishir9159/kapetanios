@@ -74,12 +74,6 @@ type progressionState struct {
 	ProgressDetails []progressDetails `json:"progressDetails"`
 }
 
-type actionResponse struct {
-	ProceedNextStep      bool `json:"proceedNextStep"`
-	RetryCurrentStep     bool `json:"retryCurrentStep"`
-	TerminateApplication bool `json:"terminateApplication"`
-}
-
 func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
