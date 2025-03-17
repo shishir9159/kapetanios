@@ -2,7 +2,7 @@
     import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
     import Step from './Step.svelte';
-    import { k8sVersion, SelectedConfig } from './ambient.d.ts';
+    import { k8sVersion, selectedConfig } from './ambient.d.ts';
     import type { k8sPackageInfo, progressionState , UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
@@ -14,6 +14,9 @@
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let formModal = $state(false);
+
+    // TODO:
+    //  display selectedConfig
 
     let socket: WebSocket;
 
@@ -33,7 +36,7 @@
                     packagesInfo = u.state.k8sPackageInfo;
                 }
             } else if (u.stateName == "upgrade progression") {
-
+                selectedConfig
             }
         };
 
@@ -50,7 +53,12 @@
         // TODO: check connection
         // if (socket.readyState == "connected") {
             let k8sConfig = new Array<k8sVersion>();
-            let selectedConfig: SelectedConfig = new SelectedConfig();
+            let selectedConfig: selectedConfig = selectedConfig{
+                certificateRenewal,
+                progression,
+                drainNodes,
+                promptOnError
+            }
             selectedConfig.certificateRenewal = certificateRenewal;
             selectedConfig.drainNodes = drainNodes;
             selectedConfig.promptOnError = promptOnError;

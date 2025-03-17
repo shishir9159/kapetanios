@@ -1,0 +1,9 @@
+{
+  "esversion": 9,
+  "browser": true,
+  "devel": true,
+  "mocha": false,
+  "jquery": false,
+  "undef": true,
+  "unused": "vars"
+}

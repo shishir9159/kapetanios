@@ -4,7 +4,7 @@ export class k8sVersion {
 }
 
 // TODO: camel case
-export class SelectedConfig {
+export class selectedConfig {
     drainNodes:         boolean;
     promptOnError:      boolean;
     certificateRenewal: boolean;
@@ -12,19 +12,19 @@ export class SelectedConfig {
 }
 
 export interface nodeStatus {
-    NodesUpgraded: [string];
-    NodesTobeUpgraded: [string];
-    NodesFailedToBeUpgraded: [string];
+    nodesUpgraded: [string];
+    nodesTobeUpgraded: [string];
+    nodesFailedToBeUpgraded: [string];
 }
 
 export interface progressDetails {
     StepCount: number;
-    Log: string;
+    Log:   string;
     Error: string;
 }
 
 export interface progressionState {
-    selectedConfig: SelectedConfig;
+    selectedConfig: selectedConfig;
     nodeStatus: nodeStatus;
     progressDetails: [progressDetails];
 }
