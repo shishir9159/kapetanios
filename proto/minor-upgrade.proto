@@ -41,9 +41,10 @@ message ComponentUpgradeStatus {
 }
 
 message UpgradePlan {
-  string currentClusterVersion = 1;
-  string log = 2;
-  string err = 3;
+  string distroPrettyName = 1;
+  string currentClusterVersion = 2;
+  string log = 3;
+  string err = 4;
 }
 
 message UpgradeStatus {
