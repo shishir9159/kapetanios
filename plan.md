@@ -1,5 +1,5 @@
-1. should i make progressionState part of the upgradeState?
-2. error + log wrapping around panicable errors
+1. error + log wrapping around panicable errors
+2. should I make progressionState part of the upgradeState?
 3. only one instance of minion pods in a node
 4. do the sequential update with three nodes as blast radius
 5. if some granular action is taking place/processing, it can not be stopped. As it has already run on the VM and the additional information scrapping is on the process. maybe next update command can be canceled??? cmd.Process.Kill() or exec.CommandContext(ctx, "sleep", "5").Run()?
