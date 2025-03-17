@@ -466,7 +466,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)
-	go MinorUpgradeGrpc(upgrade.nefario.log, upgrade.pool, ch)
+	go MinorUpgradeGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
 
 	// TODO: refactor this part to orchestrator
 	for index, node := range nodeNames {

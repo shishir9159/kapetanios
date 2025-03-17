@@ -150,9 +150,11 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	progressDetail.Log = ""
 	progressDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = []progressDetails{
-		progressDetail,
-	}
+	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	//
+	//s.state.ProgressDetails = []progressDetails{
+	//	progressDetail,
+	//}
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -526,7 +528,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	}, nil
 }
 
-func MinorUpgradeGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc.Server) {
+func MinorUpgradeGrpc(log *zap.Logger, pool *wss.ConnectionPool, state *UpgradeState, ch chan<- *grpc.Server) {
 
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -538,6 +540,7 @@ func MinorUpgradeGrpc(log *zap.Logger, pool *wss.ConnectionPool, ch chan<- *grpc
 	s := grpc.NewServer()
 	server := minorUpgradeServer{
 		connectionPool: pool,
+		state:          state,
 		log:            log,
 	}
 
