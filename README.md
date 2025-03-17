@@ -2,6 +2,9 @@
 
 #### Tested against:
 ubuntu 22.04 LTS
+ubuntu 24.04 LTS
+RHEL 8
+RHEL 9
 
 #### build requirements:
 golang v1.23.1 \
@@ -9,20 +12,21 @@ libprotoc 27.3
 
 #### cluster requirement
 It is assumed that the following roles would be assigned to the respective nodes:
-1. assumption is that all the components(kubeadm, kubelet, kubectl) has the same specific version
-2. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs and "node-role.kubernetes.io/control-plane" annotation
-3. assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
-4. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
-5. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
+1. assumption about package naming format
+2. assumption is that all the components(kubeadm, kubelet, kubectl) has the same specific version
+3. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs and "node-role.kubernetes.io/control-plane" annotation
+4. assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
+5. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
+6. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
 
 ## Protoc Code Generation
 ```Bash
 make protgen
 ```
-docker build . -t quay.io/klovercloud/kapetanios:latest; docker push quay.io/klovercloud/kapetanios:latest; docker build . -t quay.io/klovercloud/certs-expiration:latest -f certs-expiration.Dockerfile; docker push quay.io/klovercloud/certs-expiration:latest; docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile; docker push quay.io/klovercloud/certs-renewal:latest; docker build . -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile; docker push quay.io/klovercloud/etcd-restart:latest; docker build . -t quay.io/klovercloud/minor-upgrade:latest -f minor-upgrade.Dockerfile; docker push quay.io/klovercloud/minor-upgrade:latest; docker build . -t quay.io/klovercloud/rollback:latest -f rollback.Dockerfile; docker push quay.io/klovercloud/rollback:latest;
-## Docker Build
+## Docker Build and Push
 ```Bash
-docker build . -t quay.io/klovercloud/kapetanios:latest; docker push quay.io/klovercloud/kapetanios:latest; docker build . -t quay.io/klovercloud/certs-expiration:latest -f certs-expiration.Dockerfile; docker push quay.io/klovercloud/certs-expiration:latest; docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile; docker push quay.io/klovercloud/certs-renewal:latest; docker build . -t quay.io/klovercloud/etcd-migration:latest -f etcd-migration.Dockerfile; docker push quay.io/klovercloud/etcd-migration:latest; docker build . -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile; docker push quay.io/klovercloud/etcd-restart:latest; docker build . -t quay.io/klovercloud/minor-upgrade:latest -f minor-upgrade.Dockerfile; docker push quay.io/klovercloud/minor-upgrade:latest; docker build . -t quay.io/klovercloud/rollback:latest -f rollback.Dockerfile; docker push quay.io/klovercloud/rollback:latest;
+# there's some bugs in the current format
+make docker-build-and-push
 ```
 
 ## Deploy in K8s

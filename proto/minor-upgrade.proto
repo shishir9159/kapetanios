@@ -41,16 +41,15 @@ message ComponentUpgradeStatus {
 }
 
 message UpgradePlan {
-  string distroPrettyName = 1;
-  string currentClusterVersion = 2;
-  string log = 3;
-  string err = 4;
+  string log = 1;
+  string err = 2;
 }
 
 message UpgradeStatus {
   bool upgradeSuccess = 1;
-  string log = 2;
-  string err = 3;
+  string unsuccessfulComponent = 2;
+  string log = 3;
+  string err = 4;
 }
 
 message ComponentRestartStatus {

@@ -96,8 +96,12 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	rpc, err := connection.ClusterUpgrade(c.ctx,
 		&pb.UpgradeStatus{
 			UpgradeSuccess: true,
-			Log:            stdoutBuf.String(),
-			Err:            "",
+			// TODO: check across all the components
+			//   with string contains and package version
+			//   or binary version output
+			UnsuccessfulComponent: "none",
+			Log:                   stdoutBuf.String(),
+			Err:                   "",
 		})
 
 	if err != nil {
@@ -280,13 +284,13 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		// todo: return false, "", err
 	}
 
+	//  errStr???
 	//  W1018 10:00:57.703527  599279 common.go:84] your configuration file uses a deprecated API spec: "kubeadm.k8s.io/v1beta2". Please use 'kubeadm config migrate --old-config old.yaml --new-config new.yaml', which will write the new, similar spec using a newer API version.
 
 	// TODO:
 	//  show the logs
 	//  till these lines come up
 	//  [preflight] Running pre-flight checks.
-
 	//[upgrade/config] Reading configuration from the cluster...
 	//[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
 	//[preflight] Running pre-flight checks.
@@ -309,11 +313,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
-			DistroPrettyName: c.distroPrettyName,
-			// TODO:
-			CurrentClusterVersion: "",
-			Log:                   "",
-			Err:                   "",
+			Log: "",
+			Err: "",
 		})
 
 	if err != nil {
