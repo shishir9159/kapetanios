@@ -1,4 +1,4 @@
-1. error + log wrapping around panicable errors
+1. error + log wrapping around panicable(pinnacle) errors
 2. should I make progressionState part of the upgradeState?
 3. only one instance of minion pods in a node
 4. do the sequential update with three nodes as blast radius

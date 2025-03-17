@@ -74,12 +74,15 @@ type progressionState struct {
 	ProgressDetails []progressDetails `json:"progressDetails"`
 }
 
+// TODO:
+//  reuse the progressionState
+
 func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	upgradeProgression := &UpgradeProgression{
-		StateName: "cluster health check",
+		StateName: "upgrade progression",
 		State:     progression,
 	}
 

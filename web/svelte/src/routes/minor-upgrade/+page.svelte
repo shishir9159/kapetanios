@@ -32,7 +32,7 @@
                 if ("k8sPackageInfo" in u.state) {
                     packagesInfo = u.state.k8sPackageInfo;
                 }
-            } else if (u.stateName == "cluster health check") {
+            } else if (u.stateName == "upgrade progression") {
 
             }
         };
