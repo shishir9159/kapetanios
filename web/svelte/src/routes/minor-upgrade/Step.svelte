@@ -1,11 +1,13 @@
 <script lang="ts">
+    import { progresses } from './progress.ts';
+
     function toggleStep(stepNumber) {
         const content = document.getElementById(`step-${stepNumber}`);
 
         // Hide all step contents
         document.querySelectorAll('.step-content').forEach(step => {
             if (step.id !== `step-${stepNumber}`) {
-                // step.style.display = 'none';
+
             }
         });
 
@@ -15,46 +17,59 @@
 </script>
 
 <div class="step-container">
-    <div class="step" onclick={toggleStep(1)}>
-        <div class="step-number">1</div>
-        <div class="step-title">Step 1</div>
-    </div>
-    <div class="step-content" id="step-1">
-        <p>This is the description for Step 1.</p>
-    </div>
-
-    <div class="step" onclick={toggleStep(2)}>
-        <div class="step-number">2</div>
-        <div class="step-title">Step 2</div>
-    </div>
-    <div class="step-content" id="step-2">
-        <p>This is the description for Step 2.</p>
-    </div>
-
-    <div class="step" onclick={toggleStep(3)}>
-        <div class="step-number">3</div>
-        <div class="step-title">Step 3</div>
-    </div>
-    <div class="step-content" id="step-3">
-        <p>This is the description for Step 3.</p>
-    </div>
-
-    <div class="step" onclick={toggleStep(4)}>
-        <div class="step-number">4</div>
-        <div class="step-title">Step 4</div>
-    </div>
-    <div class="step-content" id="step-4">
-        <p>This is the description for Step 4.</p>
-    </div>
-
-    <div class="step" onclick={toggleStep(5)}>
-        <div class="step-number">5</div>
-        <div class="step-title">Step 5</div>
-    </div>
-    <div class="step-content" id="step-5">
-        <p>This is the description for Step 5.</p>
-    </div>
+    {#each progresses as progress, i}
+        <div class="step" onclick={toggleStep(i)}>
+            <div class="step-number">Step {i}</div>
+            <div class="step-title">Step {i}</div>
+        </div>
+        <div class="step-content" id="step-{i}">
+            <p>This is the description for Step {i}.</p>
+            <p>{progress[i].log}</p>
+        </div>
+    {/each}
 </div>
+
+<!--<div class="step-container">-->
+<!--    <div class="step" onclick={toggleStep(1)}>-->
+<!--        <div class="step-number">1</div>-->
+<!--        <div class="step-title">Step 1</div>-->
+<!--    </div>-->
+<!--    <div class="step-content" id="step-1">-->
+<!--        <p>This is the description for Step 1.</p>-->
+<!--    </div>-->
+
+<!--    <div class="step" onclick={toggleStep(2)}>-->
+<!--        <div class="step-number">2</div>-->
+<!--        <div class="step-title">Step 2</div>-->
+<!--    </div>-->
+<!--    <div class="step-content" id="step-2">-->
+<!--        <p>This is the description for Step 2.</p>-->
+<!--    </div>-->
+
+<!--    <div class="step" onclick={toggleStep(3)}>-->
+<!--        <div class="step-number">3</div>-->
+<!--        <div class="step-title">Step 3</div>-->
+<!--    </div>-->
+<!--    <div class="step-content" id="step-3">-->
+<!--        <p>This is the description for Step 3.</p>-->
+<!--    </div>-->
+
+<!--    <div class="step" onclick={toggleStep(4)}>-->
+<!--        <div class="step-number">4</div>-->
+<!--        <div class="step-title">Step 4</div>-->
+<!--    </div>-->
+<!--    <div class="step-content" id="step-4">-->
+<!--        <p>This is the description for Step 4.</p>-->
+<!--    </div>-->
+
+<!--    <div class="step" onclick={toggleStep(5)}>-->
+<!--        <div class="step-number">5</div>-->
+<!--        <div class="step-title">Step 5</div>-->
+<!--    </div>-->
+<!--    <div class="step-content" id="step-5">-->
+<!--        <p>This is the description for Step 5.</p>-->
+<!--    </div>-->
+<!--</div>-->
 
 <style>
     .step-container {

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
+    import { progresses } from './progress.ts';
     import { message } from './upgrading.svelte.ts';
     import Step from './Step.svelte';
     import {k8sVersion, type nodeStatus, selectedConfig} from './ambient.d.ts';
@@ -14,8 +15,8 @@
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [k8sPackageInfo]= $state([]);
     let selectedConfig= $state(selectedConfig);
-    let nodeStatus: nodeStatus;
-    let progressDetails: [progressDetails];
+    let nodeStatus = $state(nodeStatus);
+    let progressDetails = $state([progressDetails]);
     let formModal = $state(false);
 
     // TODO:
@@ -39,15 +40,21 @@
                     packagesInfo = u.state.k8sPackageInfo;
                 }
             } else if (u.stateName == "upgrade progression") {
-                if ("selectedConfig" in u.state) {
+                if ("selectedConfig" in u.state && "nodeStatus" in u.state && "progressDetails" in u.state) {
                     selectedConfig = u.state.selectedConfig;
-                }
-                if ("nodeStatus" in u.state) {
                     nodeStatus = u.state.nodeStatus;
-                }
-                if ("progressDetails" in u.state) {
                     progressDetails = u.state.progressDetails;
+                } else {
+                // TODO:
+                //   sent error reply and expect another payload
                 }
+
+                for (let progressDetail of progressDetails) {
+                    // TODO: make progresses a map
+                    // progresses[progressDetail.stepCount] = ;
+                }
+
+                socket.send('received');
             }
         };
 
@@ -64,7 +71,8 @@
         // TODO: check connection
         // if (socket.readyState == "connected") {
             let k8sConfig = new Array<k8sVersion>();
-            selectedConfig = selectedConfig{
+            selectedConfig = selectedConfig
+            {
                 certificateRenewal
                 progression
                 drainNodes
