@@ -313,8 +313,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
-			Log: "",
-			Err: "",
+			Plan: stdoutBuf.String(),
+			Err:  "",
 		})
 
 	if err != nil {

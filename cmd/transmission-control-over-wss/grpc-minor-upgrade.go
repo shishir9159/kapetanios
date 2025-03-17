@@ -318,7 +318,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
-	progressDetail.Log = in.GetLog()
+	progressDetail.Log = in.GetPlan()
 	progressDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
@@ -329,19 +329,10 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		ProgressDetails: s.state.ProgressDetails,
 	}
 
-	// TODO:
-	//flag := false
-	for _, k8sVersion := range s.state.SelectedConfig.K8sVersion {
-		if k8sVersion.DistroPrettyName == in.GetDistroPrettyName() {
-			//if k8sVersion.TargetK8sVersion == in.GetCurrentClusterVersion()
-		}
-	}
-
 	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
 
 	s.log.Info("received cluster Upgrade plan",
-		zap.String("cluster version", in.GetCurrentClusterVersion()),
-		zap.String("received log", in.GetLog()),
+		zap.String("received log", in.GetPlan()),
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
@@ -376,12 +367,14 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 	if !in.GetUpgradeSuccess() {
 		// TODO:
 		//	 handle error
+
 	}
 
 	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
 
 	s.log.Info("received cluster Upgrade plan",
 		zap.Bool("cluster Upgrade status", in.GetUpgradeSuccess()),
+		zap.String("unsuccessful component", in.GetUnsuccessfulComponent()),
 		zap.String("log", in.GetLog()),
 		zap.String("error", in.GetErr()))
 

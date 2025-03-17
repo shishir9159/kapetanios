@@ -41,7 +41,7 @@ message ComponentUpgradeStatus {
 }
 
 message UpgradePlan {
-  string log = 1;
+  string plan = 1;
   string err = 2;
 }
 
