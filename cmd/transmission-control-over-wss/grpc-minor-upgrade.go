@@ -97,7 +97,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
-	progressDetail.Log = ""
+	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
@@ -127,13 +127,16 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	}, nil
 }
 
-// UpgradeVersionSelection implements proto.MinorUpgradeServer
-func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.VersionCheck) (*pb.ClusterUpgradeResponse, error) {
+// PackageAvailabilityCheck implements proto.MinorUpgradeServer
+func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.VersionCheck) (*pb.ClusterUpgradeResponse, error) {
 
 	var progressDetail progressDetails
-	progressDetail.StepCount = 1
+	progressDetail.StepCount = 2
 	progressDetail.Log = ""
 	progressDetail.Err = in.GetErr()
+	if progressDetail.Err == "" {
+		progressDetail.Log = "completed"
+	}
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
 
@@ -167,7 +170,7 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.UpgradeCompatibility) (*pb.UpgradeResponse, error) {
 
 	var progressDetail progressDetails
-	progressDetail.StepCount = 1
+	progressDetail.StepCount = 3
 	progressDetail.Log = in.GetDiff()
 	progressDetail.Err = in.GetErr()
 
@@ -204,7 +207,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.ComponentUpgradeStatus) (*pb.UpgradeResponse, error) {
 
 	var progressDetail progressDetails
-	progressDetail.StepCount = 1
+	progressDetail.StepCount = 4
 	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
 
@@ -241,7 +244,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.UpgradePlan) (*pb.UpgradeResponse, error) {
 
 	var progressDetail progressDetails
-	progressDetail.StepCount = 1
+	progressDetail.StepCount = 5
 	progressDetail.Log = in.GetPlan()
 	progressDetail.Err = in.GetErr()
 
@@ -270,7 +273,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeStatus) (*pb.UpgradeResponse, error) {
 
 	var progressDetail progressDetails
-	progressDetail.StepCount = 1
+	progressDetail.StepCount = 6
 	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
 
@@ -306,8 +309,8 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.ComponentRestartStatus) (*pb.UpgradeResponse, error) {
 
 	var progressDetail progressDetails
-	progressDetail.StepCount = 1
-	progressDetail.Log = ""
+	progressDetail.StepCount = 7
+	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)

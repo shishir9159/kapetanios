@@ -19,13 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MinorUpgrade_ClusterHealthChecking_FullMethodName   = "/MinorUpgrade/ClusterHealthChecking"
-	MinorUpgrade_UpgradeVersionSelection_FullMethodName = "/MinorUpgrade/UpgradeVersionSelection"
-	MinorUpgrade_ClusterCompatibility_FullMethodName    = "/MinorUpgrade/ClusterCompatibility"
-	MinorUpgrade_ClusterComponentUpgrade_FullMethodName = "/MinorUpgrade/ClusterComponentUpgrade"
-	MinorUpgrade_ClusterUpgradePlan_FullMethodName      = "/MinorUpgrade/ClusterUpgradePlan"
-	MinorUpgrade_ClusterUpgrade_FullMethodName          = "/MinorUpgrade/ClusterUpgrade"
-	MinorUpgrade_ClusterComponentRestart_FullMethodName = "/MinorUpgrade/ClusterComponentRestart"
+	MinorUpgrade_ClusterHealthChecking_FullMethodName    = "/MinorUpgrade/ClusterHealthChecking"
+	MinorUpgrade_PackageAvailabilityCheck_FullMethodName = "/MinorUpgrade/PackageAvailabilityCheck"
+	MinorUpgrade_ClusterCompatibility_FullMethodName     = "/MinorUpgrade/ClusterCompatibility"
+	MinorUpgrade_ClusterComponentUpgrade_FullMethodName  = "/MinorUpgrade/ClusterComponentUpgrade"
+	MinorUpgrade_ClusterUpgradePlan_FullMethodName       = "/MinorUpgrade/ClusterUpgradePlan"
+	MinorUpgrade_ClusterUpgrade_FullMethodName           = "/MinorUpgrade/ClusterUpgrade"
+	MinorUpgrade_ClusterComponentRestart_FullMethodName  = "/MinorUpgrade/ClusterComponentRestart"
 )
 
 // MinorUpgradeClient is the client API for MinorUpgrade service.
@@ -33,7 +33,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MinorUpgradeClient interface {
 	ClusterHealthChecking(ctx context.Context, in *PrerequisitesMinorUpgrade, opts ...grpc.CallOption) (*UpgradeResponse, error)
-	UpgradeVersionSelection(ctx context.Context, in *VersionCheck, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error)
+	PackageAvailabilityCheck(ctx context.Context, in *VersionCheck, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error)
 	ClusterCompatibility(ctx context.Context, in *UpgradeCompatibility, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterComponentUpgrade(ctx context.Context, in *ComponentUpgradeStatus, opts ...grpc.CallOption) (*UpgradeResponse, error)
 	ClusterUpgradePlan(ctx context.Context, in *UpgradePlan, opts ...grpc.CallOption) (*UpgradeResponse, error)
@@ -59,10 +59,10 @@ func (c *minorUpgradeClient) ClusterHealthChecking(ctx context.Context, in *Prer
 	return out, nil
 }
 
-func (c *minorUpgradeClient) UpgradeVersionSelection(ctx context.Context, in *VersionCheck, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error) {
+func (c *minorUpgradeClient) PackageAvailabilityCheck(ctx context.Context, in *VersionCheck, opts ...grpc.CallOption) (*ClusterUpgradeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ClusterUpgradeResponse)
-	err := c.cc.Invoke(ctx, MinorUpgrade_UpgradeVersionSelection_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, MinorUpgrade_PackageAvailabilityCheck_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (c *minorUpgradeClient) ClusterComponentRestart(ctx context.Context, in *Co
 // for forward compatibility.
 type MinorUpgradeServer interface {
 	ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*UpgradeResponse, error)
-	UpgradeVersionSelection(context.Context, *VersionCheck) (*ClusterUpgradeResponse, error)
+	PackageAvailabilityCheck(context.Context, *VersionCheck) (*ClusterUpgradeResponse, error)
 	ClusterCompatibility(context.Context, *UpgradeCompatibility) (*UpgradeResponse, error)
 	ClusterComponentUpgrade(context.Context, *ComponentUpgradeStatus) (*UpgradeResponse, error)
 	ClusterUpgradePlan(context.Context, *UpgradePlan) (*UpgradeResponse, error)
@@ -143,8 +143,8 @@ type UnimplementedMinorUpgradeServer struct{}
 func (UnimplementedMinorUpgradeServer) ClusterHealthChecking(context.Context, *PrerequisitesMinorUpgrade) (*UpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterHealthChecking not implemented")
 }
-func (UnimplementedMinorUpgradeServer) UpgradeVersionSelection(context.Context, *VersionCheck) (*ClusterUpgradeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpgradeVersionSelection not implemented")
+func (UnimplementedMinorUpgradeServer) PackageAvailabilityCheck(context.Context, *VersionCheck) (*ClusterUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PackageAvailabilityCheck not implemented")
 }
 func (UnimplementedMinorUpgradeServer) ClusterCompatibility(context.Context, *UpgradeCompatibility) (*UpgradeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterCompatibility not implemented")
@@ -200,20 +200,20 @@ func _MinorUpgrade_ClusterHealthChecking_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MinorUpgrade_UpgradeVersionSelection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MinorUpgrade_PackageAvailabilityCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(VersionCheck)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MinorUpgradeServer).UpgradeVersionSelection(ctx, in)
+		return srv.(MinorUpgradeServer).PackageAvailabilityCheck(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MinorUpgrade_UpgradeVersionSelection_FullMethodName,
+		FullMethod: MinorUpgrade_PackageAvailabilityCheck_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MinorUpgradeServer).UpgradeVersionSelection(ctx, req.(*VersionCheck))
+		return srv.(MinorUpgradeServer).PackageAvailabilityCheck(ctx, req.(*VersionCheck))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -320,8 +320,8 @@ var MinorUpgrade_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MinorUpgrade_ClusterHealthChecking_Handler,
 		},
 		{
-			MethodName: "UpgradeVersionSelection",
-			Handler:    _MinorUpgrade_UpgradeVersionSelection_Handler,
+			MethodName: "PackageAvailabilityCheck",
+			Handler:    _MinorUpgrade_PackageAvailabilityCheck_Handler,
 		},
 		{
 			MethodName: "ClusterCompatibility",

@@ -61,7 +61,7 @@ message ComponentRestartStatus {
 
 service MinorUpgrade {
   rpc ClusterHealthChecking(PrerequisitesMinorUpgrade) returns (UpgradeResponse);
-  rpc UpgradeVersionSelection(VersionCheck) returns (ClusterUpgradeResponse);
+  rpc PackageAvailabilityCheck(VersionCheck) returns (ClusterUpgradeResponse);
   rpc ClusterCompatibility(UpgradeCompatibility) returns (UpgradeResponse);
   rpc ClusterComponentUpgrade(ComponentUpgradeStatus) returns (UpgradeResponse);
   rpc ClusterUpgradePlan(UpgradePlan) returns (UpgradeResponse);
