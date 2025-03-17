@@ -138,7 +138,7 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 
 	var repoBaseURLCMD string
 	if strings.Contains(distro, "Red Hat Enterprise Linux") {
-		repoBaseURLCMD = "yum repolist --repo " + repoName + " -v enabled --quiet | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
+		repoBaseURLCMD = "yum repolist --repo " + strings.Trim(repoName, "\n") + " -v enabled --quiet | grep Repo-baseurl | awk '{ print $3}' | tail -n 1"
 	}
 
 	cmd = exec.Command("/bin/bash", "-c", repoBaseURLCMD)
