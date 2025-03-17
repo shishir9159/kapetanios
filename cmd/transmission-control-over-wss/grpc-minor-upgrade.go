@@ -151,10 +151,6 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	progressDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
-	//
-	//s.state.ProgressDetails = []progressDetails{
-	//	progressDetail,
-	//}
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
