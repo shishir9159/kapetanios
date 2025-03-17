@@ -24,58 +24,11 @@ type minorUpgradeServer struct {
 	pb.MinorUpgradeServer
 }
 
-type clusterHealth struct {
-	// todo: whose responsibility is EtcdStatus bool?
-	EtcdStatus          bool   `json:"etcdStatus"`
-	StorageAvailability uint64 `json:"storageAvailability"`
-	Err                 string `json:"err"`
-}
-
-type versionToUpgrade struct {
-	ConsistentVersioning bool   `json:"consistentVersioning"`
-	Err                  string `json:"err"`
-}
-
-type clusterCompatability struct {
-	OSCompatability bool   `json:"osCompatability"`
-	Diff            string `json:"diff"`
-	Err             string `json:"err"`
-}
-
-type clusterComponentUpgrade struct {
-	ComponentUpgradeSuccess bool   `json:"componentUpgradeSuccess"`
-	Component               string `json:"component"`
-	Log                     string `json:"log"`
-	Err                     string `json:"err"`
-}
-
-type clusterUpgradePlan struct {
-	ClusterVersion string `json:"clusterVersion"`
-	Log            string `json:"log"`
-	Err            string `json:"err"`
-}
-
-type clusterUpgradeSuccess struct {
-	UpgradeSuccess bool   `json:"upgradeSuccess"`
-	Log            string `json:"log"`
-	Err            string `json:"err"`
-}
-
-type componentRestartSuccess struct {
-	ComponentRestartSuccess bool   `json:"componentRestartSuccess"`
-	Component               string `json:"component"`
-	Log                     string `json:"log"`
-	Err                     string `json:"err"`
-}
-
 type progressionState struct {
 	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
 	NodeStatus      *nodeStatus       `json:"nodeStatus"`
 	ProgressDetails []progressDetails `json:"progressDetails"`
 }
-
-// TODO:
-//  reuse the progressionState
 
 func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
@@ -142,12 +95,6 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
-	//nodeHealth := clusterHealth{
-	//	EtcdStatus:          in.GetEtcdStatus(),
-	//	StorageAvailability: in.GetStorageAvailability(),
-	//	Err:                 in.GetErr(),
-	//}
-
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
 	progressDetail.Log = ""
@@ -166,6 +113,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	// TODO:
 	//  handle error if etcd is not healthy
 	//  or storage is or storage is not available
+	//  storage - at least 1GB is empty or 10% ? empty
 
 	s.log.Info("received cluster health status",
 		zap.Bool("etcd status", in.GetEtcdStatus()),
@@ -181,11 +129,6 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 // UpgradeVersionSelection implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.VersionCheck) (*pb.ClusterUpgradeResponse, error) {
-
-	//versions := versionToUpgrade{
-	//	ConsistentVersioning: in.GetConsistentVersioning(),
-	//	Err:                  in.GetErr(),
-	//}
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
@@ -222,12 +165,6 @@ func (s *minorUpgradeServer) UpgradeVersionSelection(_ context.Context, in *pb.V
 
 // ClusterCompatibility implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.UpgradeCompatibility) (*pb.UpgradeResponse, error) {
-
-	//compatability := &clusterCompatability{
-	//	OSCompatability: in.GetOsCompatibility(),
-	//	Diff:            in.GetDiff(),
-	//	Err:             in.GetErr(),
-	//}
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
@@ -266,13 +203,6 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 // ClusterComponentUpgrade implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.ComponentUpgradeStatus) (*pb.UpgradeResponse, error) {
 
-	//componentUpgrade := &clusterComponentUpgrade{
-	//	ComponentUpgradeSuccess: in.ComponentUpgradeSuccess,
-	//	Component:               in.GetComponent(),
-	//	Log:                     in.GetLog(),
-	//	Err:                     in.GetErr(),
-	//}
-
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
 	progressDetail.Log = in.GetLog()
@@ -310,12 +240,6 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 // ClusterUpgradePlan implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.UpgradePlan) (*pb.UpgradeResponse, error) {
 
-	//upgradePlan := clusterUpgradePlan{
-	//	ClusterVersion: in.GetCurrentClusterVersion(),
-	//	Log:            in.GetLog(),
-	//	Err:            in.GetErr(),
-	//}
-
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
 	progressDetail.Log = in.GetPlan()
@@ -345,12 +269,6 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 // ClusterUpgrade implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeStatus) (*pb.UpgradeResponse, error) {
 
-	//upgradeSuccess := clusterUpgradeSuccess{
-	//	UpgradeSuccess: in.GetUpgradeSuccess(),
-	//	Log:            in.GetLog(),
-	//	Err:            in.GetErr(),
-	//}
-
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
 	progressDetail.Log = in.GetLog()
@@ -367,7 +285,6 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 	if !in.GetUpgradeSuccess() {
 		// TODO:
 		//	 handle error
-
 	}
 
 	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
@@ -387,13 +304,6 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 // ClusterComponentRestart implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.ComponentRestartStatus) (*pb.UpgradeResponse, error) {
-
-	//restartSuccess := componentRestartSuccess{
-	//	ComponentRestartSuccess: false,
-	//	Component:               "",
-	//	Log:                     "",
-	//	Err:                     "",
-	//}
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
