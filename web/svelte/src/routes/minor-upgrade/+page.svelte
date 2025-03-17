@@ -2,8 +2,8 @@
     import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
     import Step from './Step.svelte';
-    import { k8sVersion, selectedConfig } from './ambient.d.ts';
-    import type { k8sPackageInfo, progressionState , UpgradeProgression} from './ambient';
+    import {k8sVersion, type nodeStatus, selectedConfig} from './ambient.d.ts';
+    import type { k8sPackageInfo, progressDetails, progressionState , UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
@@ -13,6 +13,9 @@
     let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [k8sPackageInfo]= $state([]);
+    let selectedConfig= $state(selectedConfig);
+    let nodeStatus: nodeStatus;
+    let progressDetails: [progressDetails];
     let formModal = $state(false);
 
     // TODO:
@@ -36,7 +39,15 @@
                     packagesInfo = u.state.k8sPackageInfo;
                 }
             } else if (u.stateName == "upgrade progression") {
-                selectedConfig
+                if ("selectedConfig" in u.state) {
+                    selectedConfig = u.state.selectedConfig;
+                }
+                if ("nodeStatus" in u.state) {
+                    nodeStatus = u.state.nodeStatus;
+                }
+                if ("progressDetails" in u.state) {
+                    progressDetails = u.state.progressDetails;
+                }
             }
         };
 
@@ -53,10 +64,10 @@
         // TODO: check connection
         // if (socket.readyState == "connected") {
             let k8sConfig = new Array<k8sVersion>();
-            let selectedConfig: selectedConfig = selectedConfig{
-                certificateRenewal,
-                progression,
-                drainNodes,
+            selectedConfig = selectedConfig{
+                certificateRenewal
+                progression
+                drainNodes
                 promptOnError
             }
             selectedConfig.certificateRenewal = certificateRenewal;
