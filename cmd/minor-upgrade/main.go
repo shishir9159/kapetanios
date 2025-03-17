@@ -34,9 +34,9 @@ var (
 //  multiple repo handle
 
 type Controller struct {
-	ctx    context.Context
-	log    zerolog.Logger
-	distro string
+	ctx              context.Context
+	log              zerolog.Logger
+	distroPrettyName string
 }
 
 func main() {
@@ -103,11 +103,10 @@ func main() {
 		}
 	}(conn)
 
-	var distro string
-
 	for i := 0; i < maxAttempts; i++ {
 		var skip bool
-		skip, distro, err = Prerequisites(c, conn)
+		skip,
+			c.distroPrettyName, err = Prerequisites(c, conn)
 		if err != nil {
 			c.log.Error().Err(err).
 				Int("attempt", i).
@@ -118,8 +117,6 @@ func main() {
 			break
 		}
 	}
-
-	c.distro = distro
 
 	var version string
 

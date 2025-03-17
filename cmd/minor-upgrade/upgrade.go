@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 )
 
 func tillHyphen(s string) string {
@@ -29,10 +30,8 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 			Msg("failed to create chroot on /host")
 	}
 
-	// TODO: get the version number from the upgrade plan
 	k8sVersion := "v" + tillHyphen(version)
 
-	// TODO: certificate-renewal boolean
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade node --certificate-renewal="+certRenewal+" -y")
 
 	if firstNode == "true" {
@@ -136,11 +135,12 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 	var upgradeCommand string
 
 	// TODO: use lookup
-	if c.distro == "rhel" {
-		// TODO: allow unauthenticated
-		//upgradeCommand = "yum downgrade -y " + k8sComponents + "-" + version
+	if strings.Contains(c.distroPrettyName, "Red Hat Enterprise Linux") {
+		// TODO: allow - unauthenticated prompt on configuration
+		//  upgradeCommand = "yum downgrade -y " + k8sComponents + "-" + version
 		upgradeCommand = "yum install -y " + k8sComponents + "-" + version
-	} else if c.distro == "ubuntu" {
+	} else if c.distroPrettyName == "ubuntu" {
+		// TODO:
 		upgradeCommand = "apt-mark unhold " + k8sComponents + " && DEBIAN_FRONTEND=noninteractive apt-get install -y " + k8sComponents + "='" + version + "' --allow-unauthenticated && apt-mark hold " + k8sComponents
 	}
 
@@ -309,10 +309,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
+			DistroPrettyName: c.distroPrettyName,
 			// TODO:
-			//  instead of checking against rhel,
-			//  check against the distro pretty name
-			DistroPrettyName:      "",
 			CurrentClusterVersion: "",
 			Log:                   "",
 			Err:                   "",

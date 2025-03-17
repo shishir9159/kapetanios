@@ -48,18 +48,18 @@ func getDistro(c Controller) (string, error) {
 	//	}
 	//}
 
-	var distro string
+	var distroPrettyName string
 
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "ID=") {
+		if strings.HasPrefix(line, "PRETTY_NAME=") {
 			// Trim leading 'ID=' and remove quotes if present
-			idValue := strings.TrimPrefix(line, "ID=")
-			idValue = strings.Trim(idValue, `"`)
-			distro = idValue
+			prettyName := strings.TrimPrefix(line, "PRETTY_NAME=")
+			prettyName = strings.Trim(prettyName, `"`)
+			distroPrettyName = prettyName
 			c.log.Info().
-				Str("distro name", idValue).
+				Str("distro name", prettyName).
 				Msg("~distro~")
 		}
 	}
@@ -74,7 +74,7 @@ func getDistro(c Controller) (string, error) {
 			Msg("failed to exit from the updated root")
 	}
 
-	return distro, err
+	return distroPrettyName, err
 }
 
 func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {

@@ -20,9 +20,10 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 
 	var updateCommand string
 
-	if c.distro == "rhel" {
+	if strings.Contains(c.distroPrettyName, "Red Hat Enterprise Linux") {
 		updateCommand = "yum update -y"
-	} else if c.distro == "ubuntu" {
+	} else if c.distroPrettyName == "ubuntu" {
+		// TODO:
 		updateCommand = "apt update -y"
 	}
 
@@ -49,9 +50,9 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	// TODO:
 	//  check: var repoName string
 	var packageSearch string
-	if c.distro == "rhel" {
+	if strings.Contains(c.distroPrettyName, "Red Hat Enterprise Linux") {
 		packageSearch = "yum list --showduplicates *kubeadm --disableexcludes=kubernetes | grep .x86_64 | awk '{ print $2 }'"
-	} else if c.distro == "ubuntu" {
+	} else if c.distroPrettyName == "ubuntu" {
 		packageSearch = "apt-cache madison kubeadm | awk '{ print $3 }'"
 	}
 
