@@ -1,5 +1,6 @@
 <script lang="ts">
     import { progresses } from './progress.svelte.ts';
+    import { AccordionItem, Accordion } from "flowbite-svelte";
 
     let expanded = $state(-1);
 
@@ -26,7 +27,7 @@
         </div>
         <div class="step-content" id="step-{i}" aria-label={expanded === i ? "" : ""}>
             <p>This is the description for Step {i}.</p>
-            <p>{progress[i].log}</p>
+            <p>{progress[i]}</p>
         </div>
     {/each}
 </div>
