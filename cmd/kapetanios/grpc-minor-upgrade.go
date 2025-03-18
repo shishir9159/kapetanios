@@ -124,8 +124,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 	}
 
 	s.log.Info("received cluster upgrade plan",
-		zap.String("cluster version", in.GetCurrentClusterVersion()),
-		zap.String("received log", in.GetLog()),
+		zap.String("plan", in.GetPlan()),
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{

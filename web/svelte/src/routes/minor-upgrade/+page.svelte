@@ -6,6 +6,7 @@
     import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig , UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
+    let action = $state('');
     //     let upgradeProgression: UpgradeProgression = $state(UpgradeProgression);
     let upgradeProgression: UpgradeProgression = $state(progression);
     let config: SelectedConfig;
@@ -14,7 +15,7 @@
     let nodeStatus: NodesStatus = $state(clusterStatus);
     // TODO:
     //  fix the following
-    let progressDetails: [ProgressDetails];
+    let progressDetails: [ProgressDetails] = [];
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
@@ -58,8 +59,6 @@
                         }
                     })
                 }
-
-                socket.send('received');
             }
         };
 
@@ -71,6 +70,13 @@
             console.log('websocket closed');
         };
     }
+
+    $effect(() => {
+        // if (socket.readyState !== WebSocket.OPEN) {
+        // socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
+        // }
+        socket.send(action);
+    })
 
     function onsubmit() {
         // if (socket.readyState == "connected") {
@@ -90,6 +96,7 @@
         }
         const payLoad = JSON.stringify(upgradeConfig);
         socket.send(payLoad);
+        formModal = false
         // } /else {
         // // TODO: throw error
         // }/
@@ -97,9 +104,9 @@
 </script>
 
 <ButtonGroup>
-    <Button outline color="red" on:mousedown={socket.send("retryCurrentStep")}>retryCurrentStep</Button>
-    <Button outline color="green" on:mousedown={socket.send("terminateApplication")}>terminateApplication</Button>
-    <Button outline color="yellow" on:mousedown={socket.send("proceedNextStep")}>proceedNextStep</Button>
+    <Button outline color="red" on:mousedown={() => action="retryCurrentStep"}>retry current step</Button>
+    <Button outline color="green" on:mousedown={() => action="terminateApplication"}>skip current node</Button>
+    <Button outline color="yellow" on:mousedown={() => action="proceedNextStep"}>proceed next step</Button>
 </ButtonGroup>
 
 
