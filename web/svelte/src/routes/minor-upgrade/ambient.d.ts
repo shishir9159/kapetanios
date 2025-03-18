@@ -8,7 +8,7 @@ interface K8sPackageInfo {
 }
 
 interface upgradeConfigSelection {
-	k8sPackagesInfo: [K8sPackageInfo];
+	k8sPackageInfo: [K8sPackageInfo];
 }
 
 export interface UpgradeProgression {

@@ -35,9 +35,9 @@
             if (upgradeProgression.stateName == "upgrade config selection") {
                 formModal = true;
                 console.log(upgradeProgression);
-                if ("k8sPackagesInfo" in upgradeProgression.state) {
+                if ("k8sPackageInfo" in upgradeProgression.state) {
                     console.log("packageInfo")
-                    packagesInfo = upgradeProgression.state.k8sPackagesInfo;
+                    packagesInfo = upgradeProgression.state.k8sPackageInfo;
                 }
             } else if (upgradeProgression.stateName == "upgrade progression") {
                 if ("selectedConfig" in upgradeProgression.state && "nodeStatus" in upgradeProgression.state && "progressDetails" in upgradeProgression.state) {

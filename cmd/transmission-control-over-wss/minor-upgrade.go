@@ -42,6 +42,8 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 
 	for {
 		pool.BroadcastMessage(payload)
+		log.Info("playload",
+			zap.String("payload", string(payload)))
 
 		response, err := pool.ReadMessages()
 		if err != nil {
