@@ -48,6 +48,9 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 			// return nil, err
 		}
 		selections := selectedConfig{}
+		fmt.Println(u)
+		log.Info("u",
+			zap.Reflect("u.K8sPackagesInfo", u.K8sPackagesInfo))
 		err = json.Unmarshal([]byte(response), &selections)
 
 		if err != nil || selections.K8sVersion == nil {

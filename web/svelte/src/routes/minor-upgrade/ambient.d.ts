@@ -7,13 +7,13 @@ interface K8sPackageInfo {
 	availableVersions: [string];
 }
 
-interface UpgradeConfigSelection {
-	k8sPackageInfo: [K8sPackageInfo];
+interface upgradeConfigSelection {
+	k8sPackagesInfo: [K8sPackageInfo];
 }
 
 export interface UpgradeProgression {
 	stateName: string;
-	state: ProgressionState | UpgradeConfigSelection;
+	state: ProgressionState | upgradeConfigSelection;
 }
 
 export class K8sVersion {
@@ -40,7 +40,7 @@ export interface ProgressDetails {
 	error: string;
 }
 
-export interface ProgressionState {
+interface ProgressionState {
 	selectedConfig: SelectedConfig;
 	nodeStatus: NodesStatus;
 	progressDetails: [ProgressDetails];
