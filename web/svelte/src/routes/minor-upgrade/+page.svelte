@@ -96,6 +96,11 @@
     }
 </script>
 
+<ButtonGroup>
+    <Button outline color="red" on:mousedown={socket.send("retryCurrentStep")}>retryCurrentStep</Button>
+    <Button outline color="green" on:mousedown={socket.send("terminateApplication")}>terminateApplication</Button>
+    <Button outline color="yellow" on:mousedown={socket.send("proceedNextStep")}>proceedNextStep</Button>
+</ButtonGroup>
 
 
 <div class="action">

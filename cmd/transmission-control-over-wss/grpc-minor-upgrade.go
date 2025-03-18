@@ -100,6 +100,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
 
+	// override by stepCount
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
 
 	progress := progressionState{
