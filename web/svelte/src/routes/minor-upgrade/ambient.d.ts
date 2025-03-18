@@ -7,13 +7,13 @@ interface K8sPackageInfo {
 	availableVersions: [string];
 }
 
-interface upgradeConfigSelection {
+interface UpgradeConfigSelection {
 	k8sPackagesInfo: [K8sPackageInfo];
 }
 
 export interface UpgradeProgression {
 	stateName: string;
-	state: SelectedConfig | upgradeConfigSelection;
+	state: ProgressionState | UpgradeConfigSelection;
 }
 
 export class K8sVersion {
@@ -21,7 +21,7 @@ export class K8sVersion {
 	targetK8sVersion: string;
 }
 
-export class SelectedConfig {
+export interface SelectedConfig {
 	drainNodes: boolean;
 	promptOnError: boolean;
 	certificateRenewal: boolean;

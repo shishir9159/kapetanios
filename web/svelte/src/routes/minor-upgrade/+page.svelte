@@ -1,11 +1,18 @@
 <script lang="ts">
     import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
     import Step from './Step.svelte';
-    import { K8sVersion, SelectedConfig } from './ambient.d.ts';
-    import type { K8sPackageInfo , NodesStatus , ProgressDetails ,  UpgradeProgression} from './ambient';
+    import { K8sVersion } from './ambient.d.ts';
+    import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig ,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
-    let u: UpgradeProgression = $state(progression);
+    //     let upgradeProgression: UpgradeProgression = $state(UpgradeProgression);
+    let upgradeProgression: UpgradeProgression = $state(progression);
+    let config: SelectedConfig;
+    let upgradeConfig: SelectedConfig = $state(config);
+    let clusterStatus: NodesStatus;
+    let nodeStatus: NodesStatus = $state(clusterStatus);
+    let details: ProgressDetails;
+    let progressDetails: ProgressDetails = $state(details);
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
@@ -15,7 +22,6 @@
     let formModal = $state(false);
 
     let socket: WebSocket;
-
     function connectionInitialization() {
         socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
         // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
@@ -25,23 +31,23 @@
         };
 
         socket.onmessage = (e) => {
-            u = JSON.parse(e.data);
-            if (u.stateName == "upgrade config selection") {
+            upgradeProgression = JSON.parse(e.data);
+            if (upgradeProgression.stateName == "upgrade config selection") {
                 formModal = true;
-                if ("k8sPackageInfo" in u.state) {
-                    packagesInfo = u.state.k8sPackageInfo;
+                if ("k8sPackageInfo" in upgradeProgression.state) {
+                    packagesInfo = upgradeProgression.state.k8sPackageInfo;
                 }
-            } else if (u.stateName == "upgrade progression") {
-                if ("selectedConfig" in u.state && "nodeStatus" in u.state && "progressDetails" in u.state) {
-                    upgradeConfig = u.state.selectedConfig;
-                    clusterStatus = u.state.nodeStatus;
-                    progressionDetails = u.state.progressDetails;
+            } else if (upgradeProgression.stateName == "upgrade progression") {
+                if ("selectedConfig" in upgradeProgression.state && "nodeStatus" in upgradeProgression.state && "progressDetails" in upgradeProgression.state) {
+                    upgradeConfig = upgradeProgression.state.selectedConfig;
+                    clusterStatus = upgradeProgression.state.nodeStatus;
+                    progressDetails = upgradeProgression.state.progressDetails;
                 } else {
                     // TODO:
                     //   sent error reply and expect another payload
                 }
 
-                for (let progressDetail of progressionDetails) {
+                for (let progressDetail of progressDetails) {
                     // TODO: make progresses a map
                     // progresses[progressDetail.stepCount] = ;
                 }
@@ -64,9 +70,9 @@
         // if (socket.readyState == "connected") {
         let k8sConfig = new Array<K8sVersion>();
         let selectedConfig: SelectedConfig = new SelectedConfig();
-        selectedConfig.certificateRenewal = certificateRenewal;
-        selectedConfig.drainNodes = drainNodes;
-        selectedConfig.promptOnError = promptOnError;
+        upgradeConfig.certificateRenewal = certificateRenewal;
+        upgradeConfig.drainNodes = drainNodes;
+        upgradeConfig.promptOnError = promptOnError;
         selected.forEach((value:string, key: string) => {
             const packageInfo = new K8sVersion();
             packageInfo.distroPrettyName = key;
@@ -74,8 +80,8 @@
             k8sConfig.push(packageInfo);
         });
         console.log("selected", selected);
-        selectedConfig.k8sVersion = k8sConfig;
-        const payLoad = JSON.stringify(selectedConfig);
+        upgradeConfig.k8sVersion = k8sConfig;
+        const payLoad = JSON.stringify(upgradeConfig);
         socket.send(payLoad);
         // } /else {
         // // TODO: throw error
