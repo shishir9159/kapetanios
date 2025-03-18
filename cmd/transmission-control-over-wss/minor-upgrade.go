@@ -23,7 +23,7 @@ import (
 )
 
 type upgradeConfigSelection struct {
-	K8sPackagesInfo []k8sPackageInfo `json:"k8sPackageInfo"`
+	K8sPackagesInfo []k8sPackageInfo `json:"k8sPackagesInfo"`
 }
 
 func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
