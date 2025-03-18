@@ -1,9 +1,9 @@
 <script lang="ts">
     import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
-    import { progresses } from './progress.ts';
+    import { progresses } from './progress.svelte.ts';
     import { message } from './upgrading.svelte.ts';
     import Step from './Step.svelte';
-    import {k8sVersion, nodeStatus, selectedConfig} from './ambient.d.ts';
+    import type {k8sVersion, nodeStatus, selectedConfig} from './ambient.d.ts';
     import type { k8sPackageInfo, progressDetails , UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;

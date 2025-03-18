@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { progresses } from './progress.ts';
+    import { progresses } from './progress.svelte.ts';
 
     let expanded = $state(-1);
 
@@ -20,7 +20,7 @@
 
 <div class="step-container">
     {#each progresses as progress, i}
-        <div class="step" onclick={() => expanded = i}>
+        <div class="step" onclick={() => { expanded === i ? -1 : i }}>
             <div class="step-number">Step {i}</div>
             <div class="step-title">Step {i}</div>
         </div>
@@ -95,6 +95,13 @@
         border-bottom: 1px solid #ddd;
         transition: background 0.3s;
     }
+
+    [aria-label="expanded"] {
+    }
+
+    [aria-label="depressed"] {
+    }
+
     .step:last-child {
         border-bottom: none;
     }
