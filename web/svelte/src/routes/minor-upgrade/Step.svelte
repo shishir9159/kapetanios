@@ -1,6 +1,8 @@
 <script lang="ts">
     import { progresses } from './progress.ts';
 
+    let expanded = $state(-1);
+
     function toggleStep(stepNumber) {
         const content = document.getElementById(`step-${stepNumber}`);
 
@@ -18,11 +20,11 @@
 
 <div class="step-container">
     {#each progresses as progress, i}
-        <div class="step" onclick={toggleStep(i)}>
+        <div class="step" onclick={() => expanded = i}>
             <div class="step-number">Step {i}</div>
             <div class="step-title">Step {i}</div>
         </div>
-        <div class="step-content" id="step-{i}">
+        <div class="step-content" id="step-{i}" aria-label={expanded === i ? "" : ""}>
             <p>This is the description for Step {i}.</p>
             <p>{progress[i].log}</p>
         </div>

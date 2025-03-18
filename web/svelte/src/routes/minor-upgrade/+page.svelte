@@ -3,8 +3,8 @@
     import { progresses } from './progress.ts';
     import { message } from './upgrading.svelte.ts';
     import Step from './Step.svelte';
-    import {k8sVersion, type nodeStatus, selectedConfig} from './ambient.d.ts';
-    import type { k8sPackageInfo, progressDetails, progressionState , UpgradeProgression} from './ambient';
+    import {k8sVersion, nodeStatus, selectedConfig} from './ambient.d.ts';
+    import type { k8sPackageInfo, progressDetails , UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
@@ -14,9 +14,9 @@
     let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [k8sPackageInfo]= $state([]);
-    let selectedConfig= $state(selectedConfig);
-    let nodeStatus = $state(nodeStatus);
-    let progressDetails = $state([progressDetails]);
+    let upgradeConfig = $state(selectedConfig);
+    let clusterStatus = $state(nodeStatus);
+    let progressionDetails = $state([progressDetails]);
     let formModal = $state(false);
 
     // TODO:
@@ -41,15 +41,15 @@
                 }
             } else if (u.stateName == "upgrade progression") {
                 if ("selectedConfig" in u.state && "nodeStatus" in u.state && "progressDetails" in u.state) {
-                    selectedConfig = u.state.selectedConfig;
-                    nodeStatus = u.state.nodeStatus;
-                    progressDetails = u.state.progressDetails;
+                    upgradeConfig = u.state.selectedConfig;
+                    clusterStatus = u.state.nodeStatus;
+                    progressionDetails = u.state.progressDetails;
                 } else {
                 // TODO:
                 //   sent error reply and expect another payload
                 }
 
-                for (let progressDetail of progressDetails) {
+                for (let progressDetail of progressionDetails) {
                     // TODO: make progresses a map
                     // progresses[progressDetail.stepCount] = ;
                 }
@@ -71,16 +71,13 @@
         // TODO: check connection
         // if (socket.readyState == "connected") {
             let k8sConfig = new Array<k8sVersion>();
-            selectedConfig = selectedConfig
+            upgradeConfig = selectedConfig
             {
                 certificateRenewal
                 progression
                 drainNodes
                 promptOnError
             }
-            selectedConfig.certificateRenewal = certificateRenewal;
-            selectedConfig.drainNodes = drainNodes;
-            selectedConfig.promptOnError = promptOnError;
             console.log("selected", selected);
             selected.forEach((value:string, key: string) => {
                 const packageInfo = new k8sVersion();
@@ -88,8 +85,8 @@
                 packageInfo.targetK8sVersion = value;
                 k8sConfig.push(packageInfo);
             });
-            selectedConfig.k8sVersion = k8sConfig;
-            const payLoad = JSON.stringify(selectedConfig);
+            upgradeConfig.k8sVersion = k8sConfig;
+            const payLoad = JSON.stringify(upgradeConfig);
             socket.send(payLoad);
         //  TODO:
         //   check error
