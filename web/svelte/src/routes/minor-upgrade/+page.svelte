@@ -2,7 +2,7 @@
     import { Button , Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
     import { message } from './upgrading.svelte.ts';
     import Step from './Step.svelte';
-    import { k8sVersion, SelectedConfig } from './ambient.d.ts';
+    import { K8sVersion, SelectedConfig } from './ambient.d.ts';
     import type { k8sPackageInfo ,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
@@ -47,7 +47,7 @@
     function onsubmit() {
         // TODO: check connection
         // if (socket.readyState == "connected") {
-        let k8sConfig = new Array<k8sVersion>();
+        let k8sConfig = new Array<K8sVersion>();
         let selectedConfig: SelectedConfig = new SelectedConfig();
         selectedConfig.certificateRenewal = certificateRenewal;
         selectedConfig.drainNodes = drainNodes;

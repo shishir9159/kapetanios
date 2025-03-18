@@ -26,7 +26,7 @@ type minorUpgradeServer struct {
 
 type progressionState struct {
 	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
-	NodeStatus      *nodeStatus       `json:"nodeStatus"`
+	NodeStatus      *nodesStatus      `json:"nodesStatus"`
 	ProgressDetails []progressDetails `json:"progressDetails"`
 }
 
