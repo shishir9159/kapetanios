@@ -23,7 +23,7 @@ import (
 )
 
 type upgradeConfigSelection struct {
-	K8sPackageInfo []k8sPackageInfo `json:"k8sPackageInfo"`
+	K8sPackagesInfo []k8sPackageInfo `json:"k8sPackageInfo"`
 }
 
 func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
@@ -332,7 +332,7 @@ outerLoop:
 	//upgrade.upgradeState.SelectedConfig.K8sVersion = []K8sVersion{}
 
 	selection := &upgradeConfigSelection{
-		K8sPackageInfo: upgrade.upgradeState.K8sPackages,
+		K8sPackagesInfo: upgrade.upgradeState.K8sPackages,
 	}
 
 	selection.SendMessage(upgrade.upgradeState, upgrade.nefario.log, upgrade.pool)

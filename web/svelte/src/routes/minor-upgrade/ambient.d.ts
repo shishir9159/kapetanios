@@ -1,44 +1,43 @@
 interface K8sPackageInfo {
-	Distro: string;
-	DistroVersion: string;
-	DistroPrettyName: string;
-	RepoName: string;
-	RepoBaseUrl: string;
-	AvailableVersions: [string];
+	distro: string;
+	distroVersion: string;
+	distroPrettyName: string;
+	repoName: string;
+	repoBaseUrl: string;
+	availableVersions: [string];
 }
 
 interface upgradeConfigSelection {
-	K8sPackagesInfo: [k8sPackageInfo];
+	k8sPackagesInfo: [K8sPackageInfo];
 }
 
 export interface UpgradeProgression {
-	StateName: string;
-	State: SelectedConfig | upgradeConfigSelection;
+	stateName: string;
+	state: SelectedConfig | upgradeConfigSelection;
 }
 
 export class K8sVersion {
-	DistroPrettyName: string;
-	TargetK8sVersion: string;
+	distroPrettyName: string;
+	targetK8sVersion: string;
 }
 
-// TODO: camel case
 export class SelectedConfig {
-	DrainNodes: boolean;
-	PromptOnError: boolean;
-	CertificateRenewal: boolean;
-	K8sVersion: k8sVersion[];
+	drainNodes: boolean;
+	promptOnError: boolean;
+	certificateRenewal: boolean;
+	k8sVersion: [k8sVersion];
 }
 
 export interface NodesStatus {
-	NodesUpgraded: [string];
-	NodesTobeUpgraded: [string];
-	NodesFailedToBeUpgraded: [string];
+	nodesUpgraded: [string];
+	nodesTobeUpgraded: [string];
+	nodesFailedToBeUpgraded: [string];
 }
 
 export interface ProgressDetails {
-	StepCount: number;
-	Log: string;
-	Error: string;
+	stepCount: number;
+	log: string;
+	error: string;
 }
 
 export interface ProgressionState {

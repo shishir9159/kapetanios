@@ -1,9 +1,8 @@
 <script lang="ts">
-    import { Button , Checkbox , ButtonGroup , Modal, Label , Select } from 'flowbite-svelte';
-    import { message } from './upgrading.svelte.ts';
+    import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
     import Step from './Step.svelte';
     import { K8sVersion, SelectedConfig } from './ambient.d.ts';
-    import type { k8sPackageInfo ,  UpgradeProgression} from './ambient';
+    import type { K8sPackageInfo , NodesStatus , ProgressDetails ,  UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     let u: UpgradeProgression = $state(progression);
@@ -12,7 +11,7 @@
     let promptOnError: boolean = $state(true);
     let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
-    let packagesInfo: [k8sPackageInfo]= $state([]);
+    let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
 
     let socket: WebSocket;
@@ -32,6 +31,22 @@
                 if ("k8sPackageInfo" in u.state) {
                     packagesInfo = u.state.k8sPackageInfo;
                 }
+            } else if (u.stateName == "upgrade progression") {
+                if ("selectedConfig" in u.state && "nodeStatus" in u.state && "progressDetails" in u.state) {
+                    upgradeConfig = u.state.selectedConfig;
+                    clusterStatus = u.state.nodeStatus;
+                    progressionDetails = u.state.progressDetails;
+                } else {
+                    // TODO:
+                    //   sent error reply and expect another payload
+                }
+
+                for (let progressDetail of progressionDetails) {
+                    // TODO: make progresses a map
+                    // progresses[progressDetail.stepCount] = ;
+                }
+
+                socket.send('received');
             }
         };
 
@@ -52,13 +67,13 @@
         selectedConfig.certificateRenewal = certificateRenewal;
         selectedConfig.drainNodes = drainNodes;
         selectedConfig.promptOnError = promptOnError;
-        console.log("selected", selected);
         selected.forEach((value:string, key: string) => {
-            const packageInfo = new k8sVersion();
+            const packageInfo = new K8sVersion();
             packageInfo.distroPrettyName = key;
             packageInfo.targetK8sVersion = value;
             k8sConfig.push(packageInfo);
         });
+        console.log("selected", selected);
         selectedConfig.k8sVersion = k8sConfig;
         const payLoad = JSON.stringify(selectedConfig);
         socket.send(payLoad);
@@ -80,10 +95,10 @@
 
 <div class="processing">
     <div class="nodes">
-        <Step />
+
     </div>
     <div class="nodes">
-        <p style="color: red;">{message.logMessage}</p>
+        <Step />
     </div>
 </div>
 

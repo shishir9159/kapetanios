@@ -92,7 +92,7 @@ type k8sPackageInfo struct {
 	AvailableVersions []string `json:"availableVersions"`
 }
 
-type nodeStatus struct {
+type nodesStatus struct {
 	NodesUpgraded           []string `json:"nodesUpgraded"`
 	NodesToBeUpgraded       []string `json:"nodesToBeUpgraded"`
 	NodesFailedToBeUpgraded []string `json:"nodesFailedToBeUpgraded"`
@@ -106,7 +106,7 @@ type progressDetails struct {
 
 type UpgradeState struct {
 	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
-	NodeStatus      *nodeStatus       `json:"nodeStatus"`
+	NodeStatus      *nodesStatus      `json:"nodesStatus"`
 	Nodes           []nodeInfo        `json:"nodes"`
 	K8sPackages     []k8sPackageInfo  `json:"k8sPackages"`
 	ProgressDetails []progressDetails `json:"progressDetails"`
@@ -134,7 +134,7 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 	}
 
 	if state.NodeStatus == nil {
-		state.NodeStatus = &nodeStatus{
+		state.NodeStatus = &nodesStatus{
 			NodesToBeUpgraded: []string{},
 		}
 	}
