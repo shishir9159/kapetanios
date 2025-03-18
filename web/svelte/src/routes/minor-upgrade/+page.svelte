@@ -1,8 +1,9 @@
 <script lang="ts">
     import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
     import Step from './Step.svelte';
+    import { progresses } from "./progress.svelte.ts";
     import { K8sVersion } from './ambient.d.ts';
-    import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig ,  UpgradeProgression} from './ambient';
+    import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig , UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
     //     let upgradeProgression: UpgradeProgression = $state(UpgradeProgression);
@@ -11,8 +12,9 @@
     let upgradeConfig: SelectedConfig = $state(config);
     let clusterStatus: NodesStatus;
     let nodeStatus: NodesStatus = $state(clusterStatus);
-    let details: ProgressDetails;
-    let progressDetails: ProgressDetails = $state(details);
+    // TODO:
+    //  fix the following
+    let progressDetails: [ProgressDetails];
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
@@ -35,9 +37,9 @@
             if (upgradeProgression.stateName == "upgrade config selection") {
                 formModal = true;
                 console.log(upgradeProgression);
-                if ("k8sPackageInfo" in upgradeProgression.state) {
+                if ("k8sPackagesInfo" in upgradeProgression.state) {
                     console.log("packageInfo")
-                    packagesInfo = upgradeProgression.state.k8sPackageInfo;
+                    packagesInfo = upgradeProgression.state.k8sPackagesInfo;
                 }
             } else if (upgradeProgression.stateName == "upgrade progression") {
                 if ("selectedConfig" in upgradeProgression.state && "nodeStatus" in upgradeProgression.state && "progressDetails" in upgradeProgression.state) {
@@ -50,8 +52,11 @@
                 }
 
                 for (let progressDetail of progressDetails) {
-                    // TODO: make progresses a map
-                    // progresses[progressDetail.stepCount] = ;
+                    progresses.forEach((progress) => {
+                        if (progress.stepCount == progressDetail.stepCount) {
+                            progress.log = progressDetail.log;
+                        }
+                    })
                 }
 
                 socket.send('received');
@@ -68,21 +73,21 @@
     }
 
     function onsubmit() {
-        // TODO: check connection
         // if (socket.readyState == "connected") {
-        let k8sConfig = new Array<K8sVersion>();
-        let selectedConfig: SelectedConfig = new SelectedConfig();
-        upgradeConfig.certificateRenewal = certificateRenewal;
-        upgradeConfig.drainNodes = drainNodes;
-        upgradeConfig.promptOnError = promptOnError;
+        let k8sVersion = new Array<K8sVersion>();
         selected.forEach((value:string, key: string) => {
             const packageInfo = new K8sVersion();
             packageInfo.distroPrettyName = key;
             packageInfo.targetK8sVersion = value;
-            k8sConfig.push(packageInfo);
+            k8sVersion.push(packageInfo);
         });
         console.log("selected", selected);
-        upgradeConfig.k8sVersion = k8sConfig;
+        upgradeConfig = {
+            drainNodes,
+            promptOnError,
+            certificateRenewal,
+            k8sVersion
+        }
         const payLoad = JSON.stringify(upgradeConfig);
         socket.send(payLoad);
         // } /else {
