@@ -61,13 +61,13 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	//  save the last payload???
 
 	switch response {
-	case "retry":
+	case "retryCurrentStep":
 		retryCurrentStep = true
 		break
-	case "next step":
+	case "proceedNextStep":
 		proceedNextStep = true
 		break
-	case "terminate application":
+	case "terminateApplication":
 		terminateApplication = true
 		break
 	default:
