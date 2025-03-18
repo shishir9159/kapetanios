@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { Button , Checkbox , ButtonGroup , Modal , Label , Select } from 'flowbite-svelte';
+    import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
     import Step from './Step.svelte';
-    import { progresses } from "./progress.svelte.ts";
+    import { progressInfo } from "./progress.svelte.ts";
     import { K8sVersion } from './ambient.d.ts';
     import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig , UpgradeProgression} from './ambient';
 
@@ -52,9 +52,9 @@
                 }
 
                 for (let progressDetail of progressDetails) {
-                    progresses.forEach((progress) => {
-                        if (progress.stepCount == progressDetail.stepCount) {
-                            progress.log = progressDetail.log;
+                    progressInfo.forEach((step) => {
+                        if (step.stepCount == progressDetail.stepCount) {
+                            step.log = progressDetail.log;
                         }
                     })
                 }
@@ -95,6 +95,8 @@
         // }/
     }
 </script>
+
+
 
 <div class="action">
     <div class="button-group">

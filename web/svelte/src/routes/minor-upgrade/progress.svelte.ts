@@ -1,4 +1,4 @@
-export const progresses: { stepCount: number; title: string; log: string; error: string }[] =
+export const progressInfo: { stepCount: number; title: string; log: string; error: string }[] =
 	$state([
 		{
 			stepCount: 1,
