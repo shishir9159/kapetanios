@@ -182,7 +182,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				log.Printf("error reading from %s for messagetype %d: %v",
 					client.Conn.RemoteAddr().String(), msgType, err)
 				// TODO:
-				//  check if this line ever happens...
+				//  test if this solves the problem
+				pool.MessageChan <- string(msg)
 				pool.RemoveClient(client)
 				return
 			}
