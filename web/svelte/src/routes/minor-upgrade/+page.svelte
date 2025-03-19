@@ -49,6 +49,9 @@
                             packagesInfo = upgradeProgression.state.k8sPackagesInfo;
                         }
                     } else if (upgradeProgression.stateName == 'upgrade progression') {
+                        console.log('\'selectedConfig\' in upgradeProgression.state', 'selectedConfig' in upgradeProgression.state);
+                        console.log("'nodesStatus' in upgradeProgression.state", 'nodesStatus' in upgradeProgression.state);
+                        console.log("'progressDetails' in upgradeProgression.state", 'progressDetails' in upgradeProgression.state)
                         if (
                             'selectedConfig' in upgradeProgression.state &&
                             'nodesStatus' in upgradeProgression.state &&

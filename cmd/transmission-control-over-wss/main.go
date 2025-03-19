@@ -210,6 +210,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 	if len(upgrade.pool.Clients) > 5 {
 		io.WriteString(w, "maximum number of concurrent connection exceeded!")
 
+		upgrade.nefario.log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
 		// TODO: -- wrap it in one of the error state(possible other: certificate renewal) --
 		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
 		if er != nil {

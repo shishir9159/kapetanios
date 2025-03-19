@@ -274,8 +274,6 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	s.log.Info("received cluster upgrade plan")
-
 	var stepDetail progressDetail
 	stepDetail.StepCount = 5
 	stepDetail.Log = in.GetPlan()
@@ -312,8 +310,6 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeStatus) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
-
-	s.log.Info("received cluster Upgrade status")
 
 	var stepDetail progressDetail
 	stepDetail.StepCount = 6

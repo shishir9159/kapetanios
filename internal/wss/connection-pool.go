@@ -52,6 +52,12 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			//pool.Mutex.Lock()
 			// true signifies the connection is occupied
 			// in reading messages
+
+			for c := range pool.Clients {
+				if client.Conn.RemoteAddr() == c.Conn.RemoteAddr() {
+					pool.unregister <- c
+				}
+			}
 			pool.Clients[client] = true
 			//pool.Mutex.Unlock()
 			log.Info("client registered",
