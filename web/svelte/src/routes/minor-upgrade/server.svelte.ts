@@ -1,35 +1,57 @@
-import { json } from '@sveltejs/kit';
+class WebSocketClient {
+	private socket: WebSocket | null = null;
+	private readonly url: string;
+	private shouldReconnect = true;
+	private reconnectInterval = 10000;
 
-class TestClass {
-	prop = $state('test');
-}
+	constructor(url: string) {
+		this.url = url;
+		this.connect();
+	}
 
+	private connect(): void {
+		this.socket = new WebSocket(this.url);
 
-export async function connectionInitialization(logMessage: string): Promise<void> {
+		this.socket.onopen = () => {
+			console.log('connected to the server');
+			// this.sendMessage({ type: 'ping', data: 'health check beat' });
+		};
 
-	const socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
-	// const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
+		this.socket.onmessage = (event) => {
+			this.handleMessage(event);
+		};
 
-	socket.onopen = async () => {
-		console.log('connected to the server');
-		socket.send('next');
-		//     "current step"
-		//     prepare response accordingly
-	};
+		this.socket.onerror = (error) => {
+			console.error('WebSocket error:', error);
+		};
 
-	socket.onmessage = (e) => {
+		this.socket.onclose = (event) => {
+			console.warn(`WebSocket closed: ${event.code} - ${event.reason}`);
+			if (this.shouldReconnect) {
+				setTimeout(() => this.connect(), this.reconnectInterval);
+			}
+		};
+	}
 
-		logMessage = e.data;
-		console.log(logMessage);
-		// message = utf8Array;
-		// const message = JSON.parse(e.data);
-	};
+	private handleMessage(event: MessageEvent): void {
+		try {
+			const message = JSON.parse(event.data);
+			console.log('Received message:', message);
+		} catch (error) {
+			console.error('Error parsing message:', error);
+		}
+	}
 
-	socket.onerror = (e) => {
-		console.error('websocket error:', e);
-	};
+	public sendMessage(message: object): void {
+		if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+			this.socket.send(JSON.stringify(message));
+		} else {
+			console.warn('WebSocket is not open. Message not sent.');
+		}
+	}
 
-	socket.onclose = async () => {
-		console.log('websocket closed');
-	};
+	public close(): void {
+		this.shouldReconnect = false;
+		this.socket?.close();
+	}
 }

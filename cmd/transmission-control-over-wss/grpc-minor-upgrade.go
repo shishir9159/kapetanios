@@ -92,6 +92,16 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	return retryCurrentStep, proceedNextStep, terminateApplication
 }
 
+//func removeCurrentStepDetails() {
+//	if len(s.state.ProgressDetails) != 0 {
+//		for i, detail := range s.state.ProgressDetails {
+//			if detail.StepCount == progressDetail.StepCount {
+//				return append(detail[:i], detail[i+1:])
+//			}
+//		}
+//	}
+//}
+
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
@@ -101,6 +111,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	progressDetail.Err = in.GetErr()
 
 	// override by stepCount
+
 	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
 
 	progress := progressionState{

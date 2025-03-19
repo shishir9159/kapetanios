@@ -24,13 +24,19 @@
     let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
 
-    let socket: WebSocket;
+    let socket: WebSocket   ;
+    const wsClient: WebSocketClient | null;
+
+    function connect() {
+        wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
+    }
+
     function connectionInitialization() {
         socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
         // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
 
         socket.onopen = async () => {
-            socket.send('connected to the server');
+            console.log('connected to the server')
         };
 
         socket.onmessage = (e) => {
@@ -95,7 +101,8 @@
             k8sVersion
         }
         const payLoad = JSON.stringify(upgradeConfig);
-        socket.send(payLoad);
+        // socket.send(payLoad);
+
         formModal = false
         // } /else {
         // // TODO: throw error
