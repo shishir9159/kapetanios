@@ -22,13 +22,15 @@
     let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [K8sPackageInfo]= $state([]);
-    let formModal = $state(false);
+    export let formModal = $state(false);
 
     let socket: WebSocket   ;
-    const wsClient: WebSocketClient | null;
+    const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
 
-    function connect() {
-        wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
+
+    function connection() {
+        wsClient.connect();
+
     }
 
     function connectionInitialization() {
