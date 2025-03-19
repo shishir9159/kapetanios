@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
     import Step from './Step.svelte';
-    import { progressInfo } from "./progress.svelte.ts";
     import { K8sVersion } from './ambient.d.ts';
+    import { progressInfo } from "./progress.svelte.ts";
+    import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
     import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig , UpgradeProgression} from './ambient';
 
     let progression: UpgradeProgression;
@@ -26,12 +26,6 @@
 
     let socket: WebSocket   ;
     const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
-
-
-    function connection() {
-        wsClient.connect();
-
-    }
 
     function connectionInitialization() {
         socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
@@ -79,13 +73,6 @@
         };
     }
 
-    $effect(() => {
-        // if (socket.readyState !== WebSocket.OPEN) {
-        // socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
-        // }
-        socket.send(action);
-    })
-
     function onsubmit() {
         // if (socket.readyState == "connected") {
         let k8sVersion = new Array<K8sVersion>();
@@ -102,13 +89,105 @@
             certificateRenewal,
             k8sVersion
         }
-        const payLoad = JSON.stringify(upgradeConfig);
+        // const payLoad = JSON.stringify();
+        wsClient.sendMessage(upgradeConfig);
         // socket.send(payLoad);
 
         formModal = false
         // } /else {
         // // TODO: throw error
         // }/
+    }
+
+    class WebSocketClient {
+        private socket: WebSocket | null = null;
+        private readonly url: string;
+        private shouldReconnect = true;
+        private reconnectInterval = 10000;
+
+        constructor(url: string) {
+            this.url = url;
+        }
+
+        private connect(): void {
+            this.socket = new WebSocket(this.url);
+
+            this.socket.onopen = () => {
+                console.log('connected to the server');
+                // this.sendMessage({ type: 'ping', data: 'health check beat' });
+            };
+
+            this.socket.onmessage = (event) => {
+                try {
+                    const upgradeProgression: UpgradeProgression = JSON.parse(event.data);
+                    // this.handleMessage(event);
+                    if (upgradeProgression.stateName == 'upgrade config selection') {
+                        formModal = true;
+                        console.log(upgradeProgression);
+                        if ('k8sPackagesInfo' in upgradeProgression.state) {
+                            console.log('packageInfo');
+                            packagesInfo = upgradeProgression.state.k8sPackagesInfo;
+                        }
+                    } else if (upgradeProgression.stateName == 'upgrade progression') {
+                        if (
+                            'selectedConfig' in upgradeProgression.state &&
+                            'nodeStatus' in upgradeProgression.state &&
+                            'progressDetails' in upgradeProgression.state
+                        ) {
+                            upgradeConfig = upgradeProgression.state.selectedConfig;
+                            clusterStatus = upgradeProgression.state.nodeStatus;
+                            progressDetails = upgradeProgression.state.progressDetails;
+                        } else {
+                            // TODO:
+                            //   sent error reply and expect another payload
+                        }
+
+                        for (let progressDetail of progressDetails) {
+                            progressInfo.forEach((step) => {
+                                if (step.stepCount == progressDetail.stepCount) {
+                                    step.log = progressDetail.log;
+                                }
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('error parsing message:', error);
+                }
+            };
+
+            this.socket.onerror = (error) => {
+                console.error('webSocket error:', error);
+            };
+
+            this.socket.onclose = (event) => {
+                console.warn(`webSocket closed: ${event.code} - ${event.reason}`);
+                if (this.shouldReconnect) {
+                    setTimeout(() => this.connect(), this.reconnectInterval);
+                }
+            };
+        }
+
+        private handleMessage(event: MessageEvent): void {
+            try {
+                const message = JSON.parse(event.data);
+                console.log('Received message:', message);
+            } catch (error) {
+                console.error('Error parsing message:', error);
+            }
+        }
+
+        public sendMessage(message: object): void {
+            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                this.socket.send(JSON.stringify(message));
+            } else {
+                console.warn('webSocket connection is not open');
+            }
+        }
+
+        public close(): void {
+            this.shouldReconnect = false;
+            this.socket?.close();
+        }
     }
 </script>
 
@@ -122,7 +201,7 @@
 <div class="action">
     <div class="button-group">
         <ButtonGroup>
-            <Button outline color="red" on:mousedown={connectionInitialization}>upgrade</Button>
+            <Button outline color="red" on:mousedown={() => wsClient.connect()}>upgrade</Button>
             <Button outline color="green">rollback</Button>
             <Button outline color="yellow">status</Button>
         </ButtonGroup>
