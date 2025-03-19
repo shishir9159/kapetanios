@@ -12,7 +12,7 @@
     let progressDetails: [ProgressDetail] = [];
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
-    let promptOnError: boolean = $state(true);
+    let promptOnError: boolean = $state(false);
     let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [K8sPackageInfo]= $state([]);
@@ -51,11 +51,11 @@
                     } else if (upgradeProgression.stateName == 'upgrade progression') {
                         if (
                             'selectedConfig' in upgradeProgression.state &&
-                            'nodeStatus' in upgradeProgression.state &&
+                            'nodesStatus' in upgradeProgression.state &&
                             'progressDetails' in upgradeProgression.state
                         ) {
                             upgradeConfig = upgradeProgression.state.selectedConfig;
-                            clusterStatus = upgradeProgression.state.nodeStatus;
+                            clusterStatus = upgradeProgression.state.nodesStatus;
                             progressDetails = upgradeProgression.state.progressDetails;
                             console.log("upgrade progression state", upgradeProgression.state);
                         } else {

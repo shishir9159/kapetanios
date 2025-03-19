@@ -95,14 +95,14 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetail
-	progressDetail.StepCount = 1
-	progressDetail.Log = in.GetLog()
-	progressDetail.Err = in.GetErr()
+	var stepDetail progressDetail
+	stepDetail.StepCount = 1
+	stepDetail.Log = in.GetLog()
+	stepDetail.Err = in.GetErr()
 
 	// override by stepCount
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -138,15 +138,16 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetail
-	progressDetail.StepCount = 2
-	progressDetail.Log = ""
-	progressDetail.Err = in.GetErr()
-	if progressDetail.Err == "" {
-		progressDetail.Log = "completed"
+	var stepDetail progressDetail
+	stepDetail.StepCount = 2
+	stepDetail.Log = ""
+	stepDetail.Err = in.GetErr()
+
+	if stepDetail.Err == "" {
+		stepDetail.Log = "completed"
 	}
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -184,12 +185,12 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetail
-	progressDetail.StepCount = 3
-	progressDetail.Log = in.GetDiff()
-	progressDetail.Err = in.GetErr()
+	var stepDetail progressDetail
+	stepDetail.StepCount = 3
+	stepDetail.Log = in.GetDiff()
+	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -228,12 +229,12 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetail
-	progressDetail.StepCount = 4
-	progressDetail.Log = in.GetLog()
-	progressDetail.Err = in.GetErr()
+	var stepDetail progressDetail
+	stepDetail.StepCount = 4
+	stepDetail.Log = in.GetLog()
+	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -275,12 +276,12 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	s.log.Info("received cluster upgrade plan")
 
-	var progressDetail progressDetail
-	progressDetail.StepCount = 5
-	progressDetail.Log = in.GetPlan()
-	progressDetail.Err = in.GetErr()
+	var stepDetail progressDetail
+	stepDetail.StepCount = 5
+	stepDetail.Log = in.GetPlan()
+	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -314,12 +315,12 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	s.log.Info("received cluster Upgrade status")
 
-	var progressDetail progressDetail
-	progressDetail.StepCount = 6
-	progressDetail.Log = in.GetLog()
-	progressDetail.Err = in.GetErr()
+	var stepDetail progressDetail
+	stepDetail.StepCount = 6
+	stepDetail.Log = in.GetLog()
+	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,
@@ -357,12 +358,12 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetail
-	progressDetail.StepCount = 7
-	progressDetail.Log = in.GetLog()
-	progressDetail.Err = in.GetErr()
+	var stepDetail progressDetail
+	stepDetail.StepCount = 7
+	stepDetail.Log = in.GetLog()
+	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, progressDetail)
+	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{
 		SelectedConfig:  s.state.SelectedConfig,

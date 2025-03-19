@@ -2,7 +2,6 @@ package wss
 
 import (
 	"context"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"log"
@@ -55,7 +54,9 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			// in reading messages
 			pool.Clients[client] = true
 			//pool.Mutex.Unlock()
-			fmt.Println("client registered")
+			log.Info("client registered",
+				zap.String("client", client.Conn.RemoteAddr().String()),
+				zap.Int("remaining clients", len(pool.Clients)))
 
 		case client := <-pool.unregister:
 			//pool.Mutex.Lock()
