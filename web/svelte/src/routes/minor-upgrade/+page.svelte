@@ -5,16 +5,10 @@
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
     import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig , UpgradeProgression} from './ambient';
 
-    let progression: UpgradeProgression;
-    let action = $state('');
-    //     let upgradeProgression: UpgradeProgression = $state(UpgradeProgression);
-    let upgradeProgression: UpgradeProgression = $state(progression);
     let config: SelectedConfig;
     let upgradeConfig: SelectedConfig = $state(config);
     let clusterStatus: NodesStatus;
     let nodeStatus: NodesStatus = $state(clusterStatus);
-    // TODO:
-    //  fix the following
     let progressDetails: [ProgressDetails] = [];
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
@@ -34,7 +28,7 @@
             this.url = url;
         }
 
-        private connect(): void {
+        public connect(): void {
             this.socket = new WebSocket(this.url);
 
             this.socket.onopen = () => {
@@ -123,55 +117,7 @@
         }
     }
 
-    // let socket: WebSocket;
     const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
-
-    function connectionInitialization() {
-        socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
-        // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
-
-        socket.onopen = async () => {
-            console.log('connected to the server')
-        };
-
-        socket.onmessage = (e) => {
-            upgradeProgression = JSON.parse(e.data);
-            if (upgradeProgression.stateName == "upgrade config selection") {
-                formModal = true;
-                console.log(upgradeProgression);
-                if ("k8sPackagesInfo" in upgradeProgression.state) {
-                    console.log("packageInfo")
-                    packagesInfo = upgradeProgression.state.k8sPackagesInfo;
-                }
-            } else if (upgradeProgression.stateName == "upgrade progression") {
-                if ("selectedConfig" in upgradeProgression.state && "nodeStatus" in upgradeProgression.state && "progressDetails" in upgradeProgression.state) {
-                    upgradeConfig = upgradeProgression.state.selectedConfig;
-                    clusterStatus = upgradeProgression.state.nodeStatus;
-                    progressDetails = upgradeProgression.state.progressDetails;
-                } else {
-                    // TODO:
-                    //   sent error reply and expect another payload
-                }
-
-                for (let progressDetail of progressDetails) {
-                    progressInfo.forEach((step) => {
-                        if (step.stepCount == progressDetail.stepCount) {
-                            step.log = progressDetail.log;
-                        }
-                    })
-                }
-            }
-        };
-
-        socket.onerror = (error) => {
-            // console.error('websocket error:', error);
-        };
-
-        socket.onclose = async () => {
-            console.log('websocket closed');
-        };
-    }
-
     function onsubmit() {
         // if (socket.readyState == "connected") {
         let k8sVersion = new Array<K8sVersion>();

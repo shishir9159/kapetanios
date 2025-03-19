@@ -105,6 +105,8 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
 
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
 	var progressDetail progressDetails
 	progressDetail.StepCount = 1
 	progressDetail.Log = in.GetLog()
@@ -120,7 +122,11 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 		ProgressDetails: s.state.ProgressDetails,
 	}
 
-	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
+	if s.state.SelectedConfig.PromptOnError {
+		proceedNextStep = true
+	} else {
+		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+	}
 
 	// TODO:
 	//  handle error if etcd is not healthy
@@ -141,6 +147,8 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 // PackageAvailabilityCheck implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.VersionCheck) (*pb.ClusterUpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 2
@@ -163,8 +171,13 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 		//	 handle error
 	}
 
-	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
-
+	// TODO:
+	//  proper diagnosis
+	if s.state.SelectedConfig.PromptOnError {
+		proceedNextStep = true
+	} else {
+		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+	}
 	s.log.Info("consistent versioning",
 		zap.Bool("k8s component version are matched", in.GetConsistentVersioning()),
 		zap.String("error", in.GetErr()))
@@ -180,6 +193,8 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 
 // ClusterCompatibility implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.UpgradeCompatibility) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 3
@@ -201,8 +216,13 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 		//   and create prompt for the user
 	}
 
-	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
-
+	// TODO:
+	//  proper diagnosis
+	if s.state.SelectedConfig.PromptOnError {
+		proceedNextStep = true
+	} else {
+		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+	}
 	s.log.Info("received cluster compatibility report",
 		zap.Bool("os compatibility", in.GetOsCompatibility()),
 		zap.String("kubernetes version diff", in.GetDiff()),
@@ -217,6 +237,8 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 // ClusterComponentUpgrade implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.ComponentUpgradeStatus) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 4
@@ -237,8 +259,13 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 		//   in.GetComponent()
 	}
 
-	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
-
+	// TODO:
+	//  proper diagnosis
+	if s.state.SelectedConfig.PromptOnError {
+		proceedNextStep = true
+	} else {
+		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+	}
 	s.log.Info("received cluster component Upgrade status",
 		zap.Bool("component successful Upgrade", in.GetComponentUpgradeSuccess()),
 		zap.String("component", in.GetComponent()),
@@ -255,6 +282,8 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 // ClusterUpgradePlan implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.UpgradePlan) (*pb.UpgradeResponse, error) {
 
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
 	var progressDetail progressDetails
 	progressDetail.StepCount = 5
 	progressDetail.Log = in.GetPlan()
@@ -268,8 +297,13 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		ProgressDetails: s.state.ProgressDetails,
 	}
 
-	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
-
+	// TODO:
+	//  proper diagnosis
+	if s.state.SelectedConfig.PromptOnError {
+		proceedNextStep = true
+	} else {
+		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+	}
 	s.log.Info("received cluster Upgrade plan",
 		zap.String("received log", in.GetPlan()),
 		zap.String("error", in.GetErr()))
@@ -283,6 +317,8 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 // ClusterUpgrade implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeStatus) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 6
@@ -302,8 +338,13 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 		//	 handle error
 	}
 
-	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
-
+	// TODO:
+	//  proper diagnosis
+	if s.state.SelectedConfig.PromptOnError {
+		proceedNextStep = true
+	} else {
+		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+	}
 	s.log.Info("received cluster Upgrade plan",
 		zap.Bool("cluster Upgrade status", in.GetUpgradeSuccess()),
 		zap.String("unsuccessful component", in.GetUnsuccessfulComponent()),
@@ -319,6 +360,8 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 // ClusterComponentRestart implements proto.Upgrade
 func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.ComponentRestartStatus) (*pb.UpgradeResponse, error) {
+
+	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 7
@@ -339,8 +382,13 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 		//	 wrap error with in.GetComponent()s
 	}
 
-	retryCurrentStep, proceedNextStep, terminateApplication := progress.SendMessage(s.state, s.log, s.connectionPool)
-
+	// TODO:
+	//  proper diagnosis
+	if s.state.SelectedConfig.PromptOnError {
+		proceedNextStep = true
+	} else {
+		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+	}
 	s.log.Info("received cluster component restart status",
 		zap.Bool("component restart success", in.GetComponentRestartSuccess()),
 		zap.String("component", in.GetComponent()),

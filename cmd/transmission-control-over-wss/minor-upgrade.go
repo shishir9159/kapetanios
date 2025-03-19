@@ -342,6 +342,10 @@ outerLoop:
 		upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
 		upgrade.nefario.log.Fatal("configMap update failed " + err.Error())
 	}
+
+	//	TODO:
+	//   cleanup
+	//   if not debug mode
 }
 
 func (upgrade *MinorUpgrade) MinorUpgrade() {
@@ -560,6 +564,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		// TODO: If any new Pods tolerate the node.kubernetes.io/unschedulable taint,
 		//  then those Pods might be scheduled to the node you have drained.
 
+		// todo: optimize
 		no, err := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			Get(upgrade.nefario.ctx, node, metav1.GetOptions{})
 		if err != nil {
@@ -568,6 +573,18 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 				zap.Error(err))
 			continue
 		}
+
+		nodeRole := "WORKER"
+		if _, controlPlane := no.Annotations["node-role.kubernetes.io/control-plane"]; controlPlane {
+			nodeRole = "CONTROL-PLANE"
+		}
+
+		nodeRoleEnv := corev1.EnvVar{
+			Name:  "NODE_ROLE",
+			Value: nodeRole,
+		}
+
+		env = append(env, nodeRoleEnv)
 
 		var packageVersion string
 		packagesInfo := upgrade.upgradeState.SelectedConfig.K8sVersion
@@ -584,12 +601,12 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 			upgrade.nefario.log.Fatal("no appropriate os image available")
 		}
 
-		componentVersion := corev1.EnvVar{
+		componentVersionEnv := corev1.EnvVar{
 			Name:  "KUBERNETES_COMPONENT_VERSION",
 			Value: packageVersion,
 		}
 
-		env = append(env, componentVersion)
+		env = append(env, componentVersionEnv)
 
 		descriptor.Spec.Containers[0].Env = env
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet

@@ -170,25 +170,21 @@ func main() {
 		}
 	}
 
-	// TODO:
-	//  for worker nodes this step
-	//  must be avoided
-	var plan string
-	for i := 0; i < maxAttempts; i++ {
-		var skip bool
-		skip, plan, err = upgradePlan(c, conn)
-		if err != nil {
-			c.log.Error().Err(err).
-				Int("attempt", i).
-				Msg("failed to get upgrade plan")
-		}
+	if os.Getenv("NODE_ROLE") == "CONTROL-PLANE" {
+		for i := 0; i < maxAttempts; i++ {
+			var skip bool
+			skip, err = upgradePlan(c, conn)
+			if err != nil {
+				c.log.Error().Err(err).
+					Int("attempt", i).
+					Msg("failed to get upgrade plan")
+			}
 
-		if skip {
-			break
+			if skip {
+				break
+			}
 		}
 	}
-
-	fmt.Println(plan)
 
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := clusterUpgrade(c, version, conn)

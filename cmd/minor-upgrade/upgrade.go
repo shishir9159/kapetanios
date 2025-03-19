@@ -248,7 +248,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 //No VM guests are running outdated hypervisor (qemu) binaries on this host.
 //kubeadm set on hold.
 
-func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
+func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -319,7 +319,7 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 		c.log.Error().Err(err).
 			Msg("could not send status update")
 		// TODO: retry for communication
-		return false, "", err
+		return false, err
 	}
 
 	c.log.Info().
@@ -331,10 +331,10 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	} else if rpc.GetRetryCurrentStep() {
-		return false, "", nil
+		return false, nil
 	}
 
-	return rpc.GetProceedNextStep(), "", err
+	return rpc.GetProceedNextStep(), err
 }
 
 // TODO: process the output for kubectl and kubelet
