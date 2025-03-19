@@ -171,6 +171,7 @@ func main() {
 	}
 
 	if os.Getenv("NODE_ROLE") == "CONTROL-PLANE" {
+		c.log.Debug().Msg("node role control plane")
 		for i := 0; i < maxAttempts; i++ {
 			var skip bool
 			skip, err = upgradePlan(c, conn)

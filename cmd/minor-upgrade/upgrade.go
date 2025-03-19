@@ -312,13 +312,12 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, error) {
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
 			Plan: stdoutBuf.String(),
-			Err:  "",
+			Err:  stderrBuf.String(),
 		})
 
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("could not send status update")
-		// TODO: retry for communication
 		return false, err
 	}
 

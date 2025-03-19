@@ -191,7 +191,7 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 	}, nil
 }
 
-// ClusterCompatibility implements proto.Upgrade
+// ClusterCompatibility implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.UpgradeCompatibility) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
@@ -235,7 +235,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 	}, nil
 }
 
-// ClusterComponentUpgrade implements proto.Upgrade
+// ClusterComponentUpgrade implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.ComponentUpgradeStatus) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
@@ -279,10 +279,12 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 	}, nil
 }
 
-// ClusterUpgradePlan implements proto.Upgrade
+// ClusterUpgradePlan implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.UpgradePlan) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	s.log.Info("received cluster upgrade plan")
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 5
@@ -305,7 +307,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
 	}
 	s.log.Info("received cluster Upgrade plan",
-		zap.String("received log", in.GetPlan()),
+		zap.String("received plan", in.GetPlan()),
 		zap.String("error", in.GetErr()))
 
 	return &pb.UpgradeResponse{
@@ -315,10 +317,12 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 	}, nil
 }
 
-// ClusterUpgrade implements proto.Upgrade
+// ClusterUpgrade implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeStatus) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+
+	s.log.Info("received cluster Upgrade status")
 
 	var progressDetail progressDetails
 	progressDetail.StepCount = 6
@@ -358,7 +362,7 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 	}, nil
 }
 
-// ClusterComponentRestart implements proto.Upgrade
+// ClusterComponentRestart implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.ComponentRestartStatus) (*pb.UpgradeResponse, error) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
