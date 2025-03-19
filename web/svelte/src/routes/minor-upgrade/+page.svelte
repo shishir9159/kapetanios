@@ -56,6 +56,7 @@
                             upgradeConfig = upgradeProgression.state.selectedConfig;
                             clusterStatus = upgradeProgression.state.nodeStatus;
                             progressDetails = upgradeProgression.state.progressDetails;
+                            console.log(progressDetails);
                         } else {
                             // TODO:
                             //   sent error reply and expect another payload
@@ -68,6 +69,7 @@
                                 }
                             });
                         }
+                        console.log(progressDetails);
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);

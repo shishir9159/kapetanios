@@ -99,7 +99,7 @@ type nodesStatus struct {
 }
 
 type progressDetails struct {
-	StepCount uint8  `json:"stepCount"`
+	StepCount uint64 `json:"stepCount"`
 	Log       string `json:"log"`
 	Err       string `json:"err"`
 }

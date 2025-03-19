@@ -25,7 +25,7 @@ export interface SelectedConfig {
 	drainNodes: boolean;
 	promptOnError: boolean;
 	certificateRenewal: boolean;
-	k8sVersion: [k8sVersion];
+	k8sVersion: [K8sVersion];
 }
 
 export interface NodesStatus {

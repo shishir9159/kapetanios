@@ -266,6 +266,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 	} else {
 		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
 	}
+
 	s.log.Info("received cluster component Upgrade status",
 		zap.Bool("component successful Upgrade", in.GetComponentUpgradeSuccess()),
 		zap.String("component", in.GetComponent()),
