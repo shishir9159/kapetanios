@@ -39,7 +39,6 @@ func getK8sConfigFiles() []string {
 	//  read from the configmap populated
 	//  by lighthouse manager
 	return []string{
-
 		"admin.conf",
 		"controller-manager.conf",
 		"kubelet.conf",

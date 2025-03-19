@@ -262,7 +262,9 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	// TODO: --certificate-renewal input from user, and by default should be true
 	// TODO: compare the upgrade plan before and after
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade plan --certificate-renewal=true")
+	// TODO: certificate renewal is unknown flag
+
+	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade plan")
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf

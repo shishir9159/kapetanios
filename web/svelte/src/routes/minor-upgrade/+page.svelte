@@ -22,82 +22,7 @@
     let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [K8sPackageInfo]= $state([]);
-    export let formModal = $state(false);
-
-    let socket: WebSocket   ;
-    const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
-
-    function connectionInitialization() {
-        socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
-        // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
-
-        socket.onopen = async () => {
-            console.log('connected to the server')
-        };
-
-        socket.onmessage = (e) => {
-            upgradeProgression = JSON.parse(e.data);
-            if (upgradeProgression.stateName == "upgrade config selection") {
-                formModal = true;
-                console.log(upgradeProgression);
-                if ("k8sPackagesInfo" in upgradeProgression.state) {
-                    console.log("packageInfo")
-                    packagesInfo = upgradeProgression.state.k8sPackagesInfo;
-                }
-            } else if (upgradeProgression.stateName == "upgrade progression") {
-                if ("selectedConfig" in upgradeProgression.state && "nodeStatus" in upgradeProgression.state && "progressDetails" in upgradeProgression.state) {
-                    upgradeConfig = upgradeProgression.state.selectedConfig;
-                    clusterStatus = upgradeProgression.state.nodeStatus;
-                    progressDetails = upgradeProgression.state.progressDetails;
-                } else {
-                    // TODO:
-                    //   sent error reply and expect another payload
-                }
-
-                for (let progressDetail of progressDetails) {
-                    progressInfo.forEach((step) => {
-                        if (step.stepCount == progressDetail.stepCount) {
-                            step.log = progressDetail.log;
-                        }
-                    })
-                }
-            }
-        };
-
-        socket.onerror = (error) => {
-            console.error('websocket error:', error);
-        };
-
-        socket.onclose = async () => {
-            console.log('websocket closed');
-        };
-    }
-
-    function onsubmit() {
-        // if (socket.readyState == "connected") {
-        let k8sVersion = new Array<K8sVersion>();
-        selected.forEach((value:string, key: string) => {
-            const packageInfo = new K8sVersion();
-            packageInfo.distroPrettyName = key;
-            packageInfo.targetK8sVersion = value;
-            k8sVersion.push(packageInfo);
-        });
-        console.log("selected", selected);
-        upgradeConfig = {
-            drainNodes,
-            promptOnError,
-            certificateRenewal,
-            k8sVersion
-        }
-        // const payLoad = JSON.stringify();
-        wsClient.sendMessage(upgradeConfig);
-        // socket.send(payLoad);
-
-        formModal = false
-        // } /else {
-        // // TODO: throw error
-        // }/
-    }
+    let formModal = $state(false);
 
     class WebSocketClient {
         private socket: WebSocket | null = null;
@@ -176,7 +101,15 @@
             }
         }
 
-        public sendMessage(message: object): void {
+        public sendMessage(message: string): void {
+            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                this.socket.send(message);
+            } else {
+                console.warn('webSocket connection is not open');
+            }
+        }
+
+        public sendJson(message: object): void {
             if (this.socket && this.socket.readyState === WebSocket.OPEN) {
                 this.socket.send(JSON.stringify(message));
             } else {
@@ -189,14 +122,88 @@
             this.socket?.close();
         }
     }
+
+    // let socket: WebSocket;
+    const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
+
+    function connectionInitialization() {
+        socket = new WebSocket('ws://kapetanios.com/minor-upgrade');
+        // const socket = new WebSocket("ws://kapetanios.default.cluster.local/minor-upgrade");
+
+        socket.onopen = async () => {
+            console.log('connected to the server')
+        };
+
+        socket.onmessage = (e) => {
+            upgradeProgression = JSON.parse(e.data);
+            if (upgradeProgression.stateName == "upgrade config selection") {
+                formModal = true;
+                console.log(upgradeProgression);
+                if ("k8sPackagesInfo" in upgradeProgression.state) {
+                    console.log("packageInfo")
+                    packagesInfo = upgradeProgression.state.k8sPackagesInfo;
+                }
+            } else if (upgradeProgression.stateName == "upgrade progression") {
+                if ("selectedConfig" in upgradeProgression.state && "nodeStatus" in upgradeProgression.state && "progressDetails" in upgradeProgression.state) {
+                    upgradeConfig = upgradeProgression.state.selectedConfig;
+                    clusterStatus = upgradeProgression.state.nodeStatus;
+                    progressDetails = upgradeProgression.state.progressDetails;
+                } else {
+                    // TODO:
+                    //   sent error reply and expect another payload
+                }
+
+                for (let progressDetail of progressDetails) {
+                    progressInfo.forEach((step) => {
+                        if (step.stepCount == progressDetail.stepCount) {
+                            step.log = progressDetail.log;
+                        }
+                    })
+                }
+            }
+        };
+
+        socket.onerror = (error) => {
+            // console.error('websocket error:', error);
+        };
+
+        socket.onclose = async () => {
+            console.log('websocket closed');
+        };
+    }
+
+    function onsubmit() {
+        // if (socket.readyState == "connected") {
+        let k8sVersion = new Array<K8sVersion>();
+        selected.forEach((value:string, key: string) => {
+            const packageInfo = new K8sVersion();
+            packageInfo.distroPrettyName = key;
+            packageInfo.targetK8sVersion = value;
+            k8sVersion.push(packageInfo);
+        });
+        console.log("selected", selected);
+        upgradeConfig = {
+            drainNodes,
+            promptOnError,
+            certificateRenewal,
+            k8sVersion
+        }
+        // const payLoad = JSON.stringify();
+        wsClient.sendJson(upgradeConfig);
+        // socket.send(payLoad);
+
+        formModal = false
+        // } /else {
+        // // TODO: throw error
+        // }/
+    }
 </script>
 
 <ButtonGroup>
-    <Button outline color="red" on:mousedown={() => action="retryCurrentStep"}>retry current step</Button>
-    <Button outline color="green" on:mousedown={() => action="terminateApplication"}>skip current node</Button>
-    <Button outline color="yellow" on:mousedown={() => action="proceedNextStep"}>proceed next step</Button>
+    <Button outline color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>
+    <Button outline color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
+    <Button outline color="yellow" on:mousedown={() => wsClient.sendMessage("proceedNextStep")}>proceed next step</Button>
 </ButtonGroup>
-
 
 <div class="action">
     <div class="button-group">
