@@ -2,56 +2,67 @@ export const progressInfo: { stepCount: number; title: string; log: string; erro
 	$state([
 		{
 			stepCount: 1,
-			title: 'Cluster Health Checking',
+			title: 'update progress',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
 			stepCount: 2,
-			title: 'The Blue Danube Waltz',
+			title: 'upgrade configuration selection',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
 			stepCount: 3,
-			title: 'The Blue Danube Waltz',
-			log: 'still processing',
-			error: ''
-		},
-
-		{
-			stepCount: 3,
-			title: 'The Blue Danube Waltz',
+			title: 'Cluster Health Checking',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
 			stepCount: 4,
-			title: 'The Blue Danube Waltz',
+			title: 'package availability check',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
 			stepCount: 5,
-			title: 'The Blue Danube Waltz',
+			title: 'Cluster Compatibility',
 			log: 'still processing',
 			error: ''
 		},
 
+		// TODO:
+		//  multiple
 		{
 			stepCount: 6,
-			title: 'The Blue Danube Waltz',
-			log: 'still processing',
+			title: '',
+			log: 'Cluster Component Upgrade',
 			error: ''
 		},
 
 		{
 			stepCount: 7,
-			title: 'The Blue Danube Waltz',
+			title: 'Cluster Upgrade Plan',
+			log: 'still processing',
+			error: ''
+		},
+
+		{
+			stepCount: 8,
+			title: 'Cluster Upgrade',
+			log: 'still processing',
+			error: ''
+		},
+
+		// TODO:
+		//  multiple
+		{
+			stepCount: 9,
+			title: 'Cluster Component Restart',
 			log: 'still processing',
 			error: ''
 		}

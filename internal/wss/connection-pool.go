@@ -49,6 +49,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 	for {
 		select {
 		case client := <-pool.register:
+
 			//pool.Mutex.Lock()
 			// true signifies the connection is occupied
 			// in reading messages

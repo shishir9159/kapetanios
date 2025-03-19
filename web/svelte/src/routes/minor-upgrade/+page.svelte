@@ -225,7 +225,7 @@
         /*border: 1px solid #000000;*/
     }
     .nodes {
-        display: flex;
+        /*display: flex;*/
         flex: 1;
         padding: 50px;
         text-align: justify-all;
