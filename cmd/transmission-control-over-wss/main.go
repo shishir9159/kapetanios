@@ -98,18 +98,18 @@ type nodesStatus struct {
 	NodesFailedToBeUpgraded []string `json:"nodesFailedToBeUpgraded"`
 }
 
-type progressDetails struct {
+type progressDetail struct {
 	StepCount uint64 `json:"stepCount"`
 	Log       string `json:"log"`
 	Err       string `json:"err"`
 }
 
 type UpgradeState struct {
-	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
-	NodeStatus      *nodesStatus      `json:"nodesStatus"`
-	Nodes           []nodeInfo        `json:"nodes"`
-	K8sPackages     []k8sPackageInfo  `json:"k8sPackages"`
-	ProgressDetails []progressDetails `json:"progressDetails"`
+	SelectedConfig  *selectedConfig  `json:"selectedConfig"`
+	NodeStatus      *nodesStatus     `json:"nodesStatus"`
+	Nodes           []nodeInfo       `json:"nodes"`
+	K8sPackages     []k8sPackageInfo `json:"k8sPackages"`
+	ProgressDetails []progressDetail `json:"progressDetails"`
 }
 
 func readConfig(nefario *Nefario) (UpgradeState, error) {

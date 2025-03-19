@@ -3,13 +3,13 @@
     import { K8sVersion } from './ambient.d.ts';
     import { progressInfo } from "./progress.svelte.ts";
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
-    import type { K8sPackageInfo , NodesStatus , ProgressDetails , SelectedConfig , UpgradeProgression} from './ambient';
+    import type { K8sPackageInfo , NodesStatus , ProgressDetail , SelectedConfig , UpgradeProgression} from './ambient';
 
     let config: SelectedConfig;
     let upgradeConfig: SelectedConfig = $state(config);
     let clusterStatus: NodesStatus;
     let nodeStatus: NodesStatus = $state(clusterStatus);
-    let progressDetails: [ProgressDetails] = [];
+    let progressDetails: [ProgressDetail] = [];
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);

@@ -25,9 +25,9 @@ type minorUpgradeServer struct {
 }
 
 type progressionState struct {
-	SelectedConfig  *selectedConfig   `json:"selectedConfig"`
-	NodeStatus      *nodesStatus      `json:"nodesStatus"`
-	ProgressDetails []progressDetails `json:"progressDetails"`
+	SelectedConfig  *selectedConfig  `json:"selectedConfig"`
+	NodeStatus      *nodesStatus     `json:"nodesStatus"`
+	ProgressDetails []progressDetail `json:"progressDetails"`
 }
 
 func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
@@ -103,7 +103,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetails
+	var progressDetail progressDetail
 	progressDetail.StepCount = 1
 	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
@@ -146,7 +146,7 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetails
+	var progressDetail progressDetail
 	progressDetail.StepCount = 2
 	progressDetail.Log = ""
 	progressDetail.Err = in.GetErr()
@@ -192,7 +192,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetails
+	var progressDetail progressDetail
 	progressDetail.StepCount = 3
 	progressDetail.Log = in.GetDiff()
 	progressDetail.Err = in.GetErr()
@@ -236,7 +236,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetails
+	var progressDetail progressDetail
 	progressDetail.StepCount = 4
 	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
@@ -283,7 +283,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	s.log.Info("received cluster upgrade plan")
 
-	var progressDetail progressDetails
+	var progressDetail progressDetail
 	progressDetail.StepCount = 5
 	progressDetail.Log = in.GetPlan()
 	progressDetail.Err = in.GetErr()
@@ -322,7 +322,7 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	s.log.Info("received cluster Upgrade status")
 
-	var progressDetail progressDetails
+	var progressDetail progressDetail
 	progressDetail.StepCount = 6
 	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()
@@ -365,7 +365,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var progressDetail progressDetails
+	var progressDetail progressDetail
 	progressDetail.StepCount = 7
 	progressDetail.Log = in.GetLog()
 	progressDetail.Err = in.GetErr()

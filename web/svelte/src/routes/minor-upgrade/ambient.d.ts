@@ -34,7 +34,7 @@ export interface NodesStatus {
 	nodesFailedToBeUpgraded: [string];
 }
 
-export interface ProgressDetails {
+export interface ProgressDetail {
 	stepCount: number;
 	log: string;
 	error: string;
@@ -43,5 +43,5 @@ export interface ProgressDetails {
 interface ProgressionState {
 	selectedConfig: SelectedConfig;
 	nodeStatus: NodesStatus;
-	progressDetails: [ProgressDetails];
+	progressDetails: [ProgressDetail];
 }
