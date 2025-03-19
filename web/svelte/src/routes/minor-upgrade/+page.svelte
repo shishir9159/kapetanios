@@ -56,7 +56,7 @@
                             upgradeConfig = upgradeProgression.state.selectedConfig;
                             clusterStatus = upgradeProgression.state.nodeStatus;
                             progressDetails = upgradeProgression.state.progressDetails;
-                            console.log(progressDetails);
+                            console.log("progressDetails", upgradeProgression.state.progressDetails);
                         } else {
                             // TODO:
                             //   sent error reply and expect another payload

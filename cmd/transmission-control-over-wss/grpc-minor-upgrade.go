@@ -53,12 +53,8 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	if err != nil {
 		// return nil, err
 	}
-
 	// TODO:
-	//  if prompt on error
-
-	// TODO:
-	//  save the last payload???
+	//  save the last payload in sync.Pool???
 
 	switch response {
 	case "retryCurrentStep":
@@ -307,6 +303,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 	} else {
 		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
 	}
+
 	s.log.Info("received cluster Upgrade plan",
 		zap.String("received plan", in.GetPlan()),
 		zap.String("error", in.GetErr()))
