@@ -38,7 +38,7 @@
 
             this.socket.onmessage = (event) => {
                 try {
-                    console.log(event.data);
+                    console.log("event data ",event.data);
                     const upgradeProgression: UpgradeProgression = JSON.parse(event.data);
                     // this.handleMessage(event);
                     if (upgradeProgression.stateName == 'upgrade config selection') {

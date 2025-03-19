@@ -31,7 +31,7 @@ export interface SelectedConfig {
 export interface NodesStatus {
 	nodesUpgraded: [string];
 	nodesTobeUpgraded: [string];
-	nodesFailedToBeUpgraded: [string];
+	nodesFailedToBeUpgraded: [string] | null;
 }
 
 export interface ProgressDetail {
