@@ -535,12 +535,12 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		descriptor.Spec.HostNetwork = true
 
 		if len(upgrade.upgradeState.SelectedConfig.K8sVersion) == 0 {
-			fmt.Println(upgrade.upgradeState.SelectedConfig.K8sVersion)
+			//fmt.Println(upgrade.upgradeState.SelectedConfig.K8sVersion)
+			//
+			//upgrade.nefario.log.Info("upgrade.upgradeState.SelectedConfig.K8sVersion",
+			//	zap.String("upgrade.upgradeState.SelectedConfig.K8sVersion target k8s version", upgrade.upgradeState.SelectedConfig.K8sVersion[0].TargetK8sVersion))
 
-			upgrade.nefario.log.Info("upgrade.upgradeState.SelectedConfig.K8sVersion",
-				zap.String("upgrade.upgradeState.SelectedConfig.K8sVersion target k8s version", upgrade.upgradeState.SelectedConfig.K8sVersion[0].TargetK8sVersion))
-
-			upgrade.nefario.log.Fatal("target k8s version is not set")
+			upgrade.nefario.log.Info("target k8s version is not set")
 		}
 
 		certRenewalEnv := corev1.EnvVar{

@@ -77,14 +77,6 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 			zap.String("response", response))
 	}
 
-	selections := selectedConfig{}
-	err = json.Unmarshal([]byte(response), &selections)
-	if err != nil {
-
-	}
-
-	upgradeState.SelectedConfig = &selections
-
 	return retryCurrentStep, proceedNextStep, terminateApplication
 }
 
