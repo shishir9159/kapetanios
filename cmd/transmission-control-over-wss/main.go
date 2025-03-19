@@ -77,7 +77,7 @@ type K8sVersion struct {
 
 type selectedConfig struct {
 	DrainNodes         bool         `json:"drainNodes"`
-	PromptOnError      bool         `json:"promptOnLock"`
+	PromptOnError      bool         `json:"promptOnError"`
 	CertificateRenewal bool         `json:"certificateRenewal"`
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }

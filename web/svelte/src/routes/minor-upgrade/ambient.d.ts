@@ -13,7 +13,7 @@ interface upgradeConfigSelection {
 
 export interface UpgradeProgression {
 	stateName: string;
-	state: ProgressionState | upgradeConfigSelection;
+	state: progressionState | upgradeConfigSelection;
 }
 
 export class K8sVersion {
@@ -40,8 +40,14 @@ export interface ProgressDetail {
 	error: string;
 }
 
-interface ProgressionState {
+// {"stateName":"upgrade progression","state":
+// 	{"selectedConfig":{"drainNodes":false,"promptOnLock":false,"certificateRenewal":false,
+// 		"k8sVersion":[{"distroPrettyName":"Red Hat Enterprise Linux 8.10 (Ootpa)","targetK8sVersion":"1.29.0-150500.1.1"}]},
+// 		"nodesStatus":{"nodesUpgraded":[],"nodesToBeUpgraded":["robi-infra-poc-2","robi-infra-poc-3","robi-infra-poc-1"],"nodesFailedToBeUpgraded":null},
+// 		"progressDetails":[{"stepCount":1,"log":"","err":""},{"stepCount":1,"log":"","err":""},{"stepCount":1,"log":"","err":""}]}}
+
+interface progressionState {
 	selectedConfig: SelectedConfig;
-	nodeStatus: NodesStatus;
+	nodesStatus: NodesStatus;
 	progressDetails: [ProgressDetail];
 }

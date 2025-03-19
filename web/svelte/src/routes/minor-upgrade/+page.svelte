@@ -38,6 +38,7 @@
 
             this.socket.onmessage = (event) => {
                 try {
+                    console.log(event.data);
                     const upgradeProgression: UpgradeProgression = JSON.parse(event.data);
                     // this.handleMessage(event);
                     if (upgradeProgression.stateName == 'upgrade config selection') {
@@ -56,7 +57,7 @@
                             upgradeConfig = upgradeProgression.state.selectedConfig;
                             clusterStatus = upgradeProgression.state.nodeStatus;
                             progressDetails = upgradeProgression.state.progressDetails;
-                            console.log("progressDetails", upgradeProgression.state.progressDetails);
+                            console.log("upgrade progression state", upgradeProgression.state);
                         } else {
                             // TODO:
                             //   sent error reply and expect another payload
@@ -69,7 +70,6 @@
                                 }
                             });
                         }
-                        console.log(progressDetails);
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);
