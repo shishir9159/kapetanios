@@ -260,10 +260,6 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	//  show the changelog of the version by fetching
 	//  https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v12715
 
-	// TODO: --certificate-renewal input from user, and by default should be true
-	// TODO: compare the upgrade plan before and after
-	// TODO: certificate renewal is unknown flag
-
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade plan")
 
 	var stdoutBuf, stderrBuf bytes.Buffer

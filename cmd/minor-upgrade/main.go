@@ -170,6 +170,9 @@ func main() {
 		}
 	}
 
+	// TODO:
+	//  for worker nodes this step
+	//  must be avoided
 	var plan string
 	for i := 0; i < maxAttempts; i++ {
 		var skip bool
