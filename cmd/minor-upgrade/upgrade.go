@@ -128,7 +128,9 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 
 func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, conn *grpc.ClientConn) (bool, error) {
 
-	//-----// TODO: kernel version compatibility
+	c.log.Info().
+		Str("component", k8sComponents).
+		Msg("kubernetes component upgrade")
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
