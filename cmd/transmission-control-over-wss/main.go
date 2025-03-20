@@ -189,26 +189,13 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //	}
 //}
 
-func (nefario *Nefario) report(w http.ResponseWriter, _ *http.Request) {
-	config, err := readConfig(nefario)
-	if err != nil {
-		return
-	}
-
-	var json = jsoniter.ConfigFastest
-
-	payload, err := json.Marshal(&config)
-	if err != nil {
-		panic(err)
-	}
-
-	w.Write(payload)
-}
-
 func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	if len(upgrade.pool.Clients) > 5 {
-		io.WriteString(w, "maximum number of concurrent connection exceeded!")
+		_, err := io.WriteString(w, "maximum number of concurrent connection exceeded!")
+		if err != nil {
+
+		}
 
 		upgrade.nefario.log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
 		// TODO: -- wrap it in one of the error state(possible other: certificate renewal) --
@@ -235,6 +222,9 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 	upgrade.pool.AddClient(client)
 
+	upgrade.nefario.log.Info("registered client: ",
+		zap.String("client address: ", client.Conn.RemoteAddr().String()))
+
 	// todo: add on prerequisite
 	//  if upgrade.nefario.mu.TryLock() {
 	//	 // only allow one api would run at a time
@@ -245,9 +235,6 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		//defer upgrade.mu.Unlock()
 
 		// TODO: race condition - readCtx can be cancelled
-
-		upgrade.nefario.log.Info("registered client: ",
-			zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
 		config, er := readConfig(upgrade.nefario)
 		if er != nil {
