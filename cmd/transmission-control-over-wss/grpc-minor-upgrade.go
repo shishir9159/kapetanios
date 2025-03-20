@@ -34,6 +34,10 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
+	progression.SelectedConfig = upgradeState.SelectedConfig
+	progression.NodeStatus = upgradeState.NodeStatus
+	progression.ProgressDetails = upgradeState.ProgressDetails
+
 	upgradeProgression := &UpgradeProgression{
 		StateName: "upgrade progression",
 		State:     progression,
@@ -104,11 +108,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{
-		SelectedConfig:  s.state.SelectedConfig,
-		NodeStatus:      s.state.NodeStatus,
-		ProgressDetails: s.state.ProgressDetails,
-	}
+	progress := progressionState{}
 
 	if s.state.SelectedConfig.PromptOnError {
 		proceedNextStep = true
@@ -149,11 +149,7 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{
-		SelectedConfig:  s.state.SelectedConfig,
-		NodeStatus:      s.state.NodeStatus,
-		ProgressDetails: s.state.ProgressDetails,
-	}
+	progress := progressionState{}
 
 	if in.GetConsistentVersioning() == false {
 		// TODO:
@@ -192,11 +188,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{
-		SelectedConfig:  s.state.SelectedConfig,
-		NodeStatus:      s.state.NodeStatus,
-		ProgressDetails: s.state.ProgressDetails,
-	}
+	progress := progressionState{}
 
 	if in.GetOsCompatibility() == false {
 		// TODO:
@@ -236,11 +228,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{
-		SelectedConfig:  s.state.SelectedConfig,
-		NodeStatus:      s.state.NodeStatus,
-		ProgressDetails: s.state.ProgressDetails,
-	}
+	progress := progressionState{}
 
 	if in.GetComponentUpgradeSuccess() == false {
 		// TODO:
@@ -281,11 +269,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{
-		SelectedConfig:  s.state.SelectedConfig,
-		NodeStatus:      s.state.NodeStatus,
-		ProgressDetails: s.state.ProgressDetails,
-	}
+	progress := progressionState{}
 
 	// TODO:
 	//  proper diagnosis
@@ -318,11 +302,7 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{
-		SelectedConfig:  s.state.SelectedConfig,
-		NodeStatus:      s.state.NodeStatus,
-		ProgressDetails: s.state.ProgressDetails,
-	}
+	progress := progressionState{}
 
 	if !in.GetUpgradeSuccess() {
 		// TODO:
@@ -361,11 +341,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{
-		SelectedConfig:  s.state.SelectedConfig,
-		NodeStatus:      s.state.NodeStatus,
-		ProgressDetails: s.state.ProgressDetails,
-	}
+	progress := progressionState{}
 
 	if in.GetComponentRestartSuccess() == false {
 		// TODO:

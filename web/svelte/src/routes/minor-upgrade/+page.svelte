@@ -150,18 +150,23 @@
     }
 </script>
 
-<ButtonGroup>
-    <Button outline color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>
-    <Button outline color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
-    <Button outline color="yellow" on:mousedown={() => wsClient.sendMessage("proceedNextStep")}>proceed next step</Button>
-</ButtonGroup>
-
 <div class="action">
     <div class="button-group">
         <ButtonGroup>
             <Button outline color="red" on:mousedown={() => wsClient.connect()}>upgrade</Button>
             <Button outline color="green">rollback</Button>
             <Button outline color="yellow">status</Button>
+        </ButtonGroup>
+    </div>
+</div>
+
+
+<div class="action">
+    <div class="button-group">
+        <ButtonGroup>
+            <Button outline color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>
+            <Button outline color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
+            <Button outline color="yellow" on:mousedown={() => wsClient.sendMessage("proceedNextStep")}>proceed next step</Button>
         </ButtonGroup>
     </div>
 </div>
@@ -207,12 +212,12 @@
         /*height: 100px;*/
         /*margin: 100px;*/
         width: 100vw;
-        padding: 50px;
+        padding: 0;
         /*margin: 10px 150px 100px 80px;*/
     }
     .button-group {
         margin-left: auto;
-        padding: 50px;
+        padding-right: 50px;
         flex-direction: row-reverse;
         justify-content: flex-start;
     }
