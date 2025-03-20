@@ -54,13 +54,13 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			// true signifies the connection is occupied
 			// in reading messages
 
-			for c := range pool.Clients {
-				if client.Conn.RemoteAddr() == c.Conn.RemoteAddr() {
-					log.Info("removing old connections",
-						zap.String("client", client.Conn.RemoteAddr().String()))
-					pool.RemoveClient(c)
-				}
-			}
+			//for c := range pool.Clients {
+			//	if client.Conn.RemoteAddr() == c.Conn.RemoteAddr() {
+			//		log.Info("removing old connections",
+			//			zap.String("client", client.Conn.RemoteAddr().String()))
+			//		pool.RemoveClient(c)
+			//	}
+			//}
 
 			pool.Clients[client] = true
 			//pool.Mutex.Unlock()

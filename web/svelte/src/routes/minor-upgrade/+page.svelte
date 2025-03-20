@@ -75,6 +75,9 @@
                             //   sent error reply and expect another payload
                         }
 
+
+                        const items = Array(10);
+                        // bind:open={items[0]
                         for (let progressDetail of progressDetails) {
                             progressInfo.forEach((step) => {
                                 if (step.stepCount == progressDetail.stepCount) {
