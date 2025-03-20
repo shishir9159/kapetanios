@@ -3,7 +3,7 @@
     import { K8sVersion } from './ambient.d.ts';
     import { progressInfo } from "./progress.svelte.ts";
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
-    import type { K8sPackageInfo , NodesStatus , ProgressDetail , SelectedConfig , UpgradeProgression} from './ambient';
+    import type { K8sPackageInfo , NodesStatus , ProgressDetail , SelectedConfig , UpgradeProgression } from './ambient';
 
     let config: SelectedConfig;
     let upgradeConfig: SelectedConfig = $state(config);
@@ -17,6 +17,15 @@
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
+
+    const nodes = $state([
+        // { id: 1, done: false, description: 'write some docs' },
+        // { id: 2, done: false, description: 'start writing blog post' },
+        // { id: 3, done: true, description: 'buy some milk' },
+        // { id: 4, done: false, description: 'mow the lawn' },
+        // { id: 5, done: false, description: 'feed the turtle' },
+        // { id: 6, done: false, description: 'fix some bugs' }
+    ]);
 
     class WebSocketClient {
         private socket: WebSocket | null = null;
@@ -72,6 +81,17 @@
                                     step.log = progressDetail.log;
                                 }
                             });
+                        }
+
+                        let id = 1;
+                        for (let node of clusterStatus.nodesTobeUpgraded) {
+                            nodes.push({id: id, done: false, description: node});
+                            id++;
+                        }
+
+                        for (let node of clusterStatus.nodesUpgraded) {
+                            nodes.push({id: id, done: true, description: node});
+                            id++;
                         }
                     }
                 } catch (error) {
@@ -153,14 +173,7 @@
 
     import TodoList from './Nodes.svelte';
 
-    const nodes = $state([
-        { id: 1, done: false, description: 'write some docs' },
-        { id: 2, done: false, description: 'start writing blog post' },
-        { id: 3, done: true, description: 'buy some milk' },
-        { id: 4, done: false, description: 'mow the lawn' },
-        { id: 5, done: false, description: 'feed the turtle' },
-        { id: 6, done: false, description: 'fix some bugs' }
-    ]);
+
 
     let uid = nodes.length + 1;
 
