@@ -84,15 +84,18 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	return retryCurrentStep, proceedNextStep, terminateApplication
 }
 
-//func removeCurrentStepDetails() {
-//	if len(s.state.ProgressDetails) != 0 {
-//		for i, detail := range s.state.ProgressDetails {
-//			if detail.StepCount == progressDetail.StepCount {
-//				return append(detail[:i], detail[i+1:])
-//			}
-//		}
-//	}
-//}
+func appendUniqueStep(progressDetails []progressDetail, stepDetail progressDetail) []progressDetail {
+	for _, progress := range progressDetails {
+		if progress.StepCount == stepDetail.StepCount {
+			fmt.Println("Duplicate stepCount found. Not appending.")
+			progress = stepDetail
+			//progressDetails = append(progressDetails, progress)
+			return progressDetails
+		}
+	}
+
+	return append(progressDetails, stepDetail)
+}
 
 // ClusterHealthChecking implements proto.MinorUpgradeServer
 func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.PrerequisitesMinorUpgrade) (*pb.UpgradeResponse, error) {
@@ -104,9 +107,9 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
 
-	// override by stepCount
+	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -147,7 +150,9 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 		stepDetail.Log = "completed"
 	}
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
+	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
+
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -186,7 +191,9 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 	stepDetail.Log = in.GetDiff()
 	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
+	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
+
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -226,7 +233,9 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
+	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
+
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -267,7 +276,9 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 	stepDetail.Log = in.GetPlan()
 	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
+	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
+
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -300,7 +311,9 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
+	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
+
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -339,7 +352,9 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
 
-	s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
+	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
+
+	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
