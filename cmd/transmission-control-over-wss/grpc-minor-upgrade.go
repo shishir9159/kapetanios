@@ -13,8 +13,6 @@ import (
 	"net"
 )
 
-// TODO: error handle per action
-
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.
 type minorUpgradeServer struct {
 	log            *zap.Logger
