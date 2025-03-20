@@ -176,12 +176,13 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
-			log.Println()
+			log.Println("context done")
 			return
 		default:
 			// TODO: exponentially back off till 15 seconds
 			err := client.Conn.SetReadDeadline(time.Now().Add(300 * time.Second))
 			if err != nil {
+				log.Println(err)
 				return
 			}
 
@@ -190,9 +191,9 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				log.Printf("error reading from %s for messagetype %d: %v",
 					client.Conn.RemoteAddr().String(), msgType, err)
 				// TODO:
-				//  test if this solves the problem
-				pool.MessageChan <- string(msg)
+				//  test if it makes any difference
 				pool.RemoveClient(client)
+				pool.MessageChan <- string(msg)
 				return
 			}
 
@@ -200,6 +201,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				log.Printf("unexpected message type: %v",
 					msgType)
 			}
+
 			log.Printf("received from %s: %s",
 				client.Conn.RemoteAddr().String(), string(msg))
 

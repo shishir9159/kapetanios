@@ -85,9 +85,7 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 func appendUniqueStep(progressDetails []progressDetail, stepDetail progressDetail) []progressDetail {
 	for _, progress := range progressDetails {
 		if progress.StepCount == stepDetail.StepCount {
-			fmt.Println("Duplicate stepCount found. Not appending.")
 			progress = stepDetail
-			//progressDetails = append(progressDetails, progress)
 			return progressDetails
 		}
 	}
