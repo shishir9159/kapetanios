@@ -151,9 +151,9 @@
 
 
 
-    import TodoList from './TodoList.svelte';
+    import TodoList from './Nodes.svelte';
 
-    const todos = $state([
+    const nodes = $state([
         { id: 1, done: false, description: 'write some docs' },
         { id: 2, done: false, description: 'start writing blog post' },
         { id: 3, done: true, description: 'buy some milk' },
@@ -162,11 +162,11 @@
         { id: 6, done: false, description: 'fix some bugs' }
     ]);
 
-    let uid = todos.length + 1;
+    let uid = nodes.length + 1;
 
     function remove(todo) {
-        const index = todos.indexOf(todo);
-        todos.splice(index, 1);
+        const index = nodes.indexOf(todo);
+        nodes.splice(index, 1);
     }
 </script>
 
@@ -193,15 +193,13 @@
 
 <div class="processing">
     <div class="nodes">
-
-
         <div class="board">
             <input
                     placeholder="what needs to be done?"
                     onkeydown={(e) => {
 			if (e.key !== 'Enter') return;
 
-			todos.push({
+			nodes.push({
 				id: uid++,
 				done: false,
 				description: e.currentTarget.value
@@ -211,8 +209,18 @@
 		}}
             />
 
+            <div class="todo">
+                <h2>nodes to be upgraded</h2>
+                <TodoList nodes={nodes.filter((t) => !t.done)} {remove} />
+            </div>
+
+            <div class="done">
+                <h2>upgraded nodes</h2>
+                <TodoList nodes={nodes.filter((t) => t.done)} {remove} />
+            </div>
 
         </div>
+    </div>
     <div class="nodes">
         <Step />
     </div>
@@ -275,5 +283,24 @@
         align-items: stretch;
         white-space: normal;
         word-wrap: break-word;
+    }
+
+
+    .board {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-column-gap: 1em;
+        max-width: 36em;
+        margin: 0 auto;
+    }
+    .board > input {
+        font-size: 1.4em;
+        grid-column: 1/3;
+        padding: 0.5em;
+        margin: 0 0 1rem 0;
+    }
+    h2 {
+        font-size: 2em;
+        font-weight: 200;
     }
 </style>

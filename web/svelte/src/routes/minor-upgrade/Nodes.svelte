@@ -2,21 +2,21 @@
     import { flip } from 'svelte/animate';
     import { send, receive } from './transition.js';
 
-    let { todos, remove } = $props();
+    let { nodes, remove } = $props();
 </script>
 
-<ul class="todos">
-    {#each todos as todo (todo.id)}
+<ul class="nodes">
+    {#each nodes as node (node.id)}
         <li
-                class={{ done: todo.done }}
-                in:receive={{ key: todo.id }}
-                out:send={{ key: todo.id }}
+                class={{ done: node.done }}
+                in:receive={{ key: node.id }}
+                out:send={{ key: node.id }}
                 animate:flip={{ duration: 200 }}
         >
             <label>
-                <input type="checkbox" bind:checked={todo.done}/>
-                <span>{todo.description}</span>
-                <button onclick={() => remove(todo)} aria-label="Remove"></button>
+                <input type="checkbox" bind:checked={node.done}/>
+                <span>{node.description}</span>
+                <button onclick={() => remove(node)} aria-label="Remove"></button>
             </label>
         </li>
     {/each}
