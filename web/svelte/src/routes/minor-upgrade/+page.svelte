@@ -83,15 +83,15 @@
                             });
                         }
 
-                        let id = 1;
+                        let uid = 1;
                         for (let node of clusterStatus.nodesTobeUpgraded) {
-                            nodes.push({id: id, done: false, description: node});
-                            id++;
+                            nodes.push({id: uid, done: false, description: node});
+                            uid++;
                         }
 
                         for (let node of clusterStatus.nodesUpgraded) {
-                            nodes.push({id: id, done: true, description: node});
-                            id++;
+                            nodes.push({id: uid, done: true, description: node});
+                            uid++;
                         }
                     }
                 } catch (error) {
@@ -169,16 +169,10 @@
         // }/
     }
 
-
-
     import TodoList from './Nodes.svelte';
 
-
-
-    let uid = nodes.length + 1;
-
-    function remove(todo) {
-        const index = nodes.indexOf(todo);
+    function remove(node) {
+        const index = nodes.indexOf(node);
         nodes.splice(index, 1);
     }
 </script>
@@ -206,33 +200,17 @@
 
 <div class="processing">
     <div class="nodes">
-        <div class="board">
-            <input
-                    placeholder="what needs to be done?"
-                    onkeydown={(e) => {
-			if (e.key !== 'Enter') return;
 
-			nodes.push({
-				id: uid++,
-				done: false,
-				description: e.currentTarget.value
-			});
-
-			e.currentTarget.value = '';
-		}}
-            />
-
-            <div class="todo">
-                <h2>nodes to be upgraded</h2>
-                <TodoList nodes={nodes.filter((t) => !t.done)} {remove} />
-            </div>
-
-            <div class="done">
-                <h2>upgraded nodes</h2>
-                <TodoList nodes={nodes.filter((t) => t.done)} {remove} />
-            </div>
-
+        <div class="todo">
+            <h2>nodes to be upgraded</h2>
+            <TodoList nodes={nodes.filter((t) => !t.done)} {remove} />
         </div>
+
+        <div class="done">
+            <h2>upgraded nodes</h2>
+            <TodoList nodes={nodes.filter((t) => t.done)} {remove} />
+        </div>
+
     </div>
     <div class="nodes">
         <Step />

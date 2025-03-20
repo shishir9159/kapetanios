@@ -107,11 +107,10 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
-	progress := progressionState{}
-
 	if s.state.SelectedConfig.PromptOnError {
 		proceedNextStep = true
 	} else {
+		progress := progressionState{}
 		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
 	}
 
