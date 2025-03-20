@@ -56,9 +56,12 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 
 			for c := range pool.Clients {
 				if client.Conn.RemoteAddr() == c.Conn.RemoteAddr() {
-					pool.unregister <- c
+					log.Info("removing old connections",
+						zap.String("client", client.Conn.RemoteAddr().String()))
+					pool.RemoveClient(c)
 				}
 			}
+
 			pool.Clients[client] = true
 			//pool.Mutex.Unlock()
 			log.Info("client registered",
