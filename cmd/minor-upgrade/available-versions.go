@@ -123,8 +123,6 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		Str("fetch the version to upgrade", rpc.GetVersion()).
 		Msg("available versions")
 
-	// TODO: VERSION COALESCING - FROM NUMERIC VALUES
-
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	}

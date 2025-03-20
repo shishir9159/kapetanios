@@ -193,10 +193,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			if err != nil || msgType == websocket.CloseMessage {
 				log.Printf("error reading from %s for messagetype %d: %v",
 					client.Conn.RemoteAddr().String(), msgType, err)
-				// TODO:
-				//  test if it makes any difference
 				pool.RemoveClient(client)
-				pool.MessageChan <- string(msg)
 				return
 			}
 
