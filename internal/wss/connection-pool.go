@@ -50,26 +50,26 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 		select {
 		case client := <-pool.register:
 
-			//pool.Mutex.Lock()
-			// true signifies the connection is occupied
-			// in reading messages
+			// pool.Mutex.Lock()
+			//  true signifies the connection is occupied
+			//  in reading messages
 
-			//for c := range pool.Clients {
-			//	if client.Conn.RemoteAddr() == c.Conn.RemoteAddr() {
-			//		log.Info("removing old connections",
-			//			zap.String("client", client.Conn.RemoteAddr().String()))
-			//		pool.RemoveClient(c)
-			//	}
-			//}
+			for c := range pool.Clients {
+				if client.Conn.RemoteAddr() == c.Conn.RemoteAddr() {
+					log.Info("removing old connections",
+						zap.String("client", client.Conn.RemoteAddr().String()))
+					pool.RemoveClient(c)
+				}
+			}
 
 			pool.Clients[client] = true
-			//pool.Mutex.Unlock()
+			// pool.Mutex.Unlock()
 			log.Info("client registered",
 				zap.String("client", client.Conn.RemoteAddr().String()),
 				zap.Int("remaining clients", len(pool.Clients)))
 
 		case client := <-pool.unregister:
-			//pool.Mutex.Lock()
+			// pool.Mutex.Lock()
 			if _, ok := pool.Clients[client]; ok {
 				log.Info("client unregistered",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
@@ -86,13 +86,13 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 						zap.Error(err))
 				}
 			}
-			//pool.Mutex.Unlock()
+			// pool.Mutex.Unlock()
 
 		case message := <-pool.broadcast:
 			// TODO: concurrent map reading writing failure
-			//pool.Mutex.RLock()
+			// pool.Mutex.RLock()
 			for client := range pool.Clients {
-				//err := client.Conn.WriteJSON(message)
+				// err := client.Conn.WriteJSON(message)
 				if client.Conn == nil {
 					log.Error("error writing message:",
 						zap.String("message body:", string(message)),
@@ -110,7 +110,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 					pool.unregister <- client
 				}
 			}
-			//pool.Mutex.RUnlock()
+			// pool.Mutex.RUnlock()
 		}
 	}
 }

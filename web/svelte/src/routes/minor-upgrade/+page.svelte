@@ -282,13 +282,6 @@
     }
 
 
-    .board {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-column-gap: 1em;
-        max-width: 36em;
-        margin: 0 auto;
-    }
     h2 {
         font-size: 2em;
         font-weight: 200;
