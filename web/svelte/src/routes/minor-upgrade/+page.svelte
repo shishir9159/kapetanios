@@ -19,11 +19,14 @@
     let formModal = $state(false);
 
     let scrollingModal = $state(false);
-    let errorLogOnScrollingModal = $state("");
+    let errorForScrollingModal = $state("");
+    let logForScrollingModal = $state("");
+
+    let selectedS = [];
 
     let nodes = $state([
-        { id: 1, done: false, name: 'node one' },
-        { id: 2, done: true, name: 'node two' },
+        // { id: 1, done: false, name: 'node one' },
+        // { id: 2, done: true, name: 'node two' },
     ]);
 
     class WebSocketClient {
@@ -90,7 +93,8 @@
                         let lastStep = progressDetails.length - 1;
                         if (progressDetails[lastStep].error !== "") {
                             scrollingModal = true
-                            errorLogOnScrollingModal = progressDetails[lastStep].error
+                            errorForScrollingModal = progressDetails[lastStep].error
+                            logForScrollingModal = progressDetails[lastStep].log
                         }
 
                         console.log($state.snapshot(nodes));
@@ -225,12 +229,13 @@
     <Label>
         Select K8s version for each OS
         <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
-        {#each packagesInfo as packageInfo}
+        {#each packagesInfo as packageInfo, i}
             <Select class="mt-2"
                     items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
-                    bind:value={s}
-                    onchange={() => selected.set(packageInfo.distroPrettyName, s) }
+                    bind:value={selectedS}
+                    onchange={() => selected.set(packageInfo.distroPrettyName, selectedS)}
             />
+            <!--                    bind:value={s}-->
         {/each}
     </Label>
     <div class="flex items-start">
@@ -248,8 +253,8 @@
 
 
 <Modal title="Prompt on error catch" bind:open={scrollingModal}>
-    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{errorLogOnScrollingModal}</p>
-    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400"></p>
+    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{errorForScrollingModal}</p>
+    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{logForScrollingModal}</p>
     <svelte:fragment slot="footer">
             <ButtonGroup>
                 <Button outline color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>

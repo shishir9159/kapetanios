@@ -280,7 +280,8 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 		})
 
 	if err != nil {
-		upgrade.nefario.log.Error("minor update pod creation failed: ")
+		upgrade.nefario.log.Error("watcher for minor update pod failed: ",
+			zap.Error(err))
 	}
 
 	if watcher == nil {
@@ -289,8 +290,13 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 		//	TODO: avoid outLoop and pass after a timer
 	}
 
-	// TODO: timeout for the watcher
+	if err != nil || watcher == nil {
+		time.Sleep(10 * time.Second)
+	}
+
 	defer watcher.Stop()
+
+	numOfPods := len(availableOS)
 
 outerLoop:
 	// TODO: handle possible empty channel return
@@ -310,19 +316,29 @@ outerLoop:
 				upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace))
-				break outerLoop
+				numOfPods++
+				if numOfPods == 0 {
+					break outerLoop
+				}
 			} else if pod.Status.Phase == corev1.PodFailed {
 				upgrade.nefario.log.Info("minor upgrade pod has failed!",
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace))
-				// todo: handle pod failure
-				break outerLoop
+				// TODO:
+				//  handle pod failure
+				numOfPods++
+				if numOfPods == 0 {
+					break outerLoop
+				}
 			}
 		case watch.Deleted:
 			upgrade.nefario.log.Info("minor upgrade pod was deleted!",
 				zap.String("pod name", pod.Name),
 				zap.String("pod namespace", pod.Namespace))
-			break outerLoop
+			numOfPods++
+			if numOfPods == 0 {
+				break outerLoop
+			}
 		}
 	}
 
