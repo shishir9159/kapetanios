@@ -39,8 +39,8 @@ export const progressInfo: { stepCount: number; title: string; log: string; erro
 
 		{
 			stepCount: 6,
-			title: '',
-			log: 'Kubernetes Cluster Upgrade',
+			title: 'Kubernetes Cluster Upgrade',
+			log: 'still processing',
 			error: ''
 		},
 

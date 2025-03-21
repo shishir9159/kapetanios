@@ -18,6 +18,9 @@
     let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
 
+    let scrollingModal = $state(false);
+    let errorLogOnScrollingModal = $state("");
+
     let nodes = $state([
         { id: 1, done: false, name: 'node one' },
         { id: 2, done: true, name: 'node two' },
@@ -78,8 +81,16 @@
                             progressInfo.forEach((step) => {
                                 if (step.stepCount == progressDetail.stepCount) {
                                     step.log = progressDetail.log;
+                                    // if (step.error != "") {
+                                    // }
                                 }
                             });
+                        }
+
+                        let lastStep = progressDetails.length - 1;
+                        if (progressDetails[lastStep].error !== "") {
+                            scrollingModal = true
+                            errorLogOnScrollingModal = progressDetails[lastStep].error
                         }
 
                         console.log($state.snapshot(nodes));
@@ -97,19 +108,6 @@
                         })
                         nodesUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
                         nodes = nodes.concat(nodesUpgraded);
-
-                        // let uid = 1;
-                        // for (let node of nodeStatus.nodesToBeUpgraded) {
-                        //     if (!nodes.some(no => no.name === node)) {
-                        //         nodes.push({id: uid, done: false, name: node});
-                        //     }
-                        //     uid++;
-                        // }
-
-                        // for (let node of nodeStatus.nodesUpgraded) {
-                        //     nodes.push({id: uid, done: true, name: node});
-                        //     uid++;
-                        // }
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);
@@ -244,9 +242,26 @@
     <div class="flex items-start">
         <Checkbox bind:value={promptOnError}>Only Prompt on Error</Checkbox>
     </div>
-    <!--    TODO: disabled={all packages are selected}  -->
+    <!--    TODO: disabled(until)={all packages are selected}  -->
     <Button type="submit" class="w-full1" on:click={() => (onsubmit())}>Submit</Button>
 </Modal>
+
+
+<Modal title="Prompt on error catch" bind:open={scrollingModal}>
+    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{errorLogOnScrollingModal}</p>
+    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400"></p>
+    <svelte:fragment slot="footer">
+            <ButtonGroup>
+                <Button outline color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>
+                <Button outline color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
+                <Button outline color="yellow" on:mousedown={() => wsClient.sendMessage("proceedNextStep")}>proceed next step</Button>
+            </ButtonGroup>
+<!--        <Button on:click={() => alert('Handle "success"')}>I accept</Button>-->
+<!--        <Button color="alternative">Decline</Button>-->
+    </svelte:fragment>
+</Modal>
+
+<Button on:click={() => (scrollingModal = true)} autoclose>Scrolling modal</Button>
 
 <style>
     .action {

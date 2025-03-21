@@ -50,22 +50,22 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 
 	pool.BroadcastMessage(payload)
 
-	// TODO:
-	//  if progression.SelectedConfig.promptOnerror == true {
-	//     skeip response
-	//  }
-	response, err := pool.ReadMessages()
+	// assumed only the last step taken is end of the list
+	lastStep := len(progression.ProgressDetails) - 1
 
-	if err != nil {
-		// return nil, err
+	var response string
+	if progression.SelectedConfig.PromptOnError == true || progression.ProgressDetails[lastStep].Err != "" {
+
+		// TODO:
+		//  save the last payload in sync.Pool???
+		response, err = pool.ReadMessages()
+		if err != nil {
+			// return nil, err
+		}
+	} else {
+		response = "proceedNextStep"
 	}
-	// TODO:
-	//  save the last payload in sync.Pool???
 
-	// TODO:
-	//  if progression.SelectedConfig.promptOnerror == true {
-	//     proceedNextStep = true
-	//  }
 	switch response {
 	case "retryCurrentStep":
 		retryCurrentStep = true
@@ -113,15 +113,12 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
 
-	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
-
 	if s.state.SelectedConfig.PromptOnError {
 		proceedNextStep = true
 		//	TODO:
 		//   send update
 		//	 without for loop
 		//   based on the condition prompt on error
-
 	} else {
 		progress := progressionState{}
 		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)

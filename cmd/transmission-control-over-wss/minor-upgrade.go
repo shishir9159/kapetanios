@@ -733,6 +733,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 	upgrade.upgradeState.NodeStatus.NodesUpgraded = []string{}
 	upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = []string{}
+	upgrade.upgradeState.ProgressDetails = []progressDetail{}
 
 	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {
