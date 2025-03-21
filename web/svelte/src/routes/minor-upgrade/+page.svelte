@@ -88,16 +88,13 @@
 
                         let uid = 1;
                         for (let node of nodeStatus.nodesToBeUpgraded) {
-                            const index = nodes.indexOf(node);
-                            nodes.splice(index, 1, {id: uid, done: false, description: node});
-
-                            // nodes.push({id: uid, done: false, description: node});
+                            if (!nodes.some(no => no.description === node)) {
+                                nodes.push({id: uid, done: false, description: node});
+                            }
                             uid++;
                         }
 
                         for (let node of nodeStatus.nodesUpgraded) {
-                            const index = nodes.indexOf(node);
-
                             nodes.push({id: uid, done: true, description: node});
                             uid++;
                         }
