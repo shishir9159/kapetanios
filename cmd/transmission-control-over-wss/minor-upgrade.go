@@ -41,21 +41,24 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 	}
 
 	for {
+		log.Info("sending payload for available package version")
 		pool.BroadcastMessage(payload)
 
 		response, err := pool.ReadMessages()
 		if err != nil {
 			// return nil, err
 		}
+
 		selections := selectedConfig{}
 		err = json.Unmarshal([]byte(response), &selections)
 
 		if err != nil || selections.K8sVersion == nil {
+			log.Error("failed to unmarshal selected config",
+				zap.Error(err))
 			continue
 		}
 
 		upgradeState.SelectedConfig = &selections
-
 		break
 	}
 
@@ -316,7 +319,7 @@ outerLoop:
 				upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace))
-				numOfPods++
+				numOfPods--
 				if numOfPods == 0 {
 					break outerLoop
 				}
@@ -326,7 +329,7 @@ outerLoop:
 					zap.String("pod namespace", pod.Namespace))
 				// TODO:
 				//  handle pod failure
-				numOfPods++
+				numOfPods--
 				if numOfPods == 0 {
 					break outerLoop
 				}
@@ -335,7 +338,7 @@ outerLoop:
 			upgrade.nefario.log.Info("minor upgrade pod was deleted!",
 				zap.String("pod name", pod.Name),
 				zap.String("pod namespace", pod.Namespace))
-			numOfPods++
+			numOfPods--
 			if numOfPods == 0 {
 				break outerLoop
 			}
@@ -344,8 +347,7 @@ outerLoop:
 
 	(<-ch).Stop()
 
-	// TODO: empty the configmap value
-	//upgrade.upgradeState.SelectedConfig.K8sVersion = []K8sVersion{}
+	upgrade.upgradeState.SelectedConfig.K8sVersion = []K8sVersion{}
 
 	selection := &upgradeConfigSelection{
 		K8sPackagesInfo: upgrade.upgradeState.K8sPackages,
