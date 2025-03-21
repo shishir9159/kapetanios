@@ -77,7 +77,9 @@ type K8sVersion struct {
 }
 
 type selectedConfig struct {
-	DrainNodes         bool         `json:"drainNodes"`
+	DrainNodes bool `json:"drainNodes"`
+	// TODO:
+	//  Allow different repo for the same OS
 	PromptOnError      bool         `json:"promptOnError"`
 	CertificateRenewal bool         `json:"certificateRenewal"`
 	K8sVersion         []K8sVersion `json:"k8sVersion"`

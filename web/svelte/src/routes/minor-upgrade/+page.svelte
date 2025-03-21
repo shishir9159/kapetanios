@@ -242,7 +242,7 @@
         <Checkbox bind:value={drainNodes}>Node Draining before Upgrade</Checkbox>
     </div>
     <div class="flex items-start">
-        <Checkbox bind:value={promptOnError}>Allow different repo for the same OS</Checkbox>
+        <Checkbox bind:value={promptOnError}>Only Prompt on Error</Checkbox>
     </div>
     <!--    TODO: disabled={all packages are selected}  -->
     <Button type="submit" class="w-full1" on:click={() => (onsubmit())}>Submit</Button>
