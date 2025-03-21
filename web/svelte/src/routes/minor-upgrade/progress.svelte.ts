@@ -2,67 +2,65 @@ export const progressInfo: { stepCount: number; title: string; log: string; erro
 	$state([
 		{
 			stepCount: 1,
-			title: 'update progress',
+			title: 'upgrade prerequisites check',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
 			stepCount: 2,
-			title: 'upgrade configuration selection',
+			title: 'checking if the package version exists',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
 			stepCount: 3,
-			title: 'Cluster Health Checking',
+			title: 'kubernetes version upgrade diff',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
 			stepCount: 4,
-			title: 'package availability check',
-			log: 'still processing',
-			error: ''
-		},
-
-		{
-			stepCount: 5,
-			title: 'Cluster Compatibility',
+			title: 'Kubeadm update',
 			log: 'still processing',
 			error: ''
 		},
 
 		// TODO:
-		//  multiple
+		//  optional step
 		{
-			stepCount: 6,
-			title: '',
-			log: 'Cluster Component Upgrade',
-			error: ''
-		},
-
-		{
-			stepCount: 7,
+			stepCount: 5,
 			title: 'Cluster Upgrade Plan',
 			log: 'still processing',
 			error: ''
 		},
 
 		{
-			stepCount: 8,
-			title: 'Cluster Upgrade',
+			stepCount: 6,
+			title: '',
+			log: 'Kubernetes Cluster Upgrade',
+			error: ''
+		},
+
+		{
+			stepCount: 7,
+			title: 'Kubelet update',
 			log: 'still processing',
 			error: ''
 		},
 
-		// TODO:
-		//  multiple
+		{
+			stepCount: 8,
+			title: 'Restarting Kubelet',
+			log: 'still processing',
+			error: ''
+		},
+
 		{
 			stepCount: 9,
-			title: 'Cluster Component Restart',
+			title: 'Kubectl update',
 			log: 'still processing',
 			error: ''
 		}

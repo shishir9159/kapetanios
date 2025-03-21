@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
@@ -356,10 +357,20 @@ func main() {
 	http.HandleFunc("/livez", livez)
 
 	upgrade.nefario.log.Info("starting kapetanios server on :80")
+	defer handlePanic()
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
 		upgrade.nefario.log.Error("error starting kapetanios server",
 			zap.Error(err))
 		panic(err)
+	}
+}
+
+func handlePanic() {
+	if r := recover(); r != nil {
+		// TODO:
+		//  store counter in configMap
+		fmt.Println("Recovered from panic:", r)
+
 	}
 }

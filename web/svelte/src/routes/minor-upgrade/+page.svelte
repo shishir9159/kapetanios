@@ -18,13 +18,9 @@
     let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
 
-    const nodes = $state([
-        // { id: 1, done: false, description: 'write some docs' },
-        // { id: 2, done: false, description: 'start writing blog post' },
-        // { id: 3, done: true, description: 'buy some milk' },
-        // { id: 4, done: false, description: 'mow the lawn' },
-        // { id: 5, done: false, description: 'feed the turtle' },
-        // { id: 6, done: false, description: 'fix some bugs' }
+    let nodes = $state([
+        { id: 1, done: false, name: 'node one' },
+        { id: 2, done: true, name: 'node two' },
     ]);
 
     class WebSocketClient {
@@ -86,18 +82,34 @@
                             });
                         }
 
+                        console.log($state.snapshot(nodes));
                         let uid = 1;
-                        for (let node of nodeStatus.nodesToBeUpgraded) {
-                            if (!nodes.some(no => no.description === node)) {
-                                nodes.push({id: uid, done: false, description: node});
-                            }
-                            uid++;
-                        }
+                        let nodesToBeUpgraded = [];
+                        nodeStatus.nodesToBeUpgraded.forEach(node => {
+                            nodesToBeUpgraded.push({id: uid++, done: false, name: node});
+                        })
+                        nodesToBeUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
+                        nodes = nodesToBeUpgraded;
+;
+                        let nodesUpgraded = [];
+                        nodeStatus.nodesUpgraded.forEach(node => {
+                            nodesUpgraded.push({id: uid++, done: true, name: node});
+                        })
+                        nodesUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
+                        nodes = nodes.concat(nodesUpgraded);
 
-                        for (let node of nodeStatus.nodesUpgraded) {
-                            nodes.push({id: uid, done: true, description: node});
-                            uid++;
-                        }
+                        // let uid = 1;
+                        // for (let node of nodeStatus.nodesToBeUpgraded) {
+                        //     if (!nodes.some(no => no.name === node)) {
+                        //         nodes.push({id: uid, done: false, name: node});
+                        //     }
+                        //     uid++;
+                        // }
+
+                        // for (let node of nodeStatus.nodesUpgraded) {
+                        //     nodes.push({id: uid, done: true, name: node});
+                        //     uid++;
+                        // }
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);
@@ -114,15 +126,6 @@
                     setTimeout(() => this.connect(), this.reconnectInterval);
                 }
             };
-        }
-
-        private handleMessage(event: MessageEvent): void {
-            try {
-                const message = JSON.parse(event.data);
-                console.log('Received message:', message);
-            } catch (error) {
-                console.error('Error parsing message:', error);
-            }
         }
 
         public sendMessage(message: string): void {
@@ -164,9 +167,7 @@
             certificateRenewal,
             k8sVersion
         }
-        // const payLoad = JSON.stringify();
         wsClient.sendJson(upgradeConfig);
-        // socket.send(payLoad);
 
         formModal = false
         // } /else {
@@ -276,7 +277,7 @@
         flex: 1;
         padding: 50px;
         text-align: justify-all;
-        align-items: stretch;
+        align-items: flex-start;
         white-space: normal;
         word-wrap: break-word;
     }
