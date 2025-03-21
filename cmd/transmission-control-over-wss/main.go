@@ -130,7 +130,8 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	err = json.Unmarshal([]byte(configMap.Data["UPGRADE_STATE"]), &state)
 	if err != nil {
-		nefario.log.Error("error unmarshaling the configMap")
+		nefario.log.Error("error unmarshaling the configMap",
+			zap.Error(err))
 	}
 
 	if state.NodeStatus == nil {
@@ -157,7 +158,8 @@ func writeConfig(nefario *Nefario, state UpgradeState) error {
 
 	payload, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
-		nefario.log.Error("error marshaling the configMap")
+		nefario.log.Error("error marshaling the configMap",
+			zap.Error(err))
 	}
 
 	configMap.Data["UPGRADE_STATE"] = string(payload)

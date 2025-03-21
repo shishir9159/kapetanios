@@ -67,9 +67,9 @@
                             'progressDetails' in upgradeProgression.state
                         ) {
                             upgradeConfig = upgradeProgression.state.selectedConfig;
-                            clusterStatus = upgradeProgression.state.nodesStatus;
+                            nodeStatus = upgradeProgression.state.nodesStatus;
                             progressDetails = upgradeProgression.state.progressDetails;
-                            console.log("upgrade progression state", upgradeProgression.state);
+                            console.log("upgrade progression state", upgradeProgression.state.nodesStatus);
                         } else {
                             // TODO:
                             //   sent error reply and expect another payload
@@ -87,12 +87,17 @@
                         }
 
                         let uid = 1;
-                        for (let node of clusterStatus.nodesTobeUpgraded) {
-                            nodes.push({id: uid, done: false, description: node});
+                        for (let node of nodeStatus.nodesToBeUpgraded) {
+                            const index = nodes.indexOf(node);
+                            nodes.splice(index, 1, {id: uid, done: false, description: node});
+
+                            // nodes.push({id: uid, done: false, description: node});
                             uid++;
                         }
 
-                        for (let node of clusterStatus.nodesUpgraded) {
+                        for (let node of nodeStatus.nodesUpgraded) {
+                            const index = nodes.indexOf(node);
+
                             nodes.push({id: uid, done: true, description: node});
                             uid++;
                         }
@@ -286,12 +291,6 @@
         grid-column-gap: 1em;
         max-width: 36em;
         margin: 0 auto;
-    }
-    .board > input {
-        font-size: 1.4em;
-        grid-column: 1/3;
-        padding: 0.5em;
-        margin: 0 0 1rem 0;
     }
     h2 {
         font-size: 2em;

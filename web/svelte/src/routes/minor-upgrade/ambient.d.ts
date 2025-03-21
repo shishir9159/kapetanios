@@ -30,7 +30,7 @@ export interface SelectedConfig {
 
 export interface NodesStatus {
 	nodesUpgraded: [string];
-	nodesTobeUpgraded: [string];
+	nodesToBeUpgraded: [string];
 	nodesFailedToBeUpgraded: [string] | null;
 }
 

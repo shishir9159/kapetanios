@@ -501,6 +501,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		upgrade.upgradeState.NodeStatus.NodesUpgraded = nodeNames[:index]
 		upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = nodeNames[index:]
+		upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded = []string{}
 
 		// TODO: should this be one case only
 		//  as without delimiter
