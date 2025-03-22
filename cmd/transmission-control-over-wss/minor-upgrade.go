@@ -464,6 +464,9 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 				zap.String("node info kubelet version", no.Status.NodeInfo.KubeletVersion),
 				zap.String("node info container runtime version", no.Status.NodeInfo.ContainerRuntimeVersion),
 			)
+
+			// TODO: CONTAINER-RUNTIME compatibility
+
 			nodeNames = append(nodeNames, no.Name)
 		}
 

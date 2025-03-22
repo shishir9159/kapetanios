@@ -9,8 +9,6 @@ import (
 // number of control-plane pods and nodes running
 // if the nodes match with the expectations
 
-// TODO: controller needs to be passed
-
 // TODO: node - role name
 
 func Prerequisites(upgrade *MinorUpgrade) error {
@@ -20,8 +18,6 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 	// for the updates
 
 	// TODO: throw error no master nodes found
-
-	// TODO: controller should be created and passed here
 
 	//configMapName := "kubeadm-config"
 	//configMap, er := Upgrade.nefario.client.Clientset().CoreV1().ConfigMaps("kube-system").
@@ -37,8 +33,6 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 	// TODO: race condition - readCtx can be cancelled
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
 		zap.Strings("nodes to be upgraded", upgrade.upgradeState.NodeStatus.NodesToBeUpgraded))
-
-	// TODO: CONTAINER-RUNTIME compatibility
 
 	upgrade.finalizer = make(chan bool, 1)
 

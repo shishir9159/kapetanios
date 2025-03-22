@@ -342,7 +342,6 @@ func main() {
 	}
 
 	pool := wss.NewPool()
-	// TODO: remove all the clients when the job ends
 	go pool.Run(nefario.log)
 
 	upgrade := MinorUpgrade{
