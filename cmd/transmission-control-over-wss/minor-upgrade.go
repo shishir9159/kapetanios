@@ -44,17 +44,18 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 		log.Info("sending payload for available package version")
 		pool.BroadcastMessage(payload)
 
-		response, err := pool.ReadMessages()
-		if err != nil {
-			// return nil, err
+		response, er := pool.ReadMessages()
+		if er != nil {
+			log.Info("failed to read payload for available package version",
+				zap.Error(er))
 		}
 
 		selections := selectedConfig{}
-		err = json.Unmarshal([]byte(response), &selections)
+		er = json.Unmarshal([]byte(response), &selections)
 
-		if err != nil || selections.K8sVersion == nil {
-			log.Error("failed to unmarshal selected config",
-				zap.Error(err))
+		if er != nil || selections.K8sVersion == nil {
+			log.Error("failed to unmarshal selected upgrade config",
+				zap.Error(er))
 			continue
 		}
 
