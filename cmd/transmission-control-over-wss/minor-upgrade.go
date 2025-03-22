@@ -348,8 +348,6 @@ outerLoop:
 
 	(<-ch).Stop()
 
-	upgrade.upgradeState.SelectedConfig.K8sVersion = []K8sVersion{}
-
 	selection := &upgradeConfigSelection{
 		K8sPackagesInfo: upgrade.upgradeState.K8sPackages,
 	}
