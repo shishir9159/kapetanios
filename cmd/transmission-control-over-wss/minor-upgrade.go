@@ -236,12 +236,12 @@ func recovery(namespace string) {
 func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	roleName := "minor-upgrade"
 
+	upgrade.upgradeState.K8sPackages = []k8sPackageInfo{}
+
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
 
 	renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
-
-	upgrade.upgradeState.K8sPackages = []k8sPackageInfo{}
 
 	for osImage, nodeName := range availableOS {
 
@@ -299,7 +299,6 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	}
 
 	defer watcher.Stop()
-
 	numOfPods := len(availableOS)
 
 outerLoop:
@@ -314,7 +313,6 @@ outerLoop:
 		}
 
 		switch event.Type {
-
 		case watch.Modified:
 			if pod.Status.Phase == corev1.PodSucceeded {
 				upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",

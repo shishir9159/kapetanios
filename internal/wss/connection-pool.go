@@ -146,7 +146,13 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	for client := range pool.Clients {
 		if pool.Clients[client] {
-			go pool.ReadMessageFromConn(ctx, client)
+			go func() {
+				err := pool.ReadMessageFromConn(ctx, client)
+				if err != nil {
+					log.Println("error reading message from connection",
+						zap.Error(err))
+				}
+			}()
 		}
 	}
 
@@ -176,20 +182,22 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 //  - set limit on queue element size and insertion rate per element
 //  - how should I read? circular? pub sub pattern when an input happens?
 
-func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) {
+func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) error {
 	pool.Clients[client] = false
 	for {
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
 			log.Println("context done")
-			return
+			return nil
 		default:
 			// TODO: exponentially back off till 15 seconds
 			err := client.Conn.SetReadDeadline(time.Now().Add(300 * time.Second))
 			if err != nil {
 				log.Println(err)
-				return
+				// TODO:
+				//  pool.RemoveClient(client)
+				return err
 			}
 
 			msgType, msg, err := client.Conn.ReadMessage()
@@ -197,7 +205,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				log.Printf("error reading from %s for messagetype %d: %v",
 					client.Conn.RemoteAddr().String(), msgType, err)
 				pool.RemoveClient(client)
-				return
+				return err
 			}
 
 			if msgType != websocket.TextMessage {
@@ -211,7 +219,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			pool.MessageChan <- string(msg)
 
 			pool.Clients[client] = true
-			return
+			return nil
 		}
 	}
 }

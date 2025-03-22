@@ -255,7 +255,13 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 	}
 
 	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
-	go upgrade.pool.ReadMessageFromConn(ctx, client)
+	go func() {
+		er := upgrade.pool.ReadMessageFromConn(ctx, client)
+		if er != nil {
+			upgrade.nefario.log.Info("error reading message from connection",
+				zap.Error(er))
+		}
+	}()
 
 	<-upgrade.finalizer
 
@@ -369,10 +375,10 @@ func main() {
 }
 
 func handlePanic() {
+	fmt.Println("handling panic")
 	if r := recover(); r != nil {
 		// TODO:
 		//  store counter in configMap
 		fmt.Println("Recovered from panic:", r)
-
 	}
 }
