@@ -84,6 +84,7 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 			log.Error("error reporting cluster health",
 				zap.Error(err))
 		}
+
 		log.Error("unknown response from frontend",
 			zap.String("response", response))
 	}
