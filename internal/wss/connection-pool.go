@@ -77,12 +77,14 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 				delete(pool.Clients, client)
 
 				if client.Conn == nil {
+					log.Info("client connection value is nil, early return")
 					return
 				}
 
 				err := client.Conn.Close()
 				if err != nil {
 					log.Error("close connection failed",
+						zap.String("client address", client.Conn.RemoteAddr().String()),
 						zap.Error(err))
 				}
 			}
@@ -96,7 +98,8 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 				if client.Conn == nil {
 					log.Error("error writing message:",
 						zap.String("message body:", string(message)),
-						zap.Int("remaining clients", len(pool.Clients)))
+						zap.Int("remaining clients", len(pool.Clients)),
+						zap.String("client address", client.Conn.RemoteAddr().String()))
 					pool.unregister <- client
 				}
 
@@ -106,8 +109,10 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 						zap.String("message body:", string(message)),
 						zap.Int("remaining clients", len(pool.Clients)),
 						//zap.Int("closing error", websocket.CloseError.Error(err))),
+						zap.String("client address", client.Conn.RemoteAddr().String()),
 						zap.Error(err))
-					pool.unregister <- client
+					// TODO:
+					//pool.unregister <- client
 				}
 			}
 			// pool.Mutex.RUnlock()
@@ -134,11 +139,16 @@ func (pool *ConnectionPool) BroadcastMessage(message []byte) {
 
 func (pool *ConnectionPool) ReadMessages() (string, error) {
 
-	for {
+	for i := 0; ; i++ {
 		if len(pool.Clients) == 0 {
+
 			time.Sleep(3 * time.Second)
+			log.Println("no clients in the pool to read message from",
+				zap.Int("retry count", i))
+
 			continue
 		}
+
 		break
 	}
 
@@ -150,6 +160,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 				err := pool.ReadMessageFromConn(ctx, client)
 				if err != nil {
 					log.Println("error reading message from connection",
+						zap.String("client address", client.Conn.RemoteAddr().String()),
 						zap.Error(err))
 				}
 			}()
@@ -158,8 +169,6 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	message := <-pool.MessageChan
 	pool.CancelReadContext()
-
-	// TODO: after cancellation, reinitialize the Read Context
 	pool.ReadCtx, pool.readCancel = context.WithCancel(pool.Ctx)
 
 	return strings.TrimSpace(message), nil
@@ -168,7 +177,6 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 // pub sub and a single fifo wouldn't make this easier
 // as unsubscribing to listening to message would still
 // be challenging
-
 // todo:
 //  Circular Queue or Ring Buffer Requirements:
 //  - FIFO
@@ -183,18 +191,24 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 //  - how should I read? circular? pub sub pattern when an input happens?
 
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) error {
+
 	pool.Clients[client] = false
+
 	for {
+
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
-			log.Println("context done")
+			log.Println("context done",
+				zap.String("client address", client.Conn.RemoteAddr().String()))
 			return nil
+
 		default:
 			// TODO: exponentially back off till 15 seconds
-			err := client.Conn.SetReadDeadline(time.Now().Add(300 * time.Second))
+			err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
 			if err != nil {
-				log.Println(err)
+				log.Println("error setting read deadline for client",
+					zap.Error(err))
 				// TODO:
 				//  pool.RemoveClient(client)
 				return err
@@ -202,8 +216,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
-				log.Printf("error reading from %s for messagetype %d: %v",
-					client.Conn.RemoteAddr().String(), msgType, err)
+				log.Printf("error reading from %s for messagetype %d: %v - message: %s",
+					client.Conn.RemoteAddr().String(), msgType, err, string(msg))
 				pool.RemoveClient(client)
 				return err
 			}
@@ -217,8 +231,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				client.Conn.RemoteAddr().String(), string(msg))
 
 			pool.MessageChan <- string(msg)
-
 			pool.Clients[client] = true
+
 			return nil
 		}
 	}
