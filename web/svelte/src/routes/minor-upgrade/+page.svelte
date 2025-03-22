@@ -18,6 +18,7 @@
     let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
 
+    let progressModal = $state(false);
     let scrollingModal = $state(false);
     let errorForScrollingModal = $state("");
     let logForScrollingModal = $state("");
@@ -91,7 +92,7 @@
                         }
 
                         let lastStep = progressDetails.length - 1;
-                        if (progressDetails[lastStep].error !== "") {
+                        if (progressDetails[lastStep].error != "") {
                             scrollingModal = true
                             errorForScrollingModal = progressDetails[lastStep].error
                             logForScrollingModal = progressDetails[lastStep].log
@@ -257,9 +258,9 @@
     <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{logForScrollingModal}</p>
     <svelte:fragment slot="footer">
             <ButtonGroup>
-                <Button outline color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>
-                <Button outline color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
-                <Button outline color="yellow" on:mousedown={() => wsClient.sendMessage("proceedNextStep")}>proceed next step</Button>
+                <Button pill color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>
+                <Button pill color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
+                <Button pill color="yellow" on:mousedown={() => wsClient.sendMessage("proceedNextStep")}>proceed next step</Button>
             </ButtonGroup>
 <!--        <Button on:click={() => alert('Handle "success"')}>I accept</Button>-->
 <!--        <Button color="alternative">Decline</Button>-->

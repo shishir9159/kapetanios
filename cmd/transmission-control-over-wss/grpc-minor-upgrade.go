@@ -60,7 +60,8 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 		//  save the last payload in sync.Pool???
 		response, err = pool.ReadMessages()
 		if err != nil {
-			// return nil, err
+			log.Error("failed to read progression response",
+				zap.Error(err))
 		}
 	} else {
 		response = "proceedNextStep"
@@ -113,16 +114,8 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
 
-	if s.state.SelectedConfig.PromptOnError {
-		proceedNextStep = true
-		//	TODO:
-		//   send update
-		//	 without for loop
-		//   based on the condition prompt on error
-	} else {
-		progress := progressionState{}
-		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
-	}
+	progress := progressionState{}
+	retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
 
 	// TODO:
 	//  handle error if etcd is not healthy
@@ -157,8 +150,6 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
 
-	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
-
 	progress := progressionState{}
 
 	if in.GetConsistentVersioning() == false {
@@ -168,11 +159,9 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 
 	// TODO:
 	//  proper diagnosis
-	if s.state.SelectedConfig.PromptOnError {
-		proceedNextStep = true
-	} else {
-		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
-	}
+
+	retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+
 	s.log.Info("consistent versioning",
 		zap.Bool("k8s component version are matched", in.GetConsistentVersioning()),
 		zap.String("error", in.GetErr()))
@@ -197,8 +186,6 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 	stepDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
-
-	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -239,8 +226,6 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 	stepDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
-
-	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -283,8 +268,6 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
 
-	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
-
 	progress := progressionState{}
 
 	// TODO:
@@ -317,8 +300,6 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 	stepDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
-
-	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
@@ -358,8 +339,6 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 	stepDetail.Err = in.GetErr()
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
-
-	//s.state.ProgressDetails = append(s.state.ProgressDetails, stepDetail)
 
 	progress := progressionState{}
 
