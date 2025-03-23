@@ -197,6 +197,7 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	if len(upgrade.pool.Clients) > 5 {
+
 		_, err := io.WriteString(w, "maximum number of concurrent connection exceeded!")
 		if err != nil {
 
@@ -218,6 +219,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		// TODO: wrap it in error state
 		upgrade.nefario.log.Info("connection upgrade error:",
 			zap.Error(err))
+
 		return
 	}
 
@@ -256,6 +258,10 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
 	go func() {
+
+		upgrade.nefario.log.Info("reading message from connection",
+			zap.String("client address: ", client.Conn.RemoteAddr().String()))
+
 		er := upgrade.pool.ReadMessageFromConn(ctx, client)
 		if er != nil {
 			upgrade.nefario.log.Info("error reading message from connection",

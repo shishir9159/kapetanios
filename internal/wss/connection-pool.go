@@ -167,6 +167,8 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	message := <-pool.MessageChan
 	pool.CancelReadContext()
+	log.Println("cancelling read context",
+		zap.String("message body:", message))
 	pool.ReadCtx, pool.readCancel = context.WithCancel(pool.Ctx)
 
 	return strings.TrimSpace(message), nil
@@ -191,6 +193,8 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) error {
 
 	pool.Clients[client] = false
+
+	log.Printf("reading message from connection with client address being %s", client.Conn.RemoteAddr().String())
 
 	for {
 

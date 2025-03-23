@@ -240,7 +240,7 @@
         Select K8s version for each OS
         <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
         {#each packagesInfo as packageInfo, i}
-            <p>{packagesInfo.distroPrettyName}</p>
+            <p>{packageInfo.distroPrettyName}</p>
             <Select class="mt-2"
                     items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
                     bind:value={selectedS}
