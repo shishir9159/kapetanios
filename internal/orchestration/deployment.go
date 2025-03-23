@@ -2,7 +2,6 @@ package orchestration
 
 import (
 	"fmt"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -88,10 +87,6 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 						{
 							Name:  "DEBIAN_FRONTEND",
 							Value: "noninteractive",
-						},
-						{
-							Name:  "NEEDRESTART_MODE",
-							Value: "a",
 						},
 					},
 				},

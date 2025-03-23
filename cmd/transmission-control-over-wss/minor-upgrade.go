@@ -742,16 +742,15 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 			}
 		}
 
-		// TODO: All containers are restarted after upgrade, because the container spec hash value is changed.
-		//  check if previously listed pods are all successfully restarted before untainted
-
 		watcher.Stop()
+		// TODO:
+		//  if storage is configMap
+		upgrade.upgradeState.ProgressDetails = []progressDetail{}
 	}
 	(<-ch).Stop()
 
 	upgrade.upgradeState.NodeStatus.NodesUpgraded = []string{}
 	upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = []string{}
-	upgrade.upgradeState.ProgressDetails = []progressDetail{}
 
 	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {

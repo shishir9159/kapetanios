@@ -103,7 +103,6 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.PackageAvailabilityCheck(c.ctx,
-
 		&pb.VersionCheck{
 			//TODO: check installed/running component versions
 			ConsistentVersioning: true,

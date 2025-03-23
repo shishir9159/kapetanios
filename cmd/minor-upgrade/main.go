@@ -91,7 +91,6 @@ func main() {
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("couldn't connect to the kapetanios")
-
 	}
 
 	//grpc.WithDisableServiceConfig()

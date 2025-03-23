@@ -92,7 +92,7 @@
                         }
 
                         let lastStep = progressDetails.length - 1;
-                        if (progressDetails[lastStep].error != "") {
+                        if (progressDetails[lastStep].error !== "") {
                             scrollingModal = true
                             errorForScrollingModal = progressDetails[lastStep].error
                             logForScrollingModal = progressDetails[lastStep].log

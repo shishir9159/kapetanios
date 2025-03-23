@@ -86,6 +86,7 @@ declare module '$env/static/private' {
 	export const FZF_CTRL_T_COMMAND: string;
 	export const LESS_TERMCAP_me: string;
 	export const LESS_TERMCAP_md: string;
+	export const LIBVIRT_DEFAULT_URI: string;
 	export const USER: string;
 	export const FZF_ALT_C_COMMAND: string;
 	export const QT_WAYLAND_RECONNECT: string;
@@ -219,6 +220,7 @@ declare module '$env/dynamic/private' {
 		FZF_CTRL_T_COMMAND: string;
 		LESS_TERMCAP_me: string;
 		LESS_TERMCAP_md: string;
+		LIBVIRT_DEFAULT_URI: string;
 		USER: string;
 		FZF_ALT_C_COMMAND: string;
 		QT_WAYLAND_RECONNECT: string;

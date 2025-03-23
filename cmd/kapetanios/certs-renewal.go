@@ -53,14 +53,12 @@ func Cert(namespace string) {
 
 	roleName := "certs"
 	matchLabels := map[string]string{"assigned-node-role-certs.kubernetes.io": roleName}
-
 	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
 	renewalMinionManager := orchestration.NewMinions(client)
-
 	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
 		c.log.Error("error listing nodes",
