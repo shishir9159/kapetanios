@@ -24,6 +24,7 @@
     let logForScrollingModal = $state("");
 
     let selectedS = [];
+    let items: boolean[] = $state(new Array<boolean>(10).fill(false));
 
     let nodes = $state([
         // { id: 1, done: false, name: 'node one' },
@@ -78,9 +79,6 @@
                             //   sent error reply and expect another payload
                         }
 
-
-                        const items = Array(10);
-                        // bind:open={items[0]
                         for (let progressDetail of progressDetails) {
                             progressInfo.forEach((step) => {
                                 if (step.stepCount == progressDetail.stepCount) {
@@ -92,6 +90,10 @@
                         }
 
                         let lastStep = progressDetails.length - 1;
+
+                        items.fill(false);
+                        items[lastStep] = true;
+
                         if (progressDetails[lastStep].error !== "") {
                             scrollingModal = true
                             console.log("lastStep", lastStep);
@@ -231,7 +233,7 @@
 
     </div>
     <div class="nodes">
-        <Step />
+        <Step {items} />
     </div>
 </div>
 
