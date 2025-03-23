@@ -112,6 +112,9 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 	stepDetail.StepCount = 1
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
+	if stepDetail.Err == "" {
+		stepDetail.Log = "completed"
+	}
 
 	s.state.ProgressDetails = appendUniqueStep(s.state.ProgressDetails, stepDetail)
 

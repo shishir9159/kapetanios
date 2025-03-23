@@ -94,6 +94,8 @@
                         let lastStep = progressDetails.length - 1;
                         if (progressDetails[lastStep].error !== "") {
                             scrollingModal = true
+                            console.log("lastStep", lastStep);
+                            console.log("progressDetails[lastStep].error", progressDetails[lastStep].error);
                             errorForScrollingModal = progressDetails[lastStep].error
                             logForScrollingModal = progressDetails[lastStep].log
                         }
@@ -172,6 +174,9 @@
         }
         wsClient.sendJson(upgradeConfig);
 
+        //  todo;
+        //   cleanup selectedS
+
         formModal = false
         // } /else {
         // // TODO: throw error
@@ -200,9 +205,13 @@
 <div class="action">
     <div class="button-group">
         <ButtonGroup>
-            <Button outline color="red" on:mousedown={() => wsClient.sendMessage("retryCurrentStep")}>retry current step</Button>
+            <Button outline color="red"
+                    on:mousedown={() => {
+                        wsClient.sendMessage("retryCurrentStep");
+                        scrollingModal= false;
+                    }}>retry current step</Button>
             <Button outline color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
-            <Button outline color="yellow" on:mousedown={() => wsClient.sendMessage("proceedNextStep")}>proceed next step</Button>
+            <Button outline color="yellow" on:mousedown={() => {wsClient.sendMessage("proceedNextStep"); scrollingModal= false;}}>proceed next step</Button>
         </ButtonGroup>
     </div>
 </div>
@@ -231,6 +240,7 @@
         Select K8s version for each OS
         <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Select K8s version for Different OS Image</h3>
         {#each packagesInfo as packageInfo, i}
+            <p>{packagesInfo.distroPrettyName}</p>
             <Select class="mt-2"
                     items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
                     bind:value={selectedS}

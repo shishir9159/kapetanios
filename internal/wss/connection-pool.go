@@ -76,16 +76,15 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 					zap.Int("remaining clients", len(pool.Clients)))
 				delete(pool.Clients, client)
 
-				if client.Conn == nil {
+				if client.Conn != nil {
+					err := client.Conn.Close()
+					if err != nil {
+						log.Error("close connection failed",
+							zap.String("client address", client.Conn.RemoteAddr().String()),
+							zap.Error(err))
+					}
+				} else {
 					log.Info("client connection value is nil, early return")
-					return
-				}
-
-				err := client.Conn.Close()
-				if err != nil {
-					log.Error("close connection failed",
-						zap.String("client address", client.Conn.RemoteAddr().String()),
-						zap.Error(err))
 				}
 			}
 			// pool.Mutex.Unlock()
@@ -94,7 +93,6 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			// TODO: concurrent map reading writing failure
 			// pool.Mutex.RLock()
 			for client := range pool.Clients {
-				// err := client.Conn.WriteJSON(message)
 				if client.Conn == nil {
 					log.Error("error writing message:",
 						zap.String("message body:", string(message)),
@@ -112,7 +110,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 						zap.String("client address", client.Conn.RemoteAddr().String()),
 						zap.Error(err))
 					// TODO:
-					//pool.unregister <- client
+					//  pool.unregister <- client
 				}
 			}
 			// pool.Mutex.RUnlock()

@@ -36,13 +36,13 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 	json := jsoniter.ConfigFastest
 	payload, err := json.Marshal(upgradeProgression)
 	if err != nil {
-		log.Error("failed to marshal upgradeProgression",
+		log.Error("failed to marshal upgrade progression",
 			zap.Error(err))
 	}
 
 	for {
-		log.Info("sending payload for available package version")
 		pool.BroadcastMessage(payload)
+		log.Info("broadcasted payload for available package version")
 
 		response, er := pool.ReadMessages()
 		if er != nil {

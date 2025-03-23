@@ -176,12 +176,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 			Msg("failed to exit from the updated root")
 	}
 
-	// TODO:
-	//  Check for kubernetes repo if no version is found
-	//  disableexclude
-
 	conn.ResetConnectBackoff()
-
 	connection := pb.NewMinorUpgradeClient(conn)
 
 	rpc, err := connection.ClusterComponentUpgrade(c.ctx,

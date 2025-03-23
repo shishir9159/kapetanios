@@ -24,42 +24,17 @@ func getDistro(c Controller) (string, error) {
 			Msg("failed to open /etc/os-release")
 	}
 
-	//defer func() {
-	//	if er := fi.Close(); er != nil {
-	//		c.log.Fatal().Err(er).
-	//			Msg("failed to close /etc/os-release")
-	//	}
-	//}()
-	//
-	//// try double buffering the chunks
-	//buf := make([]byte, 1024)
-	//for {
-	//	// read a chunk
-	//	n, er := fi.Read(buf)
-	//	if er != nil && er != io.EOF {
-	//		c.log.Error().Err(er).
-	//			Msg("failed to read chunk by chunk from /etc/os-release")
-	//	}
-	//
-	//	if substring(buf[:n], 0) == "ID" {}
-	//
-	//	if n == 0 {
-	//		break
-	//	}
-	//}
-
 	var distroPrettyName string
 
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "PRETTY_NAME=") {
-			// Trim leading 'ID=' and remove quotes if present
 			prettyName := strings.TrimPrefix(line, "PRETTY_NAME=")
 			prettyName = strings.Trim(prettyName, `"`)
 			distroPrettyName = prettyName
 			c.log.Info().
-				Str("distro name", prettyName).
+				Str("distro pretty name", prettyName).
 				Msg("~distro~")
 		}
 	}
@@ -85,6 +60,10 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	//  check if external etcd running if it's an etcd node
 
 	distro, err := getDistro(c)
+	if err != nil {
+		c.log.Error().Err(err).
+			Msg("failed to get distro pretty name")
+	}
 
 	etcdNode := os.Getenv("ETCD_NODE")
 	if etcdNode == "false" {
@@ -97,10 +76,11 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 
 	rpc, err := connection.ClusterHealthChecking(c.ctx,
 		&pb.PrerequisitesMinorUpgrade{
-			EtcdStatus: true,
-			// TODO: refactor
+			// TODO:
+			EtcdStatus:          true,
 			StorageAvailability: 50,
-			Err:                 "",
+			Log:                 "",
+			Err:                 err.Error(),
 		})
 
 	if err != nil {
