@@ -34,7 +34,7 @@ func getDistro(c Controller) (string, error) {
 			prettyName = strings.Trim(prettyName, `"`)
 			distroPrettyName = prettyName
 			c.log.Info().
-				Str("distro pretty name", prettyName).
+				Str("distro pretty name", distroPrettyName).
 				Msg("~distro~")
 		}
 	}
@@ -80,7 +80,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 			EtcdStatus:          true,
 			StorageAvailability: 50,
 			Log:                 "",
-			Err:                 err.Error(),
+			Err:                 utils.EmptyOrError(err),
 		})
 
 	if err != nil {
