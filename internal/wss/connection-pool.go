@@ -169,7 +169,6 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 	pool.CancelReadContext()
 	log.Println("cancelling read context",
 		zap.String("message body:", message))
-	pool.ReadCtx, pool.readCancel = context.WithCancel(pool.Ctx)
 
 	return strings.TrimSpace(message), nil
 }
