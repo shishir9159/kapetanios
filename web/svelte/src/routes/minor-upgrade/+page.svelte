@@ -281,8 +281,6 @@
     </svelte:fragment>
 </Modal>
 
-<Button on:click={() => (scrollingModal = true)} autoclose>Scrolling modal</Button>
-
 <style>
     .action {
         display: flex;

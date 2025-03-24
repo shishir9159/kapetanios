@@ -152,8 +152,6 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	message := <-pool.MessageChan
 	pool.CancelReadContext()
-	log.Println("cancelling read context",
-		zap.String("message body:", message))
 
 	return strings.TrimSpace(message), nil
 }

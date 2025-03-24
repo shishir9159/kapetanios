@@ -228,6 +228,9 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		Conn: conn,
 	}
 
+	upgrade.nefario.log.Info("client connection object format",
+		zap.Any("connection", client.Conn))
+
 	for c := range upgrade.pool.Clients {
 		if client.Conn == c.Conn {
 			upgrade.nefario.log.Info("removing old connections",
@@ -236,6 +239,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 			if er := c.Conn.WriteMessage(websocket.CloseMessage, closeMessage); er != nil {
 				// handle error
 			}
+
 			er := c.Conn.Close()
 			if er != nil {
 				upgrade.nefario.log.Info("error closing connection",
