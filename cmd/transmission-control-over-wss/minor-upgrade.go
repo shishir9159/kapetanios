@@ -779,8 +779,31 @@ func (finalizer *upgradeFinalizer) SendMessage(upgradeState *UpgradeState, log *
 
 	finalizer.NodeStatus = upgradeState.NodeStatus
 
+	json := jsoniter.ConfigFastest
+	payload, err := json.Marshal(finalizer)
+	if err != nil {
+		log.Error("failed to marshal upgradeProgression",
+			zap.Error(err))
+	}
+
 	for i := 0; i < 5; i++ {
 
+		pool.BroadcastMessage(payload)
+
+		response, er := pool.ReadMessages()
+		if er != nil {
+			log.Error("failed to read progression response",
+				zap.Error(er))
+		}
+
+		switch response {
+		case "finalizer received":
+			break
+		default:
+			log.Error("unknown response from frontend for finalizer",
+				zap.String("response", response))
+			continue
+		}
 	}
 
 	return false, false, false
