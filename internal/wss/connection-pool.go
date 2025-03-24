@@ -95,24 +95,36 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			// TODO: concurrent map reading writing failure
 			// pool.Mutex.RLock()
 			for client := range pool.Clients {
+				log.Info("broadcasting current state",
+					zap.String("client address", client.Conn.RemoteAddr().String()))
+
 				if client.Conn == nil {
 					pool.unregister <- client
 					log.Error("client connection is nil",
 						zap.String("message body:", string(message)),
 						zap.Int("remaining clients", len(pool.Clients)),
 						zap.String("client address", client.Conn.RemoteAddr().String()))
-				}
+				} else {
 
-				err := client.Conn.WriteMessage(websocket.BinaryMessage, message)
-				if err != nil {
-					log.Error("error writing message",
-						zap.String("message body:", string(message)),
-						zap.Int("remaining clients", len(pool.Clients)),
-						//zap.Int("closing error", websocket.CloseError.Error(err))),
-						zap.String("client address", client.Conn.RemoteAddr().String()),
-						zap.Error(err))
-					// TODO:
-					//  pool.unregister <- client
+					log.Info("broadcasting current state",
+						zap.Int("step", 1),
+						zap.String("client address", client.Conn.RemoteAddr().String()))
+
+					err := client.Conn.WriteMessage(websocket.BinaryMessage, message)
+					if err != nil {
+						log.Error("error writing message",
+							zap.String("message body:", string(message)),
+							zap.Int("remaining clients", len(pool.Clients)),
+							//zap.Int("closing error", websocket.CloseError.Error(err))),
+							zap.String("client address", client.Conn.RemoteAddr().String()),
+							zap.Error(err))
+						// TODO:
+						//  pool.unregister <- client
+					}
+
+					log.Info("broadcasting current state",
+						zap.Int("step", 2),
+						zap.String("client address", client.Conn.RemoteAddr().String()))
 				}
 			}
 			// pool.Mutex.RUnlock()
