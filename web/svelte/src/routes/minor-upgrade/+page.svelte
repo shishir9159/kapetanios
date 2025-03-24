@@ -58,7 +58,6 @@
                         formModal = true;
                         console.log(upgradeProgression);
                         if ('k8sPackagesInfo' in upgradeProgression.state) {
-                            console.log('packageInfo');
                             packagesInfo = upgradeProgression.state.k8sPackagesInfo;
                         }
                     } else if (upgradeProgression.stateName == 'upgrade progression') {s
@@ -69,10 +68,7 @@
                         ) {
                             upgradeConfig = upgradeProgression.state.selectedConfig;
                             nodeStatus = upgradeProgression.state.nodesStatus;
-                            progressDetails = upgradeProgression.state.progressDetails;
-                            console.log("upgrade progression state", upgradeProgression.state.nodesStatus);
-                        } else if (upgradeProgression.stateName == 'finalizer') {
-
+                            progressDetails = upgradeProgression.state.progressDetails;s
                         } else {
                             // TODO:
                             //   sent error reply and expect another payload
@@ -109,6 +105,13 @@
                             nodesToBeUpgraded.push({id: uid++, done: false, name: node});
                         })
                         nodesToBeUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
+
+                        if (nodesToBeUpgraded == []) {
+                            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                                this.socket.send("finalizer received");
+                            }
+                            this.shouldReconnect = false;
+                        }
 
                         let nodesUpgraded = [];
                         nodeStatus.nodesUpgraded.forEach(node => {
@@ -148,11 +151,6 @@
             } else {
                 console.warn('webSocket connection is not open');
             }
-        }
-
-        public close(): void {
-            this.shouldReconnect = false;
-            this.socket?.close();
         }
     }
 

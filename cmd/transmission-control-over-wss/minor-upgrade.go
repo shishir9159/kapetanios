@@ -519,6 +519,8 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		upgrade.upgradeState.NodeStatus.NodesUpgraded = nodeNames[:index]
 		upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = nodeNames[index:]
+		// TODO:
+		//  appropriate value
 		upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded = []string{}
 
 		// TODO: should this be one case only
@@ -744,7 +746,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		watcher.Stop()
 		// TODO:
-		//  if storage is configMap
+		//  store progress details against the respective nodes
 		upgrade.upgradeState.ProgressDetails = []progressDetail{}
 
 		//	TODO:
@@ -752,6 +754,9 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//   with the information all nodes had been updated
 	}
 	(<-ch).Stop()
+
+	finalizer := upgradeFinalizer{}
+	_, _, _ = finalizer.SendMessage(upgrade.upgradeState, upgrade.nefario.log, upgrade.pool)
 
 	upgrade.upgradeState.NodeStatus.NodesUpgraded = []string{}
 	upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = []string{}
@@ -768,4 +773,15 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	// TODO: notifications for upgrade complete
 
 	<-upgrade.finalizer
+}
+
+func (finalizer *upgradeFinalizer) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
+
+	finalizer.NodeStatus = upgradeState.NodeStatus
+
+	for i := 0; i < 5; i++ {
+
+	}
+
+	return false, false, false
 }

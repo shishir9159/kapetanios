@@ -28,6 +28,10 @@ type progressionState struct {
 	ProgressDetails []progressDetail `json:"progressDetails"`
 }
 
+type upgradeFinalizer struct {
+	NodeStatus *nodesStatus `json:"nodesStatus"`
+}
+
 func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
@@ -75,6 +79,8 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 		proceedNextStep = true
 		break
 	case "terminateApplication":
+		upgradeState.NodeStatus.NodesFailedToBeUpgraded =
+			append(upgradeState.NodeStatus.NodesFailedToBeUpgraded, upgradeState.NodeStatus.NodesToBeUpgraded[0])
 		terminateApplication = true
 		break
 	default:
