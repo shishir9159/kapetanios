@@ -53,22 +53,26 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 		case client := <-pool.register:
 
 			// pool.Mutex.Lock()
+
+			log.Info("connection being registered",
+				zap.String("client address: ", client.Conn.RemoteAddr().String()))
+
+			//for c := range pool.Clients {
+			//	if client.Conn == c.Conn {
+			//		log.Info("removing old connections",
+			//			zap.String("client", client.Conn.RemoteAddr().String()))
+			//		go pool.RemoveClient(c)
+			//	}
+			//}
+
 			//  true signifies the connection is occupied
 			//  in reading messages
-
-			for c := range pool.Clients {
-				if client.Conn == c.Conn {
-					log.Info("removing old connections",
-						zap.String("client", client.Conn.RemoteAddr().String()))
-					pool.RemoveClient(c)
-				}
-			}
 
 			pool.Clients[client] = true
 			// pool.Mutex.Unlock()
 			log.Info("client registered",
-				zap.String("client", client.Conn.RemoteAddr().String()),
-				zap.Int("remaining clients", len(pool.Clients)))
+				zap.Int("remaining clients", len(pool.Clients)),
+				zap.String("client", client.Conn.RemoteAddr().String()))
 
 		case client := <-pool.unregister:
 			// pool.Mutex.Lock()
@@ -99,18 +103,20 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 					zap.String("client address", client.Conn.RemoteAddr().String()))
 
 				if client.Conn == nil {
+
 					pool.unregister <- client
 					log.Error("client connection is nil",
 						zap.String("message body:", string(message)),
 						zap.Int("remaining clients", len(pool.Clients)),
 						zap.String("client address", client.Conn.RemoteAddr().String()))
+
 				} else {
 
 					log.Info("broadcasting current state",
 						zap.Int("step", 1),
 						zap.String("client address", client.Conn.RemoteAddr().String()))
 
-					err := client.Conn.WriteMessage(websocket.BinaryMessage, message)
+					err := client.Conn.WriteMessage(websocket.TextMessage, message)
 					if err != nil {
 						log.Error("error writing message",
 							zap.String("message body:", string(message)),
