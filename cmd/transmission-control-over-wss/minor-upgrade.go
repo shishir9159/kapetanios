@@ -767,8 +767,11 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	(<-ch).Stop()
 
 	if len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
+
 		upgrade.upgradeState.NodeStatus.NodesUpgraded =
 			append(upgrade.upgradeState.NodeStatus.NodesUpgraded, upgrade.upgradeState.NodeStatus.NodesToBeUpgraded[0])
+
+		upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = upgrade.upgradeState.NodeStatus.NodesToBeUpgraded[1:]
 	}
 
 	finalizer := upgradeFinalizer{}

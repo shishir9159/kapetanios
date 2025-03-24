@@ -238,13 +238,13 @@
     <div class="nodes">
 
         <div class="todo">
-            <h2>nodes to be upgraded</h2>
+            <h2 class="text-black dark:text-white">nodes to be upgraded</h2>
             <TodoList nodes={nodes.filter((t) => !t.done)} />
 <!--            <TodoList nodes={nodes.filter((t) => !t.done)} {remove} />-->
         </div>
 
         <div class="done">
-            <h2>upgraded nodes</h2>
+            <h2 class="text-black dark:text-white">upgraded nodes</h2>
             <TodoList nodes={nodes.filter((t) => t.done)} />
 <!--            <TodoList nodes={nodes.filter((t) => t.done)} {remove} />-->
         </div>
