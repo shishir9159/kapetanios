@@ -1,6 +1,6 @@
 <script lang="ts">
     import { progressInfo } from './progress.svelte.ts';
-    import { AccordionItem, Accordion, Button, ButtonGroup} from "flowbite-svelte";
+    import { AccordionItem , Accordion, Button, ButtonGroup} from "flowbite-svelte";
     let { items = $bindable([false, false, false, false, false, false, false, false, false, false]) } = $props();
     // let { items = $bindable(new Array<boolean>(10).fill(false)) } = $props();
 </script>

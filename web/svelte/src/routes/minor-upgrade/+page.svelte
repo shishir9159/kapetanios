@@ -12,7 +12,7 @@
     let progressDetails: [ProgressDetail] = [];
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
-    let promptOnError: boolean = $state(false);
+    let promptOnError: boolean = $state(true);
     let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [K8sPackageInfo]= $state([]);
@@ -24,6 +24,7 @@
     let logForScrollingModal = $state("");
 
     let selectedS = [];
+    // let selectedS = $state([{}]);
     let items: boolean[] = $state(new Array<boolean>(10).fill(false));
 
     let nodes = $state([
@@ -91,7 +92,7 @@
 
                         let lastStep = progressDetails.length - 1;
 
-                        items = [...false];
+                        items = [...new Array(10)].map(() => false);
                         items[lastStep] = true;
 
                         if (progressDetails[lastStep].error !== "") {
