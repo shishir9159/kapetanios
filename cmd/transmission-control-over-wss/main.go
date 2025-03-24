@@ -200,7 +200,8 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 		_, err := io.WriteString(w, "maximum number of concurrent connection exceeded!")
 		if err != nil {
-
+			upgrade.nefario.log.Error("error writing max connection exceeding error",
+				zap.Error(err))
 		}
 
 		upgrade.nefario.log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
@@ -213,8 +214,6 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 		return
 	}
-
-	upgrade.nefario.log.Info("upgrading connection to HTTP 1.1")
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -229,13 +228,11 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		Conn: conn,
 	}
 
-	upgrade.nefario.log.Info("connection upgrade succeeded and client is being added to the pool")
-
 	for c := range upgrade.pool.Clients {
 		if client.Conn == c.Conn {
 			upgrade.nefario.log.Info("removing old connections",
 				zap.String("client", client.Conn.RemoteAddr().String()))
-			closeMessage := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "add your message here")
+			closeMessage := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closing connection")
 			if er := c.Conn.WriteMessage(websocket.CloseMessage, closeMessage); er != nil {
 				// handle error
 			}
@@ -248,6 +245,9 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 			upgrade.pool.RemoveClient(c)
 		}
 	}
+	upgrade.nefario.log.Info("client",
+		zap.String("client", client.Conn.RemoteAddr().String()),
+		zap.Any("client object", client.Conn))
 	upgrade.pool.AddClient(client)
 
 	upgrade.nefario.log.Info("registered client: ",
@@ -404,7 +404,7 @@ func handlePanic() {
 	fmt.Println("handling panic")
 	if r := recover(); r != nil {
 		// TODO:
-		//  store counter in configMap
+		//  store timestamp in a configMap list
 		fmt.Println("Recovered from panic:", r)
 	}
 }

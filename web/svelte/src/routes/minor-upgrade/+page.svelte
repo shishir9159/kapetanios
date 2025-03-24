@@ -109,14 +109,13 @@
                             nodesToBeUpgraded.push({id: uid++, done: false, name: node});
                         })
                         nodesToBeUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
-                        nodes = nodesToBeUpgraded;
-;
+
                         let nodesUpgraded = [];
                         nodeStatus.nodesUpgraded.forEach(node => {
                             nodesUpgraded.push({id: uid++, done: true, name: node});
                         })
                         nodesUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
-                        nodes = nodes.concat(nodesUpgraded);
+                        nodes = nodesToBeUpgraded.concat(nodesUpgraded);
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);
@@ -223,12 +222,14 @@
 
         <div class="todo">
             <h2>nodes to be upgraded</h2>
-            <TodoList nodes={nodes.filter((t) => !t.done)} {remove} />
+            <TodoList nodes={nodes.filter((t) => !t.done)} />
+<!--            <TodoList nodes={nodes.filter((t) => !t.done)} {remove} />-->
         </div>
 
         <div class="done">
             <h2>upgraded nodes</h2>
-            <TodoList nodes={nodes.filter((t) => t.done)} {remove} />
+            <TodoList nodes={nodes.filter((t) => t.done)} />
+<!--            <TodoList nodes={nodes.filter((t) => t.done)} {remove} />-->
         </div>
 
     </div>
@@ -314,7 +315,6 @@
         white-space: normal;
         word-wrap: break-word;
     }
-
 
     h2 {
         font-size: 2em;

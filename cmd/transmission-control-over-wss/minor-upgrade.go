@@ -392,7 +392,6 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		upgrade.nefario.log.Error("kapetanios pod discovery error: ",
 			zap.Error(err))
 
-		// handle gracefully
 		return
 	}
 
@@ -636,8 +635,8 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		if upgrade.upgradeState.SelectedConfig.DrainNodes {
 			upgrade.nefario.log.Info("cordoning and draining node",
 				zap.String("node name", node))
-			err = prepareNode(upgrade.nefario, no)
-			if err != nil {
+			er := prepareNode(upgrade.nefario, no)
+			if er != nil {
 				// todo: switch to non-drain mode
 			}
 		}
