@@ -231,6 +231,23 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 	upgrade.nefario.log.Info("connection upgrade succeeded and client is being added to the pool")
 
+	for c := range upgrade.pool.Clients {
+		if client.Conn == c.Conn {
+			upgrade.nefario.log.Info("removing old connections",
+				zap.String("client", client.Conn.RemoteAddr().String()))
+			closeMessage := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "add your message here")
+			if er := c.Conn.WriteMessage(websocket.CloseMessage, closeMessage); er != nil {
+				// handle error
+			}
+			er := c.Conn.Close()
+			if er != nil {
+				upgrade.nefario.log.Info("error closing connection",
+					zap.Error(er))
+				return
+			}
+			upgrade.pool.RemoveClient(c)
+		}
+	}
 	upgrade.pool.AddClient(client)
 
 	upgrade.nefario.log.Info("registered client: ",
