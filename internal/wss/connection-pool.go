@@ -219,6 +219,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			if err != nil || msgType == websocket.CloseMessage {
 				log.Printf("error reading from %s for messagetype %d: %v - message: %s",
 					client.Conn.RemoteAddr().String(), msgType, err, string(msg))
+				pool.Clients[client] = true
 				pool.RemoveClient(client)
 				return err
 			}
