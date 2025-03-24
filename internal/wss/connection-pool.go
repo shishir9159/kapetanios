@@ -103,7 +103,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 						zap.String("client address", client.Conn.RemoteAddr().String()))
 				}
 
-				err := client.Conn.WriteMessage(websocket.TextMessage, message)
+				err := client.Conn.WriteMessage(websocket.BinaryMessage, message)
 				if err != nil {
 					log.Error("error writing message",
 						zap.String("message body:", string(message)),
