@@ -208,11 +208,8 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	// TODO:
 	//  proper diagnosis
-	if s.state.SelectedConfig.PromptOnError {
-		proceedNextStep = true
-	} else {
-		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
-	}
+	retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+
 	s.log.Info("received cluster compatibility report",
 		zap.Bool("os compatibility", in.GetOsCompatibility()),
 		zap.String("kubernetes version diff", in.GetDiff()),
@@ -247,11 +244,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	// TODO:
 	//  proper diagnosis
-	if s.state.SelectedConfig.PromptOnError {
-		proceedNextStep = true
-	} else {
-		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
-	}
+	retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
 
 	s.log.Info("received cluster component Upgrade status",
 		zap.Bool("component successful Upgrade", in.GetComponentUpgradeSuccess()),
@@ -282,11 +275,8 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	// TODO:
 	//  proper diagnosis
-	if s.state.SelectedConfig.PromptOnError {
-		proceedNextStep = true
-	} else {
-		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
-	}
+
+	retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
 
 	s.log.Info("received cluster Upgrade plan",
 		zap.String("received plan", in.GetPlan()),
@@ -320,11 +310,9 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	// TODO:
 	//  proper diagnosis
-	if s.state.SelectedConfig.PromptOnError {
-		proceedNextStep = true
-	} else {
-		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
-	}
+
+	retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+
 	s.log.Info("received cluster Upgrade plan",
 		zap.Bool("cluster Upgrade status", in.GetUpgradeSuccess()),
 		zap.String("unsuccessful component", in.GetUnsuccessfulComponent()),
@@ -360,11 +348,9 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	// TODO:
 	//  proper diagnosis
-	if s.state.SelectedConfig.PromptOnError {
-		proceedNextStep = true
-	} else {
-		retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
-	}
+
+	retryCurrentStep, proceedNextStep, terminateApplication = progress.SendMessage(s.state, s.log, s.connectionPool)
+
 	s.log.Info("received cluster component restart status",
 		zap.Bool("component restart success", in.GetComponentRestartSuccess()),
 		zap.String("component", in.GetComponent()),
