@@ -95,6 +95,7 @@
                         items = [...new Array(10)].map(() => false);
                         items[lastStep] = true;
 
+                        //  if (progressDetails[lastStep].error !== "" && upgradeConfig.promptOnError) {
                         if (progressDetails[lastStep].error !== "") {
                             scrollingModal = true
                             console.log("lastStep", lastStep);
@@ -176,8 +177,7 @@
         }
         wsClient.sendJson(upgradeConfig);
 
-        //  todo;
-        //   cleanup selectedS
+        selectedS = []
 
         formModal = false
         // } /else {
@@ -266,8 +266,7 @@
     <Button type="submit" class="w-full1" on:click={() => (onsubmit())}>Submit</Button>
 </Modal>
 
-
-<Modal title="Prompt on error catch" bind:open={scrollingModal}>
+<Modal title="{upgradeConfig.promptOnError ? 'Prompt on error catch' : 'Progress Information'}" bind:open={scrollingModal}>
     <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{errorForScrollingModal}</p>
     <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{logForScrollingModal}</p>
     <svelte:fragment slot="footer">

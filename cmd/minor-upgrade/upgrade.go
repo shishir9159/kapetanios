@@ -101,7 +101,7 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 			//   or binary version output
 			UnsuccessfulComponent: "none",
 			Log:                   stdoutBuf.String(),
-			Err:                   "",
+			Err:                   utils.EmptyOrError(err),
 		})
 
 	if err != nil {
@@ -184,7 +184,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 			ComponentUpgradeSuccess: true,
 			Component:               k8sComponents,
 			Log:                     outStr,
-			Err:                     "",
+			Err:                     utils.EmptyOrError(err),
 		})
 
 	if err != nil {

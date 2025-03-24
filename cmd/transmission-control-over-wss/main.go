@@ -228,9 +228,6 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		Conn: conn,
 	}
 
-	upgrade.nefario.log.Info("client connection object format",
-		zap.Any("connection", client.Conn))
-
 	for c := range upgrade.pool.Clients {
 		if client.Conn == c.Conn {
 			upgrade.nefario.log.Info("removing old connections",

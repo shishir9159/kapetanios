@@ -51,7 +51,7 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 		&pb.UpgradeCompatibility{
 			OsCompatibility: true,
 			Diff:            diff,
-			Err:             "", // TODO: check for nil pointer and return
+			Err:             utils.EmptyOrError(err),
 		})
 
 	if err != nil {

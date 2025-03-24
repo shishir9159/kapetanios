@@ -49,7 +49,7 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 			ComponentRestartSuccess: true,
 			Component:               component,
 			Log:                     "",
-			Err:                     "",
+			Err:                     utils.EmptyOrError(err),
 		})
 
 	if err != nil {

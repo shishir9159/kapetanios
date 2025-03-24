@@ -106,7 +106,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		&pb.VersionCheck{
 			//TODO: check installed/running component versions
 			ConsistentVersioning: true,
-			Err:                  "",
+			Err:                  utils.EmptyOrError(err),
 		})
 
 	if err != nil {
