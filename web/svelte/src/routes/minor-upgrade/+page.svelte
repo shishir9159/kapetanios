@@ -60,7 +60,7 @@
                         if ('k8sPackagesInfo' in upgradeProgression.state) {
                             packagesInfo = upgradeProgression.state.k8sPackagesInfo;
                         }
-                    } else if (upgradeProgression.stateName == 'upgrade progression') {s
+                    } else if (upgradeProgression.stateName == 'upgrade progression') {
                         if (
                             'selectedConfig' in upgradeProgression.state &&
                             'nodesStatus' in upgradeProgression.state &&
@@ -68,7 +68,7 @@
                         ) {
                             upgradeConfig = upgradeProgression.state.selectedConfig;
                             nodeStatus = upgradeProgression.state.nodesStatus;
-                            progressDetails = upgradeProgression.state.progressDetails;s
+                            progressDetails = upgradeProgression.state.progressDetails;
                         } else {
                             // TODO:
                             //   sent error reply and expect another payload
@@ -106,19 +106,19 @@
                         })
                         nodesToBeUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
 
-                        if (nodesToBeUpgraded == []) {
-                            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                                this.socket.send("finalizer received");
-                            }
-                            this.shouldReconnect = false;
-                        }
-
                         let nodesUpgraded = [];
                         nodeStatus.nodesUpgraded.forEach(node => {
                             nodesUpgraded.push({id: uid++, done: true, name: node});
                         })
                         nodesUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
                         nodes = nodesToBeUpgraded.concat(nodesUpgraded);
+                    } else if (upgradeProgression.stateName == 'finalizer') {
+                        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                            this.socket.send("finalizer received");
+                        }
+                        this.shouldReconnect = false;
+                    // TODO:
+                    //  alert box
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);
