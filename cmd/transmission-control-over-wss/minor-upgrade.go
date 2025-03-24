@@ -519,8 +519,19 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		upgrade.upgradeState.NodeStatus.NodesUpgraded = nodeNames[:index]
 		upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = nodeNames[index:]
+
 		// TODO:
-		//  appropriate value
+		//set := make(map[string]bool)
+		//for _, val := range upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded {
+		//	set[val] = true
+		//}
+		//var result []string
+		//for _, val := range upgrade.upgradeState.NodeStatus.NodesUpgraded {
+		//	if _, found := set[val]; !found {
+		//		result = append(result, val)
+		//	}
+		//}
+
 		upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded = []string{}
 
 		// TODO: should this be one case only
@@ -780,7 +791,12 @@ func (finalizer *upgradeFinalizer) SendMessage(upgradeState *UpgradeState, log *
 	finalizer.NodeStatus = upgradeState.NodeStatus
 
 	json := jsoniter.ConfigFastest
-	payload, err := json.Marshal(finalizer)
+	upgradeProgression := &UpgradeProgression{
+		StateName: "finalizer",
+		State:     finalizer,
+	}
+
+	payload, err := json.Marshal(upgradeProgression)
 	if err != nil {
 		log.Error("failed to marshal upgradeProgression",
 			zap.Error(err))
@@ -802,7 +818,7 @@ func (finalizer *upgradeFinalizer) SendMessage(upgradeState *UpgradeState, log *
 		default:
 			log.Error("unknown response from frontend for finalizer",
 				zap.String("response", response))
-			continue
+			break
 		}
 	}
 
