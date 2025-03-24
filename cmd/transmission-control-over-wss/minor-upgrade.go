@@ -746,6 +746,10 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		// TODO:
 		//  if storage is configMap
 		upgrade.upgradeState.ProgressDetails = []progressDetail{}
+
+		//	TODO:
+		//   progress completion alert
+		//   with the information all nodes had been updated
 	}
 	(<-ch).Stop()
 

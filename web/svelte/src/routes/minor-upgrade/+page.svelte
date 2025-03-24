@@ -25,8 +25,7 @@
 
     let selectedS = [];
     // let selectedS = $state([{}]);
-    let items: boolean[] = $state(new Array<boolean>(10).fill(false));
-
+    let items: boolean[] = $state([false, false, false, false, false, false, false, false, false, false]);
     let nodes = $state([
         // { id: 1, done: false, name: 'node one' },
         // { id: 2, done: true, name: 'node two' },
@@ -62,10 +61,7 @@
                             console.log('packageInfo');
                             packagesInfo = upgradeProgression.state.k8sPackagesInfo;
                         }
-                    } else if (upgradeProgression.stateName == 'upgrade progression') {
-                        console.log('\'selectedConfig\' in upgradeProgression.state', 'selectedConfig' in upgradeProgression.state);
-                        console.log("'nodesStatus' in upgradeProgression.state", 'nodesStatus' in upgradeProgression.state);
-                        console.log("'progressDetails' in upgradeProgression.state", 'progressDetails' in upgradeProgression.state)
+                    } else if (upgradeProgression.stateName == 'upgrade progression') {s
                         if (
                             'selectedConfig' in upgradeProgression.state &&
                             'nodesStatus' in upgradeProgression.state &&
@@ -75,6 +71,8 @@
                             nodeStatus = upgradeProgression.state.nodesStatus;
                             progressDetails = upgradeProgression.state.progressDetails;
                             console.log("upgrade progression state", upgradeProgression.state.nodesStatus);
+                        } else if (upgradeProgression.stateName == 'finalizer') {
+
                         } else {
                             // TODO:
                             //   sent error reply and expect another payload
@@ -96,7 +94,7 @@
                         items[lastStep] = true;
 
                         //  if (progressDetails[lastStep].error !== "" && upgradeConfig.promptOnError) {
-                        if (progressDetails[lastStep].error !== "") {
+                        if (progressDetails[lastStep].error) {
                             scrollingModal = true
                             console.log("lastStep", lastStep);
                             console.log("progressDetails[lastStep].error", progressDetails[lastStep].error);
@@ -235,7 +233,7 @@
 
     </div>
     <div class="nodes">
-        <Step bind:this={items} />
+        <Step {items} />
     </div>
 </div>
 
@@ -250,7 +248,6 @@
                     bind:value={selectedS}
                     onchange={() => selected.set(packageInfo.distroPrettyName, selectedS)}
             />
-            <!--                    bind:value={s}-->
         {/each}
     </Label>
     <div class="flex items-start">
@@ -266,7 +263,9 @@
     <Button type="submit" class="w-full1" on:click={() => (onsubmit())}>Submit</Button>
 </Modal>
 
-<Modal title="{upgradeConfig.promptOnError ? 'Prompt on error catch' : 'Progress Information'}" bind:open={scrollingModal}>
+<!--<Modal title={upgradeConfig.promptOnError ? "Prompt on error catch" : "Progress Information"} bind:open={scrollingModal}>-->
+<Modal title="Prompt on error catch" bind:open={scrollingModal}>
+<!--    <summary></summary> >-->
     <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{errorForScrollingModal}</p>
     <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">{logForScrollingModal}</p>
     <svelte:fragment slot="footer">
