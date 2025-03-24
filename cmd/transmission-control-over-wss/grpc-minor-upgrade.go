@@ -81,6 +81,7 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	case "terminateApplication":
 		upgradeState.NodeStatus.NodesFailedToBeUpgraded =
 			append(upgradeState.NodeStatus.NodesFailedToBeUpgraded, upgradeState.NodeStatus.NodesToBeUpgraded[0])
+		upgradeState.NodeStatus.NodesToBeUpgraded = upgradeState.NodeStatus.NodesToBeUpgraded[1:]
 		terminateApplication = true
 		break
 	default:

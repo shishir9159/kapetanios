@@ -766,6 +766,11 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	}
 	(<-ch).Stop()
 
+	if len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
+		upgrade.upgradeState.NodeStatus.NodesUpgraded =
+			append(upgrade.upgradeState.NodeStatus.NodesUpgraded, upgrade.upgradeState.NodeStatus.NodesToBeUpgraded[0])
+	}
+
 	finalizer := upgradeFinalizer{}
 	_, _, _ = finalizer.SendMessage(upgrade.upgradeState, upgrade.nefario.log, upgrade.pool)
 
@@ -780,8 +785,6 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 	// deferring doesn't work
 	upgrade.mu.Unlock()
-
-	// TODO: notifications for upgrade complete
 
 	<-upgrade.finalizer
 }
