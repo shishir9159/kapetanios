@@ -117,6 +117,26 @@
                             this.socket.send("finalizer received");
                         }
                         this.shouldReconnect = false;
+
+                        if (
+                            'nodesStatus' in upgradeProgression.state
+                        ) {
+                            nodeStatus = upgradeProgression.state.nodesStatus;
+                        }
+
+                        let uid = 1;
+                        let nodesToBeUpgraded = [];
+                        nodeStatus.nodesToBeUpgraded.forEach(node => {
+                            nodesToBeUpgraded.push({id: uid++, done: false, name: node});
+                        })
+                        nodesToBeUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
+
+                        let nodesUpgraded = [];
+                        nodeStatus.nodesUpgraded.forEach(node => {
+                            nodesUpgraded.push({id: uid++, done: true, name: node});
+                        })
+                        nodesUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
+                        nodes = nodesToBeUpgraded.concat(nodesUpgraded);
                     // TODO:
                     //  alert box
                     }

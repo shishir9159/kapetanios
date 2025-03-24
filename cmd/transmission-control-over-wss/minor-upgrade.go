@@ -812,14 +812,12 @@ func (finalizer *upgradeFinalizer) SendMessage(upgradeState *UpgradeState, log *
 				zap.Error(er))
 		}
 
-		switch response {
-		case "finalizer received":
-			break
-		default:
-			log.Error("unknown response from frontend for finalizer",
-				zap.String("response", response))
+		if response == "finalizer received" {
 			break
 		}
+
+		log.Error("unknown response from frontend for finalizer",
+			zap.String("response", response))
 	}
 
 	return false, false, false
