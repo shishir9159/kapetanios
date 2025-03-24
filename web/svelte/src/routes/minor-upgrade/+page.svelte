@@ -91,7 +91,7 @@
 
                         let lastStep = progressDetails.length - 1;
 
-                        items.fill(false);
+                        items = [...false];
                         items[lastStep] = true;
 
                         if (progressDetails[lastStep].error !== "") {

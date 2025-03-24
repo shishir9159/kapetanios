@@ -245,11 +245,8 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 			upgrade.pool.RemoveClient(c)
 		}
 	}
-	upgrade.nefario.log.Info("client",
-		zap.String("client", client.Conn.RemoteAddr().String()),
-		zap.Any("client object", client.Conn))
-	upgrade.pool.AddClient(client)
 
+	upgrade.pool.AddClient(client)
 	upgrade.nefario.log.Info("registered client: ",
 		zap.String("client address: ", client.Conn.RemoteAddr().String()))
 

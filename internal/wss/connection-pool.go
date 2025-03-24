@@ -51,20 +51,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 
 		select {
 		case client := <-pool.register:
-
-			// pool.Mutex.Lock()
-
-			log.Info("connection being registered",
-				zap.String("client address: ", client.Conn.RemoteAddr().String()))
-
-			//  true signifies the connection is occupied
-			//  in reading messages
-
 			pool.Clients[client] = true
-			// pool.Mutex.Unlock()
-			log.Info("client registered",
-				zap.Int("remaining clients", len(pool.Clients)),
-				zap.String("client", client.Conn.RemoteAddr().String()))
 
 		case client := <-pool.unregister:
 			// pool.Mutex.Lock()
@@ -81,8 +68,6 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 							zap.String("client address", client.Conn.RemoteAddr().String()),
 							zap.Error(err))
 					}
-				} else {
-					log.Info("client connection value is nil, early return")
 				}
 			}
 			// pool.Mutex.Unlock()
@@ -91,11 +76,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			// TODO: concurrent map reading writing failure
 			// pool.Mutex.RLock()
 			for client := range pool.Clients {
-				log.Info("broadcasting current state",
-					zap.String("client address", client.Conn.RemoteAddr().String()))
-
 				if client.Conn == nil {
-
 					pool.unregister <- client
 					log.Error("client connection is nil",
 						zap.String("message body:", string(message)),

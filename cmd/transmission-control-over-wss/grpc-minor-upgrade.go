@@ -54,7 +54,7 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	lastStep := len(progression.ProgressDetails) - 1
 
 	var response string
-	if progression.SelectedConfig.PromptOnError == true || progression.ProgressDetails[lastStep].Err != "" {
+	if progression.SelectedConfig.PromptOnError == false || progression.ProgressDetails[lastStep].Err != "" {
 
 		// TODO:
 		//  save the last payload in sync.Pool???
