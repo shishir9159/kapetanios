@@ -214,6 +214,8 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	upgrade.nefario.log.Info("upgrading connection to HTTP 1.1")
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		// TODO: wrap it in error state
@@ -226,6 +228,8 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 	client := &wss.Client{
 		Conn: conn,
 	}
+
+	upgrade.nefario.log.Info("connection upgrade succeeded and client is being added to the pool")
 
 	upgrade.pool.AddClient(client)
 

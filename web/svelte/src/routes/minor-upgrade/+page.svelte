@@ -233,7 +233,7 @@
 
     </div>
     <div class="nodes">
-        <Step {items} />
+        <Step bind:this={items} />
     </div>
 </div>
 

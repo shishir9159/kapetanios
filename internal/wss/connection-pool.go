@@ -46,7 +46,9 @@ func NewPool() *ConnectionPool {
 }
 
 func (pool *ConnectionPool) Run(log *zap.Logger) {
+
 	for {
+
 		select {
 		case client := <-pool.register:
 
@@ -55,7 +57,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			//  in reading messages
 
 			for c := range pool.Clients {
-				if client.Conn.RemoteAddr() == c.Conn.RemoteAddr() {
+				if client.Conn == c.Conn {
 					log.Info("removing old connections",
 						zap.String("client", client.Conn.RemoteAddr().String()))
 					pool.RemoveClient(c)
@@ -94,16 +96,16 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			// pool.Mutex.RLock()
 			for client := range pool.Clients {
 				if client.Conn == nil {
-					log.Error("error writing message:",
+					pool.unregister <- client
+					log.Error("client connection is nil",
 						zap.String("message body:", string(message)),
 						zap.Int("remaining clients", len(pool.Clients)),
 						zap.String("client address", client.Conn.RemoteAddr().String()))
-					pool.unregister <- client
 				}
 
 				err := client.Conn.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
-					log.Error("error writing message:",
+					log.Error("error writing message",
 						zap.String("message body:", string(message)),
 						zap.Int("remaining clients", len(pool.Clients)),
 						//zap.Int("closing error", websocket.CloseError.Error(err))),
