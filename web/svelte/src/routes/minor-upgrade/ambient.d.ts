@@ -32,7 +32,7 @@ export interface NodesStatus {
 export interface ProgressDetail {
 	stepCount: number;
 	log: string;
-	error: string;
+	err: string;
 }
 
 interface progressionState {

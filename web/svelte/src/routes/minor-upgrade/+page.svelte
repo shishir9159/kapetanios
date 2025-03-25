@@ -89,12 +89,12 @@
                         items = [...new Array(10)].map(() => false);
                         items[lastStep] = true;
 
-                        //  if (progressDetails[lastStep].error !== "" && upgradeConfig.promptOnError) {
-                        if (progressDetails[lastStep].error) {
+                        //  if (progressDetails[lastStep].error !== "" && ) {
+                        if (progressDetails[lastStep].err || !upgradeConfig.promptOnError) {
                             scrollingModal = true
                             console.log("lastStep", lastStep);
-                            console.log("progressDetails[lastStep].error", progressDetails[lastStep].error);
-                            errorForScrollingModal = progressDetails[lastStep].error
+                            console.log("progressDetails[lastStep].error", progressDetails[lastStep].err);
+                            errorForScrollingModal = progressDetails[lastStep].err
                             logForScrollingModal = progressDetails[lastStep].log
                         }
 
@@ -118,9 +118,7 @@
                         }
                         this.shouldReconnect = false;
 
-                        if (
-                            'nodesStatus' in upgradeProgression.state
-                        ) {
+                        if ('nodesStatus' in upgradeProgression.state) {
                             nodeStatus = upgradeProgression.state.nodesStatus;
                             finalizerModal = true;
                         }
@@ -270,13 +268,13 @@
         {/each}
     </Label>
     <div class="flex items-start">
-        <Checkbox bind:value={certificateRenewal}>Certificate Renewal</Checkbox>
+        <Checkbox bind:checked={certificateRenewal}>Certificate Renewal</Checkbox>
     </div>
     <div class="flex items-start">
-        <Checkbox bind:value={drainNodes}>Node Draining before Upgrade</Checkbox>
+        <Checkbox bind:checked={drainNodes}>Node Draining before Upgrade</Checkbox>
     </div>
     <div class="flex items-start">
-        <Checkbox bind:value={promptOnError}>Only Prompt on Error</Checkbox>
+        <Checkbox bind:checked={promptOnError}>Only Prompt on Error</Checkbox>
     </div>
     <!--    TODO: disabled(until)={all packages are selected}  -->
     <Button type="submit" class="w-full1" on:click={() => (onsubmit())}>Submit</Button>
