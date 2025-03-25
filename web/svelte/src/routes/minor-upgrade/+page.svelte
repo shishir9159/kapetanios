@@ -1,5 +1,6 @@
 <script lang="ts">
     import Step from './Step.svelte';
+    import Alerts from './Alerts.svelte';
     import { K8sVersion } from './ambient.d.ts';
     import { progressInfo } from "./progress.svelte.ts";
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
@@ -232,6 +233,12 @@
             <Button outline color="yellow" on:mousedown={() => {wsClient.sendMessage("proceedNextStep"); scrollingModal= false;}}>proceed next step</Button>
         </ButtonGroup>
     </div>
+</div>
+
+<div>
+    <div style="text-align: center;"></div>
+<!-- TODO: close alert -->
+<Alerts dismissable >Close me</Alerts>
 </div>
 
 <div class="processing">
