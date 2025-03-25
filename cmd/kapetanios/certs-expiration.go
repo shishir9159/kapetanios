@@ -53,7 +53,7 @@ func Expiration(namespace string) {
 			zap.Error(err))
 	}
 
-	if len(nodes.Items) == 0 {
+	if nodes == nil || len(nodes.Items) == 0 {
 		c.log.Error("no master nodes found",
 			zap.Error(err))
 		//	return err or call grpc
@@ -77,6 +77,9 @@ func Expiration(namespace string) {
 			c.log.Error("Cert Expiration pod creation failed: ",
 				zap.Int("index", index),
 				zap.Error(er))
+
+			// todo:
+			//  graceful stop
 
 			return // er // defer gracefulStop
 		}

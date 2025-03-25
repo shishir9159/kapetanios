@@ -53,6 +53,7 @@ func Cert(namespace string) {
 
 	roleName := "certs"
 	matchLabels := map[string]string{"assigned-node-role-certs.kubernetes.io": roleName}
+
 	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
@@ -65,7 +66,7 @@ func Cert(namespace string) {
 			zap.Error(err))
 	}
 
-	if len(nodes.Items) == 0 {
+	if nodes == nil || len(nodes.Items) == 0 {
 		c.log.Error("no master nodes found",
 			zap.Error(err))
 		//	return err or call grpc
@@ -89,6 +90,8 @@ func Cert(namespace string) {
 				zap.Int("index", index),
 				zap.Error(er))
 
+			// todo:
+			//  graceful stop
 			//return er
 			return
 		}

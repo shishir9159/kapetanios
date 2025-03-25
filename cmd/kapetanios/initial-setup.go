@@ -238,11 +238,6 @@ func InitialSetup(c Controller) {
 			zap.Error(err))
 	}
 
-	// TODO:
-	//  return the etcdCluster
-	// TODO:
-	//  create a cache layer
-
 	etcdStatus(*etcdCluster)
 
 	err = validatingNodesState(c, "certs")
