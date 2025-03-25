@@ -1,6 +1,5 @@
 <script lang="ts">
     import Step from './Step.svelte';
-    import Alerts from './Alerts.svelte';
     import { K8sVersion } from './ambient.d.ts';
     import { progressInfo } from "./progress.svelte.ts";
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
@@ -14,13 +13,13 @@
     let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
     let promptOnError: boolean = $state(true);
-    let s: string = $state('');
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
 
     let progressModal = $state(false);
     let scrollingModal = $state(false);
+    let finalizerModal = $state(false);
     let errorForScrollingModal = $state("");
     let logForScrollingModal = $state("");
 
@@ -123,6 +122,7 @@
                             'nodesStatus' in upgradeProgression.state
                         ) {
                             nodeStatus = upgradeProgression.state.nodesStatus;
+                            finalizerModal = true;
                         }
 
                         let uid = 1;
@@ -235,12 +235,6 @@
     </div>
 </div>
 
-<div>
-    <div style="text-align: center;"></div>
-<!-- TODO: close alert -->
-<Alerts dismissable >Close me</Alerts>
-</div>
-
 <div class="processing">
     <div class="nodes">
 
@@ -303,6 +297,17 @@
 <!--        <Button color="alternative">Decline</Button>-->
     </svelte:fragment>
 </Modal>
+
+<Modal title="Minor Upgrade Successful" bind:open={finalizerModal} color="green" autoclose>
+    <div class="text-base leading-relaxed">Upgrade Report:</div>
+    <svelte:fragment slot="footer">
+        <!--        TODO:        -->
+        <Button on:click={() => console.log('finalizer received')} color="green">Homepage</Button>
+        <Button color="alternative">Okay</Button>
+    </svelte:fragment>
+</Modal>
+
+<!-- TODO: error Modal -->
 
 <style>
     .action {
