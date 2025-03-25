@@ -18,6 +18,7 @@ export class K8sVersion {
 
 export interface SelectedConfig {
 	drainNodes: boolean;
+
 	promptOnError: boolean;
 	certificateRenewal: boolean;
 	k8sVersion: [K8sVersion];

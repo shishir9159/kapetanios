@@ -9,7 +9,7 @@ import (
 	"os/exec"
 )
 
-func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, string, error) {
+func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -40,7 +40,6 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	}
 
 	// TODO: OS compatibility
-	diff, _ := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
@@ -53,15 +52,19 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	rpc, err := connection.ClusterCompatibility(c.ctx,
 		&pb.UpgradeCompatibility{
 			OsCompatibility: true,
-			Diff:            diff,
+			Diff:            string(stdoutBuf.Bytes()),
 			Err:             errorString,
 		})
+
+	c.log.Debug().
+		Str("======outStr======", stdoutBuf.String()).
+		Msg("diff")
 
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("could not send status update")
 		// TODO: retry for communication
-		return false, "", err
+		return false, err
 	}
 
 	c.log.Info().
@@ -73,8 +76,8 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	if rpc.GetTerminateApplication() {
 		os.Exit(0)
 	} else if rpc.GetRetryCurrentStep() {
-		return false, "", nil
+		return false, nil
 	}
 
-	return rpc.GetProceedNextStep(), diff, nil
+	return rpc.GetProceedNextStep(), nil
 }

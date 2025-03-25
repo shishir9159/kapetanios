@@ -43,6 +43,7 @@
 
         public connect(): void {
             this.socket = new WebSocket(this.url);
+            this.socket.send("repeat");
 
             this.socket.onopen = () => {
                 console.log('connected to the server');

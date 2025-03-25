@@ -43,7 +43,6 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 	for {
 		log.Info("broadcasting payload for available package version")
 		pool.BroadcastMessage(payload)
-		log.Info("broadcasted payload for available package version")
 
 		response, er := pool.ReadMessages()
 		if er != nil {

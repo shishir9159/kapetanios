@@ -136,10 +136,9 @@ func main() {
 
 	version = os.Getenv("KUBERNETES_COMPONENT_VERSION")
 
-	var diff string
 	for i := 0; i < maxAttempts; i++ {
 		var skip bool
-		skip, diff, err = compatibility(c, version, conn)
+		skip, err = compatibility(c, version, conn)
 		if err != nil {
 			c.log.Error().Err(err).
 				Int("attempt", i).
@@ -150,11 +149,6 @@ func main() {
 			break
 		}
 	}
-
-	c.log.Info().
-		Str("version", version).
-		Str("diff", diff).
-		Msg("diff for upgrade plan")
 
 	for i := 0; i < maxAttempts; i++ {
 		skip, er := k8sComponentsUpgrade(c, "kubeadm", version, conn)

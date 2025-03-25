@@ -91,8 +91,10 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 				zap.Error(err))
 		}
 
-		log.Error("unknown response from frontend",
-			zap.String("response", response))
+		if response != "repeat" {
+			log.Error("unknown response from frontend",
+				zap.String("response", response))
+		}
 	}
 
 	return retryCurrentStep, proceedNextStep, terminateApplication
