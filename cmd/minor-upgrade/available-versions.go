@@ -39,7 +39,6 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("failed to fetch repository updates")
-		stderrBuf.WriteString("\n===============\n")
 
 		errorString = "error: " + err.Error() + "\n"
 		errorString += "error description: " + stderrBuf.String() + "\n"

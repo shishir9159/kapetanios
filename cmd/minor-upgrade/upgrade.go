@@ -19,9 +19,6 @@ func tillHyphen(s string) string {
 
 func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, error) {
 
-	firstNode := os.Getenv("FIRST_NODE_TO_BE_UPGRADED")
-	certRenewal := os.Getenv("CERTIFICATE_RENEWAL")
-
 	//	TODO: kubeadm upgrade node (name) [version] --dry-run
 
 	changedRoot, err := utils.ChangeRoot("/host")
@@ -30,7 +27,12 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 			Msg("failed to create chroot on /host")
 	}
 
+	firstNode := os.Getenv("FIRST_NODE_TO_BE_UPGRADED")
+	certRenewal := os.Getenv("CERTIFICATE_RENEWAL")
+
 	k8sVersion := "v" + tillHyphen(version)
+
+	errorString := ""
 
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade node --certificate-renewal="+certRenewal+" -y")
 
@@ -88,6 +90,9 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to exit from the updated root")
+
+		errorString = "error: " + err.Error() + "\n"
+		errorString += "error description: " + stderrBuf.String() + "\n"
 	}
 
 	conn.ResetConnectBackoff()
@@ -101,7 +106,7 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 			//   or binary version output
 			UnsuccessfulComponent: "none",
 			Log:                   stdoutBuf.String(),
-			Err:                   utils.EmptyOrError(err),
+			Err:                   errorString,
 		})
 
 	if err != nil {
@@ -128,15 +133,13 @@ func clusterUpgrade(c Controller, version string, conn *grpc.ClientConn) (bool, 
 
 func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, conn *grpc.ClientConn) (bool, error) {
 
-	c.log.Info().
-		Str("component", k8sComponents).
-		Msg("kubernetes component upgrade")
-
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to create chroot on /host")
 	}
+
+	errorString := ""
 
 	var upgradeCommand string
 
@@ -162,7 +165,9 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 		c.log.Error().Err(err).
 			Msg("failed to upgrade k8s component")
 		// TODO: check updated kubeadm version
-		//  return false, err
+
+		errorString = "error: " + err.Error() + "\n"
+		errorString += "error description: " + stderrBuf.String() + "\n"
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
@@ -184,7 +189,7 @@ func k8sComponentsUpgrade(c Controller, k8sComponents string, version string, co
 			ComponentUpgradeSuccess: true,
 			Component:               k8sComponents,
 			Log:                     outStr,
-			Err:                     utils.EmptyOrError(err),
+			Err:                     errorString,
 		})
 
 	if err != nil {
@@ -257,6 +262,8 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, error) {
 	//  show the changelog of the version by fetching
 	//  https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v12715
 
+	errorString := ""
+
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm upgrade plan")
 
 	var stdoutBuf, stderrBuf bytes.Buffer
@@ -276,7 +283,9 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, error) {
 
 	if err != nil {
 		c.log.Error().Err(err).Msg("failed to calculate upgrade plan")
-		// todo: return false, "", err
+
+		errorString = "error: " + err.Error() + "\n"
+		errorString += "error description: " + stderrBuf.String() + "\n"
 	}
 
 	//  errStr???
@@ -309,7 +318,7 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, error) {
 	rpc, err := connection.ClusterUpgradePlan(c.ctx,
 		&pb.UpgradePlan{
 			Plan: stdoutBuf.String(),
-			Err:  stderrBuf.String(),
+			Err:  errorString,
 		})
 
 	if err != nil {

@@ -17,9 +17,11 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 			Msg("failed to create chroot on /host")
 	}
 
+	errorString := ""
+
 	k8sVersion := "v" + tillHyphen(version)
 
-	// upgrade plan to list available upgrade options
+	// todo: use the configMap
 	// --config is not necessary as it is saved in the cm
 
 	//kubeadm upgrade diff to see the changes
@@ -29,11 +31,12 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
-
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("error calculating cluster upgrade diff")
-		// TODO: return the error to the server : return false, "", err
+
+		errorString = "error: " + err.Error() + "\n"
+		errorString += "error description: " + stderrBuf.String() + "\n"
 	}
 
 	// TODO: OS compatibility
@@ -51,7 +54,7 @@ func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, s
 		&pb.UpgradeCompatibility{
 			OsCompatibility: true,
 			Diff:            diff,
-			Err:             utils.EmptyOrError(err),
+			Err:             errorString,
 		})
 
 	if err != nil {

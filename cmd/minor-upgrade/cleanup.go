@@ -23,7 +23,11 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 			Msg("failed to create chroot on /host")
 	}
 
-	// refactor into two
+	errorString := ""
+
+	// TODO:
+	//  journalctl to get logs
+
 	cmd := exec.Command("/bin/bash", "-c", "systemctl daemon-reload && systemctl restart "+component)
 
 	var stdoutBuf, stderrBuf bytes.Buffer
@@ -34,6 +38,8 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("failed to restart kubelet")
+		errorString = "error: " + err.Error() + "\n"
+		errorString += "error description: " + stderrBuf.String() + "\n"
 	}
 
 	if err = changedRoot(); err != nil {
@@ -48,8 +54,8 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 		&pb.ComponentRestartStatus{
 			ComponentRestartSuccess: true,
 			Component:               component,
-			Log:                     "",
-			Err:                     utils.EmptyOrError(err),
+			Log:                     stderrBuf.String(),
+			Err:                     errorString,
 		})
 
 	if err != nil {

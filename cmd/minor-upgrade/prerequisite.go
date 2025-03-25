@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func getDistro(c Controller) (string, error) {
+func getDistro(c Controller) (string, string) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
@@ -18,10 +18,14 @@ func getDistro(c Controller) (string, error) {
 			Msg("failed to create chroot on /host")
 	}
 
+	errorString := ""
+
 	fi, err := os.Open("/etc/os-release")
 	if err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to open /etc/os-release")
+
+		errorString = "error: " + err.Error() + "\n"
 	}
 
 	var distroPrettyName string
@@ -42,6 +46,9 @@ func getDistro(c Controller) (string, error) {
 	if er := scanner.Err(); er != nil {
 		c.log.Error().Err(er).
 			Msg("failed to read the file /etc/os-release")
+
+		errorString = "============================"
+		errorString = "error: " + er.Error() + "\n"
 	}
 
 	if err = changedRoot(); err != nil {
@@ -49,7 +56,7 @@ func getDistro(c Controller) (string, error) {
 			Msg("failed to exit from the updated root")
 	}
 
-	return distroPrettyName, err
+	return distroPrettyName, errorString
 }
 
 func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
@@ -59,9 +66,10 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 	//		- how to get the hostname and ip address
 	//  check if external etcd running if it's an etcd node
 
-	distro, err := getDistro(c)
-	if err != nil {
-		c.log.Error().Err(err).
+	distro, errorString := getDistro(c)
+	if errorString != "" {
+		c.log.Error().
+			Str("error", errorString).
 			Msg("failed to get distro pretty name")
 	}
 
@@ -80,7 +88,7 @@ func Prerequisites(c Controller, conn *grpc.ClientConn) (bool, string, error) {
 			EtcdStatus:          true,
 			StorageAvailability: 50,
 			Log:                 "",
-			Err:                 utils.EmptyOrError(err),
+			Err:                 errorString,
 		})
 
 	if err != nil {
