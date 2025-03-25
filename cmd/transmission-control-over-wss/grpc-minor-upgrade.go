@@ -54,7 +54,6 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 
 	pool.BroadcastMessage(payload)
 
-	// assumed the last step is at the end of the list
 	lastStep := len(progression.ProgressDetails) - 1
 
 	var response string

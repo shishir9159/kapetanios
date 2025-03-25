@@ -2,7 +2,7 @@
 	import '../app.css';
     import { page } from '$app/state';
     import { DarkMode } from 'flowbite-svelte';
-    import { AccordionItem, Accordion, Navbar, NavBrand, NavLi, NavUl } from "flowbite-svelte";
+    import { Navbar, NavBrand, NavLi, NavUl } from "flowbite-svelte";
 	let { children } = $props();
     let activeUrl = $derived(page.url.pathname)
 

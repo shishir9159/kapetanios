@@ -18,6 +18,8 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 			Msg("failed to create chroot on /host")
 	}
 
+	errorString := ""
+
 	var updateCommand string
 
 	if strings.Contains(c.distroPrettyName, "Red Hat Enterprise Linux") {
@@ -38,7 +40,9 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		c.log.Error().Err(err).
 			Msg("failed to fetch repository updates")
 		stderrBuf.WriteString("\n===============\n")
-		stderrBuf.WriteString(err.Error())
+
+		errorString = "error: " + err.Error() + "\n"
+		errorString += "error description: " + stderrBuf.String() + "\n"
 	}
 
 	c.log.Debug().
@@ -62,25 +66,19 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err = cmd.Run()
-	// output delimiter is " | "
-	// extract second and the third column
 
 	if err != nil {
 		c.log.Fatal().Err(err).
 			Msg("failed to list available versions")
-		// TODO: refactor this to send the error : return false, "", err
+		errorString = "============================"
+		errorString = "error: " + err.Error() + "\n"
+		errorString += "error description: " + stderrBuf.String() + "\n"
 	}
 
 	c.log.Debug().
 		Str("stdout", stdoutBuf.String()).
 		Str("stderr", stderrBuf.String()).
 		Msg("successfully fetched repository updates")
-
-	//outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	//c.log.Info().
-	//	Str("out", outStr).
-	//	Str("err", errStr).
-	//	Msg("outString & errString")
 
 	availableVersionSlice := strings.Split(stdoutBuf.String(), "\n")
 
@@ -106,7 +104,7 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 		&pb.VersionCheck{
 			//TODO: check installed/running component versions
 			ConsistentVersioning: true,
-			Err:                  utils.EmptyOrError(err),
+			Err:                  errorString,
 		})
 
 	if err != nil {
