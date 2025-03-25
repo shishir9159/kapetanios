@@ -94,8 +94,8 @@ func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error
 	//  sort them based on the delimiter "." and "-' + give a score by adding them ups with positional
 	//  values
 
-	if err = changedRoot(); err != nil {
-		c.log.Fatal().Err(err).
+	if er := changedRoot(); er != nil {
+		c.log.Fatal().Err(er).
 			Msg("failed to exit from the updated root")
 	}
 
