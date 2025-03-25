@@ -401,12 +401,14 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 	var nodeNames []string
 	var nodesUpgraded []string
+	var nodesFailedToBeUpgraded []string
 
 	// Caution: will fail in the scenario of one master node
 	// and kapetanios started in that master node
 	if len(upgrade.upgradeState.NodeStatus.NodesUpgraded) != 0 && len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
 		nodeNames = upgrade.upgradeState.NodeStatus.NodesToBeUpgraded
 		nodesUpgraded = upgrade.upgradeState.NodeStatus.NodesUpgraded
+		nodesFailedToBeUpgraded = upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
@@ -532,7 +534,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//	}
 		//}
 
-		upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded = []string{}
+		upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded = nodesFailedToBeUpgraded
 
 		// TODO: should this be one case only
 		//  as without delimiter
