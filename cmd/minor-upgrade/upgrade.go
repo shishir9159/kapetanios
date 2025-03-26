@@ -328,7 +328,7 @@ func upgradePlan(c Controller, conn *grpc.ClientConn) (bool, error) {
 	if err != nil {
 		c.log.Error().Err(err).
 			Msg("could not send status update")
-		//return false, err
+		return false, err
 	}
 
 	c.log.Info().

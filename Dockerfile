@@ -8,7 +8,6 @@ COPY . ./
 RUN go build -C ./cmd/kapetanios -o main
 
 FROM debian:bookworm-slim
-# the cache is mounted only
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt/,type=cache,sharing=locked \
     set -x && rm -f /etc/apt/apt.conf.d/docker-clean && \
