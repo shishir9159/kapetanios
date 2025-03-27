@@ -61,7 +61,7 @@ func Rollback(namespace string) {
 	}
 
 	ch := make(chan *grpc.Server, 1)
-	go ExpirationGrpc(c.log, ch)
+	go RollbackGrpc(c.log, ch)
 
 	// TODO: refactor this part to orchestrator
 
@@ -115,6 +115,4 @@ func Rollback(namespace string) {
 	}
 
 	c.log.Info("entering grpc server")
-
-	RollbackGrpc(c.log)
 }

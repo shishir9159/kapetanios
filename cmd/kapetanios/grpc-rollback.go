@@ -62,23 +62,29 @@ func (s *rollbackServer) Restarts(_ context.Context, in *pb.RollbackRestartStatu
 	}, nil
 }
 
-func RollbackGrpc(log *zap.Logger) {
+func RollbackGrpc(zlog *zap.Logger, ch chan<- *grpc.Server) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Error("failed to listen",
+		zlog.Error("failed to listen",
 			zap.Error(err))
 	}
 	s := grpc.NewServer()
+	server := rollbackServer{
+		log: zlog,
+	}
 
 	// in dev mode
 	//reflection.register(s)
-	pb.RegisterRollbackServer(s, &rollbackServer{})
+	pb.RegisterRollbackServer(s, &server)
 
-	log.Info("rollback sever listening")
+	zlog.Info("rollback sever listening")
+
+	ch <- s
 	if er := s.Serve(lis); er != nil {
-
-		log.Error("failed to serve",
+		zlog.Error("failed to serve",
 			zap.Error(er))
 	}
+
+	zlog.Info("Shutting down gRPC server...")
 }
