@@ -45,25 +45,25 @@ kapetanios:
 certs-expiration:
 	@printf $(COLOR) "Building docker image for certs-expiration minions and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/certs-expiration:latest -f certs-expiration.Dockerfile
- 	docker push quay.io/klovercloud/certs-expiration:latest
+	docker push quay.io/klovercloud/certs-expiration:latest
 
 .PHONY: certs-renewal
 certs-renewal:
 	@printf $(COLOR) "Building docker image for certs-renewal minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile
- 	docker push quay.io/klovercloud/certs-renewal:latest
+	docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.
+	docker push quay.io/klovercloud/certs-renewal:latest
 
 .PHONY: etcd-migration
 etcd-migration:
 	@printf $(COLOR) "Building docker image for etcd-migration minions and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/etcd-migration:latest -f etcd-migration.Dockerfile
- 	docker push quay.io/klovercloud/etcd-migration:latest
+	docker push quay.io/klovercloud/etcd-migration:latest
 
 .PHONY: etcd-restart
 etcd-restart:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile
- 	docker push quay.io/klovercloud/etcd-restart:latest
+	docker push quay.io/klovercloud/etcd-restart:latest
 
 .PHONY: minor-update
 minor-update:

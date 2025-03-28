@@ -102,6 +102,7 @@ declare module '$env/static/private' {
 	export const LC_MEASUREMENT: string;
 	export const FNM_VERSION_FILE_STRATEGY: string;
 	export const XDG_VTNR: string;
+	export const UBUNTU_MENUPROXY: string;
 	export const XDG_SESSION_ID: string;
 	export const QT_LINUX_ACCESSIBILITY_ALWAYS_ON: string;
 	export const npm_config_user_agent: string;
@@ -236,6 +237,7 @@ declare module '$env/dynamic/private' {
 		LC_MEASUREMENT: string;
 		FNM_VERSION_FILE_STRATEGY: string;
 		XDG_VTNR: string;
+		UBUNTU_MENUPROXY: string;
 		XDG_SESSION_ID: string;
 		QT_LINUX_ACCESSIBILITY_ALWAYS_ON: string;
 		npm_config_user_agent: string;
