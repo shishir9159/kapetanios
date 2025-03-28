@@ -1,9 +1,7 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
 	"k8s.io/client-go/tools/cache"
-	"lighthouse-backend/pkg/core/log"
 	"os"
 	"strconv"
 	"strings"
@@ -76,7 +74,6 @@ func LoadEnvironmentVariables() {
 	RedisServerPassword = strings.TrimSpace(os.Getenv("REDIS_SERVER_PASSWORD"))
 	RedisAddress = strings.TrimSpace(os.Getenv("REDIS_ADDRESS"))
 	RedisPassword = strings.TrimSpace(os.Getenv("REDIS_PWD"))
-	LoadTemporalVariables()
 	initCacheStore()
 }
 
