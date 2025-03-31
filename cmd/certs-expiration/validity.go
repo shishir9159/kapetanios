@@ -154,7 +154,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	}
 
 	c.log.Info().
-		Bool("response received", rpc.ResponseReceived).
+		Bool("response received", rpc.GetResponseReceived()).
 		Msg("status update")
 
 	return time.Time{}, time.Time{}, err
