@@ -58,6 +58,7 @@ func main() {
 		log: logger,
 	}
 
+	// create a grpc client to communicate with the server
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultServiceConfig(retryPolicy))
 	if err != nil {

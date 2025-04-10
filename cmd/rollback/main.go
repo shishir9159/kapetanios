@@ -48,7 +48,7 @@ func main() {
 
 	flag.Parse()
 
-	// Set up a connection to the server.
+	// create a grpc client to communicate with the server
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error("did not connect",

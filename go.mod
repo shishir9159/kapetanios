@@ -1,18 +1,18 @@
 module github.com/shishir9159/kapetanios
 
-go 1.23.6
+go 1.24.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/gofiber/swagger v1.1.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/json-iterator/go v1.1.12
-	github.com/rs/zerolog v1.33.0
-	go.etcd.io/etcd/client/v3 v3.5.19
+	github.com/rs/zerolog v1.34.0
+	go.etcd.io/etcd/client/v3 v3.5.21
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/grpc v1.71.1
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.27.15
 	k8s.io/apimachinery v0.27.15
@@ -75,15 +75,15 @@ require (
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.19 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.19 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.21 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.21 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.25.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/term v0.29.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect

@@ -18,8 +18,7 @@ var (
 	maxAttempts = 3
 	backupCount = 7
 	//addr = flag.String("addr", "dns:[//10.96.0.1/]kapetanios.default.svc.cluster.local[:50051]", "the address to connect to")
-	addr = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
-	//"name": [{"service": "grpc.examples.echo.Echo"}],
+	addr        = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
 	retryPolicy = `{
 		"methodConfig": [{
 		  "retryPolicy": {
@@ -66,7 +65,8 @@ func main() {
 	}
 
 	flag.Parse()
-	// Set up a connection to the server.
+
+	// create a grpc client to communicate with the server
 	conn, err := grpc.NewClient(
 		*addr, grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultServiceConfig(retryPolicy))

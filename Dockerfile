@@ -7,6 +7,7 @@ RUN go mod download
 COPY . ./
 RUN go build -C ./cmd/kapetanios -o main
 
+# TODO: distroless image
 FROM debian:bookworm-slim
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt/,type=cache,sharing=locked \
