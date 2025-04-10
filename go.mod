@@ -7,7 +7,7 @@ require (
 	github.com/gofiber/swagger v1.1.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/json-iterator/go v1.1.12
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	go.etcd.io/etcd/client/v3 v3.5.19
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
