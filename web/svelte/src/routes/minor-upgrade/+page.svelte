@@ -99,7 +99,6 @@
                             logForScrollingModal = progressDetails[lastStep].log
                         }
 
-                        console.log($state.snapshot(nodes));
                         let uid = 1;
                         let nodesToBeUpgraded = [];
                         nodeStatus.nodesToBeUpgraded.forEach(node => {
