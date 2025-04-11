@@ -1,13 +1,12 @@
 ##### Variables ######
-COLOR := "\e[1;36m%s\e[0m\n"
-
-CGO_ENABLED ?= 0
-DOCKER ?= docker buildx
-NATIVE_ARCH := amd64
-GOMOD := '/dev/null'
 GOOS := linux
+CGO_ENABLED ?= 0
 GOTELEMETRY='local'
-GOVERSION := 'go1.23.1'
+GOMOD := '/dev/null'
+NATIVE_ARCH := amd64
+GOVERSION := 'go1.24.2'
+DOCKER ?= docker buildx
+COLOR := "\e[1;36m%s\e[0m\n"
 
 ##### Scripts ######
 protogen:
@@ -17,6 +16,7 @@ protogen:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-expiration.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-update.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
+
 go-protogen:
 	@printf $(COLOR) "Generating gRPC code after installing protoc with go install"
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -34,7 +34,7 @@ clean:
 
 ##### Docker #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios rollback certs-renewal certs-expiration etcd-restart minor-update minor-upgrade
+docker-build-and-push: kapetanios certs-renewal certs-expiration etcd-restart minor-update minor-upgrade rollback
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
