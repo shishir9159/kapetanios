@@ -358,8 +358,6 @@ func main() {
 		log:       logger,
 	}
 
-	// TODO: refactor read write,
-	//  be conservative what you send
 	config, err := readConfig(&nefario)
 	if err != nil {
 		nefario.log.Info("failed to read config map: ",
