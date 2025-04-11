@@ -135,20 +135,20 @@ func main() {
 	}
 
 	version = os.Getenv("KUBERNETES_COMPONENT_VERSION")
+	if os.Getenv("NODE_ROLE") == "CONTROL-PLANE" {
+		c.log.Debug().Msg("node role control plane")
+		for i := 0; i < maxAttempts; i++ {
+			var skip bool
+			skip, err = compatibility(c, version, conn)
+			if err != nil {
+				c.log.Error().Err(err).
+					Int("attempt", i).
+					Msg("failed to diff")
+			}
 
-	// TODO:
-	//  skip if worker node
-	for i := 0; i < maxAttempts; i++ {
-		var skip bool
-		skip, err = compatibility(c, version, conn)
-		if err != nil {
-			c.log.Error().Err(err).
-				Int("attempt", i).
-				Msg("failed to diff")
-		}
-
-		if skip {
-			break
+			if skip {
+				break
+			}
 		}
 	}
 
