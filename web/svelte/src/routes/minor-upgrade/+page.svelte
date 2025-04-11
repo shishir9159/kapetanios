@@ -43,7 +43,7 @@
 
         public connect(): void {
             this.socket = new WebSocket(this.url);
-            this.socket.send("repeat");
+            // this.socket.send("repeat");
 
             this.socket.onopen = () => {
                 console.log('connected to the server');
@@ -52,7 +52,7 @@
 
             this.socket.onmessage = (event) => {
                 try {
-                    console.log("event data ",event.data);
+                    console.log("event data ", event.data);
                     const upgradeProgression: UpgradeProgression = JSON.parse(event.data);
                     // this.handleMessage(event);
                     if (upgradeProgression.stateName == 'upgrade config selection') {

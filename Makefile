@@ -85,7 +85,7 @@ rollback:
 	docker push quay.io/klovercloud/rollback:latest
 
 .PHONY: svelte
-rollback:
+svelte:
 	@printf $(COLOR) "Building docker image for kapetanios frontend and pushing it to the registry..."
 	docker build . -t quay.io/klovercloud/svelte:latest -f svelte.Dockerfile
 	docker push quay.io/klovercloud/svelte:latest
