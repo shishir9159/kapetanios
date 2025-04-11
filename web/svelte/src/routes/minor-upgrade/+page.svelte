@@ -1,5 +1,6 @@
 <script lang="ts">
     import Step from './Step.svelte';
+    import NodeList from './Nodes.svelte';
     import { K8sVersion } from './ambient.d.ts';
     import { progressInfo } from "./progress.svelte.ts";
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
@@ -10,22 +11,20 @@
     let clusterStatus: NodesStatus;
     let nodeStatus: NodesStatus = $state(clusterStatus);
     let progressDetails: [ProgressDetail] = [];
-    let certificateRenewal: boolean = $state(false);
     let drainNodes: boolean = $state(false);
+    let certificateRenewal: boolean = $state(false);
     let promptOnError: boolean = $state(true);
     let selected: Map<string, string> = $state(new Map<string, string>());
     let packagesInfo: [K8sPackageInfo]= $state([]);
     let formModal = $state(false);
 
-    let progressModal = $state(false);
     let scrollingModal = $state(false);
     let finalizerModal = $state(false);
     let errorForScrollingModal = $state("");
     let logForScrollingModal = $state("");
 
-    let selectedS = [];
-    // let selectedS = $state([{}]);
-    let items: boolean[] = $state([false, false, false, false, false, false, false, false, false, false]);
+    let selectedVersion: string;
+    let toggleAccordion: boolean[] = $state([false, false, false, false, false, false, false, false, false, false]);
     let nodes = $state([
         // { id: 1, done: false, name: 'node one' },
         // { id: 2, done: true, name: 'node two' },
@@ -46,14 +45,13 @@
 
             this.socket.onopen = () => {
                 console.log('connected to the server');
-                this.sendMessage("repeat");
+                this.sendMessage("connection initialized");
             };
 
             this.socket.onmessage = (event) => {
                 try {
                     console.log("event data ", event.data);
                     const upgradeProgression: UpgradeProgression = JSON.parse(event.data);
-                    // this.handleMessage(event);
                     if (upgradeProgression.stateName == 'upgrade config selection') {
                         formModal = true;
                         console.log(upgradeProgression);
@@ -70,26 +68,25 @@
                             nodeStatus = upgradeProgression.state.nodesStatus;
                             progressDetails = upgradeProgression.state.progressDetails;
                         } else {
-                            // TODO:
-                            //   sent error reply and expect another payload
+                            this.sendMessage("repeat the payload");
                         }
 
                         for (let progressDetail of progressDetails) {
                             progressInfo.forEach((step) => {
                                 if (step.stepCount == progressDetail.stepCount) {
                                     step.log = progressDetail.log;
-                                    // if (step.error != "") {
-                                    // }
+                                    if (step.error != "") {
+
+                                    }
                                 }
                             });
                         }
 
                         let lastStep = progressDetails.length - 1;
 
-                        items = [...new Array(10)].map(() => false);
-                        items[lastStep] = true;
+                        toggleAccordion = [...new Array(10)].map(() => false);
+                        toggleAccordion[lastStep] = true;
 
-                        //  if (progressDetails[lastStep].error !== "" && ) {
                         if (progressDetails[lastStep].err || !upgradeConfig.promptOnError) {
                             scrollingModal = true
                             console.log("lastStep", lastStep);
@@ -135,8 +132,6 @@
                         })
                         nodesUpgraded.sort((a, b) => (a.name > b.name ? 1 : -1));
                         nodes = nodesToBeUpgraded.concat(nodesUpgraded);
-                    // TODO:
-                    //  alert box
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);
@@ -174,7 +169,6 @@
 
     const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
     function onsubmit() {
-        // if (socket.readyState == "connected") {
         let k8sVersion = new Array<K8sVersion>();
         selected.forEach((value:string, key: string) => {
             const packageInfo = new K8sVersion();
@@ -191,15 +185,10 @@
         }
         wsClient.sendJson(upgradeConfig);
 
-        selectedS = []
+        selectedVersion = []
 
         formModal = false
-        // } /else {
-        // // TODO: throw error
-        // }/
     }
-
-    import TodoList from './Nodes.svelte';
 
     function remove(node) {
         const index = nodes.indexOf(node);
@@ -216,7 +205,6 @@
         </ButtonGroup>
     </div>
 </div>
-
 
 <div class="action">
     <div class="button-group">
@@ -235,21 +223,21 @@
 <div class="processing">
     <div class="nodes">
 
-        <div class="todo">
+        <div class="nodeList">
             <h2 class="text-black dark:text-white">nodes to be upgraded</h2>
-            <TodoList nodes={nodes.filter((t) => !t.done)} />
-<!--            <TodoList nodes={nodes.filter((t) => !t.done)} {remove} />-->
+            <NodeList nodes={nodes.filter((t) => !t.done)} />
+<!--            <NodeList nodes={nodes.filter((t) => !t.done)} {remove} />-->
         </div>
 
         <div class="done">
             <h2 class="text-black dark:text-white">upgraded nodes</h2>
-            <TodoList nodes={nodes.filter((t) => t.done)} />
-<!--            <TodoList nodes={nodes.filter((t) => t.done)} {remove} />-->
+            <NodeList nodes={nodes.filter((t) => t.done)} />
+<!--            <NodeList nodes={nodes.filter((t) => t.done)} {remove} />-->
         </div>
 
     </div>
     <div class="nodes">
-        <Step {items} />
+        <Step {toggleAccordion} />
     </div>
 </div>
 
@@ -261,8 +249,8 @@
             <p>{packageInfo.distroPrettyName}</p>
             <Select class="mt-2"
                     items={packageInfo.availableVersions.filter(v=>v).map(value => ({ value: value, name: value }))}
-                    bind:value={selectedS}
-                    onchange={() => selected.set(packageInfo.distroPrettyName, selectedS)}
+                    bind:value={selectedVersion}
+                    onchange={() => selected.set(packageInfo.distroPrettyName, selectedVersion)}
             />
         {/each}
     </Label>

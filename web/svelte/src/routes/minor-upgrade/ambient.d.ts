@@ -11,6 +11,7 @@ interface upgradeConfigSelection {
 	k8sPackagesInfo: [K8sPackageInfo];
 }
 
+// TODO:
 export class K8sVersion {
 	distroPrettyName: string;
 	targetK8sVersion: string;

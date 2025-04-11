@@ -34,7 +34,7 @@ clean:
 
 ##### Docker #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios certs-expiration certs-renewal etcd-restart minor-update minor-upgrade rollback
+docker-build-and-push: kapetanios certs-expiration certs-renewal etcd-restart minor-update minor-upgrade rollback svelte
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."

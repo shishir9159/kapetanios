@@ -1,9 +1,10 @@
 <script>
     import { flip } from 'svelte/animate';
     import { send, receive } from './transition.js';
-    import {Button} from "flowbite-svelte";
+    import { Button } from "flowbite-svelte";
 
     let { nodes, remove } = $props();
+
 </script>
 
 <ul class="nodes">

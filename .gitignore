@@ -6,24 +6,27 @@
 *.dylib
 server
 
-# Test binary, built with `go test -c`
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# env file
+.env
 
 # Go workspace file
 go.work
 go.work.sum
 
-# env file
-.env
-
 # bun modules
 node_modules
+
+# Env
+.env.*
+!.env.example
+!.env.test
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Output
 .output
@@ -32,18 +35,18 @@ node_modules
 .wrangler
 /build
 
-# OS
-.DS_Store
-Thumbs.db
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
-# Env
-.env.*
-!.env.example
-!.env.test
+# Storybook
+*storybook.log
+
+# Svelte
+.svelte-kit
+
+# Test binary, built with `go test -c`
+*.test
 
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-
-# Storybook
-*storybook.log
