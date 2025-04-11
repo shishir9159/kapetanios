@@ -43,11 +43,10 @@
 
         public connect(): void {
             this.socket = new WebSocket(this.url);
-            // this.socket.send("repeat");
 
             this.socket.onopen = () => {
                 console.log('connected to the server');
-                // this.sendMessage({ type: 'ping', data: 'health check beat' });
+                this.sendMessage("repeat");
             };
 
             this.socket.onmessage = (event) => {

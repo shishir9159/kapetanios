@@ -149,7 +149,6 @@ func getRepoInfo(distro string, log *zerolog.Logger) (string, string, string, er
 	if err != nil {
 		log.Error().Err(err).
 			Msg("failed to list available versions")
-		// TODO: early return?
 	}
 
 	repoBaseURL, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
