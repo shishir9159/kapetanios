@@ -50,7 +50,7 @@ certs-expiration:
 .PHONY: certs-renewal
 certs-renewal:
 	@printf $(COLOR) "Building docker image for certs-renewal minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.
+	docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile
 	docker push quay.io/klovercloud/certs-renewal:latest
 
 .PHONY: etcd-migration
