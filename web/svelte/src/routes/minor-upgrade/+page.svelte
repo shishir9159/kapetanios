@@ -200,22 +200,6 @@
     <div class="button-group">
         <ButtonGroup>
             <Button outline color="red" on:mousedown={() => wsClient.connect()}>upgrade</Button>
-            <Button outline color="green">rollback</Button>
-            <Button outline color="yellow">status</Button>
-        </ButtonGroup>
-    </div>
-</div>
-
-<div class="action">
-    <div class="button-group">
-        <ButtonGroup>
-            <Button outline color="red"
-                    on:mousedown={() => {
-                        wsClient.sendMessage("retryCurrentStep");
-                        scrollingModal= false;
-                    }}>retry current step</Button>
-            <Button outline color="green" on:mousedown={() => wsClient.sendMessage("terminateApplication")}>skip current node</Button>
-            <Button outline color="yellow" on:mousedown={() => {wsClient.sendMessage("proceedNextStep"); scrollingModal= false;}}>proceed next step</Button>
         </ButtonGroup>
     </div>
 </div>
@@ -306,7 +290,7 @@
     }
     .button-group {
         margin-left: auto;
-        padding-right: 50px;
+        padding-right: 70px;
         flex-direction: row-reverse;
         justify-content: flex-start;
     }
