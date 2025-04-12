@@ -19,8 +19,8 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 	blueprint := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("minions-for-%s-", role),
-			// only after implementing namespace for all communications and service account
-			// Namespace: namespace,
+			// TODO:
+			//  service accounts
 			Labels: map[string]string{
 				"app": role,
 			},
@@ -130,4 +130,9 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 	//	},
 
 	return blueprint
+}
+
+func (c *Minions) Debug() error {
+
+	return nil
 }

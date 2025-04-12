@@ -20,8 +20,8 @@
 
     let scrollingModal = $state(false);
     let finalizerModal = $state(false);
-    let errorForScrollingModal = $state("");
     let logForScrollingModal = $state("");
+    let errorForScrollingModal = $state("");
 
     let selectedVersion: string;
     let toggleAccordion: boolean[] = $state([false, false, false, false, false, false, false, false, false, false]);
@@ -183,10 +183,10 @@
             certificateRenewal,
             k8sVersion
         }
+        
         wsClient.sendJson(upgradeConfig);
 
-        selectedVersion = []
-
+        selectedVersion = ""
         formModal = false
     }
 
