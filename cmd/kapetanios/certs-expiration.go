@@ -115,4 +115,7 @@ func Expiration(namespace string) {
 	}
 
 	(<-ch).GracefulStop()
+
+	c.log.Info("report",
+		zap.Reflect("report", report))
 }
