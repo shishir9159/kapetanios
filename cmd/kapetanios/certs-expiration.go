@@ -10,6 +10,27 @@ import (
 	"time"
 )
 
+type CertsReport struct {
+	nodeName              string
+	certificateExpiration []CertsExpiration
+	certificatesAuthority []CertsAuthority
+}
+
+type CertsExpiration struct {
+	Name                 string
+	Expires              string
+	ResidualTime         string
+	CertificateAuthority string
+	ExternallyManaged    string
+}
+
+type CertsAuthority struct {
+	Name              string
+	Expires           string
+	ResidualTime      string
+	ExternallyManaged string
+}
+
 func Expiration(namespace string) {
 
 	logger := zap.Must(zap.NewProduction())
@@ -59,8 +80,9 @@ func Expiration(namespace string) {
 		//	return err or call grpc
 	}
 
+	var report []*CertsReport
 	ch := make(chan *grpc.Server, 1)
-	go ExpirationGrpc(c.log, ch)
+	go ExpirationGrpc(c.log, ch, report)
 
 	// TODO: refactor this part inside the orchestrator
 
