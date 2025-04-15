@@ -43,6 +43,7 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	report.nodeName = in.GetNodeName()
 	report.certificateExpiration = []CertsExpiration{}
 
+	s.log.Info("node name: " + report.nodeName)
 	for _, certificate := range in.GetCertificates() {
 
 		// todo: sanity checking

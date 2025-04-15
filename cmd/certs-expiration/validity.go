@@ -7,6 +7,7 @@ import (
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"log"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -51,6 +52,14 @@ func checkCertificateValidity(baseName string, cert *x509.Certificate) {
 	if err := validateCertPeriod(cert, 0); err != nil {
 		log.Println(fmt.Errorf("WARNING: could not validate bounds for certificate %s: %v", baseName, err))
 	}
+}
+
+func getNodeHostName() (string, error) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "", err
+	}
+	return hostname, err
 }
 
 func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time.Time, error) {
@@ -141,8 +150,16 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		Str("errStr", errStr).
 		Send()
 
+	hostName, err := getNodeHostName()
+	if err != nil {
+		c.log.Error().
+			Err(err).
+			Msg("Failed to get node hostname")
+	}
+
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
+			NodeName:               hostName,
 			ValidCertificate:       true, //tOdO: count
 			Certificates:           certificates,
 			CertificateAuthorities: certificateAuthorities,
