@@ -70,6 +70,13 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 			Msg("Failed to create chroot on /host")
 	}
 
+	hostName, err := getNodeHostName()
+	if err != nil {
+		c.log.Error().
+			Err(err).
+			Msg("Failed to get node hostname")
+	}
+
 	// TODO: when is the config file necessary?
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration --config /etc/kubernetes/kubeadm/kubeadm-config.yaml")
 
@@ -149,13 +156,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		Str("outStr", outStr).
 		Str("errStr", errStr).
 		Send()
-
-	hostName, err := getNodeHostName()
-	if err != nil {
-		c.log.Error().
-			Err(err).
-			Msg("Failed to get node hostname")
-	}
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
