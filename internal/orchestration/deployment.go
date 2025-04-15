@@ -88,6 +88,14 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 							Name:  "DEBIAN_FRONTEND",
 							Value: "noninteractive",
 						},
+						{
+							Name: "NODE_NAME",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "spec.nodeName",
+								},
+							},
+						},
 					},
 				},
 			},

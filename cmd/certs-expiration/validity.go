@@ -54,29 +54,12 @@ func checkCertificateValidity(baseName string, cert *x509.Certificate) {
 	}
 }
 
-func getNodeHostName() (string, error) {
-
-	hostname, err := os.Hostname()
-	if err != nil {
-		return "", err
-	}
-
-	return hostname, err
-}
-
 func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time.Time, error) {
 
 	changedRoot, err := utils.ChangeRoot("/host")
 	if err != nil {
 		c.log.Fatal().Err(err).
 			Msg("Failed to create chroot on /host")
-	}
-
-	hostName, err := getNodeHostName()
-	if err != nil {
-		c.log.Error().
-			Err(err).
-			Msg("Failed to get node hostname")
 	}
 
 	// TODO: in memory config file generation from the configMap
@@ -162,7 +145,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
-			NodeName:               hostName,
+			NodeName:               os.Getenv("NODE_NAME"),
 			ValidCertificate:       true, //tOdO: count
 			Certificates:           certificates,
 			CertificateAuthorities: certificateAuthorities,
