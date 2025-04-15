@@ -55,10 +55,12 @@ func checkCertificateValidity(baseName string, cert *x509.Certificate) {
 }
 
 func getNodeHostName() (string, error) {
+
 	hostname, err := os.Hostname()
 	if err != nil {
 		return "", err
 	}
+
 	return hostname, err
 }
 
@@ -77,6 +79,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 			Msg("Failed to get node hostname")
 	}
 
+	// TODO: in memory config file generation from the configMap
 	// TODO: when is the config file necessary?
 	cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration --config /etc/kubernetes/kubeadm/kubeadm-config.yaml")
 
@@ -155,7 +158,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	c.log.Info().
 		Str("outStr", outStr).
 		Str("errStr", errStr).
-		Send()
+		Msg("certificate expiration")
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
