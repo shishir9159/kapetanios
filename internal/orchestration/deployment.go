@@ -94,6 +94,14 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 								},
 							},
 						},
+						{
+							Name: "KAPETANIOS_NAMESPACE",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "metadata.namespace",
+								},
+							},
+						},
 					},
 				},
 			},
