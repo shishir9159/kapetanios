@@ -9,6 +9,14 @@ DOCKER ?= docker buildx
 COLOR := "\e[1;36m%s\e[0m\n"
 
 ##### Scripts ######
+update: go-sqlc go-protogen
+
+go-sqlc:
+	@printf $(COLOR) "Generating sql boilerplate code after installing sqlc with go install"
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+	export PATH="$PATH:$(go env GOPATH)/bin"
+	sqlc generate -f ./sqlc/db/postgres.yaml
+
 protogen:
 	@printf $(COLOR) "Generating gRPC code"
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/rollback.proto
@@ -24,7 +32,7 @@ go-protogen:
 	export PATH="$PATH:$(go env GOPATH)/bin"
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/rollback.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-expirati.on.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-expiration.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-update.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 
@@ -34,7 +42,7 @@ clean:
 
 ##### Docker #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios certs-expiration certs-renewal etcd-restart minor-update minor-upgrade rollback svelte
+docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal minor-update minor-upgrade rollback svelte
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
