@@ -21,6 +21,10 @@ spec:
           imagePullPolicy: Always
           name: kapetanios
           env:
+            - name: CURRENT_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: KAPETANIOS_NAMESPACE
               valueFrom:
                 fieldRef:

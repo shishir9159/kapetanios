@@ -19,8 +19,6 @@ func (c *Minions) MinionBlueprint(image string, role string, nodeName string) *c
 	blueprint := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("minions-for-%s-", role),
-			// TODO:
-			//  service accounts
 			Labels: map[string]string{
 				"app": role,
 			},

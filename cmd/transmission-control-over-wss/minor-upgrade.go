@@ -251,6 +251,7 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
 
 		descriptor.Spec.HostNetwork = true
+		descriptor.Namespace = os.Getenv("KAPETANIOS_NAMESPACE")
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
 		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
