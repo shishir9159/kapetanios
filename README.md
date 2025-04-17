@@ -43,3 +43,8 @@ grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 Renewal/StatusU
   "restartSuccess" : true
 }
 ```
+
+## Stale Dependency
+```textmate
+https://github.com/go-yaml/yaml
+```
