@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.30.1
-// source: proto/rollback.proto
+// source: proto/certs-rollback.proto
 
 package proto
 
@@ -32,7 +32,7 @@ type PrerequisitesRollback struct {
 
 func (x *PrerequisitesRollback) Reset() {
 	*x = PrerequisitesRollback{}
-	mi := &file_proto_rollback_proto_msgTypes[0]
+	mi := &file_proto_certs_rollback_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *PrerequisitesRollback) String() string {
 func (*PrerequisitesRollback) ProtoMessage() {}
 
 func (x *PrerequisitesRollback) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rollback_proto_msgTypes[0]
+	mi := &file_proto_certs_rollback_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *PrerequisitesRollback) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrerequisitesRollback.ProtoReflect.Descriptor instead.
 func (*PrerequisitesRollback) Descriptor() ([]byte, []int) {
-	return file_proto_rollback_proto_rawDescGZIP(), []int{0}
+	return file_proto_certs_rollback_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *PrerequisitesRollback) GetBackupExists() bool {
@@ -91,7 +91,7 @@ type RollbackResponse struct {
 
 func (x *RollbackResponse) Reset() {
 	*x = RollbackResponse{}
-	mi := &file_proto_rollback_proto_msgTypes[1]
+	mi := &file_proto_certs_rollback_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +103,7 @@ func (x *RollbackResponse) String() string {
 func (*RollbackResponse) ProtoMessage() {}
 
 func (x *RollbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rollback_proto_msgTypes[1]
+	mi := &file_proto_certs_rollback_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +116,7 @@ func (x *RollbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackResponse.ProtoReflect.Descriptor instead.
 func (*RollbackResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rollback_proto_rawDescGZIP(), []int{1}
+	return file_proto_certs_rollback_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RollbackResponse) GetProceedNextStep() bool {
@@ -147,7 +147,7 @@ type RollbackStatus struct {
 
 func (x *RollbackStatus) Reset() {
 	*x = RollbackStatus{}
-	mi := &file_proto_rollback_proto_msgTypes[2]
+	mi := &file_proto_certs_rollback_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -159,7 +159,7 @@ func (x *RollbackStatus) String() string {
 func (*RollbackStatus) ProtoMessage() {}
 
 func (x *RollbackStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rollback_proto_msgTypes[2]
+	mi := &file_proto_certs_rollback_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -172,7 +172,7 @@ func (x *RollbackStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackStatus.ProtoReflect.Descriptor instead.
 func (*RollbackStatus) Descriptor() ([]byte, []int) {
-	return file_proto_rollback_proto_rawDescGZIP(), []int{2}
+	return file_proto_certs_rollback_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *RollbackStatus) GetPrerequisitesCheckSuccess() bool {
@@ -230,7 +230,7 @@ type RollbackRestartStatus struct {
 
 func (x *RollbackRestartStatus) Reset() {
 	*x = RollbackRestartStatus{}
-	mi := &file_proto_rollback_proto_msgTypes[3]
+	mi := &file_proto_certs_rollback_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -242,7 +242,7 @@ func (x *RollbackRestartStatus) String() string {
 func (*RollbackRestartStatus) ProtoMessage() {}
 
 func (x *RollbackRestartStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rollback_proto_msgTypes[3]
+	mi := &file_proto_certs_rollback_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +255,7 @@ func (x *RollbackRestartStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackRestartStatus.ProtoReflect.Descriptor instead.
 func (*RollbackRestartStatus) Descriptor() ([]byte, []int) {
-	return file_proto_rollback_proto_rawDescGZIP(), []int{3}
+	return file_proto_certs_rollback_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RollbackRestartStatus) GetEtcdRestart() bool {
@@ -303,7 +303,7 @@ type RollbackFinalizer struct {
 
 func (x *RollbackFinalizer) Reset() {
 	*x = RollbackFinalizer{}
-	mi := &file_proto_rollback_proto_msgTypes[4]
+	mi := &file_proto_certs_rollback_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -315,7 +315,7 @@ func (x *RollbackFinalizer) String() string {
 func (*RollbackFinalizer) ProtoMessage() {}
 
 func (x *RollbackFinalizer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rollback_proto_msgTypes[4]
+	mi := &file_proto_certs_rollback_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -328,7 +328,7 @@ func (x *RollbackFinalizer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackFinalizer.ProtoReflect.Descriptor instead.
 func (*RollbackFinalizer) Descriptor() ([]byte, []int) {
-	return file_proto_rollback_proto_rawDescGZIP(), []int{4}
+	return file_proto_certs_rollback_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RollbackFinalizer) GetResponseReceived() bool {
@@ -345,11 +345,11 @@ func (x *RollbackFinalizer) GetRetryCurrentStep() bool {
 	return false
 }
 
-var File_proto_rollback_proto protoreflect.FileDescriptor
+var File_proto_certs_rollback_proto protoreflect.FileDescriptor
 
-const file_proto_rollback_proto_rawDesc = "" +
+const file_proto_certs_rollback_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/rollback.proto\"{\n" +
+	"\x1aproto/certs-rollback.proto\"{\n" +
 	"\x15PrerequisitesRollback\x12\"\n" +
 	"\fbackupExists\x18\x01 \x01(\bR\fbackupExists\x12,\n" +
 	"\x11spaceAvailability\x18\x02 \x01(\bR\x11spaceAvailability\x12\x10\n" +
@@ -379,26 +379,26 @@ const file_proto_rollback_proto_rawDesc = "" +
 	"\bRestarts\x12\x16.RollbackRestartStatus\x1a\x12.RollbackFinalizerB)Z'github.com/shishir9159/kapetanios/protob\x06proto3"
 
 var (
-	file_proto_rollback_proto_rawDescOnce sync.Once
-	file_proto_rollback_proto_rawDescData []byte
+	file_proto_certs_rollback_proto_rawDescOnce sync.Once
+	file_proto_certs_rollback_proto_rawDescData []byte
 )
 
-func file_proto_rollback_proto_rawDescGZIP() []byte {
-	file_proto_rollback_proto_rawDescOnce.Do(func() {
-		file_proto_rollback_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_rollback_proto_rawDesc), len(file_proto_rollback_proto_rawDesc)))
+func file_proto_certs_rollback_proto_rawDescGZIP() []byte {
+	file_proto_certs_rollback_proto_rawDescOnce.Do(func() {
+		file_proto_certs_rollback_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_certs_rollback_proto_rawDesc), len(file_proto_certs_rollback_proto_rawDesc)))
 	})
-	return file_proto_rollback_proto_rawDescData
+	return file_proto_certs_rollback_proto_rawDescData
 }
 
-var file_proto_rollback_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_proto_rollback_proto_goTypes = []any{
+var file_proto_certs_rollback_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_certs_rollback_proto_goTypes = []any{
 	(*PrerequisitesRollback)(nil), // 0: PrerequisitesRollback
 	(*RollbackResponse)(nil),      // 1: RollbackResponse
 	(*RollbackStatus)(nil),        // 2: RollbackStatus
 	(*RollbackRestartStatus)(nil), // 3: RollbackRestartStatus
 	(*RollbackFinalizer)(nil),     // 4: RollbackFinalizer
 }
-var file_proto_rollback_proto_depIdxs = []int32{
+var file_proto_certs_rollback_proto_depIdxs = []int32{
 	0, // 0: Rollback.Prerequisites:input_type -> PrerequisitesRollback
 	2, // 1: Rollback.RollbackUpdate:input_type -> RollbackStatus
 	3, // 2: Rollback.Restarts:input_type -> RollbackRestartStatus
@@ -412,26 +412,26 @@ var file_proto_rollback_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_rollback_proto_init() }
-func file_proto_rollback_proto_init() {
-	if File_proto_rollback_proto != nil {
+func init() { file_proto_certs_rollback_proto_init() }
+func file_proto_certs_rollback_proto_init() {
+	if File_proto_certs_rollback_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_rollback_proto_rawDesc), len(file_proto_rollback_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_certs_rollback_proto_rawDesc), len(file_proto_certs_rollback_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_rollback_proto_goTypes,
-		DependencyIndexes: file_proto_rollback_proto_depIdxs,
-		MessageInfos:      file_proto_rollback_proto_msgTypes,
+		GoTypes:           file_proto_certs_rollback_proto_goTypes,
+		DependencyIndexes: file_proto_certs_rollback_proto_depIdxs,
+		MessageInfos:      file_proto_certs_rollback_proto_msgTypes,
 	}.Build()
-	File_proto_rollback_proto = out.File
-	file_proto_rollback_proto_goTypes = nil
-	file_proto_rollback_proto_depIdxs = nil
+	File_proto_certs_rollback_proto = out.File
+	file_proto_certs_rollback_proto_goTypes = nil
+	file_proto_certs_rollback_proto_depIdxs = nil
 }
