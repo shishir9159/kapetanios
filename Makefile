@@ -13,7 +13,10 @@ update: go-sqlc go-protogen
 
 go-update:
 	@printf $(COLOR) "Updating go.lock from go.mod and listing all upgradable stale direct dependencies"
-	go list -m -u -json all | jq -r 'select(.Indirect == false) | .Path'
+	@printf $(COLOR) "direct dependencies"
+	go list -u -m -json all | jq -r 'select(.Update) | "\(.Path) (\(.Version) → \(.Update.Version))"'
+	@printf $(COLOR) "indirect dependencies"
+	go list -u -m -json all | jq -r 'select(.Update and (.Indirect != true)) | "\(.Path) (\(.Version) → \(.Update.Version))"'
 
 go-sqlc:
 	@printf $(COLOR) "Generating sql boilerplate code after installing sqlc with go install"
