@@ -80,7 +80,7 @@ func Cert(namespace string) {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/certs-renewal", roleName, node.Name)
+		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/certs-renewal", roleName, node.Name)
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods to monitor should be sent to the orchestration too

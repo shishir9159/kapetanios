@@ -54,57 +54,57 @@ docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal mi
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
 	#docker build . -t quay.io/klovercloud/kapetanios:latest
-	docker build . -t quay.io/klovercloud/kapetanios:latest -f transmission-control-over-wss.Dockerfile
-	docker push quay.io/klovercloud/kapetanios:latest
+	docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
+	docker push laplaciandemon/kapetanios:latest
 
 .PHONY: certs-expiration
 certs-expiration:
 	@printf $(COLOR) "Building docker image for certs-expiration minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/certs-expiration:latest -f certs-expiration.Dockerfile
-	docker push quay.io/klovercloud/certs-expiration:latest
+	docker build . -t laplaciandemon/certs-expiration:latest -f certs-expiration.Dockerfile
+	docker push laplaciandemon/certs-expiration:latest
 
 .PHONY: certs-renewal
 certs-renewal:
 	@printf $(COLOR) "Building docker image for certs-renewal minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/certs-renewal:latest -f certs-renewal.Dockerfile
-	docker push quay.io/klovercloud/certs-renewal:latest
+	docker build . -t laplaciandemon/certs-renewal:latest -f certs-renewal.Dockerfile
+	docker push laplaciandemon/certs-renewal:latest
 
 .PHONY: etcd-migration
 etcd-migration:
 	@printf $(COLOR) "Building docker image for etcd-migration minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/etcd-migration:latest -f etcd-migration.Dockerfile
-	docker push quay.io/klovercloud/etcd-migration:latest
+	docker build . -t laplaciandemon/etcd-migration:latest -f etcd-migration.Dockerfile
+	docker push laplaciandemon/etcd-migration:latest
 
 .PHONY: etcd-restart
 etcd-restart:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/etcd-restart:latest -f etcd-restart.Dockerfile
-	docker push quay.io/klovercloud/etcd-restart:latest
+	docker build . -t laplaciandemon/etcd-restart:latest -f etcd-restart.Dockerfile
+	docker push laplaciandemon/etcd-restart:latest
 
 .PHONY: minor-update
 minor-update:
 	@printf $(COLOR) "Building docker image for minor-update minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/minor-update:latest -f minor-update.Dockerfile
-	docker push quay.io/klovercloud/minor-update:latest
+	docker build . -t laplaciandemon/minor-update:latest -f minor-update.Dockerfile
+	docker push laplaciandemon/minor-update:latest
 
 .PHONY: minor-upgrade
 minor-upgrade:
 	@printf $(COLOR) "Building docker image for minor-upgrade minions and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/minor-upgrade:latest -f minor-upgrade.Dockerfile
-	docker push quay.io/klovercloud/minor-upgrade:latest
+	docker build . -t laplaciandemon/minor-upgrade:latest -f minor-upgrade.Dockerfile
+	docker push laplaciandemon/minor-upgrade:latest
 
 .PHONY: certs-rollback
 certs-rollback:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
 #   TODO:
-	docker build . -t quay.io/klovercloud/rollback:latest -f certs-rollback.Dockerfile
-	docker push quay.io/klovercloud/rollback:latest
+	docker build . -t laplaciandemon/rollback:latest -f certs-rollback.Dockerfile
+	docker push laplaciandemon/rollback:latest
 
 .PHONY: svelte
 svelte:
 	@printf $(COLOR) "Building docker image for kapetanios frontend and pushing it to the registry..."
-	docker build . -t quay.io/klovercloud/svelte:latest -f svelte.Dockerfile
-	docker push quay.io/klovercloud/svelte:latest
+	docker build . -t laplaciandemon/svelte:latest -f svelte.Dockerfile
+	docker push laplaciandemon/svelte:latest
 
 #### Deploy ####
 deploy:
