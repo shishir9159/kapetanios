@@ -130,6 +130,8 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	if missingCerts != nil {
 		//	TODO:
 		//	 separate message for missing certs
+
+		//	remove the lines containing Missing
 	}
 
 	certs := strings.Split(certsString, "\n")
