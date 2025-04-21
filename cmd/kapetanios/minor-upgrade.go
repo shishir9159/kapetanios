@@ -238,7 +238,7 @@ func MinorUpgradeFirstRun(namespace string) {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node.Name)
+		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/minor-upgrade", roleName, node.Name)
 
 		// TODO: instead of pod monitoring for creation, monitor for successful restarts
 		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
@@ -457,7 +457,7 @@ func LastDance(c Controller, nodes string, namespace string) {
 
 	for index, node := range nodeList {
 
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node)
+		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/minor-upgrade", roleName, node)
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
 			{

@@ -69,7 +69,7 @@ func Rollback(namespace string) {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/rollback", roleName, node.Name)
+		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/certs-rollback", roleName, node.Name)
 
 		// TODO: if etcd exists in the node (check by IP)
 		//  add environment value to restart etcd or not

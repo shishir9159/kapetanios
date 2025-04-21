@@ -118,7 +118,7 @@ func RestartRemainingComponents(c Controller, namespace string) error {
 
 		// namespace should only be included after the consideration for the existing
 		// service account, cluster role binding
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/etcd-restart", roleName, node)
+		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/etcd-restart", roleName, node)
 
 		// TODO: if etcd exists in the node (check by IP)
 		//  add environment value to restart etcd or not

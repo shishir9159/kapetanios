@@ -53,7 +53,7 @@ docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal mi
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
-	#docker build . -t quay.io/klovercloud/kapetanios:latest
+	#docker build . -t laplaciandemon/kapetanios:latest
 	docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
 	docker push laplaciandemon/kapetanios:latest
 
@@ -97,14 +97,14 @@ minor-upgrade:
 certs-rollback:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
 #   TODO:
-	docker build . -t laplaciandemon/rollback:latest -f certs-rollback.Dockerfile
-	docker push laplaciandemon/rollback:latest
+	docker build . -t laplaciandemon/certs-rollback:latest -f certs-rollback.Dockerfile
+	docker push laplaciandemon/certs-rollback:latest
 
 .PHONY: svelte
 svelte:
 	@printf $(COLOR) "Building docker image for kapetanios frontend and pushing it to the registry..."
-	docker build . -t laplaciandemon/svelte:latest -f svelte.Dockerfile
-	docker push laplaciandemon/svelte:latest
+	docker build . -t laplaciandemon/kapetanios-svelte:latest -f svelte.Dockerfile
+	docker push laplaciandemon/kapetanios-svelte:latest
 
 #### Deploy ####
 deploy:

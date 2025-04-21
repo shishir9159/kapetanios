@@ -10,6 +10,8 @@ RHEL 9
 golang v1.23.1 \
 libprotoc 27.3
 
+[//]: # (make)
+
 #### cluster requirement
 It is assumed that the following roles would be assigned to the respective nodes:
 1. assumption about package naming format
@@ -23,7 +25,7 @@ It is assumed that the following roles would be assigned to the respective nodes
 ```Bash
 make protgen
 ```
-## Docker Build and Push
+## Docker images Build and Push
 ```Bash
 # there's some bugs in the current format
 make docker-build-and-push

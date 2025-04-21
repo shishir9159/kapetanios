@@ -248,7 +248,7 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 		upgrade.nefario.log.Info("updating package info",
 			zap.String("node", nodeName))
 
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-update", roleName, nodeName)
+		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/minor-update", roleName, nodeName)
 
 		descriptor.Spec.HostNetwork = true
 		descriptor.Namespace = os.Getenv("KAPETANIOS_NAMESPACE")
@@ -499,7 +499,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 			zap.String("node to be name:", node))
 
 		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
-		descriptor := renewalMinionManager.MinionBlueprint("quay.io/klovercloud/minor-upgrade", roleName, node)
+		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/minor-upgrade", roleName, node)
 
 		// TODO: instead of pod monitoring only for creation, monitor for successful restarts
 		//  er = RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
