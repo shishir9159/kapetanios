@@ -30,6 +30,23 @@ func replaceConsecutiveSpaces(s string) string {
 	return re.ReplaceAllString(s, "+")
 }
 
+func indexTillLineWithWordsInOrder(text string, words []string) int {
+	pattern := strings.Join(words, `.*?`) // Non-greedy match between words
+	re := regexp.MustCompile(pattern)
+
+	startIdx := 0
+	lines := strings.SplitAfter(text, "\n")
+
+	for _, line := range lines {
+		startIdx += len(line)
+		if re.MatchString(line) {
+			return startIdx
+		}
+	}
+
+	return -1
+}
+
 func validateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
 	period := fmt.Sprintf("NotBefore: %v, NotAfter: %v", cert.NotBefore, cert.NotAfter)
 	now := time.Now().Add(offset)
@@ -85,10 +102,11 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
-	// TODO:
-	//  varying amount of spaces in the output
-	tillCertsSubstr := "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED\n"
-	tillCaAuthoritiesSubstr := "CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED\n"
+	tillCertsSubstr := []string{"CERTIFICATE", "EXPIRES", "RESIDUAL TIME", "CERTIFICATE AUTHORITY", "EXTERNALLY MANAGED"}
+	tillCaAuthoritiesSubstr := []string{"CERTIFICATE AUTHORITY", "EXPIRES", "RESIDUAL TIME", "EXTERNALLY MANAGED"}
+
+	indexCerts := indexTillLineWithWordsInOrder(outStr, tillCertsSubstr)
+	indexCaAuthorities := indexTillLineWithWordsInOrder(outStr, tillCaAuthoritiesSubstr)
 
 	// TODO:
 	//  admin.conf                   Apr 20, 2026 15:02 UTC   363d            ca                      no
@@ -99,8 +117,11 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	//  scheduler.conf               Apr 20, 2026 15:02 UTC   363d            ca                      no
 	//  !MISSING! super-admin.conf
 
-	indexCerts := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCertsSubstr, " ", "")) + 1
-	indexCaAuthorities := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCaAuthoritiesSubstr, " ", ""))
+	certsString := outStr[indexCerts:indexCaAuthorities]
+	caAuthoritiesString := outStr[indexCaAuthorities:]
+
+	certs := strings.Split(certsString, "\n")
+	caAuthorities := strings.Split(caAuthoritiesString, "\n")
 
 	// TODO:
 	//  check if !MISSING! appears in the output
@@ -108,16 +129,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	// TODO:
 	//  condition to check if that line don't appear
-
-	c.log.Info().
-		Str("outStr", outStr).
-		Msg("===============================================")
-
-	certsString := outStr[indexCerts+len(tillCertsSubstr) : indexCaAuthorities]
-	caAuthoritiesString := outStr[indexCaAuthorities+len(tillCaAuthoritiesSubstr):]
-
-	certs := strings.Split(certsString, "\n")
-	caAuthorities := strings.Split(caAuthoritiesString, "\n")
 
 	var certificates []*pb.Certificate
 
