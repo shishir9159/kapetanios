@@ -6,9 +6,7 @@ GOMOD := '/dev/null'
 GOOS := linux
 GOTELEMETRY='local'
 GOVERSION := 'go1.24.2'
-#NPROCS = $(shell grep -c 'processor' /proc/cpuinfo)
-#and -j$(NPROCS)
-MAKEFLAGS += -j2
+MAKEFLAGS += -j$(shell grep -c 'processor' /proc/cpuinfo)
 NATIVE_ARCH := amd64
 
 ##### Scripts ######
@@ -109,6 +107,7 @@ svelte:
 	docker push laplaciandemon/kapetanios-svelte:latest
 
 #### Deploy ####
+.PHONY: deploy
 deploy:
 	@printf $(COLOR) "Deploying kapetanios in Kubernetes..."
 	kubectl create -f manifests/.

@@ -81,7 +81,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	if err = changedRoot(); err != nil {
 		c.log.Fatal().Err(err).
 			Msg("Failed to exit from the updated root")
-
 	}
 
 	c.log.Info().
