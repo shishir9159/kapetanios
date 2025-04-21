@@ -65,6 +65,10 @@ func main() {
 
 	c.log.Info().Msg("logging to os.Stdout")
 
+	c.log.Info().
+		Str("addr", *addr).
+		Msg("address to report")
+
 	flag.Parse()
 
 	// create a grpc client to communicate with the server
