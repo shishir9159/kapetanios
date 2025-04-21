@@ -1,5 +1,5 @@
-1. packagize or internalize the expiration check functionality
-2. fix the string alignment error
+1. fix the string alignment error
+2. packagize or internalize the expiration check functionality
 3. refactor UI code
 4. progression report under the node names
 5. move the workflow inside pkg to share code
