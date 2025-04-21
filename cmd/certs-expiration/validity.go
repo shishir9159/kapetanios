@@ -64,7 +64,8 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	// TODO: in memory config file generation from the configMap
 	// TODO: when is the config file necessary?
-	cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration --config /etc/kubernetes/kubeadm/kubeadm-config.yaml")
+	cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration")
+	//cmd := exec.Command("/bin/bash", "-c", "kubeadm certs check-expiration --config /etc/kubernetes/kubeadm/kubeadm-config.yaml")
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
@@ -104,6 +105,9 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	indexCerts := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCertsSubstr, " ", ""))
 	indexCaAuthorities := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCaAuthoritiesSubstr, " ", ""))
+
+	// TODO:
+	//  till !!MISSING! indexCaAuthorities
 
 	// TODO:
 	//  condition to check if that line don't appear

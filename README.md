@@ -48,3 +48,6 @@ grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 Renewal/StatusU
 ```textmate
 https://github.com/go-yaml/yaml
 ```
+
+## Concerns
+when is the config file is necessary when it is already available in configmap that is right only from the perspective of the first node `--config /etc/kubernetes/kubeadm/kubeadm-config.yaml`.
