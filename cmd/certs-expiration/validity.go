@@ -88,8 +88,24 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
+	// TODO:
+	//  varying amount of spaces in the output
+	fdflksjfjsadflj := "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED"
+	sfjalfjsadlfjls := "CERTIFICATE                  EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED"
 	tillCertsSubstr := "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED\n"
 	tillCaAuthoritiesSubstr := "CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED\n"
+
+	// TODO:
+	//  condition to check if that line don't appear
+
+	// TODO:
+	// admin.conf                   Apr 20, 2026 15:02 UTC   363d            ca                      no
+	//apiserver                    Apr 20, 2026 15:02 UTC   363d            ca                      no
+	//apiserver-kubelet-client     Apr 20, 2026 15:02 UTC   363d            ca                      no
+	//controller-manager.conf      Apr 20, 2026 15:02 UTC   363d            ca                      no
+	//front-proxy-client           Apr 20, 2026 15:02 UTC   363d            front-proxy-ca          no
+	//scheduler.conf               Apr 20, 2026 15:02 UTC   363d            ca                      no
+	//!MISSING! super-admin.conf
 
 	indexCerts := strings.Index(outStr, tillCertsSubstr)
 	indexCaAuthorities := strings.Index(outStr, tillCaAuthoritiesSubstr)
