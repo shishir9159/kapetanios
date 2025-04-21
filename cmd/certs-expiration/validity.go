@@ -83,10 +83,6 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 			Msg("Failed to exit from the updated root")
 	}
 
-	c.log.Info().
-		Str("outStr", stdoutBuf.String()).
-		Msg("===============================================")
-
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
 	// TODO:
@@ -112,6 +108,10 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	// TODO:
 	//  condition to check if that line don't appear
+
+	c.log.Info().
+		Str("outStr", outStr).
+		Msg("===============================================")
 
 	certsString := outStr[indexCerts+len(tillCertsSubstr) : indexCaAuthorities]
 	caAuthoritiesString := outStr[indexCaAuthorities+len(tillCaAuthoritiesSubstr):]
