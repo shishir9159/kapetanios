@@ -8,7 +8,6 @@ COPY --parents cmd/transmission-control-over-wss config/ internal/ proto/ utils/
 RUN go build -C ./cmd/transmission-control-over-wss -o main
 
 FROM debian:bookworm-slim
-# the cache is mounted only
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt/,type=cache,sharing=locked \
     set -x && rm -f /etc/apt/apt.conf.d/docker-clean && \

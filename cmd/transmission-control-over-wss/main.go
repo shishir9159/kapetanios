@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"context"
 	"flag"
 	"fmt"
@@ -19,7 +20,12 @@ import (
 )
 
 var (
-	port = flag.Int("port", 50051, "the server port")
+	port           = flag.Int("port", 50051, "the server port")
+	gzipWriterPool = sync.Pool{
+		New: func() any {
+			return gzip.NewWriter(nil)
+		},
+	}
 )
 
 var upgrader = websocket.Upgrader{
