@@ -18,8 +18,8 @@
 18. collect the information about in which repo all the packages belong and coalesce
 19. wait for coredns to start before upgrading
 20. mandatory triple buffering
-21. guaranteed ordering and exactly-once delivery(data integrity) must be maintained when connection is re-established
+21. guaranteed ordering and exactly once delivery(data integrity) must be maintained when connection is re-established
 22. Ping and Pong control frames
 23. monitor the buffers building up on the sockets used to stream data to clients and ensure a buffer never grows beyond what the downstream connection can sustain by handling back pressure
-24. fallback transports: comet long polling
+24. fallback transports: comet-long polling
 25. exponential back off grpc client to kapetanios

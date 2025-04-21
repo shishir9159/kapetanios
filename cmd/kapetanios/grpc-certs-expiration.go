@@ -59,11 +59,12 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 		certificateExpiration.CertificateAuthority = certificate.CertificateAuthority
 		certificateExpiration.ExternallyManaged = certificate.ExternallyManaged
 
-		s.log.Info("certificate name: " + certificate.Name +
-			"certificate expires: " + certificate.Expires +
-			"certificate residual time: " + certificate.ResidualTime +
-			"certificate authority: " + certificate.CertificateAuthority +
-			"externally managed: " + certificate.ExternallyManaged)
+		s.log.Debug("certificate information",
+			zap.String("certificate name", certificate.Name),
+			zap.String("certificate expires", certificate.Expires),
+			zap.String("certificate residual time", certificate.ResidualTime),
+			zap.String("certificate authority", certificate.CertificateAuthority),
+			zap.String("externally managed", certificate.ExternallyManaged))
 
 		report.certificateExpiration = append(report.certificateExpiration, certificateExpiration)
 	}
@@ -77,10 +78,11 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 		certificateAuthority.ResidualTime = caAuthority.ResidualTime
 		certificateAuthority.ExternallyManaged = caAuthority.ExternallyManaged
 
-		s.log.Info("certificate authority name: " + caAuthority.Name +
-			"certificate expires: " + caAuthority.Expires +
-			"certificate residual time: " + caAuthority.ResidualTime +
-			"externally managed: " + caAuthority.ExternallyManaged)
+		s.log.Debug("certificate authority information",
+			zap.String("certificate authority name", caAuthority.Name),
+			zap.String("certificate authority expires", caAuthority.Expires),
+			zap.String("certificate authority residual time", caAuthority.ResidualTime),
+			zap.String("certificate authority externally managed", caAuthority.ExternallyManaged))
 
 		report.certificatesAuthority = append(report.certificatesAuthority, certificateAuthority)
 	}
@@ -126,7 +128,7 @@ func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server, report []*CertsRep
 	}
 
 	// in dev mode
-	//reflection.register(s)
+	// reflection.register(s)
 	pb.RegisterValidityServer(s, &server)
 
 	zlog.Info("cert validity server listening")
