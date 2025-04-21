@@ -99,7 +99,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	//  scheduler.conf               Apr 20, 2026 15:02 UTC   363d            ca                      no
 	//  !MISSING! super-admin.conf
 
-	indexCerts := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCertsSubstr, " ", ""))
+	indexCerts := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCertsSubstr, " ", "")) + 1
 	indexCaAuthorities := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCaAuthoritiesSubstr, " ", ""))
 
 	// TODO:
@@ -131,7 +131,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 		// to skip the last empty lines from the certs
 		// TODO:
-		if len(fields) != 6 {
+		if len(fields) != 5 {
 			break
 		}
 
