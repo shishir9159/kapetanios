@@ -82,6 +82,10 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	}
 
+	c.log.Info().
+		Str("outStr", stdoutBuf.String()).
+		Msg("===============================================")
+
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 
 	tillCertsSubstr := "CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED\n"
