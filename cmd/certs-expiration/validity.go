@@ -59,6 +59,21 @@ func validateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
 	return nil
 }
 
+func missingCertificate(s string) []string {
+
+	re := regexp.MustCompile(`!MISSING!\s+([^\s]+)`)
+	matches := re.FindAllStringSubmatch(s, -1)
+
+	var missingCerts []string
+	for _, match := range matches {
+		if len(match) > 1 {
+			missingCerts = append(missingCerts, match[1])
+		}
+	}
+
+	return missingCerts
+}
+
 func checkCertificateValidity(baseName string, cert *x509.Certificate) {
 	certPeriodValidationMutex.Lock()
 	defer certPeriodValidationMutex.Unlock()
@@ -108,27 +123,17 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	indexCerts := indexTillLineWithWordsInOrder(outStr, tillCertsSubstr)
 	indexCaAuthorities := indexTillLineWithWordsInOrder(outStr, tillCaAuthoritiesSubstr)
 
-	// TODO:
-	//  admin.conf                   Apr 20, 2026 15:02 UTC   363d            ca                      no
-	//  apiserver                    Apr 20, 2026 15:02 UTC   363d            ca                      no
-	//  apiserver-kubelet-client     Apr 20, 2026 15:02 UTC   363d            ca                      no
-	//  controller-manager.conf      Apr 20, 2026 15:02 UTC   363d            ca                      no
-	//  front-proxy-client           Apr 20, 2026 15:02 UTC   363d            front-proxy-ca          no
-	//  scheduler.conf               Apr 20, 2026 15:02 UTC   363d            ca                      no
-	//  !MISSING! super-admin.conf
-
 	certsString := outStr[indexCerts:indexCaAuthorities]
 	caAuthoritiesString := outStr[indexCaAuthorities:]
 
+	missingCerts := missingCertificate(certsString)
+	if missingCerts != nil {
+		//	TODO:
+		//	 separate message for missing certs
+	}
+
 	certs := strings.Split(certsString, "\n")
 	caAuthorities := strings.Split(caAuthoritiesString, "\n")
-
-	// TODO:
-	//  check if !MISSING! appears in the output
-	//  list them separately
-
-	// TODO:
-	//  condition to check if that line don't appear
 
 	var certificates []*pb.Certificate
 
@@ -142,7 +147,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 		// to skip the last empty lines from the certs
 		// TODO:
-		if len(fields) != 5 {
+		if len(fields) != 6 {
 			break
 		}
 
