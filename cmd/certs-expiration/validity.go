@@ -23,7 +23,8 @@ var (
 )
 
 func replaceConsecutiveSpaces(s string) string {
-	// Regular expression to match two or more consecutive spaces
+	// TODO: sanity check
+	// to match two or more consecutive spaces
 	re := regexp.MustCompile(`\s{2,}`)
 	// Replace matches with "-"
 	return re.ReplaceAllString(s, "+")
@@ -107,7 +108,8 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	indexCaAuthorities := strings.Index(strings.ReplaceAll(outStr, " ", ""), strings.ReplaceAll(tillCaAuthoritiesSubstr, " ", ""))
 
 	// TODO:
-	//  till !!MISSING! indexCaAuthorities
+	//  check if !MISSING! appears in the output
+	//  list them separately
 
 	// TODO:
 	//  condition to check if that line don't appear
@@ -125,6 +127,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		fields := strings.Split(cert, "+")
 
 		// to skip the last empty lines from the certs
+		// TODO:
 		if len(fields) != 6 {
 			break
 		}

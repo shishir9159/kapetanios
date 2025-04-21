@@ -1,12 +1,15 @@
 ##### Variables ######
-GOOS := linux
-CGO_ENABLED ?= 0
-GOTELEMETRY='local'
-GOMOD := '/dev/null'
-NATIVE_ARCH := amd64
-GOVERSION := 'go1.24.2'
-DOCKER ?= docker buildx
 COLOR := "\e[1;36m%s\e[0m\n"
+CGO_ENABLED ?= 0
+DOCKER ?= docker buildx
+GOMOD := '/dev/null'
+GOOS := linux
+GOTELEMETRY='local'
+GOVERSION := 'go1.24.2'
+#NPROCS = $(shell grep -c 'processor' /proc/cpuinfo)
+#and -j$(NPROCS)
+MAKEFLAGS += -j2
+NATIVE_ARCH := amd64
 
 ##### Scripts ######
 update: go-sqlc go-protogen
@@ -53,8 +56,8 @@ docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal mi
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
-	#docker build . -t laplaciandemon/kapetanios:latest
-	docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
+	docker build . -t laplaciandemon/kapetanios:latest
+	#docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
 	docker push laplaciandemon/kapetanios:latest
 
 .PHONY: certs-expiration
@@ -96,7 +99,6 @@ minor-upgrade:
 .PHONY: certs-rollback
 certs-rollback:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
-#   TODO:
 	docker build . -t laplaciandemon/certs-rollback:latest -f certs-rollback.Dockerfile
 	docker push laplaciandemon/certs-rollback:latest
 
