@@ -85,8 +85,9 @@ type Expiration struct {
 	state                  protoimpl.MessageState  `protogen:"open.v1"`
 	ValidCertificate       bool                    `protobuf:"varint,1,opt,name=validCertificate,proto3" json:"validCertificate,omitempty"`
 	NodeName               string                  `protobuf:"bytes,2,opt,name=nodeName,proto3" json:"nodeName,omitempty"`
-	Certificates           []*Certificate          `protobuf:"bytes,3,rep,name=certificates,proto3" json:"certificates,omitempty"`
-	CertificateAuthorities []*CertificateAuthority `protobuf:"bytes,4,rep,name=certificateAuthorities,proto3" json:"certificateAuthorities,omitempty"`
+	MissingCertificates    []string                `protobuf:"bytes,3,rep,name=missingCertificates,proto3" json:"missingCertificates,omitempty"`
+	Certificates           []*Certificate          `protobuf:"bytes,4,rep,name=certificates,proto3" json:"certificates,omitempty"`
+	CertificateAuthorities []*CertificateAuthority `protobuf:"bytes,5,rep,name=certificateAuthorities,proto3" json:"certificateAuthorities,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -133,6 +134,13 @@ func (x *Expiration) GetNodeName() string {
 		return x.NodeName
 	}
 	return ""
+}
+
+func (x *Expiration) GetMissingCertificates() []string {
+	if x != nil {
+		return x.MissingCertificates
+	}
+	return nil
 }
 
 func (x *Expiration) GetCertificates() []*Certificate {
@@ -347,13 +355,14 @@ const file_proto_certs_expiration_proto_rawDesc = "" +
 	"etcdStatus\x18\x01 \x01(\bR\n" +
 	"etcdStatus\x12\"\n" +
 	"\fdiskPressure\x18\x02 \x01(\bR\fdiskPressure\x12\x10\n" +
-	"\x03err\x18\x03 \x01(\tR\x03err\"\xd5\x01\n" +
+	"\x03err\x18\x03 \x01(\tR\x03err\"\x87\x02\n" +
 	"\n" +
 	"Expiration\x12*\n" +
 	"\x10validCertificate\x18\x01 \x01(\bR\x10validCertificate\x12\x1a\n" +
 	"\bnodeName\x18\x02 \x01(\tR\bnodeName\x120\n" +
-	"\fcertificates\x18\x03 \x03(\v2\f.CertificateR\fcertificates\x12M\n" +
-	"\x16certificateAuthorities\x18\x04 \x03(\v2\x15.CertificateAuthorityR\x16certificateAuthorities\"\xc1\x01\n" +
+	"\x13missingCertificates\x18\x03 \x03(\tR\x13missingCertificates\x120\n" +
+	"\fcertificates\x18\x04 \x03(\v2\f.CertificateR\fcertificates\x12M\n" +
+	"\x16certificateAuthorities\x18\x05 \x03(\v2\x15.CertificateAuthorityR\x16certificateAuthorities\"\xc1\x01\n" +
 	"\vCertificate\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aexpires\x18\x02 \x01(\tR\aexpires\x12\"\n" +

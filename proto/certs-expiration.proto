@@ -10,8 +10,9 @@ message PrerequisitesExpiration {
 message Expiration {
   bool validCertificate = 1;
   string nodeName = 2;
-  repeated Certificate certificates = 3;
-  repeated CertificateAuthority certificateAuthorities = 4;
+  repeated string missingCertificates = 3;
+  repeated Certificate certificates = 4;
+  repeated CertificateAuthority certificateAuthorities = 5;
 }
 
 message Certificate {

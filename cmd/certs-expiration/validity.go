@@ -132,6 +132,9 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		//	 separate message for missing certs
 
 		//	remove the lines containing Missing
+
+		//	TODO:
+		//	 update indexCaAuthorities and move caAuthoritiesString to a different place
 	}
 
 	certs := strings.Split(certsString, "\n")
@@ -191,8 +194,9 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 
 	rpc, err := connection.ExpirationInfo(c.ctx,
 		&pb.Expiration{
-			NodeName:               os.Getenv("NODE_NAME"),
 			ValidCertificate:       true, //tOdO: count
+			NodeName:               os.Getenv("NODE_NAME"),
+			MissingCertificates:    missingCerts,
 			Certificates:           certificates,
 			CertificateAuthorities: certificateAuthorities,
 		})

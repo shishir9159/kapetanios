@@ -87,6 +87,14 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 		report.certificatesAuthority = append(report.certificatesAuthority, certificateAuthority)
 	}
 
+	if len(in.GetMissingCertificates()) != 0 {
+		// TODO:
+		//  add to report
+
+		s.log.Info("following certificates are missing",
+			zap.Strings("missing certificates", in.GetMissingCertificates()))
+	}
+
 	if len(externallyManagedCerts) != 0 {
 
 		s.log.Info("following certificates are externally managed")
