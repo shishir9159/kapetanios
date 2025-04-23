@@ -124,21 +124,10 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 	indexCaAuthorities := indexTillLineWithWordsInOrder(outStr, tillCaAuthoritiesSubstr)
 
 	certsString := outStr[indexCerts:indexCaAuthorities]
-	caAuthoritiesString := outStr[indexCaAuthorities:]
 
 	missingCerts := missingCertificate(certsString)
-	if missingCerts != nil {
-		//	TODO:
-		//	 separate message for missing certs
-
-		//	remove the lines containing Missing
-
-		//	TODO:
-		//	 update indexCaAuthorities and move caAuthoritiesString to a different place
-	}
 
 	certs := strings.Split(certsString, "\n")
-	caAuthorities := strings.Split(caAuthoritiesString, "\n")
 
 	var certificates []*pb.Certificate
 
@@ -150,9 +139,11 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 			Str("cert", cert).
 			Msg("certificates split by +")
 
-		// to skip the last empty lines from the certs
-		// TODO:
 		if len(fields) != 6 {
+			if strings.Contains(cert, "!MISSING!") {
+				continue
+			}
+
 			break
 		}
 
@@ -167,6 +158,9 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		certificates = append(certificates, &certificate)
 	}
 
+	caAuthoritiesString := outStr[indexCaAuthorities:]
+	caAuthorities := strings.Split(caAuthoritiesString, "\n")
+
 	var certificateAuthorities []*pb.CertificateAuthority
 
 	for _, ca := range caAuthorities {
@@ -174,7 +168,7 @@ func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time
 		fields := strings.Split(ca, "+")
 
 		if len(fields) != 5 {
-			break
+			continue
 		}
 
 		certificateAuthority := pb.CertificateAuthority{

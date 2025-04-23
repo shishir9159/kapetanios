@@ -88,11 +88,11 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	}
 
 	if len(in.GetMissingCertificates()) != 0 {
-		// TODO:
-		//  add to report
+
+		report.missingCertificate = in.GetMissingCertificates()
 
 		s.log.Info("following certificates are missing",
-			zap.Strings("missing certificates", in.GetMissingCertificates()))
+			zap.Strings("missing certificates", report.missingCertificate))
 	}
 
 	if len(externallyManagedCerts) != 0 {

@@ -12,6 +12,7 @@ import (
 
 type CertsReport struct {
 	nodeName              string
+	missingCertificate    []string
 	certificateExpiration []CertsExpiration
 	certificatesAuthority []CertsAuthority
 }
