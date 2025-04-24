@@ -13,8 +13,8 @@ import (
 // expirationServer is used to implement proto.ValidityServer.
 type expirationServer struct {
 	pb.ValidityServer
-	log                   *zap.Logger
-	certsExpirationReport []*CertsReport
+	log                  *zap.Logger
+	nodesCertsExpiration []*NodeCertsExpiration
 }
 
 // ClusterHealthChecking implements proto.ValidityServer
@@ -33,17 +33,17 @@ func (s *expirationServer) ClusterHealthChecking(_ context.Context, in *pb.Prere
 // ExpirationInfo implements proto.ValidityServer
 func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) (*pb.CertificateValidityResponse, error) {
 
-	var report CertsReport
 	var externallyManagedCerts []string
+	var nodeCertsExpiration NodeCertsExpiration
 
 	if in.GetValidCertificate() {
 
 	}
 
-	report.nodeName = in.GetNodeName()
-	report.certificateExpiration = []CertsExpiration{}
+	nodeCertsExpiration.nodeName = in.GetNodeName()
+	nodeCertsExpiration.certificateExpiration = []CertsExpiration{}
 
-	s.log.Info("node name: " + report.nodeName)
+	s.log.Info("node name: " + nodeCertsExpiration.nodeName)
 	for _, certificate := range in.GetCertificates() {
 
 		// todo: sanity checking
@@ -66,7 +66,7 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 			zap.String("certificate authority", certificate.CertificateAuthority),
 			zap.String("externally managed", certificate.ExternallyManaged))
 
-		report.certificateExpiration = append(report.certificateExpiration, certificateExpiration)
+		nodeCertsExpiration.certificateExpiration = append(nodeCertsExpiration.certificateExpiration, certificateExpiration)
 	}
 
 	for _, caAuthority := range in.GetCertificateAuthorities() {
@@ -84,15 +84,15 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 			zap.String("certificate authority residual time", caAuthority.ResidualTime),
 			zap.String("certificate authority externally managed", caAuthority.ExternallyManaged))
 
-		report.certificatesAuthority = append(report.certificatesAuthority, certificateAuthority)
+		nodeCertsExpiration.certificatesAuthority = append(nodeCertsExpiration.certificatesAuthority, certificateAuthority)
 	}
 
 	if len(in.GetMissingCertificates()) != 0 {
 
-		report.missingCertificate = in.GetMissingCertificates()
+		nodeCertsExpiration.missingCertificate = in.GetMissingCertificates()
 
 		s.log.Info("following certificates are missing",
-			zap.Strings("missing certificates", report.missingCertificate))
+			zap.Strings("missing certificates", nodeCertsExpiration.missingCertificate))
 	}
 
 	if len(externallyManagedCerts) != 0 {
@@ -114,14 +114,14 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 				--apiserver-advertise-address <new-master-node-ip> --v=14`)
 	}
 
-	s.certsExpirationReport = append(s.certsExpirationReport, &report)
+	s.nodesCertsExpiration = append(s.nodesCertsExpiration, &nodeCertsExpiration)
 
 	return &pb.CertificateValidityResponse{
 		ResponseReceived: false,
 	}, nil
 }
 
-func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server, report []*CertsReport) {
+func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server, nodesCertsExpiration []*NodeCertsExpiration) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
@@ -131,8 +131,8 @@ func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server, report []*CertsRep
 
 	s := grpc.NewServer()
 	server := expirationServer{
-		log:                   zlog,
-		certsExpirationReport: report,
+		log:                  zlog,
+		nodesCertsExpiration: nodesCertsExpiration,
 	}
 
 	// in dev mode
