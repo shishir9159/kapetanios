@@ -88,13 +88,7 @@ func Expiration(namespace string) {
 	// TODO: refactor this part inside the orchestrator
 
 	for index, node := range nodes.Items {
-
-		// namespace should only be included after the consideration for the existing
-		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/certs-expiration", roleName, node.Name)
-
-		// kubectl get event --namespace default --field-selector involvedObject.name=minions
-		// how many pods this logic need to be in the orchestration too
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
 			c.log.Error("Cert Expiration pod creation failed: ",
