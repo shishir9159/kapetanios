@@ -81,7 +81,7 @@ func Expiration(namespace string) {
 		//	return err or call grpc
 	}
 
-	var nodesCertsExpiration []*NodeCertsExpiration
+	nodesCertsExpiration := make([]*NodeCertsExpiration, 0)
 	ch := make(chan *grpc.Server, 1)
 	go ExpirationGrpc(c.log, ch, nodesCertsExpiration)
 
