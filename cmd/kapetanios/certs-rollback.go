@@ -75,7 +75,7 @@ func Rollback(namespace string) {
 	defer watcher.Stop()
 
 	if err != nil {
-		c.log.Error("watcher for minor update pod failed: ",
+		c.log.Error("watcher for certs rollback pod failed: ",
 			zap.Error(err))
 	}
 
@@ -127,13 +127,13 @@ func Rollback(namespace string) {
 				switch event.Type {
 				case watch.Modified:
 					if pod.Status.Phase == corev1.PodSucceeded {
-						c.log.Info("minor upgrade pod has completed successfully!",
+						c.log.Info("certs rollback pod has completed successfully!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
 
 						break outerLoop
 					} else if pod.Status.Phase == corev1.PodFailed {
-						c.log.Info("minor upgrade pod has failed!",
+						c.log.Info("certs rollback pod has failed!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
 						// TODO:
@@ -142,7 +142,7 @@ func Rollback(namespace string) {
 
 					}
 				case watch.Deleted:
-					c.log.Info("minor upgrade pod was deleted!",
+					c.log.Info("certs rollback pod was deleted!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace))
 				}

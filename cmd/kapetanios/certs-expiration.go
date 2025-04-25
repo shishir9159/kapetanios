@@ -99,7 +99,7 @@ func Expiration(namespace string) {
 	defer watcher.Stop()
 
 	if err != nil {
-		c.log.Error("watcher for minor update pod failed: ",
+		c.log.Error("watcher for certs expiration pod failed: ",
 			zap.Error(err))
 	}
 
@@ -140,13 +140,13 @@ func Expiration(namespace string) {
 				switch event.Type {
 				case watch.Modified:
 					if pod.Status.Phase == corev1.PodSucceeded {
-						c.log.Info("minor upgrade pod has completed successfully!",
+						c.log.Info("certs expiration pod has completed successfully!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
 
 						break outerLoop
 					} else if pod.Status.Phase == corev1.PodFailed {
-						c.log.Info("minor upgrade pod has failed!",
+						c.log.Info("certs expiration pod has failed!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
 						// TODO:
@@ -155,7 +155,7 @@ func Expiration(namespace string) {
 
 					}
 				case watch.Deleted:
-					c.log.Info("minor upgrade pod was deleted!",
+					c.log.Info("certs expiration pod was deleted!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace))
 				}
