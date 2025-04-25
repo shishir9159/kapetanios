@@ -14,7 +14,7 @@ import (
 type expirationServer struct {
 	pb.ValidityServer
 	log                  *zap.Logger
-	nodesCertsExpiration []*NodeCertsExpiration
+	nodesCertsExpiration *[]NodeCertsExpiration
 }
 
 // ClusterHealthChecking implements proto.ValidityServer
@@ -114,7 +114,7 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 				--apiserver-advertise-address <new-master-node-ip> --v=14`)
 	}
 
-	s.nodesCertsExpiration = append(s.nodesCertsExpiration, &nodeCertsExpiration)
+	*s.nodesCertsExpiration = append(*s.nodesCertsExpiration, nodeCertsExpiration)
 
 	s.log.Info("node certificate expiration information",
 		zap.Reflect("node certificate expiration information", s.nodesCertsExpiration))
@@ -124,7 +124,7 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	}, nil
 }
 
-func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server, nodesCertsExpiration []*NodeCertsExpiration) {
+func ExpirationGrpc(zlog *zap.Logger, ch chan<- *grpc.Server, nodesCertsExpiration *[]NodeCertsExpiration) {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {

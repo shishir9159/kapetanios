@@ -81,9 +81,9 @@ func Expiration(namespace string) {
 		//	return err or call grpc
 	}
 
-	nodesCertsExpiration := make([]*NodeCertsExpiration, 0)
+	nodesCertsExpiration := make([]NodeCertsExpiration, 0)
 	ch := make(chan *grpc.Server, 1)
-	go ExpirationGrpc(c.log, ch, nodesCertsExpiration)
+	go ExpirationGrpc(c.log, ch, &nodesCertsExpiration)
 
 	// TODO: refactor this part inside the orchestrator
 
