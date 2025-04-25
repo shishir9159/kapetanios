@@ -117,7 +117,8 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	*s.nodesCertsExpiration = append(*s.nodesCertsExpiration, nodeCertsExpiration)
 
 	s.log.Info("node certificate expiration information",
-		zap.Reflect("node certificate expiration information", s.nodesCertsExpiration))
+		zap.Reflect("nodeCertsExpiration", nodeCertsExpiration),
+		zap.Reflect("s.nodesCertsExpiration", s.nodesCertsExpiration))
 
 	return &pb.CertificateValidityResponse{
 		ResponseReceived: false,
