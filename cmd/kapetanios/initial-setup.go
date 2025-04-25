@@ -232,15 +232,15 @@ func etcdStatus(etcdCluster ETCD) string {
 
 func InitialSetup(c Controller) {
 
-	etcdCluster, err := populatingConfigMap(c)
-	if err != nil {
-		c.log.Error("error populating config",
-			zap.Error(err))
-	}
+	//etcdCluster, err := populatingConfigMap(c)
+	//if err != nil {
+	//	c.log.Error("error populating config",
+	//		zap.Error(err))
+	//}
 
-	etcdStatus(*etcdCluster)
+	//etcdStatus(*etcdCluster)
 
-	err = validatingNodesState(c, "certs")
+	err := validatingNodesState(c, "certs")
 	if err != nil {
 		c.log.Error("error validating master node labels",
 			zap.Error(err))

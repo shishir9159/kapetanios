@@ -97,7 +97,7 @@ func Rollback(namespace string) {
 		//  add environment value to restart etcd or not
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
-		// how many pods this logic need to be in the orchestration too
+		// how many pods this logic needs to be in the orchestration too
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
 			c.log.Error("rollback pod creation failed: ",

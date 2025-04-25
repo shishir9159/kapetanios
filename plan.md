@@ -1,8 +1,8 @@
-1. pod eviction monitoring
-2. packagize or internalize the expiration check functionality
-3. repository pattern to switch between different persistent storage
-4. refactor UI code
-5. progression report under the node names
+1. progression report under the node names
+2. pod eviction monitoring
+3. packagize or internalize the expiration check functionality
+4. repository pattern to switch between different persistent storage
+5. refactor UI code
 6. move the workflow inside pkg to share code
 7. test -> handle error -> show error -> control plane components restarting -> refresh
 8. investigate the error: writev: broken pipe
