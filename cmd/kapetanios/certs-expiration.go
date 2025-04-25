@@ -114,11 +114,11 @@ func Expiration(namespace string) {
 	for _, nodeCertsExpiration := range nodesCertsExpiration {
 
 		c.log.Info("certs expiration info for node:",
-			zap.String("node name", nodeCertsExpiration.nodeName))
+			zap.String("node name", nodeCertsExpiration.nodeName),
+			zap.Strings("missing certificate list", nodeCertsExpiration.missingCertificate))
 
 		for _, certificate := range nodeCertsExpiration.certificateExpiration {
 			c.log.Info("Certs Expiration Info",
-				zap.Strings("missing certificate list", nodeCertsExpiration.missingCertificate),
 				zap.String("name", certificate.Name),
 				zap.String("expires", certificate.Expires),
 				zap.String("residual time", certificate.ResidualTime),
@@ -127,7 +127,7 @@ func Expiration(namespace string) {
 		}
 
 		for _, caAuthority := range nodeCertsExpiration.certificatesAuthority {
-			c.log.Info("Certs Expiration Info",
+			c.log.Info("Certs Authority Info",
 				zap.String("name", caAuthority.Name),
 				zap.String("expires", caAuthority.Expires),
 				zap.String("residual time", caAuthority.ResidualTime),
