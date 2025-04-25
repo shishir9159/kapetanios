@@ -296,7 +296,7 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	}
 
 	if err != nil || watcher == nil {
-		time.Sleep(10 * time.Second)
+		time.Sleep(40 * time.Second)
 	}
 
 	defer watcher.Stop()

@@ -269,8 +269,6 @@ func MinorUpgradeFirstRun(namespace string) {
 
 		descriptor.Spec.HostNetwork = true
 
-		// TODO -- take input
-
 		certRenewalEnv := corev1.EnvVar{
 
 			Name:  "CERTIFICATE_RENEWAL",

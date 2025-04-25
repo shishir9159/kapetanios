@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/watch"
 	"time"
 )
 
@@ -78,7 +81,9 @@ func Expiration(namespace string) {
 	if nodes == nil || len(nodes.Items) == 0 {
 		c.log.Error("no master nodes found",
 			zap.Error(err))
-		//	return err or call grpc
+		// TODO:
+		//  push to error message
+		return
 	}
 
 	nodesCertsExpiration := make([]NodeCertsExpiration, 0)
@@ -86,6 +91,17 @@ func Expiration(namespace string) {
 	go ExpirationGrpc(c.log, ch, &nodesCertsExpiration)
 
 	// TODO: refactor this part inside the orchestrator
+
+	watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
+		LabelSelector: listOptions.LabelSelector,
+	})
+
+	defer watcher.Stop()
+
+	if err != nil {
+		c.log.Error("watcher for minor update pod failed: ",
+			zap.Error(err))
+	}
 
 	for index, node := range nodes.Items {
 		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/certs-expiration", roleName, node.Name)
@@ -101,7 +117,50 @@ func Expiration(namespace string) {
 			return // er // defer gracefulStop
 		}
 
-		time.Sleep(25 * time.Second)
+		if watcher == nil {
+			c.log.Error("could not create watcher",
+				zap.Error(fmt.Errorf("watcher is nil")))
+			//	TODO: avoid outLoop and pass after a timer
+		}
+
+		if watcher == nil {
+			time.Sleep(10 * time.Second)
+		} else {
+		outerLoop:
+			// TODO: handle possible empty channel return
+			for event := range watcher.ResultChan() {
+				pod, ok := event.Object.(*corev1.Pod)
+				if !ok {
+					c.log.Error("watcher returned unexpected type",
+						zap.Reflect("event", event),
+						zap.Reflect("object", event.Object))
+					continue
+				}
+
+				switch event.Type {
+				case watch.Modified:
+					if pod.Status.Phase == corev1.PodSucceeded {
+						c.log.Info("minor upgrade pod has completed successfully!",
+							zap.String("pod name", pod.Name),
+							zap.String("pod namespace", pod.Namespace))
+
+						break outerLoop
+					} else if pod.Status.Phase == corev1.PodFailed {
+						c.log.Info("minor upgrade pod has failed!",
+							zap.String("pod name", pod.Name),
+							zap.String("pod namespace", pod.Namespace))
+						// TODO:
+						//  handle pod failure
+						break outerLoop
+
+					}
+				case watch.Deleted:
+					c.log.Info("minor upgrade pod was deleted!",
+						zap.String("pod name", pod.Name),
+						zap.String("pod namespace", pod.Namespace))
+				}
+			}
+		}
 
 		c.log.Info("Cert Expiration pod created",
 			zap.Int("index", index),
