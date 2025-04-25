@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -106,22 +105,23 @@ func Expiration(namespace string) {
 			return // er // defer gracefulStop
 		}
 
+		c.log.Info("Cert Expiration pod created",
+			zap.Int("index", index),
+			zap.String("pod_name", minion.Name))
+
 		watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
 			LabelSelector: listOptions.LabelSelector,
 		})
-
-		defer watcher.Stop()
 
 		if err != nil {
 			c.log.Error("watcher for certs expiration pod failed: ",
 				zap.Error(err))
 		}
 
-		if watcher == nil {
-			c.log.Error("could not create watcher",
-				zap.Error(fmt.Errorf("watcher is nil")))
-			//	TODO: avoid outLoop and pass after a timer
-		}
+		//if watcher == nil {
+		//	c.log.Error("could not create watcher",
+		//		zap.Error(fmt.Errorf("watcher is nil")))
+		//}
 
 		if watcher == nil {
 			c.log.Info("watcher is nil, sleeping for 10 seconds")
@@ -144,6 +144,7 @@ func Expiration(namespace string) {
 						c.log.Info("certs expiration pod has completed successfully!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
+						watcher.Stop()
 						break outerLoop
 					} else if pod.Status.Phase == corev1.PodFailed {
 						c.log.Info("certs expiration pod has failed!",
@@ -151,6 +152,7 @@ func Expiration(namespace string) {
 							zap.String("pod namespace", pod.Namespace))
 						// TODO:
 						//  handle pod failure
+						watcher.Stop()
 						break outerLoop
 
 					}
@@ -158,14 +160,11 @@ func Expiration(namespace string) {
 					c.log.Info("certs expiration pod was deleted!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace))
+					watcher.Stop()
 					break outerLoop
 				}
 			}
 		}
-
-		c.log.Info("Cert Expiration pod created",
-			zap.Int("index", index),
-			zap.String("pod_name", minion.Name))
 		// todo: wait for request for restart from the minions
 	}
 
