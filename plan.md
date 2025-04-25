@@ -1,4 +1,5 @@
-1. packagize or internalize the expiration check functionality
+1. certs expiration pod monitoring
+2. packagize or internalize the expiration check functionality
 2. repository pattern to switch between different persistent storage
 3. refactor UI code
 4. progression report under the node names
