@@ -109,6 +109,14 @@ func Expiration(namespace string) {
 			zap.Int("index", index),
 			zap.String("pod_name", minion.Name))
 
+		labelSelector = metav1.LabelSelector{
+			MatchLabels: map[string]string{"app": "certs"},
+		}
+
+		listOptions = metav1.ListOptions{
+			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+		}
+
 		watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
 			LabelSelector: listOptions.LabelSelector,
 		})
@@ -130,6 +138,8 @@ func Expiration(namespace string) {
 		outerLoop:
 			// TODO: handle possible empty channel return
 			for event := range watcher.ResultChan() {
+				c.log.Info("watching for certificate expiration pod events",
+					zap.String("node", node.Name))
 				pod, ok := event.Object.(*corev1.Pod)
 				if !ok {
 					c.log.Error("watcher returned unexpected type",
@@ -137,6 +147,9 @@ func Expiration(namespace string) {
 						zap.Reflect("object", event.Object))
 					continue
 				}
+
+				// TODO:
+				//  evicted
 
 				switch event.Type {
 				case watch.Modified:
