@@ -116,7 +116,7 @@ func Cert(namespace string) {
 			Value: value,
 		}
 
-		descriptor.Spec.Containers[0].Env = []corev1.EnvVar{externalETCDNodeEnv}
+		descriptor.Spec.Containers[0].Env = append(descriptor.Spec.Containers[0].Env, externalETCDNodeEnv)
 
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods to monitor should be sent to the orchestration too
