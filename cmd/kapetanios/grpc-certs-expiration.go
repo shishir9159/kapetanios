@@ -116,7 +116,10 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 
 	*s.nodesCertsExpiration = append(*s.nodesCertsExpiration, nodeCertsExpiration)
 
+	fmt.Println("nodeCertsExpiration: ", nodeCertsExpiration)
+
 	s.log.Info("node certificate expiration information",
+		zap.String("node name", nodeCertsExpiration.nodeName),
 		zap.Reflect("nodeCertsExpiration", nodeCertsExpiration),
 		zap.Reflect("s.nodesCertsExpiration", s.nodesCertsExpiration))
 
