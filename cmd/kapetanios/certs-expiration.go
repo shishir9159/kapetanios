@@ -112,5 +112,14 @@ func Expiration(namespace string) {
 	(<-ch).GracefulStop()
 
 	c.log.Info("nodesCertsExpiration",
-		zap.Reflect("nodesCertsExpiration", nodesCertsExpiration))
+		zap.String("", nodesCertsExpiration[0].nodeName),
+		zap.String("", nodesCertsExpiration[0].missingCertificate[0]),
+		zap.String("", nodesCertsExpiration[0].certificateExpiration[0].Name),
+		zap.String("", nodesCertsExpiration[0].certificatesAuthority[0].Name))
+
+	c.log.Info("nodesCertsExpiration",
+		zap.String("", nodesCertsExpiration[0].nodeName),
+		zap.String("", nodesCertsExpiration[0].missingCertificate[0]),
+		zap.String("", nodesCertsExpiration[0].certificateExpiration[0].Name),
+		zap.String("", nodesCertsExpiration[0].certificatesAuthority[0].Name))
 }
