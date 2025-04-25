@@ -92,17 +92,6 @@ func Expiration(namespace string) {
 
 	// TODO: refactor this part inside the orchestrator
 
-	watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
-		LabelSelector: listOptions.LabelSelector,
-	})
-
-	defer watcher.Stop()
-
-	if err != nil {
-		c.log.Error("watcher for certs expiration pod failed: ",
-			zap.Error(err))
-	}
-
 	for index, node := range nodes.Items {
 		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/certs-expiration", roleName, node.Name)
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
@@ -115,6 +104,17 @@ func Expiration(namespace string) {
 			//  graceful stop
 
 			return // er // defer gracefulStop
+		}
+
+		watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
+			LabelSelector: listOptions.LabelSelector,
+		})
+
+		defer watcher.Stop()
+
+		if err != nil {
+			c.log.Error("watcher for certs expiration pod failed: ",
+				zap.Error(err))
 		}
 
 		if watcher == nil {
@@ -144,7 +144,6 @@ func Expiration(namespace string) {
 						c.log.Info("certs expiration pod has completed successfully!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
-
 						break outerLoop
 					} else if pod.Status.Phase == corev1.PodFailed {
 						c.log.Info("certs expiration pod has failed!",
@@ -159,6 +158,7 @@ func Expiration(namespace string) {
 					c.log.Info("certs expiration pod was deleted!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace))
+					break outerLoop
 				}
 			}
 		}
