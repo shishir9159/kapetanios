@@ -6,8 +6,8 @@ import (
 )
 
 type KubernetesCertificatesExpiration struct {
-	lastUpdated         time.Time
-	nodeCertsExpiration NodeCertsExpiration
+	lastUpdated          time.Time
+	nodesCertsExpiration []NodeCertsExpiration
 }
 type NodeCertsExpiration struct {
 	nodeName              string
@@ -33,33 +33,26 @@ type CertsAuthority struct {
 
 func NewKubernetesCertificatesExpiration() *KubernetesCertificatesExpiration {
 	return &KubernetesCertificatesExpiration{
-		lastUpdated: time.Now(),
+		lastUpdated:          time.Now(),
+		nodesCertsExpiration: []NodeCertsExpiration{},
 	}
 }
 
-// UpdateNodeCertificates updates the node certificates information
-func (c *KubernetesCertificatesExpiration) UpdateNodeCertificates(node NodeCertsExpiration) {
-	c.nodeCertsExpiration = node
-	c.lastUpdated = time.Now()
-}
-
-// GetLastUpdated returns the last time the certificates were updated
 func (c *KubernetesCertificatesExpiration) GetLastUpdated() time.Time {
 	return c.lastUpdated
 }
 
-func (c *KubernetesCertificatesExpiration) GetNodeCertsExpiration() NodeCertsExpiration {
-	return c.nodeCertsExpiration
+func (c *KubernetesCertificatesExpiration) GetNodeCertsExpiration(nodeName string) NodeCertsExpiration {
+	for _, nodeCertsExpiration := range c.nodesCertsExpiration {
+		if nodeCertsExpiration.GetNodeName() == nodeName {
+			return nodeCertsExpiration
+		}
+	}
+	return NodeCertsExpiration{}
 }
 
-// NewNodeCertsExpiration creates a new NodeCertsExpiration instance
 func NewNodeCertsExpiration(nodeName string) *NodeCertsExpiration {
-	return &NodeCertsExpiration{
-		nodeName:              nodeName,
-		missingCertificate:    make([]string, 0),
-		certificateExpiration: make([]CertsExpiration, 0),
-		certificatesAuthority: make([]CertsAuthority, 0),
-	}
+	return &NodeCertsExpiration{}
 }
 
 func (n *NodeCertsExpiration) AddMissingCertificate(certName string) {
@@ -109,10 +102,9 @@ func (n *NodeCertsExpiration) FindCertificateAuthorityByName(name string) (*Cert
 }
 
 func (n *NodeCertsExpiration) HasExpiredCertificates() bool {
-	currentTime := time.Now()
 	for _, cert := range n.certificateExpiration {
 		expireTime, err := time.Parse(time.RFC3339, cert.Expires)
-		if err == nil && currentTime.After(expireTime) {
+		if err == nil && time.Now().After(expireTime) {
 			return true
 		}
 	}
@@ -120,10 +112,9 @@ func (n *NodeCertsExpiration) HasExpiredCertificates() bool {
 }
 
 func (n *NodeCertsExpiration) HasExpiredCAs() bool {
-	currentTime := time.Now()
 	for _, ca := range n.certificatesAuthority {
 		expireTime, err := time.Parse(time.RFC3339, ca.Expires)
-		if err == nil && currentTime.After(expireTime) {
+		if err == nil && time.Now().After(expireTime) {
 			return true
 		}
 	}
