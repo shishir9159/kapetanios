@@ -101,6 +101,8 @@ func Expiration(namespace string) {
 		LabelSelector: listOptions.LabelSelector,
 	})
 
+	defer watcher.Stop()
+
 	if err != nil {
 		c.log.Error("watcher for certs expiration pod failed: ",
 			zap.Error(err))
@@ -167,10 +169,6 @@ func Expiration(namespace string) {
 				}
 			}
 		}
-	}
-
-	if watcher != nil {
-		watcher.Stop()
 	}
 
 	(<-ch).GracefulStop()

@@ -80,6 +80,8 @@ func Rollback(namespace string) {
 		LabelSelector: listOptions.LabelSelector,
 	})
 
+	defer watcher.Stop()
+
 	if err != nil {
 		c.log.Error("watcher for certs expiration pod failed: ",
 			zap.Error(err))
@@ -168,10 +170,6 @@ func Rollback(namespace string) {
 			//push error
 			break
 		}
-	}
-
-	if watcher != nil {
-		watcher.Stop()
 	}
 
 	(<-ch).GracefulStop()
