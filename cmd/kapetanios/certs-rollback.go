@@ -111,6 +111,7 @@ func Rollback(namespace string) {
 		}
 
 		if watcher == nil {
+			c.log.Info("watcher is nil, sleeping for 10 seconds")
 			time.Sleep(10 * time.Second)
 		} else {
 		outerLoop:
