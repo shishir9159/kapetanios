@@ -1,4 +1,4 @@
-1. updated hierarchy for progression by node name
+1. updated hierarchy for progression by node name: revaluate the urgency as most of the code need to be refactored
 2. packagize or internalize the expiration check functionality: holding on till the merge
 3. progression report under the node names
 4. pod eviction monitoring
