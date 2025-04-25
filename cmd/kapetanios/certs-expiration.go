@@ -111,15 +111,18 @@ func Expiration(namespace string) {
 
 	(<-ch).GracefulStop()
 
-	c.log.Info("nodesCertsExpiration",
-		zap.String("", nodesCertsExpiration[0].nodeName),
-		zap.String("", nodesCertsExpiration[0].missingCertificate[0]),
-		zap.String("", nodesCertsExpiration[0].certificateExpiration[0].Name),
-		zap.String("", nodesCertsExpiration[0].certificatesAuthority[0].Name))
-
-	c.log.Info("nodesCertsExpiration",
-		zap.String("", nodesCertsExpiration[0].nodeName),
-		zap.String("", nodesCertsExpiration[0].missingCertificate[0]),
-		zap.String("", nodesCertsExpiration[0].certificateExpiration[0].Name),
-		zap.String("", nodesCertsExpiration[0].certificatesAuthority[0].Name))
+	for _, nodeCertsExpiration := range nodesCertsExpiration {
+		c.log.Info("Certs Expiration Info",
+			zap.String("node name", nodeCertsExpiration.nodeName),
+			zap.String("missing certificate list", nodeCertsExpiration.missingCertificate[0]),
+			zap.String("", nodeCertsExpiration.certificateExpiration[0].Name),
+			zap.String("", nodeCertsExpiration.certificateExpiration[0].Expires),
+			zap.String("", nodeCertsExpiration.certificateExpiration[0].ResidualTime),
+			zap.String("", nodeCertsExpiration.certificateExpiration[0].CertificateAuthority),
+			zap.String("", nodeCertsExpiration.certificateExpiration[0].ExternallyManaged),
+			zap.String("", nodeCertsExpiration.certificatesAuthority[0].Name),
+			zap.String("", nodeCertsExpiration.certificatesAuthority[0].Expires),
+			zap.String("", nodeCertsExpiration.certificatesAuthority[0].ExternallyManaged),
+			zap.String("", nodeCertsExpiration.certificatesAuthority[0].ResidualTime))
+	}
 }
