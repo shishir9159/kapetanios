@@ -68,14 +68,20 @@ func Rollback(namespace string) {
 
 	// TODO: refactor this part to orchestrator
 
+	labelSelector = metav1.LabelSelector{
+		MatchLabels: map[string]string{"app": "certs"},
+	}
+
+	listOptions = metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
 	watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
 		LabelSelector: listOptions.LabelSelector,
 	})
 
-	defer watcher.Stop()
-
 	if err != nil {
-		c.log.Error("watcher for certs rollback pod failed: ",
+		c.log.Error("watcher for certs expiration pod failed: ",
 			zap.Error(err))
 	}
 
@@ -115,7 +121,6 @@ func Rollback(namespace string) {
 			time.Sleep(10 * time.Second)
 		} else {
 		outerLoop:
-			// TODO: handle possible empty channel return
 			for event := range watcher.ResultChan() {
 				pod, ok := event.Object.(*corev1.Pod)
 				if !ok {
@@ -125,16 +130,18 @@ func Rollback(namespace string) {
 					continue
 				}
 
+				// TODO:
+				//  evicted
+
 				switch event.Type {
 				case watch.Modified:
 					if pod.Status.Phase == corev1.PodSucceeded {
-						c.log.Info("certs rollback pod has completed successfully!",
+						c.log.Info("certs expiration pod has completed successfully!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
-
 						break outerLoop
 					} else if pod.Status.Phase == corev1.PodFailed {
-						c.log.Info("certs rollback pod has failed!",
+						c.log.Info("certs expiration pod has failed!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
 						// TODO:
@@ -143,9 +150,10 @@ func Rollback(namespace string) {
 
 					}
 				case watch.Deleted:
-					c.log.Info("certs rollback pod was deleted!",
+					c.log.Info("certs expiration pod was deleted!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace))
+					break outerLoop
 				}
 			}
 		}
@@ -160,6 +168,10 @@ func Rollback(namespace string) {
 			//push error
 			break
 		}
+	}
+
+	if watcher != nil {
+		watcher.Stop()
 	}
 
 	(<-ch).GracefulStop()

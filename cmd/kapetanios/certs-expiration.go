@@ -89,6 +89,23 @@ func Expiration(namespace string) {
 	ch := make(chan *grpc.Server, 1)
 	go ExpirationGrpc(c.log, ch, &nodesCertsExpiration)
 
+	labelSelector = metav1.LabelSelector{
+		MatchLabels: map[string]string{"app": "certs"},
+	}
+
+	listOptions = metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
+		LabelSelector: listOptions.LabelSelector,
+	})
+
+	if err != nil {
+		c.log.Error("watcher for certs expiration pod failed: ",
+			zap.Error(err))
+	}
+
 	// TODO: refactor this part inside the orchestrator
 
 	for index, node := range nodes.Items {
@@ -109,37 +126,12 @@ func Expiration(namespace string) {
 			zap.Int("index", index),
 			zap.String("pod_name", minion.Name))
 
-		labelSelector = metav1.LabelSelector{
-			MatchLabels: map[string]string{"app": "certs"},
-		}
-
-		listOptions = metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		}
-
-		watcher, err := c.client.Clientset().CoreV1().Pods(namespace).Watch(context.TODO(), metav1.ListOptions{
-			LabelSelector: listOptions.LabelSelector,
-		})
-
-		if err != nil {
-			c.log.Error("watcher for certs expiration pod failed: ",
-				zap.Error(err))
-		}
-
-		//if watcher == nil {
-		//	c.log.Error("could not create watcher",
-		//		zap.Error(fmt.Errorf("watcher is nil")))
-		//}
-
 		if watcher == nil {
 			c.log.Info("watcher is nil, sleeping for 10 seconds")
 			time.Sleep(10 * time.Second)
 		} else {
 		outerLoop:
-			// TODO: handle possible empty channel return
 			for event := range watcher.ResultChan() {
-				c.log.Info("watching for certificate expiration pod events",
-					zap.String("node", node.Name))
 				pod, ok := event.Object.(*corev1.Pod)
 				if !ok {
 					c.log.Error("watcher returned unexpected type",
@@ -157,7 +149,6 @@ func Expiration(namespace string) {
 						c.log.Info("certs expiration pod has completed successfully!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
-						watcher.Stop()
 						break outerLoop
 					} else if pod.Status.Phase == corev1.PodFailed {
 						c.log.Info("certs expiration pod has failed!",
@@ -165,7 +156,6 @@ func Expiration(namespace string) {
 							zap.String("pod namespace", pod.Namespace))
 						// TODO:
 						//  handle pod failure
-						watcher.Stop()
 						break outerLoop
 
 					}
@@ -173,12 +163,14 @@ func Expiration(namespace string) {
 					c.log.Info("certs expiration pod was deleted!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace))
-					watcher.Stop()
 					break outerLoop
 				}
 			}
 		}
-		// todo: wait for request for restart from the minions
+	}
+
+	if watcher != nil {
+		watcher.Stop()
 	}
 
 	(<-ch).GracefulStop()
