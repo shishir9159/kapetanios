@@ -405,10 +405,10 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 	// Caution: will fail in the scenario of one master node
 	// and kapetanios started in that master node
-	if len(upgrade.upgradeState.NodeStatus.NodesUpgraded) != 0 && len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
-		nodeNames = upgrade.upgradeState.NodeStatus.NodesToBeUpgraded
-		nodesUpgraded = upgrade.upgradeState.NodeStatus.NodesUpgraded
-		nodesFailedToBeUpgraded = upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded
+	if len(upgrade.upgradeState.NodesStatus.NodesUpgraded) != 0 && len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
+		nodeNames = upgrade.upgradeState.NodesStatus.NodesToBeUpgraded
+		nodesUpgraded = upgrade.upgradeState.NodesStatus.NodesUpgraded
+		nodesFailedToBeUpgraded = upgrade.upgradeState.NodesStatus.NodesFailedToBeUpgraded
 	} else {
 		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
@@ -484,7 +484,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	}
 
 	upgrade.nefario.log.Debug("nodes to be upgraded",
-		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodeStatus.NodesToBeUpgraded),
+		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded),
 		zap.Strings("nodeNames:", nodeNames))
 
 	roleName := "minor-upgrade"
@@ -519,36 +519,36 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//   if failed, must be tainted again to
 		//   schedule nodes
 
-		upgrade.upgradeState.NodeStatus.NodesUpgraded = nodeNames[:index]
-		upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = nodeNames[index:]
+		upgrade.upgradeState.NodesStatus.NodesUpgraded = nodeNames[:index]
+		upgrade.upgradeState.NodesStatus.NodesToBeUpgraded = nodeNames[index:]
 
 		// TODO:
 		//set := make(map[string]bool)
-		//for _, val := range upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded {
+		//for _, val := range upgrade.upgradeState.NodesStatus.NodesFailedToBeUpgraded {
 		//	set[val] = true
 		//}
 		//var result []string
-		//for _, val := range upgrade.upgradeState.NodeStatus.NodesUpgraded {
+		//for _, val := range upgrade.upgradeState.NodesStatus.NodesUpgraded {
 		//	if _, found := set[val]; !found {
 		//		result = append(result, val)
 		//	}
 		//}
 
-		upgrade.upgradeState.NodeStatus.NodesFailedToBeUpgraded = nodesFailedToBeUpgraded
+		upgrade.upgradeState.NodesStatus.NodesFailedToBeUpgraded = nodesFailedToBeUpgraded
 
 		// TODO: should this be one case only
 		//  as without delimiter
 		if len(nodesUpgraded) != 0 && index != 0 {
-			upgrade.upgradeState.NodeStatus.NodesUpgraded = append(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded,
+			upgrade.upgradeState.NodesStatus.NodesUpgraded = append(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded,
 				nodesUpgraded...)
 
 			upgrade.nefario.log.Info("nodes that have been upgraded",
-				zap.Strings("nodes upgraded", upgrade.upgradeState.NodeStatus.NodesUpgraded))
+				zap.Strings("nodes upgraded", upgrade.upgradeState.NodesStatus.NodesUpgraded))
 		} else if len(nodesUpgraded) != 0 {
-			upgrade.upgradeState.NodeStatus.NodesUpgraded = nodesUpgraded
+			upgrade.upgradeState.NodesStatus.NodesUpgraded = nodesUpgraded
 
 			upgrade.nefario.log.Info("nodes that upgraded",
-				zap.Strings("nodes upgraded", upgrade.upgradeState.NodeStatus.NodesUpgraded))
+				zap.Strings("nodes upgraded", upgrade.upgradeState.NodesStatus.NodesUpgraded))
 		}
 
 		err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
@@ -580,7 +580,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		env := descriptor.Spec.Containers[0].Env
 		env = append(env, certRenewalEnv)
 
-		if index == 0 && len(upgrade.upgradeState.NodeStatus.NodesUpgraded) == 0 {
+		if index == 0 && len(upgrade.upgradeState.NodesStatus.NodesUpgraded) == 0 {
 
 			firstNodeToUpgradeEnv := corev1.EnvVar{
 				Name:  "FIRST_NODE_TO_BE_UPGRADED",
@@ -768,19 +768,19 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	}
 	(<-ch).Stop()
 
-	if len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
+	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
 
-		upgrade.upgradeState.NodeStatus.NodesUpgraded =
-			append(upgrade.upgradeState.NodeStatus.NodesUpgraded, upgrade.upgradeState.NodeStatus.NodesToBeUpgraded[0])
+		upgrade.upgradeState.NodesStatus.NodesUpgraded =
+			append(upgrade.upgradeState.NodesStatus.NodesUpgraded, upgrade.upgradeState.NodesStatus.NodesToBeUpgraded[0])
 
-		upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = upgrade.upgradeState.NodeStatus.NodesToBeUpgraded[1:]
+		upgrade.upgradeState.NodesStatus.NodesToBeUpgraded = upgrade.upgradeState.NodesStatus.NodesToBeUpgraded[1:]
 	}
 
 	finalizer := upgradeFinalizer{}
 	_, _, _ = finalizer.SendMessage(upgrade.upgradeState, upgrade.nefario.log, upgrade.pool)
 
-	upgrade.upgradeState.NodeStatus.NodesUpgraded = []string{}
-	upgrade.upgradeState.NodeStatus.NodesToBeUpgraded = []string{}
+	upgrade.upgradeState.NodesStatus.NodesUpgraded = []string{}
+	upgrade.upgradeState.NodesStatus.NodesToBeUpgraded = []string{}
 
 	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {
@@ -796,7 +796,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 func (finalizer *upgradeFinalizer) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
-	finalizer.NodeStatus = upgradeState.NodeStatus
+	finalizer.NodeStatus = upgradeState.NodesStatus
 
 	json := jsoniter.ConfigFastest
 	upgradeProgression := &UpgradeProgression{

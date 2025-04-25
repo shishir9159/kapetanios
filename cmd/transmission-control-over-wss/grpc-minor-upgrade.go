@@ -13,7 +13,7 @@ import (
 	"net"
 )
 
-// minorUpgradeServer is used to implement proto.MinorUpgradeServer.
+// minorUpgradeServer is used to implement proto.MinorUpgradeServer
 type minorUpgradeServer struct {
 	log            *zap.Logger
 	minorUpgrade   *MinorUpgrade
@@ -37,7 +37,7 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
 	progression.SelectedConfig = upgradeState.SelectedConfig
-	progression.NodeStatus = upgradeState.NodeStatus
+	progression.NodeStatus = upgradeState.NodesStatus
 	progression.ProgressDetails = upgradeState.ProgressDetails
 
 	upgradeProgression := &UpgradeProgression{
@@ -78,9 +78,9 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 		proceedNextStep = true
 		break
 	case "terminateApplication":
-		upgradeState.NodeStatus.NodesFailedToBeUpgraded =
-			append(upgradeState.NodeStatus.NodesFailedToBeUpgraded, upgradeState.NodeStatus.NodesToBeUpgraded[0])
-		upgradeState.NodeStatus.NodesToBeUpgraded = upgradeState.NodeStatus.NodesToBeUpgraded[1:]
+		upgradeState.NodesStatus.NodesFailedToBeUpgraded =
+			append(upgradeState.NodesStatus.NodesFailedToBeUpgraded, upgradeState.NodesStatus.NodesToBeUpgraded[0])
+		upgradeState.NodesStatus.NodesToBeUpgraded = upgradeState.NodesStatus.NodesToBeUpgraded[1:]
 		terminateApplication = true
 		break
 	default:

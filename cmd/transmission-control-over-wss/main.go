@@ -115,7 +115,7 @@ type progressDetail struct {
 
 type UpgradeState struct {
 	SelectedConfig  *selectedConfig  `json:"selectedConfig"`
-	NodeStatus      *nodesStatus     `json:"nodesStatus"`
+	NodesStatus     *nodesStatus     `json:"nodesStatus"`
 	Nodes           []nodeInfo       `json:"nodes"`
 	K8sPackages     []k8sPackageInfo `json:"k8sPackages"`
 	ProgressDetails []progressDetail `json:"progressDetails"`
@@ -143,8 +143,8 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 			zap.Error(err))
 	}
 
-	if state.NodeStatus == nil {
-		state.NodeStatus = &nodesStatus{
+	if state.NodesStatus == nil {
+		state.NodesStatus = &nodesStatus{
 			NodesToBeUpgraded: []string{},
 		}
 	}
@@ -379,9 +379,9 @@ func main() {
 		nefario:      &nefario,
 	}
 	nefario.log.Debug("nodes to be upgraded",
-		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodeStatus.NodesToBeUpgraded))
+		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
-	if len(upgrade.upgradeState.NodeStatus.NodesToBeUpgraded) != 0 {
+	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
 		er := Prerequisites(&upgrade)
 		if er != nil {
 			upgrade.nefario.log.Info("error writing prerequisites warning:",

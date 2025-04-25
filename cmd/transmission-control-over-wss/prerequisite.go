@@ -32,7 +32,7 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 
 	// TODO: race condition - readCtx can be cancelled
 	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
-		zap.Strings("nodes to be upgraded", upgrade.upgradeState.NodeStatus.NodesToBeUpgraded))
+		zap.Strings("nodes to be upgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
 	upgrade.finalizer = make(chan bool, 1)
 
