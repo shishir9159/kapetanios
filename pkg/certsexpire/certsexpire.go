@@ -67,7 +67,6 @@ func (k *KubernetesCertificatesExpiration) Debug(l *zap.Logger) {
 				zap.String("externally managed", caAuthority.ExternallyManaged))
 		}
 	}
-
 }
 
 func (k *KubernetesCertificatesExpiration) GetLastUpdated() time.Time {
