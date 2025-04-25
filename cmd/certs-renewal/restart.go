@@ -4,6 +4,7 @@ import (
 	"bytes"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
+	"os"
 	"os/exec"
 )
 
@@ -40,10 +41,13 @@ func Restart(c Controller, connection pb.RenewalClient) (bool, bool, error) {
 			Msg("failed to create chroot on /host")
 	}
 
-	etcdLog, etcdErr, err := restartService(c, "etcd")
-	if err != nil {
-		c.log.Error().Err(err).
-			Msg("failed to restart etcd")
+	etcdLog, etcdErr := "", ""
+	if os.Getenv("ETCD_NODE") == "True" {
+		etcdLog, etcdErr, err = restartService(c, "etcd")
+		if err != nil {
+			c.log.Error().Err(err).
+				Msg("failed to restart etcd")
+		}
 	}
 
 	kubeletLog, kubeletErr, err := restartService(c, "kubelet")

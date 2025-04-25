@@ -103,6 +103,21 @@ func Cert(namespace string) {
 		// service account, cluster role binding
 		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/certs-renewal", roleName, node.Name)
 
+		// TODO:
+		//  optional backoff if the ip or hostname doesn't match
+
+		value := "False"
+		if node.Labels["assigned-node-role-etcd.kubernetes.io"] == "true" {
+			value = "True"
+		}
+
+		externalETCDNodeEnv := corev1.EnvVar{
+			Name:  "ETCD_NODE",
+			Value: value,
+		}
+
+		descriptor.Spec.Containers[0].Env = []corev1.EnvVar{externalETCDNodeEnv}
+
 		// kubectl get event --namespace default --field-selector involvedObject.name=minions
 		// how many pods to monitor should be sent to the orchestration too
 		minion, er := c.client.Clientset().CoreV1().Pods(namespace).Create(context.Background(), descriptor, metav1.CreateOptions{})
@@ -168,7 +183,8 @@ func Cert(namespace string) {
 			c.log.Error("error restarting pods for certificate renewal",
 				zap.Error(er))
 
-			//retry logic
+			// TODO: abort
+			//  and send error message
 			break
 		}
 	}
