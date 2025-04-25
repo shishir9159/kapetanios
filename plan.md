@@ -1,6 +1,6 @@
-1. progression report under the node names
-2. pod eviction monitoring
-3. packagize or internalize the expiration check functionality
+1. packagize or internalize the expiration check functionality: holding on till the merge
+2. progression report under the node names
+3. pod eviction monitoring
 4. repository pattern to switch between different persistent storage
 5. refactor UI code
 6. move the workflow inside pkg to share code
