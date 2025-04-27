@@ -7,6 +7,8 @@ import (
 )
 
 type KubernetesCertificatesExpiration struct {
+	// TODO:
+	//  should this be of concern?
 	lastUpdated          time.Time
 	nodesCertsExpiration []NodeCertsExpiration
 }
