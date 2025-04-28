@@ -22,23 +22,22 @@ It is assumed that the following roles would be assigned to the respective nodes
 6. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
 
 ## Protoc Code Generation
-```Bash
+```Zsh
 make protgen
 ```
 ## Docker images Build and Push
-```Bash
-# there's some bugs in the current format
+```Zsh
 make docker-build-and-push
 ```
 
 ## Deploy in K8s
-```Bash
+```Zsh
 kubectl create -f manifests/.
 ```
 
 ## Testing
 ### grpc
-```Bash
+```Zsh
 grpcurl -v -plaintext kapetanios.default.svc.cluster.local:50051 Renewal/StatusUpdate{
   "backupSuccess" : true,
   "renewalSuccess" : true,
@@ -52,4 +51,6 @@ https://github.com/go-yaml/yaml
 ```
 
 ## Concerns
+updating a node can take a long time, how to determine the application is running the process?
+
 when is the config file is necessary when it is already available in configmap that is right only from the perspective of the first node `--config /etc/kubernetes/kubeadm/kubeadm-config.yaml`.
