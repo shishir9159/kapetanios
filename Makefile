@@ -45,8 +45,11 @@ go-protogen:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 
 clean:
-	@printf $(COLOR) "Removing built binaries with the build directory..."
-	rm -rf ./build
+	@printf $(COLOR) "Removing cached docker images and removing the kubernetes resources..."
+#   remove the node labelings
+	docker system prune -ya --volumes
+	kubectl create -f manifests/.
+	#rm -rf ./build
 
 ##### Docker #####
 .PHONY: kapetanios
@@ -54,8 +57,8 @@ docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal mi
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
-	docker build . -t laplaciandemon/kapetanios:latest
-	#docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
+	#docker build . -t laplaciandemon/kapetanios:latest
+	docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
 	docker push laplaciandemon/kapetanios:latest
 
 .PHONY: certs-expiration

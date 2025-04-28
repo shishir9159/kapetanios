@@ -15,7 +15,7 @@ libprotoc 27.3
 #### cluster requirement
 It is assumed that the following roles would be assigned to the respective nodes:
 1. assumption about package naming format
-2. assumption is that all the components(kubeadm, kubelet, kubectl) has the same specific version
+2. the assumption is that all the components(kubeadm, kubelet, kubectl) has the same specific version
 3. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs and "node-role.kubernetes.io/control-plane" annotation
 4. assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
 5. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
