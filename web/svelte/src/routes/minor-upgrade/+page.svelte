@@ -10,12 +10,12 @@
     let upgradeConfig: SelectedConfig = $state(config);
     let clusterStatus: NodesStatus;
     let nodeStatus: NodesStatus = $state(clusterStatus);
-    let progressDetails: [ProgressDetail] = [];
+    let progressDetails: ProgressDetail[] = [];
     let drainNodes: boolean = $state(false);
     let certificateRenewal: boolean = $state(false);
     let promptOnError: boolean = $state(true);
     let selected: Map<string, string> = $state(new Map<string, string>());
-    let packagesInfo: [K8sPackageInfo]= $state([]);
+    let packagesInfo: K8sPackageInfo[]= $state([]);
     let formModal = $state(false);
 
     let scrollingModal = $state(false);

@@ -4,11 +4,11 @@ interface K8sPackageInfo {
 	distroPrettyName: string;
 	repoName: string;
 	repoBaseUrl: string;
-	availableVersions: [string];
+	availableVersions: string[];
 }
 
 interface upgradeConfigSelection {
-	k8sPackagesInfo: [K8sPackageInfo];
+	k8sPackagesInfo: K8sPackageInfo[];
 }
 
 // TODO:
@@ -21,13 +21,13 @@ export interface SelectedConfig {
 	drainNodes: boolean;
 	promptOnError: boolean;
 	certificateRenewal: boolean;
-	k8sVersion: [K8sVersion];
+	k8sVersion: K8sVersion[];
 }
 
 export interface NodesStatus {
-	nodesUpgraded: [string];
-	nodesToBeUpgraded: [string];
-	nodesFailedToBeUpgraded: [string] | null;
+	nodesUpgraded: string[];
+	nodesToBeUpgraded: string[];
+	nodesFailedToBeUpgraded: string[] | null;
 }
 
 export interface ProgressDetail {
@@ -39,12 +39,12 @@ export interface ProgressDetail {
 interface progressionState {
 	selectedConfig: SelectedConfig;
 	nodesStatus: NodesStatus;
-	progressDetails: [ProgressDetail];
+	progressDetails: ProgressDetail[];
 }
 
 interface finalizer {
 	nodesStatus: NodesStatus;
-	progressDetails: [ProgressDetail];
+	progressDetails: ProgressDetail[];
 }
 
 export interface UpgradeProgression {
