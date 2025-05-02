@@ -7,8 +7,8 @@ RHEL 8
 RHEL 9
 
 #### build requirements:
-golang v1.23.1 \
-libprotoc 27.3
+golang v1.23.1-1.24.2 \
+libprotoc 27.3-30.1
 
 [//]: # (make)
 
