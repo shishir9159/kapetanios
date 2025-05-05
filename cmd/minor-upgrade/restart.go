@@ -26,9 +26,8 @@ type JournalOptions struct {
 }
 
 func getJournalLogs(opts JournalOptions) (string, error) {
-	args := []string{}
+	var args []string
 
-	// Always specify the unit
 	args = append(args, "-u", opts.UnitName)
 
 	if opts.Follow {
@@ -146,10 +145,10 @@ func t() {
 	// Basic usage
 	logs, err := getServiceLogs("kubelet")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(logs)
+		// FATAL
 	}
 
-	// Advanced usage
 	logs, err = getJournalLogs(JournalOptions{
 		UnitName:   "kubelet",
 		NumEntries: 100,
@@ -157,6 +156,6 @@ func t() {
 		FullOutput: true,
 	})
 	if err != nil {
-		log.Fatal(err)
+		// FATAL
 	}
 }
