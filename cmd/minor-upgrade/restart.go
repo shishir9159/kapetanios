@@ -15,8 +15,6 @@ import (
 //  make sure to check if the previous version exists
 //  and current kubernetes version
 
-// TODO: check kubelet status and view the service logs with journalctl -xeu kubelet
-
 type JournalOptions struct {
 	Follow     bool
 	NumEntries int
