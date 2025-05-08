@@ -27,9 +27,9 @@ go-sqlc:
 
 protogen:
 	@printf $(COLOR) "Generating gRPC code"
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-rollback.proto
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-expiration.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-rollback.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-update.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 
@@ -38,9 +38,9 @@ go-protogen:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	export PATH="$PATH:$(go env GOPATH)/bin"
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-rollback.proto
-	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-expiration.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-renewal.proto
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/certs-rollback.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-update.proto
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/minor-upgrade.proto
 
@@ -53,7 +53,7 @@ clean:
 
 ##### Docker #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal minor-update minor-upgrade certs-rollback svelte
+docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal certs-rollback minor-update minor-upgrade svelte
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
@@ -72,6 +72,12 @@ certs-renewal:
 	@printf $(COLOR) "Building docker image for certs-renewal minions and pushing it to the registry..."
 	docker build . -t laplaciandemon/certs-renewal:latest -f certs-renewal.Dockerfile
 	docker push laplaciandemon/certs-renewal:latest
+
+.PHONY: certs-rollback
+certs-rollback:
+	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
+	docker build . -t laplaciandemon/certs-rollback:latest -f certs-rollback.Dockerfile
+	docker push laplaciandemon/certs-rollback:latest
 
 .PHONY: etcd-migration
 etcd-migration:
@@ -96,12 +102,6 @@ minor-upgrade:
 	@printf $(COLOR) "Building docker image for minor-upgrade minions and pushing it to the registry..."
 	docker build . -t laplaciandemon/minor-upgrade:latest -f minor-upgrade.Dockerfile
 	docker push laplaciandemon/minor-upgrade:latest
-
-.PHONY: certs-rollback
-certs-rollback:
-	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
-	docker build . -t laplaciandemon/certs-rollback:latest -f certs-rollback.Dockerfile
-	docker push laplaciandemon/certs-rollback:latest
 
 .PHONY: svelte
 svelte:
