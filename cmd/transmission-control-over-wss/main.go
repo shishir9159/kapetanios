@@ -384,9 +384,15 @@ func main() {
 	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
 		er := continueMinorUpgrade(&upgrade)
 		if er != nil {
-			upgrade.nefario.log.Info("error trying to continue minor upgrade:",
+			upgrade.nefario.log.Info("error to continue trying minor upgrade:",
 				zap.Error(er))
 		}
+	}
+
+	err = prerequisites(&upgrade)
+	if err != nil {
+		upgrade.nefario.log.Info("error to check prerequisites:",
+			zap.Error(err))
 	}
 
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)

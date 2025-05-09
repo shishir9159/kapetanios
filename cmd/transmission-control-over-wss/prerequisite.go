@@ -71,6 +71,9 @@ func removeTabsAndShiftWhitespaces(s string) string {
 func validatingNodesState(nefario *Nefario, label string) error {
 
 	roleName := label
+
+	// TODO:
+
 	matchLabels := map[string]string{"assigned-node-role-" + label + "certs.kubernetes.io": roleName}
 
 	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
@@ -200,24 +203,25 @@ func continueMinorUpgrade(upgrade *MinorUpgrade) error {
 	return nil
 }
 
-func Prerequisites(upgrade *MinorUpgrade) error {
+func prerequisites(upgrade *MinorUpgrade) error {
 
-	// if cm shows updated nodes to a certain value
-	// and a desired kubernetes version must exist on the cm
-	// for the updates
+	etcd, err := populatingConfigMap(upgrade.nefario)
+	if err != nil {
+		fmt.Println("error populating configMap")
+		return err
+	}
+	fmt.Println("etcd: ", etcd)
+
+	// if configMap shows updated nodes to a certain value
+	// and a desired k8s version must exist on the cm
+	// after the updates
 
 	// TODO: throw error no master nodes found
 
-	//configMapName := "kubeadm-config"
-	//configMap, er := Upgrade.nefario.client.Clientset().CoreV1().ConfigMaps("kube-system").
-	//	Get(context.Background(), configMapName, metav1.GetOptions{})
-	//if er != nil {
-	//	Upgrade.nefario.log.Info("error fetching the kubeadm-config configMap: ",
-	//		zap.Error(er))
-	//}
+	validatingNodesState(upgrade.nefario, "control-plane")
 
 	// TODO:
-	// 	clean up pods in internal library
+	// 	move clean up pods in internal library
 
 	//labelSelector := metav1.LabelSelector{
 	//	MatchLabels: map[string]string{
