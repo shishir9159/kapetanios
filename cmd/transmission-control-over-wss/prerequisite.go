@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -62,14 +63,12 @@ type ClusterConfiguration struct {
 //  fetch localAPIEndpoint: advertiseAddress
 
 func removeTabsAndShiftWhitespaces(s string) string {
-
 	// Regular expression to match tabs and shift whitespaces
 	re := regexp.MustCompile(`[\x00-\x1F\x7F\t\s<\nil>]+`)
 	return re.ReplaceAllString(s, "")
-
 }
 
-func validatingNodesState(c Controller, label string) error {
+func validatingNodesState(nefario *Nefario, label string) error {
 
 	roleName := label
 	matchLabels := map[string]string{"assigned-node-role-" + label + "certs.kubernetes.io": roleName}
@@ -79,20 +78,20 @@ func validatingNodesState(c Controller, label string) error {
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	nodes, err := c.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
+	nodes, err := nefario.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
 	if err != nil {
-		c.log.Error("failed to list "+label+" nodes to validate",
+		nefario.log.Error("failed to list "+label+" nodes to validate",
 			zap.Error(err))
 		return err
 	} else if nodes.Size() == 0 {
-		c.log.Error("nodes for "+label+" are not labeled",
+		nefario.log.Error("nodes for "+label+" are not labeled",
 			zap.Error(err))
 		return err
 	}
 
 	for _, node := range nodes.Items {
 		if node.Status.Phase != corev1.NodeRunning {
-			c.log.Error("node related to the operation is not running",
+			nefario.log.Error("node related to the operation is not running",
 				zap.String("nodeName", node.Name))
 			return fmt.Errorf("node %s is in the %s state", node.Name, node.Status.Phase)
 		}
@@ -101,14 +100,14 @@ func validatingNodesState(c Controller, label string) error {
 	return nil
 }
 
-func populatingConfigMap(c Controller) (*ETCD, error) {
+func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 
 	etcdCluster := ETCD{}
 
-	cm, err := c.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
+	cm, err := nefario.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
 
 	if err != nil {
-		c.log.Error("error fetching the kubeadm-config from the kube-system namespace",
+		nefario.log.Error("error fetching the kubeadm-config from the kube-system namespace",
 			zap.Error(err))
 		return &etcdCluster, err
 	}
@@ -120,17 +119,18 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 
 	err = yaml.Unmarshal([]byte(yamlFile), &clusterConfiguration)
 	if err != nil {
-		c.log.Error("error parsing the kubeadm-config yaml file",
+		nefario.log.Error("error parsing the kubeadm-config yaml file",
 			zap.Error(err))
 	}
 
 	etcdCluster = clusterConfiguration.ETCD
 
+	// TODO: from the value of configMap
 	if etcdCluster.External.CAFile == "" {
 		//	TODO:
 		//	 check if the file exists
 		//   throw permission errors
-		if Exists("/etc/kubernetes/pki/etcd-ca.pem") {
+		if _, err := os.Stat("/etc/kubernetes/pki/etcd-ca.pem"); os.IsNotExist(err) {
 			return &etcdCluster, fmt.Errorf("etcd ca doesn't exist or read permission error")
 		}
 	}
@@ -139,7 +139,7 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 		//	TODO:
 		//	 check if the file exists
 		//   throw permission errors
-		if Exists("/etc/kubernetes/pki/etcd.cert") {
+		if _, err := os.Stat("/etc/kubernetes/pki/etcd.cert"); os.IsNotExist(err) {
 			return &etcdCluster, fmt.Errorf("etcd cert doesn't exist or read permission error")
 		}
 	}
@@ -148,7 +148,7 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 		//	TODO:
 		//	 check if the file exists
 		//   throw permission errors
-		if Exists("/etc/kubernetes/pki/etcd.key") {
+		if _, err := os.Stat("/etc/kubernetes/pki/etcd.key"); os.IsNotExist(err) {
 			return &etcdCluster, fmt.Errorf("etcd key file doesn't exist or read permission error")
 		}
 	}
@@ -159,9 +159,9 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 
 	configMapName := "kapetanios"
 
-	configMap, er := c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
-		c.log.Error("error fetching the configMap",
+		nefario.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
 
@@ -179,19 +179,31 @@ func populatingConfigMap(c Controller) (*ETCD, error) {
 		configMap.Data["ETCD_NODE_"+strconv.Itoa(index+1)] = endpoint
 	}
 
-	_, er = c.client.Clientset().CoreV1().ConfigMaps(c.namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+	_, er = nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
 	if er != nil {
-		c.log.Error("error updating configMap",
+		nefario.log.Error("error updating configMap",
 			zap.Error(er))
 	}
 
 	return &etcdCluster, nil
 }
 
+func continueMinorUpgrade(upgrade *MinorUpgrade) error {
+	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
+		zap.Strings("nodes to be upgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
+
+	upgrade.finalizer = make(chan bool, 1)
+
+	upgrade.mu.Lock()
+	go upgrade.MinorUpgrade()
+
+	return nil
+}
+
 func Prerequisites(upgrade *MinorUpgrade) error {
 
 	// if cm shows updated nodes to a certain value
-	// and desired kubernetesVersion version must exist on the cm
+	// and a desired kubernetes version must exist on the cm
 	// for the updates
 
 	// TODO: throw error no master nodes found
@@ -261,13 +273,5 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 	}
 
 	// TODO: race condition - readCtx can be cancelled
-	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
-		zap.Strings("nodes to be upgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
-	upgrade.finalizer = make(chan bool, 1)
-
-	upgrade.mu.Lock()
-	go upgrade.MinorUpgrade()
-
-	return nil
 }

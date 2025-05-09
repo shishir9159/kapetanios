@@ -382,9 +382,9 @@ func main() {
 		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
 	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
-		er := Prerequisites(&upgrade)
+		er := continueMinorUpgrade(&upgrade)
 		if er != nil {
-			upgrade.nefario.log.Info("error writing prerequisites warning:",
+			upgrade.nefario.log.Info("error trying to continue minor upgrade:",
 				zap.Error(er))
 		}
 	}
