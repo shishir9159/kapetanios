@@ -425,10 +425,10 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		}
 
 		// TODO: debug mode
-		//  for _, no := range nodes.Items {
-		//	  c.log.Debug("nodes before sorting",
-		//	    	zap.String("nodes", no.ObjectMeta.Name))
-		//  }
+		for _, no := range nodes.Items {
+			upgrade.nefario.log.Debug("nodes before sorting",
+				zap.String("nodes", no.ObjectMeta.Name))
+		}
 
 		// TODO: wouldn't work on one master node where kapetanios is scheduled
 		// TODO: possible error, kapetanios can be on a master node, that would be mistakenly upgraded at the last
@@ -451,10 +451,10 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		})
 
 		// TODO: debug mode
-		//for _, no := range nodes.Items {
-		//	c.log.Debug("nodes after sorting",
-		//		zap.String("nodes", no.ObjectMeta.Name))
-		//}
+		for _, no := range nodes.Items {
+			upgrade.nefario.log.Debug("nodes after sorting",
+				zap.String("nodes", no.ObjectMeta.Name))
+		}
 
 		for _, no := range nodes.Items {
 			upgrade.nefario.log.Info("status",
