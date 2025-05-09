@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
+	"time"
 )
 
 // if the labels exists
@@ -41,7 +42,10 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 	//}
 
 	// TODO:
-	//  3 mintues timeout for the deletion to complete
+	//  3 minutes timeout for the deletion to complete
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
 
 	listOptions := metav1.ListOptions{
 		LabelSelector: "app in (certs, minor-upgrade), app notin (etcd, kubelet, control-plane)",
@@ -50,7 +54,7 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 	}
 
 	minions, err := upgrade.nefario.client.Clientset().CoreV1().Pods(os.Getenv("KAPETANIOS_NAMESPACE")).
-		List(context.Background(), listOptions)
+		List(ctx, listOptions)
 	if err != nil {
 		upgrade.nefario.log.Error("error listing completed/failed pods for node management",
 			zap.Error(err))
@@ -59,12 +63,31 @@ func Prerequisites(upgrade *MinorUpgrade) error {
 
 	for _, minion := range minions.Items {
 		er := upgrade.nefario.client.Clientset().CoreV1().Pods(os.Getenv("KAPETANIOS_NAMESPACE")).
-			Delete(context.Background(), minion.Name, metav1.DeleteOptions{})
+			Delete(ctx, minion.Name, metav1.DeleteOptions{})
 		if er != nil {
 			upgrade.nefario.log.Info("failed to delete minion:",
 				zap.String("minion name:", minion.Name),
 				zap.Error(er))
 		}
+	}
+
+	nodes, err := upgrade.nefario.client.Clientset().CoreV1().Nodes().
+		List(ctx, listOptions)
+	if err != nil {
+		upgrade.nefario.log.Error("error listing completed/failed pods for node management",
+			zap.Error(err))
+	}
+
+	flag := false
+	for _, node := range nodes.Items {
+		if node.Labels["assigned-node-role-certs.kubernetes.io"] == "etcd" {
+			flag = true
+			break
+		}
+	}
+
+	if !flag {
+
 	}
 
 	// TODO: race condition - readCtx can be cancelled
