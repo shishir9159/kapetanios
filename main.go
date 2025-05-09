@@ -33,10 +33,10 @@ func main() {
 
 	for _, node := range nodes.Items {
 		fmt.Println(node.Name)
-		fmt.Println(node.Annotations)
-		if _, controlPlane := node.Annotations["node-role.kubernetes.io/control-plane"]; controlPlane {
+		fmt.Println(node.Labels)
+		if _, controlPlane := node.Labels["node-role.kubernetes.io/control-plane"]; controlPlane {
 			fmt.Println("control plane node", node.Name)
-		} else if _, master := node.Annotations["node-role.kubernetes.io/master"]; master {
+		} else if _, master := node.Labels["node-role.kubernetes.io/master"]; master {
 			fmt.Println("master node", node.Name)
 		}
 	}

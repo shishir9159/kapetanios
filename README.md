@@ -15,11 +15,14 @@ libprotoc 27.3
 #### cluster requirement
 It is assumed that the following roles would be assigned to the respective nodes:
 1. assumption about package naming format
-2. the assumption is that all the components(kubeadm, kubelet, kubectl) has the same specific version
-3. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs and "node-role.kubernetes.io/control-plane" annotation
+2. the assumption is that all the components(kubeadm, kubelet, kubectl) have the same specific version in the os
+3. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs
 4. assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
 5. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
 6. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
+
+## Notes
+As a master node role is deprecated, only control-plane annotation is used: https://kubernetes.io/docs/reference/labels-annotations-taints/#node-role-kubernetes-io-master-taint
 
 ## Protoc Code Generation
 ```Zsh
