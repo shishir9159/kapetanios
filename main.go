@@ -16,6 +16,7 @@ func main() {
 		config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 		if err != nil {
 			fmt.Printf("unable to load kubeconfig from %s\n", kubeConfigPath)
+			fmt.Println(err.Error())
 		}
 	}
 
@@ -31,6 +32,8 @@ func main() {
 	}
 
 	for _, node := range nodes.Items {
+		fmt.Println(node.Name)
+
 		if _, controlPlane := node.Annotations["node-role.kubernetes.io/control-plane"]; controlPlane {
 			fmt.Println("control plane node", node.Name)
 		} else if _, master := node.Annotations["node-role.kubernetes.io/master"]; master {
