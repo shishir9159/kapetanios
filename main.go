@@ -25,19 +25,19 @@ func main() {
 		fmt.Printf("unable to create clientset from config: %v\n", err)
 	}
 
-	nodes, er := clientSet.CoreV1().Nodes().
+	nodes, err := clientSet.CoreV1().Nodes().
 		List(context.Background(), metav1.ListOptions{LabelSelector: ""})
-	if er != nil {
-		fmt.Println("error listing nodes")
+	if err != nil {
+		fmt.Println("error listing nodes", err.Error())
 	}
 
 	for _, node := range nodes.Items {
 		fmt.Println(node.Name)
-
+		fmt.Println(node.Annotations)
 		if _, controlPlane := node.Annotations["node-role.kubernetes.io/control-plane"]; controlPlane {
 			fmt.Println("control plane node", node.Name)
 		} else if _, master := node.Annotations["node-role.kubernetes.io/master"]; master {
-			fmt.Println("control plane node", node.Name)
+			fmt.Println("master node", node.Name)
 		}
 	}
 }
