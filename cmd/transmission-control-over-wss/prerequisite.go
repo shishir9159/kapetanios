@@ -128,32 +128,16 @@ func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 
 	etcdCluster = clusterConfiguration.ETCD
 
-	// TODO: from the value of configMap
 	if etcdCluster.External.CAFile == "" {
-		//	TODO:
-		//	 check if the file exists
-		//   throw permission errors
-		if _, err := os.Stat("/etc/kubernetes/pki/etcd-ca.pem"); os.IsNotExist(err) {
-			return &etcdCluster, fmt.Errorf("etcd ca doesn't exist or read permission error")
-		}
+		etcdCluster.External.CAFile = "/etc/kubernetes/pki/etcd-ca.pem"
 	}
 
 	if etcdCluster.External.CertFile == "" {
-		//	TODO:
-		//	 check if the file exists
-		//   throw permission errors
-		if _, err := os.Stat("/etc/kubernetes/pki/etcd.cert"); os.IsNotExist(err) {
-			return &etcdCluster, fmt.Errorf("etcd cert doesn't exist or read permission error")
-		}
+		etcdCluster.External.CertFile = "/etc/kubernetes/pki/etcd.cert"
 	}
 
 	if etcdCluster.External.KeyFile == "" {
-		//	TODO:
-		//	 check if the file exists
-		//   throw permission errors
-		if _, err := os.Stat("/etc/kubernetes/pki/etcd.key"); os.IsNotExist(err) {
-			return &etcdCluster, fmt.Errorf("etcd key file doesn't exist or read permission error")
-		}
+		etcdCluster.External.KeyFile = "/etc/kubernetes/pki/etcd.key"
 	}
 
 	if len(etcdCluster.External.Endpoints) == 0 {
@@ -278,4 +262,5 @@ func prerequisites(upgrade *MinorUpgrade) error {
 
 	// TODO: race condition - readCtx can be cancelled
 
+	return nil
 }
