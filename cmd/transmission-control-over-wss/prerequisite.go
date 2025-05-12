@@ -7,7 +7,6 @@ import (
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"os"
 	"regexp"
 	"strconv"
@@ -70,18 +69,18 @@ func removeTabsAndShiftWhitespaces(s string) string {
 
 func validatingNodesState(nefario *Nefario, label string) error {
 
-	roleName := label
+	//roleName := label
+
+	//matchLabels := map[string]string{"assigned-node-role-" + label + "certs.kubernetes.io": roleName}
+	//
+	//labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
+	//listOptions := metav1.ListOptions{
+	//	LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	//}
 
 	// TODO:
 
-	matchLabels := map[string]string{"assigned-node-role-" + label + "certs.kubernetes.io": roleName}
-
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	}
-
-	nodes, err := nefario.client.Clientset().CoreV1().Nodes().List(context.Background(), listOptions)
+	nodes, err := nefario.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		nefario.log.Error("failed to list "+label+" nodes to validate",
 			zap.Error(err))
@@ -92,12 +91,26 @@ func validatingNodesState(nefario *Nefario, label string) error {
 		return err
 	}
 
+	flag := true
 	for _, node := range nodes.Items {
 		if node.Status.Phase != corev1.NodeRunning {
 			nefario.log.Error("node related to the operation is not running",
 				zap.String("nodeName", node.Name))
+			// todo:
+			//  add to error and continue
 			return fmt.Errorf("node %s is in the %s state", node.Name, node.Status.Phase)
 		}
+
+		if node.Labels["assigned-node-role-etcd.kubernetes.io"] == "true" {
+			flag = false
+		}
+	}
+
+	if flag {
+		nefario.log.Error("no master nodes found")
+		// TODO:
+		//  error
+		return fmt.Errorf("no master nodes found by querying with label")
 	}
 
 	return nil
@@ -155,11 +168,11 @@ func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 	endpoints := strings.Join(etcdCluster.External.Endpoints, ";")
 
 	configMap.Data["ETCD_NODES"] = endpoints
-	configMap.Data["KUBERNETES_VERSION"] = removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)
-	configMap.Data["CertificatesDir"] = removeTabsAndShiftWhitespaces(clusterConfiguration.CertificatesDir)
+	configMap.Data["CERTIFICATES_DIR"] = removeTabsAndShiftWhitespaces(clusterConfiguration.CertificatesDir)
 	configMap.Data["ETCD_CA_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CAFile)
-	configMap.Data["ETCD_CERT_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)
 	configMap.Data["ETCD_KEY_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.KeyFile)
+	configMap.Data["ETCD_CERT_FILE"] = removeTabsAndShiftWhitespaces(clusterConfiguration.ETCD.External.CertFile)
+	configMap.Data["KUBERNETES_VERSION"] = removeTabsAndShiftWhitespaces(clusterConfiguration.KubernetesVersion)
 
 	// todo: match by ip for etcd nodes
 	for index, endpoint := range etcdCluster.External.Endpoints {
@@ -241,6 +254,8 @@ func prerequisites(upgrade *MinorUpgrade) error {
 		}
 	}
 
+	// TODO:
+	//  decide what to do
 	nodes, err := upgrade.nefario.client.Clientset().CoreV1().Nodes().
 		List(ctx, listOptions)
 	if err != nil {

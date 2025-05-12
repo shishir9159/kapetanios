@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/rs/zerolog"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
@@ -139,21 +140,27 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 //    - `--since` for time-based filtering
 //    - for full output with explanatory messages `-x`
 
-func t() {
-	// Basic usage
+func t(l *zerolog.Logger) {
 	logs, err := getServiceLogs("kubelet")
 	if err != nil {
 		fmt.Println(logs)
 		// FATAL
 	}
 
-	logs, err = getJournalLogs(JournalOptions{
-		UnitName:   "kubelet",
+	journalConfig := JournalOptions{
+		Follow:     false,
 		NumEntries: 100,
 		Since:      "1 hour ago",
+		UnitName:   "kubelet",
 		FullOutput: true,
-	})
-	if err != nil {
-		// FATAL
 	}
+
+	logs, err = getJournalLogs(journalConfig)
+	if err != nil {
+		l.Info().Err(err).Msg("failed to get logs")
+	}
+
+	l.Info().
+		Str("logs", logs).
+		Msg(logs)
 }
