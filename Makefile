@@ -47,13 +47,13 @@ go-protogen:
 clean:
 	@printf $(COLOR) "Removing cached docker images and removing the kubernetes resources..."
     # remove etcd nodes labeling
-	docker system prune -ya --volumes
+	docker system prune -ay --volumes
 	kubectl create -f manifests/.
 	# rm -rf ./build
 
 ##### Docker #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios etcd-restart certs-expiration certs-renewal certs-rollback minor-update minor-upgrade svelte
+docker-build-and-push: kapetanios certs-expiration certs-renewal certs-rollback etcd-restart minor-update minor-upgrade svelte
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
