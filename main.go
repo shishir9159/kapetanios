@@ -74,7 +74,6 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			pool.Clients[client] = true
 
 		case client := <-pool.unregister:
-			// pool.Mutex.Lock()
 			if _, ok := pool.Clients[client]; ok {
 				log.Info("client unregistered",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
@@ -90,11 +89,8 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 					}
 				}
 			}
-			// pool.Mutex.Unlock()
 
 		case message := <-pool.broadcast:
-			// TODO: concurrent map reading writing failure
-			// pool.Mutex.RLock()
 			for client := range pool.Clients {
 				if client.Conn == nil {
 					pool.unregister <- client
@@ -113,12 +109,9 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 							//zap.Int("closing error", websocket.CloseError.Error(err))),
 							zap.String("client address", client.Conn.RemoteAddr().String()),
 							zap.Error(err))
-						// TODO:
-						//  pool.unregister <- client
 					}
 				}
 			}
-			// pool.Mutex.RUnlock()
 		}
 	}
 }
@@ -176,22 +169,6 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 	return strings.TrimSpace(message), nil
 }
 
-// pub sub and a single fifo wouldn't make this easier
-// as unsubscribing to listening to message would still
-// be challenging
-// todo:
-//  Circular Queue or Ring Buffer Requirements:
-//  - FIFO
-//  - runtime.NumGoroutine()
-//  - bounded at compile time
-//  - single reader, multiple writers
-//  - sync pool to reuse the heap allocations
-//  - provide methods that blocked until it could pop
-//  - maybe a long lived read connection is not bad if managed
-//  - provide methods that could pop if possible or return !ok
-//  - set limit on queue element size and insertion rate per element
-//  - how should I read? circular? pub sub pattern when an input happens?
-
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) error {
 
 	pool.Clients[client] = false
@@ -213,8 +190,6 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			if err != nil {
 				log.Println("error setting read deadline for client",
 					zap.Error(err))
-				// TODO:
-				//  pool.RemoveClient(client)
 				return err
 			}
 
@@ -250,7 +225,6 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 func (t *testConnection) handler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// TODO: wrap it in error state
 		t.log.Info("connection upgrade error:",
 			zap.Error(err))
 
@@ -295,4 +269,17 @@ func main() {
 	pool := NewPool()
 	go pool.Run(logger)
 
+	t := testConnection{
+		pool: pool,
+		log:  logger,
+	}
+
+	mux := http.NewServeMux()
+	http.Handle("/test", http.HandlerFunc(t.handler))
+
+	err := http.ListenAndServe(":80", mux)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 }
