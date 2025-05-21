@@ -236,6 +236,7 @@ func (t *testConnection) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t.pool.AddClient(&client)
+	time.Sleep(10 * time.Second)
 	defer t.pool.RemoveClient(&client)
 }
 
@@ -274,10 +275,8 @@ func main() {
 		log:  logger,
 	}
 
-	mux := http.NewServeMux()
 	http.Handle("/test", http.HandlerFunc(t.handler))
-
-	err := http.ListenAndServe(":80", mux)
+	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Println(err)
 		return
