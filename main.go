@@ -239,6 +239,10 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 		Conn: conn,
 	}
 
+	//for {
+	//
+	//}
+
 	t.pool.AddClient(&client)
 	messages, err := t.pool.ReadMessages()
 	if err != nil {
@@ -247,8 +251,12 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	t.pool.BroadcastMessage([]byte(messages))
+
 	t.log.Info("messages read from pool",
-		zap.String("messages", messages))
+		zap.String("messages", messages),
+		zap.Int("number of go routines", runtime.NumGoroutine()))
+
 }
 
 func main() {
