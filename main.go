@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"log"
 	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -77,6 +78,7 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 			if _, ok := pool.Clients[client]; ok {
 				delete(pool.Clients, client)
 				log.Info("client unregistered",
+					zap.Int("runtime.NumGoroutine ", runtime.NumGoroutine()),
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("remaining clients", len(pool.Clients)))
 
@@ -186,12 +188,12 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 
 		default:
 			// TODO: exponentially back off till 15 seconds
-			err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
-			if err != nil {
-				log.Println("error setting read deadline for client",
-					zap.Error(err))
-				return err
-			}
+			//err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
+			//if err != nil {
+			//	log.Println("error setting read deadline for client",
+			//		zap.Error(err))
+			//	return err
+			//}
 
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
