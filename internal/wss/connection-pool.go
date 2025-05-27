@@ -191,7 +191,6 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			return nil
 
 		default:
-			// TODO: exponentially back off till 15 seconds
 			err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
 			if err != nil {
 				pool.Logger.Info("error setting read deadline for client",
@@ -210,7 +209,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 				pool.Logger.Info("error reading",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("message type", msgType),
-					zap.String("message", string(msg)),
+					zap.ByteString("message", msg),
 					zap.Error(err))
 				pool.Clients[client] = true
 				pool.RemoveClient(client)
@@ -224,7 +223,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 
 			pool.Logger.Info("received from",
 				zap.String("client address", client.Conn.RemoteAddr().String()),
-				zap.String("message", string(msg)))
+				zap.ByteString("message", msg))
 
 			pool.MessageChan <- string(msg)
 			pool.Clients[client] = true

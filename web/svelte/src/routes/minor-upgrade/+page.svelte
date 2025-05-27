@@ -6,8 +6,8 @@
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
     import type { K8sPackageInfo , NodesStatus , ProgressDetail , SelectedConfig , UpgradeProgression } from './ambient';
 
-    let config: SelectedConfig;
-    let upgradeConfig: SelectedConfig = $state(config);
+    // let config = new SelectedConfig();
+    let upgradeConfig: SelectedConfig | undefined = $state();
     let clusterStatus: NodesStatus;
     let nodeStatus: NodesStatus = $state(clusterStatus);
     let progressDetails: ProgressDetail[] = [];

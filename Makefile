@@ -46,8 +46,9 @@ go-protogen:
 
 clean:
 	@printf $(COLOR) "Removing cached docker images and removing the kubernetes resources..."
-	docker system prunhttps://github.com/akilans/golang-mini-projects/tree/main/01-bookstore-cli-flag-jsone -ay --volumes
-	kubectl create -f manifests/.
+	go clean -cache -modcache -testcache -fuzzcache
+	docker system prune -ay --volumes
+	kubectl delete -f manifests/.
 	# rm -rf ./build
 
 ##### Image Build & Push #####

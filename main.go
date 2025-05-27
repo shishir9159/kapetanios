@@ -180,7 +180,6 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 	log.Printf("reading message from connection with client address being %s", client.Conn.RemoteAddr().String())
 
 	for {
-
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
@@ -189,19 +188,19 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 
 		default:
 			fmt.Println("default entry")
-			err := client.Conn.SetReadDeadline(time.Now().Add(20 * time.Second))
-			if err != nil {
-				log.Println("error setting read deadline for client",
-					zap.Error(err))
-				return err
-			}
+			//err := client.Conn.SetReadDeadline(time.Now().Add(20 * time.Second))
+			//if err != nil {
+			//	log.Println("error setting read deadline for client",
+			//		zap.Error(err))
+			//	return err
+			//}
 
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
 				if websocket.IsCloseError(err) {
-					fmt.Println("websocket connection close error", client.Conn.RemoteAddr().String())
+					log.Println("websocket connection close error", client.Conn.RemoteAddr().String())
 				}
-				_ = fmt.Sprintf("error reading from %s for messagetype %d: %v - message: %s",
+				log.Printf("error reading from %s for messagetype %d: %v - message: %s",
 					client.Conn.RemoteAddr().String(), msgType, err, string(msg))
 				pool.Clients[client] = true
 				pool.RemoveClient(client)
@@ -209,10 +208,10 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			}
 
 			if msgType != websocket.TextMessage {
-				_ = fmt.Sprintf("unexpected message type: %v", msgType)
+				log.Printf("unexpected message type: %v", msgType)
 			}
 
-			_ = fmt.Sprintf("received from %s: %s",
+			log.Printf("received from %s: %s",
 				client.Conn.RemoteAddr().String(), string(msg))
 
 			pool.MessageChan <- string(msg)

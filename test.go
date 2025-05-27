@@ -1,0 +1,213 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"log"
+	"net/http"
+	"runtime"
+	"strings"
+	"sync"
+	"time"
+)
+
+func (pool *ConnectionPool) Run(log *zap.Logger) {
+
+	for {
+		select {
+		case client := <-pool.register:
+			pool.Clients[client] = true
+
+		case client := <-pool.unregister:
+			if _, ok := pool.Clients[client]; ok {
+				delete(pool.Clients, client)
+				log.Info("client unregistered",
+					zap.Int("runtime.NumGoroutine ", runtime.NumGoroutine()),
+					zap.String("client address", client.Conn.RemoteAddr().String()),
+					zap.Int("remaining clients", len(pool.Clients)))
+
+				if client.Conn != nil {
+					err := client.Conn.Close()
+					if err != nil {
+						log.Error("close connection failed",
+							zap.String("client address", client.Conn.RemoteAddr().String()),
+							zap.Error(err))
+					}
+				}
+			}
+
+		case message := <-pool.broadcast:
+			for client := range pool.Clients {
+				if client.Conn == nil {
+					pool.unregister <- client
+					log.Error("client connection is nil",
+						zap.String("message body:", string(message)),
+						zap.Int("remaining clients", len(pool.Clients)),
+						zap.String("client address", client.Conn.RemoteAddr().String()))
+
+				} else {
+
+					err := client.Conn.WriteMessage(websocket.TextMessage, message)
+					if err != nil {
+						log.Error("error writing message",
+							zap.String("message body:", string(message)),
+							zap.Int("remaining clients", len(pool.Clients)),
+							//zap.Int("closing error", websocket.CloseError.Error(err))),
+							zap.String("client address", client.Conn.RemoteAddr().String()),
+							zap.Error(err))
+					}
+				}
+			}
+		}
+	}
+}
+
+func (pool *ConnectionPool) AddClient(client *Client) {
+	pool.register <- client
+}
+
+func (pool *ConnectionPool) RemoveClient(client *Client) {
+	pool.unregister <- client
+}
+
+func (pool *ConnectionPool) CancelReadContext() {
+	pool.readCancel()
+	pool.ReadCtx, pool.readCancel = context.WithCancel(pool.Ctx)
+}
+
+func (pool *ConnectionPool) BroadcastMessage(message []byte) {
+	pool.broadcast <- message
+}
+
+func (pool *ConnectionPool) ReadMessages() (string, error) {
+
+	for i := 0; ; i++ {
+		if len(pool.Clients) == 0 {
+
+			time.Sleep(3 * time.Second)
+			log.Println("no clients in the pool to read message from",
+				zap.Int("retry count", i))
+
+			continue
+		}
+
+		break
+	}
+
+	ctx, _ := context.WithCancel(pool.ReadCtx)
+
+	for client := range pool.Clients {
+		if pool.Clients[client] {
+			go func() {
+				err := pool.ReadMessageFromConn(ctx, client)
+				if err != nil {
+					log.Println("error reading message from connection",
+						zap.String("client address", client.Conn.RemoteAddr().String()),
+						zap.Error(err))
+				}
+			}()
+		}
+	}
+
+	message := <-pool.MessageChan
+	pool.CancelReadContext()
+
+	return strings.TrimSpace(message), nil
+}
+
+func (t *testConnection) test(w http.ResponseWriter, r *http.Request) {
+
+	t.log.Info("testAddClient called",
+		zap.Int("number of go routines", runtime.NumGoroutine()))
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		t.log.Info("connection upgrade error:",
+			zap.Error(err))
+		return
+	}
+
+	client := Client{
+		Conn: conn,
+	}
+
+	t.pool.AddClient(&client)
+
+	for {
+		t.log.Info("number of go routines before reading messages from pool",
+			zap.Int("number of go routines", runtime.NumGoroutine()))
+		messages, er := t.pool.ReadMessages()
+		if er != nil {
+			t.log.Info("error reading messages from pool",
+				zap.Error(er))
+			return
+		}
+
+		t.pool.BroadcastMessage([]byte(messages))
+		if messages == "break" {
+			t.mu.Unlock()
+			t.log.Info("testAddClient lock deferred, breaking the loop")
+			break
+		}
+
+		t.log.Info("messages read from pool",
+			zap.String("messages", messages),
+			zap.Int("number of go routines", runtime.NumGoroutine()))
+	}
+}
+
+func main() {
+
+	cfg := zap.Config{
+		Encoding:         "json",
+		Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+		EncoderConfig: zapcore.EncoderConfig{
+			MessageKey:   "message",
+			LevelKey:     "level",
+			EncodeLevel:  zapcore.CapitalLevelEncoder,
+			TimeKey:      "time",
+			EncodeTime:   zapcore.ISO8601TimeEncoder,
+			CallerKey:    "caller",
+			EncodeCaller: zapcore.ShortCallerEncoder,
+		},
+	}
+
+	logger := zap.Must(cfg.Build())
+	defer func(logger *zap.Logger) {
+		er := logger.Sync()
+		if er != nil {
+			logger.Info("error syncing logger before application terminates",
+				zap.Error(er))
+		}
+	}(logger)
+
+	pool := NewPool()
+	go pool.Run(logger)
+
+	t := testConnection{
+		mu:   &sync.Mutex{},
+		pool: pool,
+		log:  logger,
+	}
+
+	http.Handle("/test", http.HandlerFunc(t.test))
+	t.log.Info("http server started",
+		zap.String("address", ":80"),
+		zap.String("mode", "debug"),
+		zap.String("log level", "debug"),
+		zap.String("log format", "json"),
+		zap.String("log output", "stdout"),
+		zap.String("log error output", "stderr"),
+		zap.String("log encoding", "json"),
+		zap.String("log level encoder", "capital"),
+		zap.String("log time encoder", "iso8601"))
+	err := http.ListenAndServe(":80", nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
