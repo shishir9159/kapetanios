@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -182,12 +183,11 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
-			log.Println("context done",
-				zap.String("client address", client.Conn.RemoteAddr().String()))
+			fmt.Println("context done", client.Conn.RemoteAddr().String())
 			return nil
 
 		default:
-			// TODO: exponentially back off till 15 seconds
+
 			//err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
 			//if err != nil {
 			//	log.Println("error setting read deadline for client",
@@ -198,10 +198,9 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
 				if websocket.IsCloseError(err) {
-					log.Println("websocket connection close error",
-						zap.String("client address", client.Conn.RemoteAddr().String()))
+					fmt.Println("websocket connection close error", client.Conn.RemoteAddr().String())
 				}
-				log.Printf("error reading from %s for messagetype %d: %v - message: %s",
+				fmt.Sprintf("error reading from %s for messagetype %d: %v - message: %s",
 					client.Conn.RemoteAddr().String(), msgType, err, string(msg))
 				pool.Clients[client] = true
 				pool.RemoveClient(client)
@@ -209,11 +208,10 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			}
 
 			if msgType != websocket.TextMessage {
-				log.Printf("unexpected message type: %v",
-					msgType)
+				fmt.Sprintf("unexpected message type: %v", msgType)
 			}
 
-			log.Printf("received from %s: %s",
+			fmt.Sprintf("received from %s: %s",
 				client.Conn.RemoteAddr().String(), string(msg))
 
 			pool.MessageChan <- string(msg)
