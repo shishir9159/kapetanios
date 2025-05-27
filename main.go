@@ -183,7 +183,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
-			fmt.Println("context done", client.Conn.RemoteAddr().String())
+			log.Println("context done", client.Conn.RemoteAddr().String())
 			return nil
 
 		default:
@@ -223,8 +223,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 }
 
 func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
-	t.log.Info("testAddClient called")
 
+	t.log.Info("testAddClient called")
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		t.log.Info("connection upgrade error:",
@@ -238,8 +238,15 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t.pool.AddClient(&client)
-	time.Sleep(10 * time.Second)
-	defer t.pool.RemoveClient(&client)
+	messages, err := t.pool.ReadMessages()
+	if err != nil {
+		t.log.Info("error reading messages from pool",
+			zap.Error(err))
+		return
+	}
+
+	t.log.Info("messages read from pool",
+		zap.String("messages", messages))
 }
 
 func main() {
