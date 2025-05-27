@@ -371,7 +371,8 @@ func main() {
 	}
 
 	pool := wss.NewPool()
-	go pool.Run(nefario.log)
+	pool.Logger = logger
+	go pool.Run()
 
 	upgrade := MinorUpgrade{
 		pool:         pool,
