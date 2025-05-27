@@ -30,10 +30,12 @@ var upgrader = websocket.Upgrader{
 type testConnection struct {
 	pool *ConnectionPool
 	log  *zap.Logger
+	mu   *sync.Mutex
 }
 
 type Client struct {
-	send chan []byte     // Buffered channel of outbound messages: need to implement
+	send chan []byte
+
 	Conn *websocket.Conn `json:"conn"`
 }
 
@@ -70,7 +72,6 @@ func NewPool() *ConnectionPool {
 func (pool *ConnectionPool) Run(log *zap.Logger) {
 
 	for {
-
 		select {
 		case client := <-pool.register:
 			pool.Clients[client] = true
@@ -239,29 +240,38 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 		Conn: conn,
 	}
 
-	//for {
-	//
-	//}
-
 	t.pool.AddClient(&client)
-	messages, err := t.pool.ReadMessages()
-	if err != nil {
-		t.log.Info("error reading messages from pool",
-			zap.Error(err))
-		return
+
+	if t.mu.TryLock() {
+
+		for {
+			t.log.Info("number of go routines before reading messages from pool",
+				zap.Int("number of go routines", runtime.NumGoroutine()))
+			messages, er := t.pool.ReadMessages()
+			if er != nil {
+				t.log.Info("error reading messages from pool",
+					zap.Error(er))
+				return
+			}
+
+			t.pool.BroadcastMessage([]byte(messages))
+
+			if messages == "break" {
+				t.mu.Unlock()
+				t.log.Info("testAddClient lock deferred, breaking the loop")
+				break
+			}
+
+			t.log.Info("messages read from pool",
+				zap.String("messages", messages),
+				zap.Int("number of go routines", runtime.NumGoroutine()))
+
+			time.Sleep(13 * time.Second)
+
+			t.log.Info("number of go routines after sleep",
+				zap.Int("number of go routines", runtime.NumGoroutine()))
+		}
 	}
-
-	t.pool.BroadcastMessage([]byte(messages))
-
-	t.log.Info("messages read from pool",
-		zap.String("messages", messages),
-		zap.Int("number of go routines", runtime.NumGoroutine()))
-
-	time.Sleep(10 * time.Second)
-
-	t.log.Info("number of go routines after sleep",
-		zap.Int("number of go routines", runtime.NumGoroutine()))
-
 }
 
 func main() {
