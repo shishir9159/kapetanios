@@ -232,7 +232,6 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		t.log.Info("connection upgrade error:",
 			zap.Error(err))
-
 		return
 	}
 
@@ -243,7 +242,6 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 	t.pool.AddClient(&client)
 
 	if t.mu.TryLock() {
-
 		for {
 			t.log.Info("number of go routines before reading messages from pool",
 				zap.Int("number of go routines", runtime.NumGoroutine()))
@@ -255,7 +253,6 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 			}
 
 			t.pool.BroadcastMessage([]byte(messages))
-
 			if messages == "break" {
 				t.mu.Unlock()
 				t.log.Info("testAddClient lock deferred, breaking the loop")
@@ -305,6 +302,7 @@ func main() {
 	go pool.Run(logger)
 
 	t := testConnection{
+		mu:   &sync.Mutex{},
 		pool: pool,
 		log:  logger,
 	}
