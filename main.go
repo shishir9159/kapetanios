@@ -257,6 +257,11 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 		zap.String("messages", messages),
 		zap.Int("number of go routines", runtime.NumGoroutine()))
 
+	time.Sleep(10 * time.Second)
+
+	t.log.Info("number of go routines after sleep",
+		zap.Int("number of go routines", runtime.NumGoroutine()))
+
 }
 
 func main() {
