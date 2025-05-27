@@ -75,10 +75,10 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 
 		case client := <-pool.unregister:
 			if _, ok := pool.Clients[client]; ok {
+				delete(pool.Clients, client)
 				log.Info("client unregistered",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("remaining clients", len(pool.Clients)))
-				delete(pool.Clients, client)
 
 				if client.Conn != nil {
 					err := client.Conn.Close()
