@@ -227,7 +227,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 
 func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 
-	t.log.Info("testAddClient called")
+	t.log.Info("testAddClient called",
+		zap.Int("number of go routines", runtime.NumGoroutine()))
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		t.log.Info("connection upgrade error:",
@@ -261,11 +262,6 @@ func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
 
 			t.log.Info("messages read from pool",
 				zap.String("messages", messages),
-				zap.Int("number of go routines", runtime.NumGoroutine()))
-
-			time.Sleep(13 * time.Second)
-
-			t.log.Info("number of go routines after sleep",
 				zap.Int("number of go routines", runtime.NumGoroutine()))
 		}
 	}
