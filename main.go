@@ -188,12 +188,12 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 
 		default:
 
-			//err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
-			//if err != nil {
-			//	log.Println("error setting read deadline for client",
-			//		zap.Error(err))
-			//	return err
-			//}
+			err := client.Conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+			if err != nil {
+				log.Println("error setting read deadline for client",
+					zap.Error(err))
+				return err
+			}
 
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
