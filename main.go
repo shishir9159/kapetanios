@@ -188,6 +188,8 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 
 		default:
 
+			fmt.Println("default entry")
+
 			err := client.Conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 			if err != nil {
 				log.Println("error setting read deadline for client",
