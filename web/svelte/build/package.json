@@ -1,0 +1,17 @@
+{
+	"name": "svelte",
+	"version": "0.0.1",
+	"type": "module",
+	"private": true,
+	"main": "index.js",
+	"scripts": {
+		"start": "bun ./index.js"
+	},
+	"dependencies": {
+		"flowbite-svelte-icons": "^2.2.1",
+		"ws": "^8.18.2",
+		"cookie": "latest",
+		"devalue": "latest",
+		"set-cookie-parser": "latest"
+	}
+}

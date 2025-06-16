@@ -74,7 +74,8 @@ type UpgradeProgression struct {
 }
 
 // todo: should I keep track record if nodes were already
-//  tainted before draining TODO: set a specific label
+//  tainted before draining
+// TODO: set a specific label
 //  if you want to avoid upgrade
 
 type K8sVersion struct {
@@ -91,7 +92,6 @@ type selectedConfig struct {
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
-// only RHEL8, RHEL9, Ubuntu 24.02 supported for now
 type k8sPackageInfo struct {
 	Distro            string   `json:"distro"`
 	DistroVersion     string   `json:"distroVersion"`
@@ -196,6 +196,7 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 //			return
 //		}
+//
 //		w.WriteHeader(http.StatusOK)
 //	}
 //}

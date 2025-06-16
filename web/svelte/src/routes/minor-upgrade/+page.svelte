@@ -183,7 +183,7 @@
             certificateRenewal,
             k8sVersion
         }
-        
+
         wsClient.sendJson(upgradeConfig);
 
         selectedVersion = ""
