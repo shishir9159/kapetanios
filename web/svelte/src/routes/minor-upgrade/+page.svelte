@@ -84,7 +84,7 @@
 
                         let lastStep = progressDetails.length - 1;
 
-                        toggleAccordion = [...new Array(10)].map(() => false);
+                        // toggleAccordion = [...new Array(10)].map(() => false);
                         toggleAccordion[lastStep] = true;
 
                         if (progressDetails[lastStep].err || !upgradeConfig.promptOnError) {
@@ -194,6 +194,8 @@
         const index = nodes.indexOf(node);
         nodes.splice(index, 1);
     }
+
+    $inspect(toggleAccordion)
 </script>
 
 <div class="action">
