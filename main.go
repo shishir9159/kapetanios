@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"github.com/gorilla/websocket"
+	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"log"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -227,6 +230,49 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 	}
 }
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		// TODO: wrap it in error state
+		upgrade.nefario.log.Info("connection upgrade error:",
+			zap.Error(err))
+
+		return
+	}
+
+	client := &wss.Client{
+		Conn: conn,
+	}
+}
+
 func main() {
+
+	cfg := zap.Config{
+		Encoding:         "json",
+		Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+		EncoderConfig: zapcore.EncoderConfig{
+			MessageKey:   "message",
+			LevelKey:     "level",
+			EncodeLevel:  zapcore.CapitalLevelEncoder,
+			TimeKey:      "time",
+			EncodeTime:   zapcore.ISO8601TimeEncoder,
+			CallerKey:    "caller",
+			EncodeCaller: zapcore.ShortCallerEncoder,
+		},
+	}
+
+	logger := zap.Must(cfg.Build())
+	defer func(logger *zap.Logger) {
+		er := logger.Sync()
+		if er != nil {
+			logger.Info("error syncing logger before application terminates",
+				zap.Error(er))
+		}
+	}(logger)
+
+	pool := NewPool()
+	go pool.Run(logger)
 
 }
