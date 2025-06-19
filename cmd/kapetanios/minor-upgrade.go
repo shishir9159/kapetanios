@@ -181,6 +181,8 @@ func MinorUpgradeFirstRun(namespace string) {
 			return true
 		}
 
+		// TODO:
+		//  get removed after tainted
 		if _, firstNode := nodes.Items[i].Annotations["node-role.kubernetes.io/control-plane"]; firstNode {
 			return true
 		}

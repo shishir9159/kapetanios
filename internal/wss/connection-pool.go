@@ -21,7 +21,7 @@ type ConnectionPool struct {
 	broadcast   chan []byte
 	register    chan *Client
 	unregister  chan *Client
-	mutex       sync.RWMutex
+	mu          sync.RWMutex
 	cancel      context.CancelFunc
 	readCancel  context.CancelFunc
 	Ctx         context.Context  `json:"context"`
@@ -55,7 +55,7 @@ func (pool *ConnectionPool) Run() {
 			pool.Clients[client] = true
 
 		case client := <-pool.unregister:
-			// pool.Mutex.Lock()
+			pool.mu.Lock()
 			if _, ok := pool.Clients[client]; ok {
 				pool.Logger.Info("client unregistered",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
@@ -71,7 +71,7 @@ func (pool *ConnectionPool) Run() {
 					}
 				}
 			}
-			// pool.Mutex.Unlock()
+			pool.mu.Unlock()
 
 		case message := <-pool.broadcast:
 			// TODO: concurrent map reading writing failure
