@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"github.com/gorilla/websocket"
-	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"log"
@@ -12,6 +11,24 @@ import (
 	"sync"
 	"time"
 )
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:   0,
+	WriteBufferSize:  0,
+	WriteBufferPool:  nil,
+	HandshakeTimeout: 0,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+	Error:             nil,
+	Subprotocols:      nil,
+	EnableCompression: false,
+}
+
+type testConnection struct {
+	pool *wss.ConnectionPool
+	log  *zap.Logger
+}
 
 type Client struct {
 	send chan []byte     // Buffered channel of outbound messages: need to implement
@@ -230,19 +247,22 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 	}
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func (t *testConnection) handler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		// TODO: wrap it in error state
-		upgrade.nefario.log.Info("connection upgrade error:",
+		t.log.Info("connection upgrade error:",
 			zap.Error(err))
 
 		return
 	}
 
-	client := &wss.Client{
+	client := Client{
 		Conn: conn,
 	}
+
+	t.pool.AddClient(&client)
+	defer t.pool.RemoveClient(&client)
 }
 
 func main() {
