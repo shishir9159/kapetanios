@@ -26,7 +26,7 @@ var upgrader = websocket.Upgrader{
 }
 
 type testConnection struct {
-	pool *wss.ConnectionPool
+	pool *ConnectionPool
 	log  *zap.Logger
 }
 
