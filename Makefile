@@ -47,11 +47,11 @@ go-protogen:
 clean:
 	@printf $(COLOR) "Removing cached docker images and removing the kubernetes resources..."
     # remove etcd nodes labeling
-	docker system prune -ay --volumes
+	docker system prunhttps://github.com/akilans/golang-mini-projects/tree/main/01-bookstore-cli-flag-jsone -ay --volumes
 	kubectl create -f manifests/.
 	# rm -rf ./build
 
-##### Docker #####
+##### Image Build & Push #####
 .PHONY: kapetanios
 docker-build-and-push: kapetanios certs-expiration certs-renewal certs-rollback etcd-restart minor-update minor-upgrade svelte
 
