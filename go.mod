@@ -4,6 +4,7 @@ go 1.24.2
 
 require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
+	github.com/fatih/color v1.18.0
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/gofiber/swagger v1.1.1
 	github.com/gorilla/websocket v1.5.3
