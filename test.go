@@ -25,27 +25,13 @@ var upgrader = websocket.Upgrader{
 }
 
 type testConnection struct {
-	pool *ConnectionPool
-	log  *zap.Logger
-	mu   *sync.Mutex
+	log *zap.Logger
+	mu  *sync.Mutex
 }
 
 type Client struct {
 	send chan []byte
 	Conn *websocket.Conn `json:"conn"`
-}
-
-type ConnectionPool struct {
-	broadcast   chan []byte
-	register    chan *Client
-	unregister  chan *Client
-	mutex       sync.RWMutex
-	cancel      context.CancelFunc
-	readCancel  context.CancelFunc
-	Ctx         context.Context  `json:"context"`
-	Clients     map[*Client]bool `json:"clients"`
-	ReadCtx     context.Context  `json:"readContext"`
-	MessageChan chan string      `json:"messageChan"`
 }
 
 func (t *testConnection) test(w http.ResponseWriter, r *http.Request) {
@@ -140,13 +126,9 @@ func main() {
 		}
 	}(logger)
 
-	pool := NewPool()
-	go pool.Run(logger)
-
 	t := testConnection{
-		mu:   &sync.Mutex{},
-		pool: pool,
-		log:  logger,
+		mu:  &sync.Mutex{},
+		log: logger,
 	}
 
 	http.Handle("/test", http.HandlerFunc(t.test))
