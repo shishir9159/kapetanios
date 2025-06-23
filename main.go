@@ -14,44 +14,6 @@ import (
 	"time"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:   1024,
-	WriteBufferSize:  1024,
-	WriteBufferPool:  nil,
-	HandshakeTimeout: 0,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-	Error:             nil,
-	Subprotocols:      nil,
-	EnableCompression: false,
-}
-
-type testConnection struct {
-	pool *ConnectionPool
-	log  *zap.Logger
-	mu   *sync.Mutex
-}
-
-type Client struct {
-	send chan []byte
-
-	Conn *websocket.Conn `json:"conn"`
-}
-
-type ConnectionPool struct {
-	broadcast   chan []byte
-	register    chan *Client
-	unregister  chan *Client
-	mutex       sync.RWMutex
-	cancel      context.CancelFunc
-	readCancel  context.CancelFunc
-	Ctx         context.Context  `json:"context"`
-	Clients     map[*Client]bool `json:"clients"`
-	ReadCtx     context.Context  `json:"readContext"`
-	MessageChan chan string      `json:"messageChan"`
-}
-
 func NewPool() *ConnectionPool {
 	ctx, cancel := context.WithCancel(context.Background())
 	readCtx, readCancel := context.WithCancel(ctx)
