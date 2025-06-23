@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
-	"log"
 	"runtime"
 	"strings"
 	"sync"
@@ -74,8 +73,6 @@ func (pool *ConnectionPool) Run() {
 			pool.mu.Unlock()
 
 		case message := <-pool.broadcast:
-			// TODO: concurrent map reading writing failure
-			// pool.Mutex.RLock()
 			for client := range pool.Clients {
 				if client.Conn == nil {
 					pool.unregister <- client
@@ -94,12 +91,14 @@ func (pool *ConnectionPool) Run() {
 							//zap.Int("closing error", websocket.CloseError.Error(err))),
 							zap.String("client address", client.Conn.RemoteAddr().String()),
 							zap.Error(err))
+						// TODO: concurrent map reading writing failure
+						// pool.mu.RLock()
 						// TODO:
 						//  pool.unregister <- client
+						// pool.Mutex.RUnlock()
 					}
 				}
 			}
-			// pool.Mutex.RUnlock()
 		}
 	}
 }
@@ -127,7 +126,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 		if len(pool.Clients) == 0 {
 
 			time.Sleep(3 * time.Second)
-			log.Println("no clients in the pool to read message from",
+			pool.Logger.Info("no clients in the pool to read from",
 				zap.Int("retry count", i))
 
 			continue
@@ -143,7 +142,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 			go func() {
 				err := pool.ReadMessageFromConn(ctx, client)
 				if err != nil {
-					log.Println("error reading message from connection",
+					pool.Logger.Error("error reading message from connection",
 						zap.String("client address", client.Conn.RemoteAddr().String()),
 						zap.Error(err))
 				}
