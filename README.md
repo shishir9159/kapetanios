@@ -3,12 +3,12 @@
 #### Tested against:
 ubuntu 22.04 LTS
 ubuntu 24.04 LTS
-RHEL 8
-RHEL 9
+RHEL 8.0-8.3
+RHEL 9.0-9.4
 
 #### build requirements:
-golang v1.23.1 \
-libprotoc 27.3
+golang v1.23.2 \
+libprotoc 27.3-30.2
 
 [//]: # (make)
 
@@ -16,9 +16,9 @@ libprotoc 27.3
 It is assumed that the following roles would be assigned to the respective nodes:
 1. assumption about package naming format
 2. the assumption is that all the components(kubeadm, kubelet, kubectl) have the same specific version in the os
-3. Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs
-4. assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
-5. External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
+3. remove depenedancy: Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs
+4. remove depenedancy: assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
+5. remove depenedancy: External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
 6. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
 
 ## Notes
