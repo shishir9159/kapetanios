@@ -96,6 +96,9 @@ func (s *session) readWebsocket() {
 			return
 		}
 
-		fmt.Fprint(s.rl.Stdout(), rxSprintf("< %s\n", text))
+		_, err = fmt.Fprint(s.rl.Stdout(), rxSprintf("< %s\n", text))
+		if err != nil {
+			return
+		}
 	}
 }

@@ -46,20 +46,13 @@ go-protogen:
 
 clean:
 	@printf $(COLOR) "Removing cached docker images and removing the kubernetes resources..."
-    # remove etcd nodes labeling
 	docker system prunhttps://github.com/akilans/golang-mini-projects/tree/main/01-bookstore-cli-flag-jsone -ay --volumes
 	kubectl create -f manifests/.
 	# rm -rf ./build
 
 ##### Image Build & Push #####
 .PHONY: kapetanios
-docker-build-and-push: kapetanios certs-expiration certs-renewal certs-rollback etcd-restart minor-update minor-upgrade svelte
-
-kapetanios:
-	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
-	# docker build . -t laplaciandemon/kapetanios:latest
-	docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
-	docker push laplaciandemon/kapetanios:latest
+docker-build-and-push: certs-expiration certs-renewal certs-rollback etcd-restart kapetanios minor-update minor-upgrade svelte
 
 .PHONY: certs-expiration
 certs-expiration:
@@ -90,6 +83,12 @@ etcd-restart:
 	@printf $(COLOR) "Building docker image for etcd-restart minions and pushing it to the registry..."
 	docker build . -t laplaciandemon/etcd-restart:latest -f etcd-restart.Dockerfile
 	docker push laplaciandemon/etcd-restart:latest
+
+kapetanios:
+	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
+	# docker build . -t laplaciandemon/kapetanios:latest
+	docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
+	docker push laplaciandemon/kapetanios:latest
 
 .PHONY: minor-update
 minor-update:

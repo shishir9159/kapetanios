@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/chzyer/readline"
 	"github.com/spf13/cobra"
@@ -29,7 +30,11 @@ func main() {
 	rootCmd.Flags().BoolVarP(&options.printVersion, "version", "v", false, "print version")
 	rootCmd.Flags().BoolVarP(&options.insecure, "insecure", "k", false, "skip ssl certificate check")
 
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+
+		return
+	}
 }
 
 func root(cmd *cobra.Command, args []string) {
@@ -39,13 +44,21 @@ func root(cmd *cobra.Command, args []string) {
 	}
 
 	if len(args) != 1 {
-		cmd.Help()
+		err := cmd.Help()
+		if err != nil {
+
+			return
+		}
 		os.Exit(1)
 	}
 
 	dest, err := url.Parse(args[0])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, er := fmt.Fprintln(os.Stderr, err)
+		if er != nil {
+
+			return
+		}
 		os.Exit(1)
 	}
 
@@ -63,9 +76,9 @@ func root(cmd *cobra.Command, args []string) {
 	}
 
 	var historyFile string
-	user, err := user.Current()
+	currentUser, err := user.Current()
 	if err == nil {
-		historyFile = filepath.Join(user.HomeDir, ".ws_history")
+		historyFile = filepath.Join(currentUser.HomeDir, ".ws_history")
 	}
 
 	err = connect(dest.String(), origin, &readline.Config{
@@ -73,8 +86,12 @@ func root(cmd *cobra.Command, args []string) {
 		HistoryFile: historyFile,
 	}, options.insecure)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		if err != io.EOF && err != readline.ErrInterrupt {
+		_, er := fmt.Fprintln(os.Stderr, err)
+		if er != nil {
+
+			return
+		}
+		if err != io.EOF && !errors.Is(err, readline.ErrInterrupt) {
 			os.Exit(1)
 		}
 	}

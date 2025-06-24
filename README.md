@@ -7,7 +7,7 @@ RHEL 8.0-8.3
 RHEL 9.0-9.4
 
 #### build requirements:
-golang v1.23.2 \
+golang v1.23.2-v1.24.4
 libprotoc 27.3-30.2
 
 [//]: # (make)
@@ -21,7 +21,7 @@ It is assumed that the following roles would be assigned to the respective nodes
 5. remove depenedancy: External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
 6. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
 
-## Notes
+## Notes    
 As a master node role is deprecated, only control-plane annotation is used: https://kubernetes.io/docs/reference/labels-annotations-taints/#node-role-kubernetes-io-master-taint
 
 ## Protoc Code Generation
