@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 type JournalOptions struct {
@@ -49,6 +50,19 @@ func getJournalLogs(opts JournalOptions) (string, error) {
 	}
 
 	return stdoutBuf.String(), nil
+}
+
+func containsAnyKeyword(logs string) bool {
+
+	keywords := []string{"eviction_manager.go", "kube-system/kube-apiserver-shishir-one"}
+
+	for _, keyword := range keywords {
+		if strings.Contains(logs, keyword) {
+			return true
+		}
+	}
+
+	return false
 }
 
 //    - `-f` for following logs
@@ -99,4 +113,8 @@ func main() {
 
 	logger.Info("scrapped logs",
 		zap.String("logs", logs))
+
+	if containsAnyKeyword(logs) {
+		logger.Info("found error words, show the error to the end user")
+	}
 }
