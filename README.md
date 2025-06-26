@@ -11,14 +11,13 @@ golang v1.23.2-v1.24.4
 libprotoc 27.3-30.2
 
 [//]: # (make)
-
 #### cluster requirement
 It is assumed that the following roles would be assigned to the respective nodes:
 1. assumption about package naming format
 2. the assumption is that all the components(kubeadm, kubelet, kubectl) have the same specific version in the os
-3. remove depenedancy: Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs
-4. remove depenedancy: assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
-5. remove depenedancy: External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
+3. remove dependency: Master Nodes: kubectl label node <node-name> assigned-node-role-certs.kubernetes.io=certs
+4. remove dependency: assigned-node-role-minor-upgrade.kubernetes.io=minor-upgrade
+5. remove dependency: External Etcd Nodes: kubectl label node <node-name> assigned-node-role-etcd.kubernetes.io=etcd
 6. the kubeadm config file location should be in the location /etc/kubernetes/kubeadm/kubeadm-config.yaml
 
 ## Notes    

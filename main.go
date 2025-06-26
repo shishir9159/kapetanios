@@ -222,7 +222,9 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 	}
 }
 
-func (t *testConnection) handler(w http.ResponseWriter, r *http.Request) {
+func (t *testConnection) testAddClient(w http.ResponseWriter, r *http.Request) {
+	t.log.Info("testAddClient called")
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		t.log.Info("connection upgrade error:",
@@ -275,7 +277,17 @@ func main() {
 		log:  logger,
 	}
 
-	http.Handle("/test", http.HandlerFunc(t.handler))
+	http.Handle("/test", http.HandlerFunc(t.testAddClient))
+	t.log.Info("http server started",
+		zap.String("address", ":80"),
+		zap.String("mode", "debug"),
+		zap.String("log level", "debug"),
+		zap.String("log format", "json"),
+		zap.String("log output", "stdout"),
+		zap.String("log error output", "stderr"),
+		zap.String("log encoding", "json"),
+		zap.String("log level encoder", "capital"),
+		zap.String("log time encoder", "iso8601"))
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Println(err)
