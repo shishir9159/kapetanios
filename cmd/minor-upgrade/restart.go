@@ -2,18 +2,74 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/rs/zerolog"
 	pb "github.com/shishir9159/kapetanios/proto"
 	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 // TODO: remove the previous version packages
 //  make sure to check if the previous version exists
 //  and current kubernetes version
 
-// TODO: check kubelet status and view the service logs with journalctl -xeu kubelet
+type JournalOptions struct {
+	Follow     bool
+	NumEntries int
+	Since      string
+	UnitName   string
+	FullOutput bool
+}
+
+func getJournalLogs(opts JournalOptions) (string, error) {
+	var args []string
+
+	args = append(args, "-u", opts.UnitName)
+
+	if opts.Follow {
+		args = append(args, "-f")
+	}
+
+	if opts.NumEntries > 0 {
+		args = append(args, "-n", strconv.Itoa(opts.NumEntries))
+	}
+
+	if opts.Since != "" {
+		args = append(args, "--since", opts.Since)
+	}
+
+	if opts.FullOutput {
+		args = append(args, "-x")
+	}
+
+	cmd := exec.Command("journalctl", args...)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
+
+	err := cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("failed to get logs for service %s: %w", opts.UnitName, err)
+	}
+
+	return stdoutBuf.String(), nil
+}
+
+func getServiceLogs(serviceName string) (string, error) {
+	cmd := exec.Command("journalctl", "-u", serviceName)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("failed to get logs for service %s: %w", serviceName, err)
+	}
+
+	return out.String(), nil
+}
 
 func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bool, error) {
 
@@ -78,4 +134,34 @@ func restartComponent(c Controller, component string, conn *grpc.ClientConn) (bo
 	}
 
 	return rpc.GetProceedNextStep(), nil
+}
+
+//    - `-f` for following logs
+//    - `-n` for limiting number of entries
+//    - `--since` for time-based filtering
+//    - for full output with explanatory messages `-x`
+
+func t(l *zerolog.Logger) {
+	logs, err := getServiceLogs("kubelet")
+	if err != nil {
+		fmt.Println(logs)
+		// FATAL
+	}
+
+	journalConfig := JournalOptions{
+		Follow:     false,
+		NumEntries: 100,
+		Since:      "1 hour ago",
+		UnitName:   "kubelet",
+		FullOutput: true,
+	}
+
+	logs, err = getJournalLogs(journalConfig)
+	if err != nil {
+		l.Info().Err(err).Msg("failed to get logs")
+	}
+
+	l.Info().
+		Str("logs", logs).
+		Msg(logs)
 }

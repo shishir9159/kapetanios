@@ -1,0 +1,98 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"github.com/chzyer/readline"
+	"github.com/spf13/cobra"
+	"io"
+	"net/url"
+	"os"
+	"os/user"
+	"path/filepath"
+)
+
+const Version = "0.2.1"
+
+var options struct {
+	origin       string
+	printVersion bool
+	insecure     bool
+}
+
+func main() {
+	rootCmd := &cobra.Command{
+		Use:   "ws URL",
+		Short: "websocket tool",
+		Run:   root,
+	}
+	rootCmd.Flags().StringVarP(&options.origin, "origin", "o", "", "websocket origin")
+	rootCmd.Flags().BoolVarP(&options.printVersion, "version", "v", false, "print version")
+	rootCmd.Flags().BoolVarP(&options.insecure, "insecure", "k", false, "skip ssl certificate check")
+
+	err := rootCmd.Execute()
+	if err != nil {
+
+		return
+	}
+}
+
+func root(cmd *cobra.Command, args []string) {
+	if options.printVersion {
+		fmt.Printf("ws v%s\n", Version)
+		os.Exit(0)
+	}
+
+	if len(args) != 1 {
+		err := cmd.Help()
+		if err != nil {
+
+			return
+		}
+		os.Exit(1)
+	}
+
+	dest, err := url.Parse(args[0])
+	if err != nil {
+		_, er := fmt.Fprintln(os.Stderr, err)
+		if er != nil {
+
+			return
+		}
+		os.Exit(1)
+	}
+
+	var origin string
+	if options.origin != "" {
+		origin = options.origin
+	} else {
+		originURL := *dest
+		if dest.Scheme == "wss" {
+			originURL.Scheme = "https"
+		} else {
+			originURL.Scheme = "http"
+		}
+		origin = originURL.String()
+	}
+
+	var historyFile string
+	currentUser, err := user.Current()
+	if err == nil {
+		historyFile = filepath.Join(currentUser.HomeDir, ".ws_history")
+	}
+
+	err = connect(dest.String(), origin, &readline.Config{
+		Prompt:      "> ",
+		HistoryFile: historyFile,
+	}, options.insecure)
+	if err != nil {
+		_, er := fmt.Fprintln(os.Stderr, err)
+		if er != nil {
+
+			return
+		}
+		if err != io.EOF && !errors.Is(err, readline.ErrInterrupt) {
+			os.Exit(1)
+		}
+	}
+}

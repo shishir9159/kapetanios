@@ -6,8 +6,8 @@
     import { Button , ButtonGroup , Checkbox , Modal , Label , Select } from 'flowbite-svelte';
     import type { K8sPackageInfo , NodesStatus , ProgressDetail , SelectedConfig , UpgradeProgression } from './ambient';
 
-    let config: SelectedConfig;
-    let upgradeConfig: SelectedConfig = $state(config);
+    // let config = new SelectedConfig();
+    let upgradeConfig: SelectedConfig | undefined = $state();
     let clusterStatus: NodesStatus;
     let nodeStatus: NodesStatus = $state(clusterStatus);
     let progressDetails: ProgressDetail[] = [];
@@ -84,7 +84,7 @@
 
                         let lastStep = progressDetails.length - 1;
 
-                        toggleAccordion = [...new Array(10)].map(() => false);
+                        // toggleAccordion = [...new Array(10)].map(() => false);
                         toggleAccordion[lastStep] = true;
 
                         if (progressDetails[lastStep].err || !upgradeConfig.promptOnError) {
@@ -183,7 +183,7 @@
             certificateRenewal,
             k8sVersion
         }
-        
+
         wsClient.sendJson(upgradeConfig);
 
         selectedVersion = ""
@@ -194,6 +194,8 @@
         const index = nodes.indexOf(node);
         nodes.splice(index, 1);
     }
+
+    $inspect(toggleAccordion)
 </script>
 
 <div class="action">

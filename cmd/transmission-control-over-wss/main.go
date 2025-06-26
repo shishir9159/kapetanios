@@ -47,6 +47,9 @@ type nodeInfo struct {
 	kubernetesVersion string
 }
 
+// TODO:
+//  string or bool
+
 type Nefario struct {
 	client    *orchestration.Client
 	ctx       context.Context
@@ -74,7 +77,8 @@ type UpgradeProgression struct {
 }
 
 // todo: should I keep track record if nodes were already
-//  tainted before draining TODO: set a specific label
+//  tainted before draining
+// TODO: set a specific label
 //  if you want to avoid upgrade
 
 type K8sVersion struct {
@@ -91,7 +95,6 @@ type selectedConfig struct {
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
-// only RHEL8, RHEL9, Ubuntu 24.02 supported for now
 type k8sPackageInfo struct {
 	Distro            string   `json:"distro"`
 	DistroVersion     string   `json:"distroVersion"`
@@ -196,6 +199,7 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 //			return
 //		}
+//
 //		w.WriteHeader(http.StatusOK)
 //	}
 //}
@@ -371,7 +375,8 @@ func main() {
 	}
 
 	pool := wss.NewPool()
-	go pool.Run(nefario.log)
+	pool.Logger = logger
+	go pool.Run()
 
 	upgrade := MinorUpgrade{
 		pool:         pool,
@@ -382,11 +387,17 @@ func main() {
 		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
 	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
-		er := Prerequisites(&upgrade)
+		er := continueMinorUpgrade(&upgrade)
 		if er != nil {
-			upgrade.nefario.log.Info("error writing prerequisites warning:",
+			upgrade.nefario.log.Info("error to continue trying minor upgrade:",
 				zap.Error(er))
 		}
+	}
+
+	err = prerequisites(&upgrade)
+	if err != nil {
+		upgrade.nefario.log.Info("error to check prerequisites:",
+			zap.Error(err))
 	}
 
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)

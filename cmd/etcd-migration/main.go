@@ -15,7 +15,7 @@ import (
 
 var (
 	maxAttempts = 3
-	addr        = flag.String("addr", "kapetanios.default.svc.cluster.local:50051", "the address to connect to")
+	addr        = flag.String("addr", "kapetanios."+os.Getenv("KAPETANIOS_NAMESPACE")+".svc.cluster.local:50051", "the address to connect to")
 	retryPolicy = `{
 		"methodConfig": [{
 		  "retryPolicy": {

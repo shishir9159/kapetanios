@@ -425,10 +425,10 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		}
 
 		// TODO: debug mode
-		//  for _, no := range nodes.Items {
-		//	  c.log.Debug("nodes before sorting",
-		//	    	zap.String("nodes", no.ObjectMeta.Name))
-		//  }
+		for _, no := range nodes.Items {
+			upgrade.nefario.log.Debug("nodes before sorting",
+				zap.String("nodes", no.ObjectMeta.Name))
+		}
 
 		// TODO: wouldn't work on one master node where kapetanios is scheduled
 		// TODO: possible error, kapetanios can be on a master node, that would be mistakenly upgraded at the last
@@ -442,17 +442,19 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 				return true
 			}
 
-			if _, firstNode := nodes.Items[i].Annotations["node-role.kubernetes.io/control-plane"]; firstNode {
+			// TODO:
+			//  test
+			if _, firstNode := nodes.Items[i].Labels["node-role.kubernetes.io/control-plane"]; firstNode {
 				return true
 			}
 			return false
 		})
 
 		// TODO: debug mode
-		//for _, no := range nodes.Items {
-		//	c.log.Debug("nodes after sorting",
-		//		zap.String("nodes", no.ObjectMeta.Name))
-		//}
+		for _, no := range nodes.Items {
+			upgrade.nefario.log.Debug("nodes after sorting",
+				zap.String("nodes", no.ObjectMeta.Name))
+		}
 
 		for _, no := range nodes.Items {
 			upgrade.nefario.log.Info("status",
@@ -609,8 +611,12 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		}
 
 		nodeRole := "WORKER"
-		if _, controlPlane := no.Annotations["node-role.kubernetes.io/control-plane"]; controlPlane {
+		// TODO:
+		//  test
+		if _, controlPlane := no.Labels["node-role.kubernetes.io/control-plane"]; controlPlane {
 			nodeRole = "CONTROL-PLANE"
+			upgrade.nefario.log.Info("control plane node",
+				zap.String("node name:", node))
 		}
 
 		nodeRoleEnv := corev1.EnvVar{

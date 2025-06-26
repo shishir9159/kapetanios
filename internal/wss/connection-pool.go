@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
-	"log"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -16,10 +16,11 @@ type Client struct {
 }
 
 type ConnectionPool struct {
+	Logger      *zap.Logger
 	broadcast   chan []byte
 	register    chan *Client
 	unregister  chan *Client
-	mutex       sync.RWMutex
+	mu          sync.RWMutex
 	cancel      context.CancelFunc
 	readCancel  context.CancelFunc
 	Ctx         context.Context  `json:"context"`
@@ -45,18 +46,17 @@ func NewPool() *ConnectionPool {
 	}
 }
 
-func (pool *ConnectionPool) Run(log *zap.Logger) {
+func (pool *ConnectionPool) Run() {
 
 	for {
-
 		select {
 		case client := <-pool.register:
 			pool.Clients[client] = true
 
 		case client := <-pool.unregister:
-			// pool.Mutex.Lock()
+			pool.mu.Lock()
 			if _, ok := pool.Clients[client]; ok {
-				log.Info("client unregistered",
+				pool.Logger.Info("client unregistered",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("remaining clients", len(pool.Clients)))
 				delete(pool.Clients, client)
@@ -64,21 +64,19 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 				if client.Conn != nil {
 					err := client.Conn.Close()
 					if err != nil {
-						log.Error("close connection failed",
+						pool.Logger.Error("close connection failed",
 							zap.String("client address", client.Conn.RemoteAddr().String()),
 							zap.Error(err))
 					}
 				}
 			}
-			// pool.Mutex.Unlock()
+			pool.mu.Unlock()
 
 		case message := <-pool.broadcast:
-			// TODO: concurrent map reading writing failure
-			// pool.Mutex.RLock()
 			for client := range pool.Clients {
 				if client.Conn == nil {
 					pool.unregister <- client
-					log.Error("client connection is nil",
+					pool.Logger.Error("client connection is nil",
 						zap.String("message body:", string(message)),
 						zap.Int("remaining clients", len(pool.Clients)),
 						zap.String("client address", client.Conn.RemoteAddr().String()))
@@ -87,18 +85,20 @@ func (pool *ConnectionPool) Run(log *zap.Logger) {
 
 					err := client.Conn.WriteMessage(websocket.TextMessage, message)
 					if err != nil {
-						log.Error("error writing message",
+						pool.Logger.Error("error writing message",
 							zap.String("message body:", string(message)),
 							zap.Int("remaining clients", len(pool.Clients)),
 							//zap.Int("closing error", websocket.CloseError.Error(err))),
 							zap.String("client address", client.Conn.RemoteAddr().String()),
 							zap.Error(err))
+						// TODO: concurrent map reading writing failure
+						// pool.mu.RLock()
 						// TODO:
 						//  pool.unregister <- client
+						// pool.Mutex.RUnlock()
 					}
 				}
 			}
-			// pool.Mutex.RUnlock()
 		}
 	}
 }
@@ -123,16 +123,13 @@ func (pool *ConnectionPool) BroadcastMessage(message []byte) {
 func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	for i := 0; ; i++ {
-		if len(pool.Clients) == 0 {
-
-			time.Sleep(3 * time.Second)
-			log.Println("no clients in the pool to read message from",
-				zap.Int("retry count", i))
-
-			continue
+		if len(pool.Clients) != 0 {
+			break
 		}
 
-		break
+		time.Sleep(3 * time.Second)
+		pool.Logger.Info("no clients in the pool to read from",
+			zap.Int("retry count", i))
 	}
 
 	ctx, _ := context.WithCancel(pool.ReadCtx)
@@ -142,7 +139,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 			go func() {
 				err := pool.ReadMessageFromConn(ctx, client)
 				if err != nil {
-					log.Println("error reading message from connection",
+					pool.Logger.Error("error reading message from connection",
 						zap.String("client address", client.Conn.RemoteAddr().String()),
 						zap.Error(err))
 				}
@@ -175,49 +172,46 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) error {
 
 	pool.Clients[client] = false
-
-	log.Printf("reading message from connection with client address being %s", client.Conn.RemoteAddr().String())
+	pool.Logger.Info("reading message from connection with client address being",
+		zap.String("client address", client.Conn.RemoteAddr().String()),
+		zap.Int("number of go routines", runtime.NumGoroutine()),
+		zap.Int("remaining clients", len(pool.Clients)))
 
 	for {
 
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
-			log.Println("context done",
+			pool.Logger.Info("context done",
 				zap.String("client address", client.Conn.RemoteAddr().String()))
 			return nil
 
 		default:
-			// TODO: exponentially back off till 15 seconds
-			err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
-			if err != nil {
-				log.Println("error setting read deadline for client",
-					zap.Error(err))
-				// TODO:
-				//  pool.RemoveClient(client)
-				return err
-			}
-
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
 				if websocket.IsCloseError(err) {
-					log.Println("websocket connection close error",
+					pool.Logger.Info("websocket connection close error",
 						zap.String("client address", client.Conn.RemoteAddr().String()))
 				}
-				log.Printf("error reading from %s for messagetype %d: %v - message: %s",
-					client.Conn.RemoteAddr().String(), msgType, err, string(msg))
+
+				pool.Logger.Info("error reading",
+					zap.String("client address", client.Conn.RemoteAddr().String()),
+					zap.Int("message type", msgType),
+					zap.ByteString("message", msg),
+					zap.Error(err))
 				pool.Clients[client] = true
 				pool.RemoveClient(client)
 				return err
 			}
 
 			if msgType != websocket.TextMessage {
-				log.Printf("unexpected message type: %v",
-					msgType)
+				pool.Logger.Info("unexpected message type",
+					zap.Int("message type", msgType))
 			}
 
-			log.Printf("received from %s: %s",
-				client.Conn.RemoteAddr().String(), string(msg))
+			pool.Logger.Info("received from",
+				zap.String("client address", client.Conn.RemoteAddr().String()),
+				zap.ByteString("message", msg))
 
 			pool.MessageChan <- string(msg)
 			pool.Clients[client] = true
