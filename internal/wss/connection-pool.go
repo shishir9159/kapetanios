@@ -123,16 +123,13 @@ func (pool *ConnectionPool) BroadcastMessage(message []byte) {
 func (pool *ConnectionPool) ReadMessages() (string, error) {
 
 	for i := 0; ; i++ {
-		if len(pool.Clients) == 0 {
-
-			time.Sleep(3 * time.Second)
-			pool.Logger.Info("no clients in the pool to read from",
-				zap.Int("retry count", i))
-
-			continue
+		if len(pool.Clients) != 0 {
+			break
 		}
 
-		break
+		time.Sleep(3 * time.Second)
+		pool.Logger.Info("no clients in the pool to read from",
+			zap.Int("retry count", i))
 	}
 
 	ctx, _ := context.WithCancel(pool.ReadCtx)
@@ -190,21 +187,13 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			return nil
 
 		default:
-			err := client.Conn.SetReadDeadline(time.Now().Add(400 * time.Second))
-			if err != nil {
-				pool.Logger.Info("error setting read deadline for client",
-					zap.Error(err))
-				// TODO:
-				//  pool.RemoveClient(client)
-				return err
-			}
-
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
 				if websocket.IsCloseError(err) {
 					pool.Logger.Info("websocket connection close error",
 						zap.String("client address", client.Conn.RemoteAddr().String()))
 				}
+
 				pool.Logger.Info("error reading",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("message type", msgType),

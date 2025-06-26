@@ -47,6 +47,9 @@ type nodeInfo struct {
 	kubernetesVersion string
 }
 
+// TODO:
+//  string or bool
+
 type Nefario struct {
 	client    *orchestration.Client
 	ctx       context.Context

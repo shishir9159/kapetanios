@@ -46,15 +46,16 @@ func getJournalLogs(opts JournalOptions) (string, error) {
 	}
 
 	cmd := exec.Command("journalctl", args...)
-	var out bytes.Buffer
-	cmd.Stdout = &out
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdoutBuf, &stderrBuf
 
 	err := cmd.Run()
 	if err != nil {
 		return "", fmt.Errorf("failed to get logs for service %s: %w", opts.UnitName, err)
 	}
 
-	return out.String(), nil
+	return stdoutBuf.String(), nil
 }
 
 func getServiceLogs(serviceName string) (string, error) {
