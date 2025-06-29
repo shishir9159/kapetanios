@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
 
@@ -17,23 +18,21 @@ func MongoDB() {
 		panic(err)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	defer func() {
 		if err = client.Disconnect(ctx); err != nil {
 			panic(err)
 		}
 	}()
 
-	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
 	_ = client.Ping(ctx, readpref.Primary())
 
 	collection := client.Database("testing").Collection("numbers")
 
-	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	res, _ := collection.InsertOne(ctx, bson.D{{"name", "pi"}, {"value", 3.14159}})
 	id := res.InsertedID
 
+	fmt.Println(id)
 }
