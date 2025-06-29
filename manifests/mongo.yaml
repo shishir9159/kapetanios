@@ -1,0 +1,222 @@
+apiVersion: v1
+data:
+  MONGO_PASSWORD: NXVaTHZXVXJ2Sg==
+  MONGO_REPLICA_SET: a2Ntb25nb3JzMA==
+  MONGO_REPLICA_SET_KEY: a2Ntb25nb3JzMA==
+  MONGO_USERNAME: cm9vdA==
+kind: Secret
+metadata:
+  labels:
+
+  name: mongodb-replicaset-admin-secret
+  namespace: lighthouse
+type: Opaque
+---
+apiVersion: v1
+data:
+  setup.sh: "#!/bin/bash\necho \"Advertised Hostname: $MONGODB_ADVERTISED_HOSTNAME\"\nif
+    [[ \"$MY_POD_NAME\" = \"kcprod-mongodb-0\" ]]; then\n  echo \"Pod name matches
+    initial primary pod name, configuring node as a primary\"\n  export MONGODB_REPLICA_SET_MODE=\"primary\"
+    \nelse\n  echo \"Pod name doesn't match initial primary pod name, configuring
+    node as a secondary\"\n  export MONGODB_REPLICA_SET_MODE=\"secondary\"\n  export
+    MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=\"$MONGODB_ROOT_PASSWORD\"\n  export MONGODB_INITIAL_PRIMARY_PORT_NUMBER=\"$MONGODB_PORT_NUMBER\"\n
+    \ export MONGODB_ROOT_PASSWORD=\"\" MONGODB_USERNAME=\"\" MONGODB_DATABASE=\"\"
+    MONGODB_PASSWORD=\"\"\nfi\nexec /opt/bitnami/scripts/mongodb/entrypoint.sh /opt/bitnami/scripts/mongodb/run.sh\n"
+kind: ConfigMap
+metadata:
+  labels:
+    app: kapetanios-mongo
+  name: kcprod-mongodb-scripts
+  namespace: lighthouse
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kapetanios-mongo
+  name: kcprod-mongodb-svc
+  namespace: lighthouse
+spec:
+  clusterIP: None
+  ports:
+    - name: mongodb
+      port: 27017
+      protocol: TCP
+      targetPort: 27017
+  selector:
+    app: kapetanios-mongo
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: kapetanios-mongo
+  name: kcprod-mongodb
+  namespace: lighthouse
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: kapetanios-mongo
+  serviceName: kcprod-mongodb-svc
+  template:
+    metadata:
+      labels:
+        app: kapetanios-mongo
+    spec:
+      containers:
+        - env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: K8S_SERVICE_NAME
+              value: kcprod-mongodb-svc
+            - name: MONGODB_INITIAL_PRIMARY_HOST
+              value: kcprod-mongodb-0.$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
+            - name: MONGODB_REPLICA_SET_NAME
+              value: kcmongors0
+            - name: MONGODB_ADVERTISED_HOSTNAME
+              value: $(MY_POD_NAME).$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
+            - name: MONGODB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MONGO_PASSWORD
+                  name: mongodb-replicaset-admin-secret
+            - name: MONGODB_REPLICA_SET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: MONGO_REPLICA_SET_KEY
+                  name: mongodb-replicaset-admin-secret
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: MONGODB_SYSTEM_LOG_VERBOSITY
+              value: "0"
+            - name: MONGODB_DISABLE_SYSTEM_LOG
+              value: "no"
+            - name: MONGODB_ENABLE_IPV6
+              value: "no"
+            - name: MONGODB_ENABLE_DIRECTORY_PER_DB
+              value: "no"
+          image: quay.io/klovercloud/service:bitnami-mongodb-4.4.1-debian-10-r0-kco
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - pgrep
+                - mongod
+            failureThreshold: 10
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: mongodb
+          ports:
+            - containerPort: 27017
+              name: mongodb
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - db.adminCommand('ping')
+            failureThreshold: 10
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 100m
+              memory: 800Mi
+            requests:
+              cpu: 30m
+              memory: 500Mi
+          volumeMounts:
+            - mountPath: /bitnami/mongodb
+              name: datadir
+            - mountPath: /scripts/setup.sh
+              name: scripts
+              subPath: setup.sh
+        - args:
+            - /bin/mongodb_exporter --mongodb.uri mongodb://root:$(echo $MONGODB_ROOT_PASSWORD | sed -r "s/@/%40/g;s/:/%3A/g")@localhost:27017/admin
+          command:
+            - /bin/bash
+            - -ec
+          env:
+            - name: MONGODB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MONGO_PASSWORD
+                  name: mongodb-replicaset-admin-secret
+          image: quay.io/klovercloud/service:bitnami-mongodb-exporter-0.11.1-debian-10-r20-kco
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /metrics
+              port: 9216
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: metrics
+          ports:
+            - containerPort: 9216
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /metrics
+              port: 9216
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 33m
+              memory: 64Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 2000
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - configMap:
+            defaultMode: 493
+            name: kcprod-mongodb-scripts
+          name: scripts
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: datadir
+        namespace: klovercloud
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
+        storageClassName: local-path
+        volumeMode: Filesystem
