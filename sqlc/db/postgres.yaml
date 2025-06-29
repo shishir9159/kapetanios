@@ -7,7 +7,7 @@ sql:
       go:
         package: "postgresql"
         sql_package: "pgx/v4"
-        out: "../sqlc"
+        out: "../../internal/model/postgres"
         emit_interface: true
         emit_json_tags: true
         emit_pointers_for_null_types: true
