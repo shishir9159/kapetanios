@@ -5,8 +5,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -33,7 +33,6 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 		State:     u,
 	}
 
-	json := jsoniter.ConfigFastest
 	payload, err := json.Marshal(upgradeProgression)
 	if err != nil {
 		log.Error("failed to marshal upgrade progression",
@@ -804,7 +803,6 @@ func (finalizer *upgradeFinalizer) SendMessage(upgradeState *UpgradeState, log *
 
 	finalizer.NodeStatus = upgradeState.NodesStatus
 
-	json := jsoniter.ConfigFastest
 	upgradeProgression := &UpgradeProgression{
 		StateName: "finalizer",
 		State:     finalizer,

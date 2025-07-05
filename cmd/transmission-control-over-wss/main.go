@@ -3,10 +3,10 @@ package main
 import (
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	_ "go.uber.org/automaxprocs"
@@ -138,8 +138,6 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	state := UpgradeState{}
 
-	var json = jsoniter.ConfigFastest
-
 	err = json.Unmarshal([]byte(configMap.Data["UPGRADE_STATE"]), &state)
 	if err != nil {
 		nefario.log.Error("error unmarshaling the configMap",
@@ -165,8 +163,6 @@ func writeConfig(nefario *Nefario, state UpgradeState) error {
 		nefario.log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
-
-	var json = jsoniter.ConfigFastest
 
 	payload, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
