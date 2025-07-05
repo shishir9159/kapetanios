@@ -7,7 +7,7 @@ data:
 kind: Secret
 metadata:
   labels:
-
+    app: kapetanios-mongo
   name: mongodb-replicaset-admin-secret
   namespace: lighthouse
 type: Opaque
@@ -45,8 +45,6 @@ spec:
       targetPort: 27017
   selector:
     app: kapetanios-mongo
-  sessionAffinity: None
-  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -57,7 +55,6 @@ metadata:
   namespace: lighthouse
 spec:
   replicas: 1
-  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app: kapetanios-mongo
@@ -195,12 +192,9 @@ spec:
             requests:
               cpu: 33m
               memory: 64Mi
-      dnsPolicy: ClusterFirst
       restartPolicy: Always
-      schedulerName: default-scheduler
       securityContext:
         fsGroup: 2000
-      terminationGracePeriodSeconds: 30
       volumes:
         - configMap:
             defaultMode: 493
@@ -218,5 +212,4 @@ spec:
         resources:
           requests:
             storage: 2Gi
-        storageClassName: local-path
-        volumeMode: Filesystem
+        storageClassName: longhorn
