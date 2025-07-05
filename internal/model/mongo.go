@@ -12,8 +12,7 @@ import (
 )
 
 func MongoDB() {
-
-	client, err := mongo.Connect(options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(options.Client().ApplyURI("mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"))
 	if err != nil {
 		panic(err)
 	}

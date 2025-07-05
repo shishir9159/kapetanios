@@ -5,7 +5,8 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 COPY . ./
-RUN go build -C ./cmd/kapetanios -o main
+#RUN go build -C ./cmd/kapetanios -o main
+RUN go build -o main
 
 # TODO: distroless image
 FROM debian:bookworm-slim
@@ -16,5 +17,6 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/cmd/kapetanios/main /app/server
+#COPY --from=builder /app/cmd/kapetanios/main /app/server
+COPY --from=builder /app/cmd/main /app/server
 CMD ["/app/server"]
