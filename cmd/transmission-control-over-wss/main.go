@@ -376,6 +376,16 @@ func main() {
 		log:       logger,
 	}
 
+	// TODO:
+	if os.Getenv("MONGO") == "true" {
+		m := model.Mongo{
+			Dsn: os.Getenv("MONGO_URI"),
+		}
+
+		m.Dsn = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
+
+	}
+
 	config, err := readConfig(&nefario)
 	if err != nil {
 		nefario.log.Info("failed to read config map: ",
