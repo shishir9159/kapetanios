@@ -18,5 +18,5 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     rm -rf /var/lib/apt/lists/*
 
 #COPY --from=builder /app/cmd/kapetanios/main /app/server
-COPY --from=builder /app/cmd/main /app/server
+COPY --from=builder /app/main /app/server
 CMD ["/app/server"]

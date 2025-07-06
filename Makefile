@@ -87,8 +87,8 @@ etcd-restart:
 
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
-	# docker build . -t laplaciandemon/kapetanios:latest
-	docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
+	docker build . -t laplaciandemon/kapetanios:latest
+	#docker build . -t laplaciandemon/kapetanios:latest -f transmission-control-over-wss.Dockerfile
 	docker push laplaciandemon/kapetanios:latest
 
 .PHONY: minor-update

@@ -11,7 +11,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
-func MongoDB() {
+type Mongo struct {
+	dsn  string
+	conn *mongo.Client
+}
+
+func (m *Mongo) InitConnection() error {
+
+	return nil
+}
+
+func (m *Mongo) MongoDB() {
 	client, err := mongo.Connect(options.Client().ApplyURI("mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"))
 	if err != nil {
 		panic(err)
@@ -30,7 +40,11 @@ func MongoDB() {
 
 	collection := client.Database("testing").Collection("numbers")
 
-	res, _ := collection.InsertOne(ctx, bson.D{{"name", "pi"}, {"value", 3.14159}})
+	res, err := collection.InsertOne(ctx, bson.D{{"name", "pi"}, {"value", 3.14159}})
+	if err != nil {
+		panic(err)
+	}
+
 	id := res.InsertedID
 
 	fmt.Println(id)

@@ -7,8 +7,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/shishir9159/kapetanios/internal/model"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -56,6 +58,7 @@ type Nefario struct {
 	cancel    context.CancelFunc
 	log       *zap.Logger
 	mu        sync.Mutex
+	db        DB
 	namespace string
 }
 
@@ -65,6 +68,10 @@ type MinorUpgrade struct {
 	nefario      *Nefario
 	upgradeState *UpgradeState
 	pool         *wss.ConnectionPool
+}
+
+type DB interface {
+	InitConnection()
 }
 
 type State interface {
@@ -320,6 +327,11 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 //
 //	nefario.ctx = context.Background()
 //}
+
+// MongoTest refactor
+func (upgrade *MinorUpgrade) MongoTest() {
+
+}
 
 func main() {
 
