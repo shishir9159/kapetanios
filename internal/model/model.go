@@ -9,3 +9,7 @@ type Cluster struct {
 	Nodes    v1.NodeList `nodes:"type:json"`
 	Validity time.Time   `expiration-date:"type:json"`
 }
+
+type DB interface {
+	InitConnection() error
+}

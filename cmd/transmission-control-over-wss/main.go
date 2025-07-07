@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/shishir9159/kapetanios/internal/model"
+	. "github.com/shishir9159/kapetanios/internal/nefario"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -52,26 +52,12 @@ type nodeInfo struct {
 // TODO:
 //  string or bool
 
-type Nefario struct {
-	client    *orchestration.Client
-	ctx       context.Context
-	cancel    context.CancelFunc
-	log       *zap.Logger
-	mu        sync.Mutex
-	db        DB
-	namespace string
-}
-
 type MinorUpgrade struct {
 	mu           sync.Mutex
 	finalizer    chan bool
 	nefario      *Nefario
 	upgradeState *UpgradeState
 	pool         *wss.ConnectionPool
-}
-
-type DB interface {
-	InitConnection()
 }
 
 type State interface {
@@ -147,7 +133,7 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	err = json.Unmarshal([]byte(configMap.Data["UPGRADE_STATE"]), &state)
 	if err != nil {
-		nefario.log.Error("error unmarshaling the configMap",
+		nefario.log.Error("error unmarshalling the configMap",
 			zap.Error(err))
 	}
 
@@ -313,21 +299,6 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 }
 
-//func (nefario *Nefario) stop(w http.ResponseWriter, r *http.Request) {
-//
-//	if nefario.mu.TryLock() {
-//
-//	}
-//
-//	// cleanup
-//
-//	nefario.log.Info("stopping all minions and ongoing process")
-//	// all connection closed
-//	// stop channel to stop all the connections
-//
-//	nefario.ctx = context.Background()
-//}
-
 // MongoTest refactor
 func (upgrade *MinorUpgrade) MongoTest() {
 
@@ -383,8 +354,15 @@ func main() {
 		}
 
 		m.Dsn = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
+		err = m.InitConnection()
+		if err != nil {
+			return
+		}
 
+		nefario.db = &m
 	}
+
+	config, err := m.db.readConfig(&nefario)
 
 	config, err := readConfig(&nefario)
 	if err != nil {
