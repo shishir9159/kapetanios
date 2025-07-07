@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 	. "github.com/shishir9159/kapetanios/internal/model"
 	. "github.com/shishir9159/kapetanios/internal/model/mongo"
-	. "github.com/shishir9159/kapetanios/internal/nefario"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
