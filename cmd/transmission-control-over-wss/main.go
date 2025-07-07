@@ -94,9 +94,10 @@ type k8sPackageInfo struct {
 }
 
 type nodesStatus struct {
-	NodesUpgraded           []string `json:"nodesUpgraded"`
-	NodesToBeUpgraded       []string `json:"nodesToBeUpgraded"`
-	NodesFailedToBeUpgraded []string `json:"nodesFailedToBeUpgraded"`
+	NodesUpgraded            []string `json:"nodesUpgraded"`
+	NodesToBeUpgraded        []string `json:"nodesToBeUpgraded"`
+	NodesFailedToBeUpgraded  []string `json:"nodesFailedToBeUpgraded"`
+	NodesSkippedToBeUpgraded []string `json:"nodesSkippedToBeUpgraded"`
 }
 
 type progressDetail struct {

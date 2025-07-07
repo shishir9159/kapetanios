@@ -3,8 +3,8 @@ package mongo
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	. "github.com/shishir9159/kapetanios/internal/nefario"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
@@ -65,50 +65,16 @@ func (m *Mongo) MongoDB() {
 
 func (m *Mongo) readConfig(nefario *Nefario) (UpgradeState, error) {
 
-	db := m.Client.Database("lighthouse")
+	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	collections, err := db.ListCollectionNames(ctx, struct{}{})
+
+	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
+	var result bson.M
+	err := collection.FindOne(ctx, bson.D{}, opts).Decode(&result)
 	if err != nil {
-		nefario.Log.Fatal("failed to list collections",
-			zap.Error(err))
-	}
-
-	found := false
-	for _, name := range collections {
-		if name == "minor-upgrade" {
-			found = true
-			break
-		}
-	}
-
-	if found {
-		fmt.Println("Collection 'minor-upgrade' exists.")
-	} else {
-		fmt.Println("Collection 'minor-upgrade' does NOT exist.")
-	}
-
-	configMap, err := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
-		Get(nefario.ctx, configMapName, metav1.GetOptions{})
-	if err != nil {
-		nefario.log.Error("error fetching the configMap",
-			zap.Error(err))
 		return UpgradeState{}, err
-	}
-
-	state := UpgradeState{}
-
-	err = json.Unmarshal([]byte(configMap.Data["UPGRADE_STATE"]), &state)
-	if err != nil {
-		nefario.log.Error("error unmarshalling the configMap",
-			zap.Error(err))
-	}
-
-	if state.NodesStatus == nil {
-		state.NodesStatus = &nodesStatus{
-			NodesToBeUpgraded: []string{},
-		}
 	}
 
 	return state, nil
