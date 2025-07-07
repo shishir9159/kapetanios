@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	. "github.com/shishir9159/kapetanios/internal/nefario"
 	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
@@ -77,8 +78,8 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 func drainAndCordonNode(nefario *Nefario, node *corev1.Node) error {
 
 	drainer := &drain.Helper{
-		Ctx:                             nefario.ctx,
-		Client:                          nefario.client.Clientset(),
+		Ctx:                             nefario.Ctx,
+		Client:                          nefario.Client.Clientset(),
 		DisableEviction:                 true,
 		Force:                           true, // TODO: should it be Force eviction?
 		IgnoreAllDaemonSets:             true,
@@ -90,10 +91,10 @@ func drainAndCordonNode(nefario *Nefario, node *corev1.Node) error {
 		ErrOut:                          os.Stderr,
 	}
 
-	nefario.log.Info("cordoning node", zap.String("node", node.Name))
+	nefario.Log.Info("cordoning node", zap.String("node", node.Name))
 	err := drain.RunCordonOrUncordon(drainer, node, true)
 	if err != nil {
-		nefario.log.Error("error cordoning node",
+		nefario.Log.Error("error cordoning node",
 			zap.String("node", node.Name),
 			zap.Error(err))
 
@@ -101,12 +102,12 @@ func drainAndCordonNode(nefario *Nefario, node *corev1.Node) error {
 
 	err = drain.RunNodeDrain(drainer, node.Name)
 	if err != nil {
-		nefario.log.Error("error draining node",
+		nefario.Log.Error("error draining node",
 			zap.String("node", node.Name),
 			zap.Error(err))
 	}
 
-	nefario.log.Debug("returning from draining node",
+	nefario.Log.Debug("returning from draining node",
 		zap.Time("node", time.Now().UTC()))
 	return nil
 }
@@ -202,24 +203,24 @@ func addTaint(node *corev1.Node) {
 func prepareNode(nefario *Nefario, node *corev1.Node) error {
 	err := drainAndCordonNode(nefario, node)
 	if err != nil {
-		nefario.log.Error("failed to drain node",
+		nefario.Log.Error("failed to drain node",
 			zap.String("node name:", node.Name),
 			zap.Error(err))
 		return err
 	}
 
-	nefario.log.Info("tainting node",
+	nefario.Log.Info("tainting node",
 		zap.String("node name", node.Name))
 
 	addTaint(node)
 
 	err = drain.RunCordonOrUncordon(&drain.Helper{
-		Ctx:    nefario.ctx,
-		Client: nefario.client.Clientset(),
+		Ctx:    nefario.Ctx,
+		Client: nefario.Client.Clientset(),
 	}, node, false)
 
 	if err != nil {
-		nefario.log.Error("error uncordoning the node",
+		nefario.Log.Error("error uncordoning the node",
 			zap.String("node name", node.Name),
 			zap.Error(err))
 		return err
@@ -238,13 +239,13 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	upgrade.upgradeState.K8sPackages = []k8sPackageInfo{}
 
 	ch := make(chan *grpc.Server, 1)
-	go MinorUpdateGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
+	go MinorUpdateGrpc(upgrade.nefario.Log, upgrade.pool, upgrade.upgradeState, ch)
 
-	renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
+	renewalMinionManager := orchestration.NewMinions(upgrade.nefario.Client)
 
 	for osImage, nodeName := range availableOS {
 
-		upgrade.nefario.log.Info("updating package info",
+		upgrade.nefario.Log.Info("updating package info",
 			zap.String("node", nodeName))
 
 		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/minor-update", roleName, nodeName)
@@ -253,17 +254,17 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 		descriptor.Namespace = os.Getenv("KAPETANIOS_NAMESPACE")
 		descriptor.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
 
-		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
+		minion, er := upgrade.nefario.Client.Clientset().CoreV1().Pods(upgrade.nefario.Namespace).
 			Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			upgrade.nefario.log.Error("minor update pod creation failed: ",
+			upgrade.nefario.Log.Error("minor update pod creation failed: ",
 				zap.Error(er))
 
 			upgrade.pool.BroadcastMessage([]byte("minor update pod creation failed " + er.Error()))
 			return
 		}
 
-		upgrade.nefario.log.Info("minor upgrade pod created",
+		upgrade.nefario.Log.Info("minor upgrade pod created",
 			zap.String("pod name", minion.Name),
 			zap.String("os", osImage))
 
@@ -278,18 +279,18 @@ func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	watcher, err := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
+	watcher, err := upgrade.nefario.Client.Clientset().CoreV1().Pods(upgrade.nefario.Namespace).
 		Watch(context.TODO(), metav1.ListOptions{
 			LabelSelector: listOptions.LabelSelector,
 		})
 
 	if err != nil {
-		upgrade.nefario.log.Error("watcher for minor update pod failed: ",
+		upgrade.nefario.Log.Error("watcher for minor update pod failed: ",
 			zap.Error(err))
 	}
 
 	if watcher == nil {
-		upgrade.nefario.log.Error("could not create watcher",
+		upgrade.nefario.Log.Error("could not create watcher",
 			zap.Error(fmt.Errorf("watcher is nil")))
 		//	TODO: avoid outLoop and pass after a timer
 	}
@@ -306,7 +307,7 @@ outerLoop:
 	for event := range watcher.ResultChan() {
 		pod, ok := event.Object.(*corev1.Pod)
 		if !ok {
-			upgrade.nefario.log.Error("watcher returned unexpected type",
+			upgrade.nefario.Log.Error("watcher returned unexpected type",
 				zap.Reflect("event", event),
 				zap.Reflect("object", event.Object))
 			continue
@@ -315,7 +316,7 @@ outerLoop:
 		switch event.Type {
 		case watch.Modified:
 			if pod.Status.Phase == corev1.PodSucceeded {
-				upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",
+				upgrade.nefario.Log.Info("minor upgrade pod has completed successfully!",
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace))
 				numOfPods--
@@ -323,7 +324,7 @@ outerLoop:
 					break outerLoop
 				}
 			} else if pod.Status.Phase == corev1.PodFailed {
-				upgrade.nefario.log.Info("minor upgrade pod has failed!",
+				upgrade.nefario.Log.Info("minor upgrade pod has failed!",
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace))
 				// TODO:
@@ -334,7 +335,7 @@ outerLoop:
 				}
 			}
 		case watch.Deleted:
-			upgrade.nefario.log.Info("minor upgrade pod was deleted!",
+			upgrade.nefario.Log.Info("minor upgrade pod was deleted!",
 				zap.String("pod name", pod.Name),
 				zap.String("pod namespace", pod.Namespace))
 			numOfPods--
@@ -350,12 +351,12 @@ outerLoop:
 		K8sPackagesInfo: upgrade.upgradeState.K8sPackages,
 	}
 
-	selection.SendMessage(upgrade.upgradeState, upgrade.nefario.log, upgrade.pool)
+	selection.SendMessage(upgrade.upgradeState, upgrade.nefario.Log, upgrade.pool)
 
 	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {
 		upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
-		upgrade.nefario.log.Fatal("configMap update failed " + err.Error())
+		upgrade.nefario.Log.Fatal("configMap update failed " + err.Error())
 	}
 
 	//	TODO:
@@ -377,8 +378,8 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	kapetaniosPod, err := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
-		List(upgrade.nefario.ctx, listOptions)
+	kapetaniosPod, err := upgrade.nefario.Client.Clientset().CoreV1().Pods(upgrade.nefario.Namespace).
+		List(upgrade.nefario.Ctx, listOptions)
 
 	if kapetaniosPod == nil {
 		if err != nil {
@@ -388,14 +389,14 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 				err.Error()))
 		}
 
-		upgrade.nefario.log.Error("kapetanios pod discovery error: ",
+		upgrade.nefario.Log.Error("kapetanios pod discovery error: ",
 			zap.Error(err))
 
 		return
 	}
 
 	kapetaniosNode := kapetaniosPod.Items[0].Spec.NodeName
-	upgrade.nefario.log.Info("kapetanios node",
+	upgrade.nefario.Log.Info("kapetanios node",
 		zap.String("assigned to the node:", kapetaniosNode))
 
 	var nodeNames []string
@@ -409,10 +410,10 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		nodesUpgraded = upgrade.upgradeState.NodesStatus.NodesUpgraded
 		nodesFailedToBeUpgraded = upgrade.upgradeState.NodesStatus.NodesFailedToBeUpgraded
 	} else {
-		nodes, er := upgrade.nefario.client.Clientset().CoreV1().Nodes().
+		nodes, er := upgrade.nefario.Client.Clientset().CoreV1().Nodes().
 			List(context.Background(), metav1.ListOptions{LabelSelector: ""})
 		if er != nil {
-			upgrade.nefario.log.Error("error listing nodes",
+			upgrade.nefario.Log.Error("error listing nodes",
 				zap.Error(er))
 		}
 
@@ -425,7 +426,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		// TODO: debug mode
 		for _, no := range nodes.Items {
-			upgrade.nefario.log.Debug("nodes before sorting",
+			upgrade.nefario.Log.Debug("nodes before sorting",
 				zap.String("nodes", no.ObjectMeta.Name))
 		}
 
@@ -451,12 +452,12 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		// TODO: debug mode
 		for _, no := range nodes.Items {
-			upgrade.nefario.log.Debug("nodes after sorting",
+			upgrade.nefario.Log.Debug("nodes after sorting",
 				zap.String("nodes", no.ObjectMeta.Name))
 		}
 
 		for _, no := range nodes.Items {
-			upgrade.nefario.log.Info("status",
+			upgrade.nefario.Log.Info("status",
 				//zap.String("node config assigned", no.Status.Config.Assigned.String()),
 				//zap.String("node config active", no.Status.Config.Active.String()),
 				//zap.String("node config last known good", no.Status.Config.LastKnownGood.String()),
@@ -484,22 +485,22 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//  Validation on OS version, Kernel Version, Selected Item compatibilities table
 	}
 
-	upgrade.nefario.log.Debug("nodes to be upgraded",
+	upgrade.nefario.Log.Debug("nodes to be upgraded",
 		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded),
 		zap.Strings("nodeNames:", nodeNames))
 
 	roleName := "minor-upgrade"
 
 	ch := make(chan *grpc.Server, 1)
-	go MinorUpgradeGrpc(upgrade.nefario.log, upgrade.pool, upgrade.upgradeState, ch)
+	go MinorUpgradeGrpc(upgrade.nefario.Log, upgrade.pool, upgrade.upgradeState, ch)
 
 	// TODO: refactor this part to orchestrator
 	for index, node := range nodeNames {
 
-		upgrade.nefario.log.Info("nodes to be upgraded",
+		upgrade.nefario.Log.Info("nodes to be upgraded",
 			zap.String("node to be name:", node))
 
-		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.client)
+		renewalMinionManager := orchestration.NewMinions(upgrade.nefario.Client)
 		descriptor := renewalMinionManager.MinionBlueprint("laplaciandemon/minor-upgrade", roleName, node)
 
 		// TODO: instead of pod monitoring only for creation, monitor for successful restarts
@@ -543,18 +544,18 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 			upgrade.upgradeState.NodesStatus.NodesUpgraded = append(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded,
 				nodesUpgraded...)
 
-			upgrade.nefario.log.Info("nodes that have been upgraded",
+			upgrade.nefario.Log.Info("nodes that have been upgraded",
 				zap.Strings("nodes upgraded", upgrade.upgradeState.NodesStatus.NodesUpgraded))
 		} else if len(nodesUpgraded) != 0 {
 			upgrade.upgradeState.NodesStatus.NodesUpgraded = nodesUpgraded
 
-			upgrade.nefario.log.Info("nodes that upgraded",
+			upgrade.nefario.Log.Info("nodes that upgraded",
 				zap.Strings("nodes upgraded", upgrade.upgradeState.NodesStatus.NodesUpgraded))
 		}
 
 		err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 		if err != nil {
-			upgrade.nefario.log.Error("error writing reporting",
+			upgrade.nefario.Log.Error("error writing reporting",
 				zap.Error(err))
 		}
 
@@ -570,7 +571,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		descriptor.Spec.HostNetwork = true
 
 		if len(upgrade.upgradeState.SelectedConfig.K8sVersion) == 0 {
-			upgrade.nefario.log.Fatal("target k8s version is not set")
+			upgrade.nefario.Log.Fatal("target k8s version is not set")
 		}
 
 		certRenewalEnv := corev1.EnvVar{
@@ -600,10 +601,10 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//  then those Pods might be scheduled to the node you have drained.
 
 		// todo: optimize
-		no, err := upgrade.nefario.client.Clientset().CoreV1().Nodes().
-			Get(upgrade.nefario.ctx, node, metav1.GetOptions{})
+		no, err := upgrade.nefario.Client.Clientset().CoreV1().Nodes().
+			Get(upgrade.nefario.Ctx, node, metav1.GetOptions{})
 		if err != nil {
-			upgrade.nefario.log.Error("failed to get node by node name",
+			upgrade.nefario.Log.Error("failed to get node by node name",
 				zap.String("node name:", node),
 				zap.Error(err))
 			continue
@@ -614,7 +615,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//  test
 		if _, controlPlane := no.Labels["node-role.kubernetes.io/control-plane"]; controlPlane {
 			nodeRole = "CONTROL-PLANE"
-			upgrade.nefario.log.Info("control plane node",
+			upgrade.nefario.Log.Info("control plane node",
 				zap.String("node name:", node))
 		}
 
@@ -637,7 +638,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		if packageVersion == "" {
 			// TODO: throw an error on the frontend and cancel the process
-			upgrade.nefario.log.Fatal("no appropriate os image available")
+			upgrade.nefario.Log.Fatal("no appropriate os image available")
 		}
 
 		componentVersionEnv := corev1.EnvVar{
@@ -653,7 +654,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		// TODO: should wait for the coredns restart
 
 		if upgrade.upgradeState.SelectedConfig.DrainNodes {
-			upgrade.nefario.log.Info("cordoning and draining node",
+			upgrade.nefario.Log.Info("cordoning and draining node",
 				zap.String("node name", node))
 			er := prepareNode(upgrade.nefario, no)
 			if er != nil {
@@ -677,17 +678,17 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//		just monitor the NODES before creating minion, no need to restart
 		//  RestartByLabel(c, map[string]string{"tier": "control-plane"}, node.Name)
 
-		minion, er := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
+		minion, er := upgrade.nefario.Client.Clientset().CoreV1().Pods(upgrade.nefario.Namespace).
 			Create(context.Background(), descriptor, metav1.CreateOptions{})
 		if er != nil {
-			upgrade.nefario.log.Error("minor upgrade pod creation failed: ",
+			upgrade.nefario.Log.Error("minor upgrade pod creation failed: ",
 				zap.Error(er))
 
 			upgrade.pool.BroadcastMessage([]byte("minor upgrade pod creation failed " + err.Error()))
 			return
 		}
 
-		upgrade.nefario.log.Info("minor upgrade pod created",
+		upgrade.nefario.Log.Info("minor upgrade pod created",
 			zap.Int("index", index),
 			zap.String("pod name", minion.Name))
 
@@ -702,7 +703,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		}
 
-		watcher, err := upgrade.nefario.client.Clientset().CoreV1().Pods(upgrade.nefario.namespace).
+		watcher, err := upgrade.nefario.Client.Clientset().CoreV1().Pods(upgrade.nefario.Namespace).
 			Watch(context.TODO(), metav1.ListOptions{
 				LabelSelector: listOptions.LabelSelector,
 				FieldSelector: "metadata.name=" + minion.Name,
@@ -710,7 +711,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 		if err != nil {
 			upgrade.pool.BroadcastMessage([]byte("failed to create a watcher for the pod: " + minion.Name))
-			upgrade.nefario.log.Error("failed to create a watcher for the pod",
+			upgrade.nefario.Log.Error("failed to create a watcher for the pod",
 				zap.Error(err))
 			// handle the error
 			time.Sleep(600 * time.Second)
@@ -723,7 +724,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		for event := range watcher.ResultChan() {
 			pod, ok := event.Object.(*corev1.Pod)
 			if !ok {
-				upgrade.nefario.log.Error("watcher returned unexpected type",
+				upgrade.nefario.Log.Error("watcher returned unexpected type",
 					zap.Reflect("event", event),
 					zap.Reflect("object", event.Object))
 				continue
@@ -740,13 +741,13 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 			case watch.Modified:
 				if pod.Status.Phase == corev1.PodSucceeded {
-					upgrade.nefario.log.Info("minor upgrade pod has completed successfully!",
+					upgrade.nefario.Log.Info("minor upgrade pod has completed successfully!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
 					break outerLoop
 				} else if pod.Status.Phase == corev1.PodFailed {
-					upgrade.nefario.log.Info("minor upgrade pod has failed!",
+					upgrade.nefario.Log.Info("minor upgrade pod has failed!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace),
 						zap.String("minion name", minion.Name))
@@ -754,7 +755,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 					break outerLoop
 				}
 			case watch.Deleted:
-				upgrade.nefario.log.Info("minor upgrade pod was deleted!",
+				upgrade.nefario.Log.Info("minor upgrade pod was deleted!",
 					zap.String("pod name", pod.Name),
 					zap.String("pod namespace", pod.Namespace),
 					zap.String("minion name", minion.Name))
@@ -782,14 +783,14 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	}
 
 	finalizer := upgradeFinalizer{}
-	_, _, _ = finalizer.SendMessage(upgrade.upgradeState, upgrade.nefario.log, upgrade.pool)
+	_, _, _ = finalizer.SendMessage(upgrade.upgradeState, upgrade.nefario.Log, upgrade.pool)
 
 	upgrade.upgradeState.NodesStatus.NodesUpgraded = []string{}
 	upgrade.upgradeState.NodesStatus.NodesToBeUpgraded = []string{}
 
 	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
 	if err != nil {
-		upgrade.nefario.log.Error("error writing reporting",
+		upgrade.nefario.Log.Error("error writing reporting",
 			zap.Error(err))
 	}
 

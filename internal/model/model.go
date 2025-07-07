@@ -10,6 +10,6 @@ type Cluster struct {
 	Validity time.Time   `expiration-date:"type:json"`
 }
 
-type DB interface {
+type DBMS interface {
 	InitConnection() error
 }

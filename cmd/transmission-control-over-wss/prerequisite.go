@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	. "github.com/shishir9159/kapetanios/internal/nefario"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -80,13 +81,13 @@ func validatingNodesState(nefario *Nefario, label string) error {
 
 	// TODO:
 
-	nodes, err := nefario.client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+	nodes, err := nefario.Client.Clientset().CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		nefario.log.Error("failed to list "+label+" nodes to validate",
+		nefario.Log.Error("failed to list "+label+" nodes to validate",
 			zap.Error(err))
 		return err
 	} else if nodes.Size() == 0 {
-		nefario.log.Error("nodes for "+label+" are not labeled",
+		nefario.Log.Error("nodes for "+label+" are not labeled",
 			zap.Error(err))
 		return err
 	}
@@ -94,7 +95,7 @@ func validatingNodesState(nefario *Nefario, label string) error {
 	flag := true
 	for _, node := range nodes.Items {
 		if node.Status.Phase != corev1.NodeRunning {
-			nefario.log.Error("node related to the operation is not running",
+			nefario.Log.Error("node related to the operation is not running",
 				zap.String("nodeName", node.Name))
 			// todo:
 			//  add to error and continue
@@ -107,7 +108,7 @@ func validatingNodesState(nefario *Nefario, label string) error {
 	}
 
 	if flag {
-		nefario.log.Error("no master nodes found")
+		nefario.Log.Error("no master nodes found")
 		// TODO:
 		//  error
 		return fmt.Errorf("no master nodes found by querying with label")
@@ -120,10 +121,10 @@ func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 
 	etcdCluster := ETCD{}
 
-	cm, err := nefario.client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
+	cm, err := nefario.Client.Clientset().CoreV1().ConfigMaps("kube-system").Get(context.Background(), "kubeadm-config", metav1.GetOptions{})
 
 	if err != nil {
-		nefario.log.Error("error fetching the kubeadm-config from the kube-system namespace",
+		nefario.Log.Error("error fetching the kubeadm-config from the kube-system namespace",
 			zap.Error(err))
 		return &etcdCluster, err
 	}
@@ -135,7 +136,7 @@ func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 
 	err = yaml.Unmarshal([]byte(yamlFile), &clusterConfiguration)
 	if err != nil {
-		nefario.log.Error("error parsing the kubeadm-config yaml file",
+		nefario.Log.Error("error parsing the kubeadm-config yaml file",
 			zap.Error(err))
 	}
 
@@ -159,9 +160,9 @@ func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 
 	configMapName := "kapetanios"
 
-	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+	configMap, er := nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
-		nefario.log.Error("error fetching the configMap",
+		nefario.Log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
 
@@ -179,9 +180,9 @@ func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 		configMap.Data["ETCD_NODE_"+strconv.Itoa(index+1)] = endpoint
 	}
 
-	_, er = nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
+	_, er = nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).Update(context.TODO(), configMap, metav1.UpdateOptions{})
 	if er != nil {
-		nefario.log.Error("error updating configMap",
+		nefario.Log.Error("error updating configMap",
 			zap.Error(er))
 	}
 
@@ -189,7 +190,7 @@ func populatingConfigMap(nefario *Nefario) (*ETCD, error) {
 }
 
 func continueMinorUpgrade(upgrade *MinorUpgrade) error {
-	upgrade.nefario.log.Info("upgrade is continued after the successful restart",
+	upgrade.nefario.Log.Info("upgrade is continued after the successful restart",
 		zap.Strings("nodes to be upgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
 	upgrade.finalizer = make(chan bool, 1)
@@ -236,19 +237,19 @@ func prerequisites(upgrade *MinorUpgrade) error {
 		//LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	minions, err := upgrade.nefario.client.Clientset().CoreV1().Pods(os.Getenv("KAPETANIOS_NAMESPACE")).
+	minions, err := upgrade.nefario.Client.Clientset().CoreV1().Pods(os.Getenv("KAPETANIOS_NAMESPACE")).
 		List(ctx, listOptions)
 	if err != nil {
-		upgrade.nefario.log.Error("error listing completed/failed pods for node management",
+		upgrade.nefario.Log.Error("error listing completed/failed pods for node management",
 			zap.Error(err))
 		return err
 	}
 
 	for _, minion := range minions.Items {
-		er := upgrade.nefario.client.Clientset().CoreV1().Pods(os.Getenv("KAPETANIOS_NAMESPACE")).
+		er := upgrade.nefario.Client.Clientset().CoreV1().Pods(os.Getenv("KAPETANIOS_NAMESPACE")).
 			Delete(ctx, minion.Name, metav1.DeleteOptions{})
 		if er != nil {
-			upgrade.nefario.log.Info("failed to delete minion:",
+			upgrade.nefario.Log.Info("failed to delete minion:",
 				zap.String("minion name:", minion.Name),
 				zap.Error(er))
 		}
@@ -256,10 +257,10 @@ func prerequisites(upgrade *MinorUpgrade) error {
 
 	// TODO:
 	//  decide what to do
-	nodes, err := upgrade.nefario.client.Clientset().CoreV1().Nodes().
+	nodes, err := upgrade.nefario.Client.Clientset().CoreV1().Nodes().
 		List(ctx, listOptions)
 	if err != nil {
-		upgrade.nefario.log.Error("error listing completed/failed pods for node management",
+		upgrade.nefario.Log.Error("error listing completed/failed pods for node management",
 			zap.Error(err))
 	}
 

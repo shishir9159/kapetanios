@@ -1,8 +1,10 @@
-package model
+package mongo
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	. "github.com/shishir9159/kapetanios/internal/nefario"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
@@ -21,12 +23,15 @@ func (m *Mongo) InitConnection() error {
 		panic(err)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err = client.Ping(ctx, nil); err != nil {
+		panic(err)
+	}
+
 	m.Client = client
 	return nil
-}
-
-func (m *Mongo) readConfig() {
-
 }
 
 func (m *Mongo) CloseConnection() error {
@@ -58,9 +63,31 @@ func (m *Mongo) MongoDB() {
 	//fmt.Println(id)
 }
 
-func readConfig(nefario *Nefario) (UpgradeState, error) {
+func (m *Mongo) readConfig(nefario *Nefario) (UpgradeState, error) {
 
-	configMapName := "kapetanios"
+	db := m.Client.Database("lighthouse")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	collections, err := db.ListCollectionNames(ctx, struct{}{})
+	if err != nil {
+		nefario.Log.Fatal("failed to list collections",
+			zap.Error(err))
+	}
+
+	found := false
+	for _, name := range collections {
+		if name == "minor-upgrade" {
+			found = true
+			break
+		}
+	}
+
+	if found {
+		fmt.Println("Collection 'minor-upgrade' exists.")
+	} else {
+		fmt.Println("Collection 'minor-upgrade' does NOT exist.")
+	}
 
 	configMap, err := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
 		Get(nefario.ctx, configMapName, metav1.GetOptions{})

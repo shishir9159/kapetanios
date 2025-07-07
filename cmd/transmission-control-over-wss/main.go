@@ -7,13 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/shishir9159/kapetanios/internal/model"
+	. "github.com/shishir9159/kapetanios/internal/model"
+	. "github.com/shishir9159/kapetanios/internal/model/mongo"
 	. "github.com/shishir9159/kapetanios/internal/nefario"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"github.com/shishir9159/kapetanios/internal/wss"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
@@ -48,9 +47,6 @@ type nodeInfo struct {
 	kernelVersion     string
 	kubernetesVersion string
 }
-
-// TODO:
-//  string or bool
 
 type MinorUpgrade struct {
 	mu           sync.Mutex
@@ -121,10 +117,10 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	configMapName := "kapetanios"
 
-	configMap, err := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
-		Get(nefario.ctx, configMapName, metav1.GetOptions{})
+	configMap, err := nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).
+		Get(nefario.Ctx, configMapName, metav1.GetOptions{})
 	if err != nil {
-		nefario.log.Error("error fetching the configMap",
+		nefario.Log.Error("error fetching the configMap",
 			zap.Error(err))
 		return UpgradeState{}, err
 	}
@@ -133,7 +129,7 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	err = json.Unmarshal([]byte(configMap.Data["UPGRADE_STATE"]), &state)
 	if err != nil {
-		nefario.log.Error("error unmarshalling the configMap",
+		nefario.Log.Error("error unmarshalling the configMap",
 			zap.Error(err))
 	}
 
@@ -150,25 +146,25 @@ func writeConfig(nefario *Nefario, state UpgradeState) error {
 
 	configMapName := "kapetanios"
 
-	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
+	configMap, er := nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).
 		Get(context.Background(), configMapName, metav1.GetOptions{})
 	if er != nil {
-		nefario.log.Error("error fetching the configMap",
+		nefario.Log.Error("error fetching the configMap",
 			zap.Error(er))
 	}
 
 	payload, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
-		nefario.log.Error("error marshaling the configMap",
+		nefario.Log.Error("error marshaling the configMap",
 			zap.Error(err))
 	}
 
 	configMap.Data["UPGRADE_STATE"] = string(payload)
 
-	_, er = nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
+	_, er = nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).
 		Update(context.TODO(), configMap, metav1.UpdateOptions{})
 	if er != nil {
-		nefario.log.Error("error updating configMap",
+		nefario.Log.Error("error updating configMap",
 			zap.Error(er))
 	}
 
@@ -199,15 +195,15 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 		_, err := io.WriteString(w, "maximum number of concurrent connection exceeded!")
 		if err != nil {
-			upgrade.nefario.log.Error("error writing max connection exceeding error",
+			upgrade.nefario.Log.Error("error writing max connection exceeding error",
 				zap.Error(err))
 		}
 
-		upgrade.nefario.log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
+		upgrade.nefario.Log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
 		// TODO: -- wrap it in one of the error state(possible other: certificate renewal) --
 		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
 		if er != nil {
-			upgrade.nefario.log.Info("error writing concurrent connections warning:",
+			upgrade.nefario.Log.Info("error writing concurrent connections warning:",
 				zap.Error(er))
 		}
 
@@ -217,7 +213,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		// TODO: wrap it in error state
-		upgrade.nefario.log.Info("connection upgrade error:",
+		upgrade.nefario.Log.Info("connection upgrade error:",
 			zap.Error(err))
 
 		return
@@ -229,7 +225,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 	for c := range upgrade.pool.Clients {
 		if client.Conn == c.Conn {
-			upgrade.nefario.log.Info("removing old connections",
+			upgrade.nefario.Log.Info("removing old connections",
 				zap.String("client", client.Conn.RemoteAddr().String()))
 			closeMessage := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closing connection")
 			if er := c.Conn.WriteMessage(websocket.CloseMessage, closeMessage); er != nil {
@@ -238,7 +234,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 			er := c.Conn.Close()
 			if er != nil {
-				upgrade.nefario.log.Info("error closing connection",
+				upgrade.nefario.Log.Info("error closing connection",
 					zap.Error(er))
 				return
 			}
@@ -247,7 +243,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 	}
 
 	upgrade.pool.AddClient(client)
-	upgrade.nefario.log.Info("registered client: ",
+	upgrade.nefario.Log.Info("registered client: ",
 		zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
 	// todo: add on prerequisite
@@ -263,7 +259,7 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 		config, er := readConfig(upgrade.nefario)
 		if er != nil {
-			upgrade.nefario.log.Info("error reading config",
+			upgrade.nefario.Log.Info("error reading config",
 				zap.Error(er))
 		}
 
@@ -277,12 +273,12 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
 	go func() {
 
-		upgrade.nefario.log.Info("reading message from connection",
+		upgrade.nefario.Log.Info("reading message from connection",
 			zap.String("client address: ", client.Conn.RemoteAddr().String()))
 
 		er := upgrade.pool.ReadMessageFromConn(ctx, client)
 		if er != nil {
-			upgrade.nefario.log.Info("error reading message from connection",
+			upgrade.nefario.Log.Info("error reading message from connection",
 				zap.Error(er))
 		}
 	}()
@@ -306,104 +302,65 @@ func (upgrade *MinorUpgrade) MongoTest() {
 
 func main() {
 
-	cfg := zap.Config{
-		Encoding:         "json",
-		Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-		EncoderConfig: zapcore.EncoderConfig{
-			MessageKey:   "message",
-			LevelKey:     "level",
-			EncodeLevel:  zapcore.CapitalLevelEncoder,
-			TimeKey:      "time",
-			EncodeTime:   zapcore.ISO8601TimeEncoder,
-			CallerKey:    "caller",
-			EncodeCaller: zapcore.ShortCallerEncoder,
-		},
-	}
-
-	logger := zap.Must(cfg.Build())
-	defer func(logger *zap.Logger) {
-		er := logger.Sync()
-		if er != nil {
-			logger.Info("error syncing logger before application terminates",
-				zap.Error(er))
-		}
-	}(logger)
-
-	Client, err := orchestration.NewClient()
-	if err != nil {
-		logger.Error("error creating orchestration client",
-			zap.Error(err))
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	nefario := Nefario{
-		client:    Client,
-		ctx:       ctx,
-		cancel:    cancel,
-		namespace: os.Getenv("KAPETANIOS_NAMESPACE"),
-		log:       logger,
-	}
+	nefario := NewNefario()
 
 	// TODO:
 	if os.Getenv("MONGO") == "true" {
-		m := model.Mongo{
+		m := Mongo{
 			Dsn: os.Getenv("MONGO_URI"),
 		}
 
 		m.Dsn = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
-		err = m.InitConnection()
+		err := m.InitConnection()
 		if err != nil {
 			return
 		}
 
-		nefario.db = &m
+		nefario.DBMS = &m
 	}
 
 	config, err := m.db.readConfig(&nefario)
 
-	config, err := readConfig(&nefario)
+	config, err := readConfig(nefario)
 	if err != nil {
-		nefario.log.Info("failed to read config map: ",
+		nefario.Log.Info("failed to read config map: ",
 			zap.Error(err))
 	}
 
 	pool := wss.NewPool()
-	pool.Logger = logger
+	pool.Log = nefario.Log
 	go pool.Run()
 
 	upgrade := MinorUpgrade{
 		pool:         pool,
 		upgradeState: &config,
-		nefario:      &nefario,
+		nefario:      nefario,
 	}
-	nefario.log.Debug("nodes to be upgraded",
+	nefario.Log.Debug("nodes to be upgraded",
 		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
 	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
 		er := continueMinorUpgrade(&upgrade)
 		if er != nil {
-			upgrade.nefario.log.Info("error to continue trying minor upgrade:",
+			upgrade.nefario.Log.Info("error to continue trying minor upgrade:",
 				zap.Error(er))
 		}
 	}
 
 	err = prerequisites(&upgrade)
 	if err != nil {
-		upgrade.nefario.log.Info("error to check prerequisites:",
+		upgrade.nefario.Log.Info("error to check prerequisites:",
 			zap.Error(err))
 	}
 
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
 	http.HandleFunc("/livez", livez)
 
-	upgrade.nefario.log.Info("starting kapetanios server on :80")
+	upgrade.nefario.Log.Info("starting kapetanios server on :80")
 	defer handlePanic()
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
-		upgrade.nefario.log.Error("error starting kapetanios server",
+		upgrade.nefario.Log.Error("error starting kapetanios server",
 			zap.Error(err))
 		panic(err)
 	}

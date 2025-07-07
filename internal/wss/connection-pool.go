@@ -16,7 +16,7 @@ type Client struct {
 }
 
 type ConnectionPool struct {
-	Logger      *zap.Logger
+	Log         *zap.Logger
 	broadcast   chan []byte
 	register    chan *Client
 	unregister  chan *Client
@@ -56,7 +56,7 @@ func (pool *ConnectionPool) Run() {
 		case client := <-pool.unregister:
 			pool.mu.Lock()
 			if _, ok := pool.Clients[client]; ok {
-				pool.Logger.Info("client unregistered",
+				pool.Log.Info("client unregistered",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("remaining clients", len(pool.Clients)))
 				delete(pool.Clients, client)
@@ -64,7 +64,7 @@ func (pool *ConnectionPool) Run() {
 				if client.Conn != nil {
 					err := client.Conn.Close()
 					if err != nil {
-						pool.Logger.Error("close connection failed",
+						pool.Log.Error("close connection failed",
 							zap.String("client address", client.Conn.RemoteAddr().String()),
 							zap.Error(err))
 					}
@@ -76,7 +76,7 @@ func (pool *ConnectionPool) Run() {
 			for client := range pool.Clients {
 				if client.Conn == nil {
 					pool.unregister <- client
-					pool.Logger.Error("client connection is nil",
+					pool.Log.Error("client connection is nil",
 						zap.String("message body:", string(message)),
 						zap.Int("remaining clients", len(pool.Clients)),
 						zap.String("client address", client.Conn.RemoteAddr().String()))
@@ -85,7 +85,7 @@ func (pool *ConnectionPool) Run() {
 
 					err := client.Conn.WriteMessage(websocket.TextMessage, message)
 					if err != nil {
-						pool.Logger.Error("error writing message",
+						pool.Log.Error("error writing message",
 							zap.String("message body:", string(message)),
 							zap.Int("remaining clients", len(pool.Clients)),
 							//zap.Int("closing error", websocket.CloseError.Error(err))),
@@ -128,7 +128,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 		}
 
 		time.Sleep(3 * time.Second)
-		pool.Logger.Info("no clients in the pool to read from",
+		pool.Log.Info("no clients in the pool to read from",
 			zap.Int("retry count", i))
 	}
 
@@ -139,7 +139,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 			go func() {
 				err := pool.ReadMessageFromConn(ctx, client)
 				if err != nil {
-					pool.Logger.Error("error reading message from connection",
+					pool.Log.Error("error reading message from connection",
 						zap.String("client address", client.Conn.RemoteAddr().String()),
 						zap.Error(err))
 				}
@@ -172,7 +172,7 @@ func (pool *ConnectionPool) ReadMessages() (string, error) {
 func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Client) error {
 
 	pool.Clients[client] = false
-	pool.Logger.Info("reading message from connection with client address being",
+	pool.Log.Info("reading message from connection with client address being",
 		zap.String("client address", client.Conn.RemoteAddr().String()),
 		zap.Int("number of go routines", runtime.NumGoroutine()),
 		zap.Int("remaining clients", len(pool.Clients)))
@@ -182,7 +182,7 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 		select {
 		case <-ctx.Done():
 			pool.Clients[client] = true
-			pool.Logger.Info("context done",
+			pool.Log.Info("context done",
 				zap.String("client address", client.Conn.RemoteAddr().String()))
 			return nil
 
@@ -190,11 +190,11 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			msgType, msg, err := client.Conn.ReadMessage()
 			if err != nil || msgType == websocket.CloseMessage {
 				if websocket.IsCloseError(err) {
-					pool.Logger.Info("websocket connection close error",
+					pool.Log.Info("websocket connection close error",
 						zap.String("client address", client.Conn.RemoteAddr().String()))
 				}
 
-				pool.Logger.Info("error reading",
+				pool.Log.Info("error reading",
 					zap.String("client address", client.Conn.RemoteAddr().String()),
 					zap.Int("message type", msgType),
 					zap.ByteString("message", msg),
@@ -205,11 +205,11 @@ func (pool *ConnectionPool) ReadMessageFromConn(ctx context.Context, client *Cli
 			}
 
 			if msgType != websocket.TextMessage {
-				pool.Logger.Info("unexpected message type",
+				pool.Log.Info("unexpected message type",
 					zap.Int("message type", msgType))
 			}
 
-			pool.Logger.Info("received from",
+			pool.Log.Info("received from",
 				zap.String("client address", client.Conn.RemoteAddr().String()),
 				zap.ByteString("message", msg))
 
