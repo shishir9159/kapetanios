@@ -41,77 +41,10 @@ var upgrader = websocket.Upgrader{
 	EnableCompression: false,
 }
 
-type NodeInfo struct {
-	os                string
-	kernelVersion     string
-	kubernetesVersion string
-}
-
-type MinorUpgrade struct {
-	mu           sync.Mutex
-	finalizer    chan bool
-	nefario      *Nefario
-	upgradeState *UpgradeState
-	pool         *wss.ConnectionPool
-}
-
-type State interface {
-	SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool)
-}
-
-type UpgradeProgression struct {
-	StateName string `json:"stateName"`
-	State     State  `json:"state"`
-}
-
 // todo: should I keep track record if nodes were already
 //  tainted before draining
 // TODO: set a specific label
 //  if you want to avoid upgrade
-
-type K8sVersion struct {
-	DistroPrettyName string `json:"distroPrettyName"`
-	TargetK8sVersion string `json:"targetK8sVersion"`
-}
-
-type SelectedConfig struct {
-	DrainNodes bool `json:"drainNodes"`
-	// TODO:
-	//  Allow different repo for the same OS
-	PromptOnError      bool         `json:"promptOnError"`
-	CertificateRenewal bool         `json:"certificateRenewal"`
-	K8sVersion         []K8sVersion `json:"k8sVersion"`
-}
-
-type K8sPackageInfo struct {
-	Distro            string   `json:"distro"`
-	DistroVersion     string   `json:"distroVersion"`
-	DistroPrettyName  string   `json:"distroPrettyName"`
-	RepoName          string   `json:"repoName"`
-	RepoBaseURL       string   `json:"repoBaseUrl"`
-	AvailableVersions []string `json:"availableVersions"`
-}
-
-type NodesStatus struct {
-	NodesUpgraded            []string `json:"nodesUpgraded"`
-	NodesToBeUpgraded        []string `json:"nodesToBeUpgraded"`
-	NodesFailedToBeUpgraded  []string `json:"nodesFailedToBeUpgraded"`
-	NodesSkippedToBeUpgraded []string `json:"nodesSkippedToBeUpgraded"`
-}
-
-type ProgressDetail struct {
-	StepCount uint64 `json:"stepCount"`
-	Log       string `json:"log"`
-	Err       string `json:"err"`
-}
-
-type UpgradeState struct {
-	SelectedConfig  *SelectedConfig  `json:"selectedConfig"`
-	NodesStatus     *NodesStatus     `json:"nodesStatus"`
-	Nodes           []NodeInfo       `json:"nodes"`
-	K8sPackages     []K8sPackageInfo `json:"k8sPackages"`
-	ProgressDetails []ProgressDetail `json:"progressDetails"`
-}
 
 // TODO:
 func readConfig(nefario *Nefario) (UpgradeState, error) {
@@ -189,6 +122,15 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //		w.WriteHeader(http.StatusOK)
 //	}
 //}
+
+type MinorUpgrade struct {
+	mu        sync.Mutex
+	finalizer chan bool
+	// reverse the dependency
+	nefario      *Nefario
+	upgradeState *UpgradeState
+	pool         *wss.ConnectionPool
+}
 
 func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 

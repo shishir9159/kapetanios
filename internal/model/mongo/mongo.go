@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	. "kapetanios/internal/nefario"
+	. "kapetanios/internal/model"
 	"time"
 )
 
@@ -44,23 +44,6 @@ func (m *Mongo) CloseConnection() error {
 	}
 
 	return nil
-}
-
-func (m *Mongo) MongoDB() {
-
-	//
-	//_ = client.Ping(ctx, readpref.Primary())
-	//
-	//collection := client.Database("testing").Collection("numbers")
-	//
-	//res, err := collection.InsertOne(ctx, bson.D{{"name", "pi"}, {"value", 3.14159}})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//id := res.InsertedID
-	//
-	//fmt.Println(id)
 }
 
 func (m *Mongo) readConfig(nefario *Nefario) (UpgradeState, error) {

@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"encoding/json"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	v1 "k8s.io/api/core/v1"
@@ -18,28 +19,71 @@ type Cluster struct {
 }
 
 type NodeInfo struct {
-	os                string
-	kernelVersion     string
-	kubernetesVersion string
-}
-
-type MinorUpgrade struct {
-	mu        sync.Mutex
-	finalizer chan bool
-	// reverse the dependency
-	nefario      *Nefario
-	upgradeState *UpgradeState
-	pool         *wss.ConnectionPool
+	OS                string
+	KernelVersion     string
+	KubernetesVersion string
 }
 
 type State interface {
 	SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool)
 }
 
+func (u *UpgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
+
+	upgradeProgression := &UpgradeProgression{
+		StateName: "upgrade config selection",
+		State:     u,
+	}
+
+	payload, err := json.Marshal(upgradeProgression)
+	if err != nil {
+		log.Error("failed to marshal upgrade progression",
+			zap.Error(err))
+	}
+
+	for {
+		log.Info("broadcasting payload for available package version")
+		pool.BroadcastMessage(payload)
+
+		response, er := pool.ReadMessages()
+		if er != nil {
+			log.Info("failed to read payload for available package version",
+				zap.Error(er))
+		}
+
+		selections := SelectedConfig{}
+		er = json.Unmarshal([]byte(response), &selections)
+
+		if er != nil || selections.K8sVersion == nil {
+			log.Error("failed to unmarshal selected upgrade config",
+				zap.Error(er))
+			continue
+		}
+
+		upgradeState.SelectedConfig = &selections
+		break
+	}
+
+	// TODO:
+	//  HANDLE THE ERROR
+	//  error: rpmdb: BDB0113 Thread/process 1380430/139742582999936 failed: BDB1507 Thread died in Berkeley DB library
+	//  error: db5 error(-30973) from dbenv->failchk: BDB0087 DB_RUNRECOVERY: Fatal error, run database recovery
+	//  error: cannot open Packages index using db5 -  (-30973)
+	//  error: cannot open Packages database in /var/lib/rpm
+	//  Error: Error: rpmdb open failed
+
+	return false, false, false
+}
+
 type UpgradeProgression struct {
 	StateName string `json:"stateName"`
 	State     State  `json:"state"`
 }
+
+// todo: should I keep track record if nodes were already
+//  tainted before draining
+// TODO: set a specific label
+//  if you want to avoid upgrade
 
 type K8sVersion struct {
 	DistroPrettyName string `json:"distroPrettyName"`
@@ -101,12 +145,17 @@ type Nefario struct {
 	Cancel      context.CancelFunc
 	Log         *zap.Logger
 	HandlerLock HandlerLock
-	DBMS        DBMS
-	Namespace   string
+	// configMap as DBMS is a conspiracy theory!!!
+	DBMS      DBMS
+	Namespace string
 }
 
 // TODO:
 //  reverse
+
+type UpgradeConfigSelection struct {
+	K8sPackagesInfo []K8sPackageInfo `json:"k8sPackagesInfo"`
+}
 
 func NewNefario() *Nefario {
 
@@ -150,8 +199,4 @@ func NewNefario() *Nefario {
 		Namespace: os.Getenv("KAPETANIOS_NAMESPACE"),
 		Log:       logger,
 	}
-}
-
-type UpgradeConfigSelection struct {
-	K8sPackagesInfo []K8sPackageInfo `json:"k8sPackagesInfo"`
 }

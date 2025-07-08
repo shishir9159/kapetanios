@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	. "kapetanios/internal/model"
 	"kapetanios/internal/wss"
 	pb "kapetanios/proto"
 	"net"
