@@ -119,4 +119,3 @@ func (m *Mongo) writeConfig(state UpgradeState) error {
 
 	return nil
 }
-<
