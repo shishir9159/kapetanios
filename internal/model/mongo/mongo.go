@@ -2,13 +2,10 @@ package mongo
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	. "kapetanios/internal/model"
 	"time"
 )
@@ -17,6 +14,7 @@ type Mongo struct {
 	DSN        string
 	DB         string
 	Collection string
+	Log        *zap.Logger
 	Client     *mongo.Client
 }
 
@@ -62,7 +60,12 @@ func (m *Mongo) InitConnection() error {
 	}
 
 	if len(collections) != 1 {
-		panic(fmt.Errorf("collections not found"))
+		//panic(fmt.Errorf("collections not found"))
+
+		err = m.Client.Database(m.DB).CreateCollection(ctx, m.Collection)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return nil
@@ -80,7 +83,7 @@ func (m *Mongo) CloseConnection() error {
 	return nil
 }
 
-func (m *Mongo) readConfig(nefario *Nefario) (UpgradeState, error) {
+func (m *Mongo) readConfig() (UpgradeState, error) {
 
 	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
 
@@ -88,40 +91,32 @@ func (m *Mongo) readConfig(nefario *Nefario) (UpgradeState, error) {
 	defer cancel()
 
 	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
-	var result bson.M
-	err := collection.FindOne(ctx, bson.D{}, opts).Decode(&result)
+	var state UpgradeState
+	err := collection.FindOne(ctx, UpgradeState{}, opts).Decode(&state)
 	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
 		return UpgradeState{}, err
 	}
 
 	return state, nil
 }
 
-func writeConfig(nefario *Nefario, state UpgradeState) error {
+func (m *Mongo) writeConfig(state UpgradeState) error {
 
-	configMapName := "kapetanios"
+	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
 
-	configMap, er := nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
-		Get(context.Background(), configMapName, metav1.GetOptions{})
-	if er != nil {
-		nefario.log.Error("error fetching the configMap",
-			zap.Error(er))
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	payload, err := json.MarshalIndent(state, "", "  ")
+	result, err := collection.InsertOne(ctx, state)
 	if err != nil {
-		nefario.log.Error("error marshaling the configMap",
-			zap.Error(err))
+		m.Log.Warn("failed to read config", zap.Error(err))
+		return err
 	}
 
-	configMap.Data["UPGRADE_STATE"] = string(payload)
-
-	_, er = nefario.client.Clientset().CoreV1().ConfigMaps(nefario.namespace).
-		Update(context.TODO(), configMap, metav1.UpdateOptions{})
-	if er != nil {
-		nefario.log.Error("error updating configMap",
-			zap.Error(er))
-	}
+	// TODO:
+	m.Log.Info("updated config", zap.Any("result", result))
 
 	return nil
 }
+<

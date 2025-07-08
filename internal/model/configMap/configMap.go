@@ -9,6 +9,8 @@ import (
 )
 
 type ConfigMap struct {
+	//Client     *
+	//logger
 	Name      string
 	NameSpace string
 }

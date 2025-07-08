@@ -19,9 +19,9 @@ type Cluster struct {
 }
 
 type NodeInfo struct {
-	OS                string
-	KernelVersion     string
-	KubernetesVersion string
+	OS                string `json:"os" bson:"os"`
+	KernelVersion     string `json:"kernelVersion" bson:"kernelVersion"`
+	KubernetesVersion string `json:"kubernetesVersion" bson:"kubernetesVersion"`
 }
 
 type State interface {
@@ -94,39 +94,39 @@ type SelectedConfig struct {
 	DrainNodes bool `json:"drainNodes"`
 	// TODO:
 	//  Allow different repo for the same OS
-	PromptOnError      bool         `json:"promptOnError"`
-	CertificateRenewal bool         `json:"certificateRenewal"`
-	K8sVersion         []K8sVersion `json:"k8sVersion"`
+	PromptOnError      bool         `json:"promptOnError" bson:"promptOnError"`
+	CertificateRenewal bool         `json:"certificateRenewal" bson:"certificateRenewal"`
+	K8sVersion         []K8sVersion `json:"k8sVersion" bson:"k8sVersion"`
 }
 
 type K8sPackageInfo struct {
-	Distro            string   `json:"distro"`
-	DistroVersion     string   `json:"distroVersion"`
-	DistroPrettyName  string   `json:"distroPrettyName"`
-	RepoName          string   `json:"repoName"`
-	RepoBaseURL       string   `json:"repoBaseUrl"`
-	AvailableVersions []string `json:"availableVersions"`
+	Distro            string   `json:"distro" bson:"distro"`
+	DistroVersion     string   `json:"distroVersion" bson:"distroVersion"`
+	DistroPrettyName  string   `json:"distroPrettyName" bson:"distroPrettyName"`
+	RepoName          string   `json:"repoName" bson:"repoName"`
+	RepoBaseURL       string   `json:"repoBaseUrl" bson:"repoBaseUrl"`
+	AvailableVersions []string `json:"availableVersions" bson:"availableVersions"`
 }
 
 type NodesStatus struct {
-	NodesUpgraded            []string `json:"nodesUpgraded"`
-	NodesToBeUpgraded        []string `json:"nodesToBeUpgraded"`
-	NodesFailedToBeUpgraded  []string `json:"nodesFailedToBeUpgraded"`
-	NodesSkippedToBeUpgraded []string `json:"nodesSkippedToBeUpgraded"`
+	NodesUpgraded            []string `json:"nodesUpgraded" bson:"nodesUpgraded"`
+	NodesToBeUpgraded        []string `json:"nodesToBeUpgraded" bson:"nodesToBeUpgraded"`
+	NodesFailedToBeUpgraded  []string `json:"nodesFailedToBeUpgraded" bson:"nodesFailedToBeUpgraded"`
+	NodesSkippedToBeUpgraded []string `json:"nodesSkippedToBeUpgraded" bson:"nodesSkippedToBeUpgraded"`
 }
 
 type ProgressDetail struct {
-	StepCount uint64 `json:"stepCount"`
-	Log       string `json:"log"`
-	Err       string `json:"err"`
+	StepCount uint64 `json:"stepCount" bson:"stepCount"`
+	Log       string `json:"log" bson:"log"`
+	Err       string `json:"err" bson:"err"`
 }
 
 type UpgradeState struct {
-	SelectedConfig  *SelectedConfig  `json:"selectedConfig"`
-	NodesStatus     *NodesStatus     `json:"nodesStatus"`
-	Nodes           []NodeInfo       `json:"nodes"`
-	K8sPackages     []K8sPackageInfo `json:"k8sPackages"`
-	ProgressDetails []ProgressDetail `json:"progressDetails"`
+	SelectedConfig  *SelectedConfig  `json:"selectedConfig" bson:"selectedConfig"`
+	NodesStatus     *NodesStatus     `json:"nodesStatus" bson:"nodesStatus"`
+	Nodes           []NodeInfo       `json:"nodes" bson:"nodes"`
+	K8sPackages     []K8sPackageInfo `json:"k8sPackages" bson:"k8sPackages"`
+	ProgressDetails []ProgressDetail `json:"progressDetails" bson:"progressDetails"`
 }
 
 type DBMS interface {
