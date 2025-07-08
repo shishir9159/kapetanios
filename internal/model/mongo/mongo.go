@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -13,12 +14,15 @@ import (
 )
 
 type Mongo struct {
-	Dsn    string
-	Client *mongo.Client
+	DSN        string
+	DB         string
+	Collection string
+	Client     *mongo.Client
 }
 
 func (m *Mongo) InitConnection() error {
-	client, err := mongo.Connect(options.Client().ApplyURI(m.Dsn))
+
+	client, err := mongo.Connect(options.Client().ApplyURI(m.DSN))
 	if err != nil {
 		panic(err)
 	}
@@ -31,6 +35,36 @@ func (m *Mongo) InitConnection() error {
 	}
 
 	m.Client = client
+
+	dbs, err := m.Client.ListDatabaseNames(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	exists := false
+	for _, db := range dbs {
+		if db == m.DB {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		err = m.Client.Database(m.DB).CreateCollection(ctx, m.Collection)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	collections, err := m.Client.Database(m.DB).ListCollectionNames(ctx, bson.M{"name": m.Collection})
+	if err != nil {
+		panic(err)
+	}
+
+	if len(collections) != 1 {
+		panic(fmt.Errorf("collections not found"))
+	}
+
 	return nil
 }
 

@@ -250,10 +250,10 @@ func main() {
 	// TODO:
 	if os.Getenv("MONGO") == "true" {
 		m := Mongo{
-			Dsn: os.Getenv("MONGO_URI"),
+			DSN: os.Getenv("MONGO_URI"),
 		}
 
-		m.Dsn = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
+		m.DSN = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
 		err := m.InitConnection()
 		if err != nil {
 			return
