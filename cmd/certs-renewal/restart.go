@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	pb "github.com/shishir9159/kapetanios/proto"
-	"github.com/shishir9159/kapetanios/utils"
+	pb "kapetanios/proto"
+	"kapetanios/utils"
 	"os"
 	"os/exec"
 )

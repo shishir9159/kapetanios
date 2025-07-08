@@ -378,7 +378,7 @@ const file_proto_certs_expiration_proto_rawDesc = "" +
 	"\x10responseReceived\x18\x01 \x01(\bR\x10responseReceived2\x98\x01\n" +
 	"\bValidity\x12O\n" +
 	"\x15ClusterHealthChecking\x12\x18.PrerequisitesExpiration\x1a\x1c.CertificateValidityResponse\x12;\n" +
-	"\x0eExpirationInfo\x12\v.Expiration\x1a\x1c.CertificateValidityResponseB)Z'github.com/shishir9159/kapetanios/protob\x06proto3"
+	"\x0eExpirationInfo\x12\v.Expiration\x1a\x1c.CertificateValidityResponseB)Z'kapetanios/protob\x06proto3"
 
 var (
 	file_proto_certs_expiration_proto_rawDescOnce sync.Once

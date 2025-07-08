@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gofiber/fiber/v2/log"
-	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	pb "kapetanios/proto"
 	"os"
 	"time"
 )

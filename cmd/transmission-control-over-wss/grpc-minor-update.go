@@ -4,11 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/shishir9159/kapetanios/internal/wss"
-	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"kapetanios/internal/wss"
+	pb "kapetanios/proto"
 	"net"
 	"os"
 	"sync"
@@ -33,7 +33,7 @@ func (s *minorUpdateServer) PackageInfoUpdate(_ context.Context, in *pb.PackageI
 	// TODO:
 	var retryCurrentStep, responseReceived = false, true
 
-	packageInfo := k8sPackageInfo{
+	packageInfo := K8sPackageInfo{
 		Distro:            in.GetDistro(),
 		DistroPrettyName:  in.GetDistroPrettyName(),
 		RepoName:          in.GetRepoName(),

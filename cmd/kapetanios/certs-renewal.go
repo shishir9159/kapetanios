@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
+	"kapetanios/internal/orchestration"
 	"sync"
 	"time"
 )

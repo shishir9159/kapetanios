@@ -2,11 +2,11 @@ package model
 
 import (
 	"context"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
-	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	v1 "k8s.io/api/core/v1"
+	"kapetanios/internal/orchestration"
+	"kapetanios/internal/wss"
 	"os"
 	"sync"
 	"time"
@@ -17,15 +17,15 @@ type Cluster struct {
 	Validity time.Time   `expiration-date:"type:json"`
 }
 
-type nodeInfo struct {
+type NodeInfo struct {
 	os                string
 	kernelVersion     string
 	kubernetesVersion string
 }
 
 type MinorUpgrade struct {
-	mu           sync.Mutex
-	finalizer    chan bool
+	mu        sync.Mutex
+	finalizer chan bool
 	// reverse the dependency
 	nefario      *Nefario
 	upgradeState *UpgradeState
@@ -46,7 +46,7 @@ type K8sVersion struct {
 	TargetK8sVersion string `json:"targetK8sVersion"`
 }
 
-type selectedConfig struct {
+type SelectedConfig struct {
 	DrainNodes bool `json:"drainNodes"`
 	// TODO:
 	//  Allow different repo for the same OS
@@ -55,7 +55,7 @@ type selectedConfig struct {
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
-type k8sPackageInfo struct {
+type K8sPackageInfo struct {
 	Distro            string   `json:"distro"`
 	DistroVersion     string   `json:"distroVersion"`
 	DistroPrettyName  string   `json:"distroPrettyName"`
@@ -64,41 +64,45 @@ type k8sPackageInfo struct {
 	AvailableVersions []string `json:"availableVersions"`
 }
 
-type nodesStatus struct {
+type NodesStatus struct {
 	NodesUpgraded            []string `json:"nodesUpgraded"`
 	NodesToBeUpgraded        []string `json:"nodesToBeUpgraded"`
 	NodesFailedToBeUpgraded  []string `json:"nodesFailedToBeUpgraded"`
 	NodesSkippedToBeUpgraded []string `json:"nodesSkippedToBeUpgraded"`
 }
 
-type progressDetail struct {
+type ProgressDetail struct {
 	StepCount uint64 `json:"stepCount"`
 	Log       string `json:"log"`
 	Err       string `json:"err"`
 }
 
 type UpgradeState struct {
-	SelectedConfig  *selectedConfig  `json:"selectedConfig"`
-	NodesStatus     *nodesStatus     `json:"nodesStatus"`
-	Nodes           []nodeInfo       `json:"nodes"`
-	K8sPackages     []k8sPackageInfo `json:"k8sPackages"`
-	ProgressDetails []progressDetail `json:"progressDetails"`
+	SelectedConfig  *SelectedConfig  `json:"selectedConfig"`
+	NodesStatus     *NodesStatus     `json:"nodesStatus"`
+	Nodes           []NodeInfo       `json:"nodes"`
+	K8sPackages     []K8sPackageInfo `json:"k8sPackages"`
+	ProgressDetails []ProgressDetail `json:"progressDetails"`
 }
-
 
 type DBMS interface {
 	InitConnection() error
+	//	ReadConfig
+}
+
+type HandlerLock struct {
+	Mu          sync.Mutex
+	HandlerName string
 }
 
 type Nefario struct {
-	Client *orchestration.Client
-	Ctx    context.Context
-	Cancel context.CancelFunc
-	Log    *zap.Logger
-	Mu     sync.Mutex
-	// cyclic imports
-	DBMS      DBMS
-	Namespace string
+	Client      *orchestration.Client
+	Ctx         context.Context
+	Cancel      context.CancelFunc
+	Log         *zap.Logger
+	HandlerLock HandlerLock
+	DBMS        DBMS
+	Namespace   string
 }
 
 // TODO:
@@ -148,7 +152,6 @@ func NewNefario() *Nefario {
 	}
 }
 
-
-type upgradeConfigSelection struct {
-	K8sPackagesInfo []k8sPackageInfo `json:"k8sPackagesInfo"`
-
+type UpgradeConfigSelection struct {
+	K8sPackagesInfo []K8sPackageInfo `json:"k8sPackagesInfo"`
+}

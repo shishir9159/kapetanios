@@ -4,9 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	pb "kapetanios/proto"
 	"net"
 )
 

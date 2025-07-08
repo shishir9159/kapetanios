@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	pb "github.com/shishir9159/kapetanios/proto"
-	"github.com/shishir9159/kapetanios/utils"
 	"io"
+	pb "kapetanios/proto"
+	"kapetanios/utils"
 	"log"
 	"os"
 	"path/filepath"

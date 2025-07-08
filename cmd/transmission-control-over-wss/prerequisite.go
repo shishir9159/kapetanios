@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	. "github.com/shishir9159/kapetanios/internal/nefario"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	. "kapetanios/internal/nefario"
 	"os"
 	"regexp"
 	"strconv"

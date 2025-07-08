@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "github.com/shishir9159/kapetanios/proto";
+option go_package = "kapetanios/proto";
 
 message PrerequisitesRollback {
   bool backupExists = 1;

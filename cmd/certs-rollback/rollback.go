@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	pb "github.com/shishir9159/kapetanios/proto"
-	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
 	"io"
+	pb "kapetanios/proto"
+	"kapetanios/utils"
 	"log"
 	"os"
 	"path/filepath"

@@ -3,12 +3,12 @@ package mongo
 import (
 	"context"
 	"encoding/json"
-	. "github.com/shishir9159/kapetanios/internal/nefario"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	. "kapetanios/internal/nefario"
 	"time"
 )
 

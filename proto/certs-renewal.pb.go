@@ -510,7 +510,7 @@ const file_proto_certs_renewal_proto_rawDesc = "" +
 	"\x15ClusterHealthChecking\x12\x15.PrerequisitesRenewal\x1a\x10.RenewalResponse\x12/\n" +
 	"\fBackupUpdate\x12\r.BackupStatus\x1a\x10.RenewalResponse\x121\n" +
 	"\rRenewalUpdate\x12\x0e.RenewalStatus\x1a\x10.RenewalResponse\x122\n" +
-	"\rRestartUpdate\x12\x0e.RestartStatus\x1a\x11.RenewalFinalizerB)Z'github.com/shishir9159/kapetanios/protob\x06proto3"
+	"\rRestartUpdate\x12\x0e.RestartStatus\x1a\x11.RenewalFinalizerB)Z'kapetanios/protob\x06proto3"
 
 var (
 	file_proto_certs_renewal_proto_rawDescOnce sync.Once

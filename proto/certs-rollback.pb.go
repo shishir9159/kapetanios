@@ -376,7 +376,7 @@ const file_proto_certs_rollback_proto_rawDesc = "" +
 	"\bRollback\x12:\n" +
 	"\rPrerequisites\x12\x16.PrerequisitesRollback\x1a\x11.RollbackResponse\x124\n" +
 	"\x0eRollbackUpdate\x12\x0f.RollbackStatus\x1a\x11.RollbackResponse\x126\n" +
-	"\bRestarts\x12\x16.RollbackRestartStatus\x1a\x12.RollbackFinalizerB)Z'github.com/shishir9159/kapetanios/protob\x06proto3"
+	"\bRestarts\x12\x16.RollbackRestartStatus\x1a\x12.RollbackFinalizerB)Z'kapetanios/protob\x06proto3"
 
 var (
 	file_proto_certs_rollback_proto_rawDescOnce sync.Once

@@ -4,10 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	pb "kapetanios/proto"
 	"net"
 )
 

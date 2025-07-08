@@ -7,13 +7,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
-	. "github.com/shishir9159/kapetanios/internal/model"
-	. "github.com/shishir9159/kapetanios/internal/model/mongo"
-	"github.com/shishir9159/kapetanios/internal/wss"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	. "kapetanios/internal/model"
+	. "kapetanios/internal/model/mongo"
+	"kapetanios/internal/wss"
 	"net/http"
 	"os"
 	"sync"
@@ -41,7 +41,7 @@ var upgrader = websocket.Upgrader{
 	EnableCompression: false,
 }
 
-type nodeInfo struct {
+type NodeInfo struct {
 	os                string
 	kernelVersion     string
 	kubernetesVersion string
@@ -74,7 +74,7 @@ type K8sVersion struct {
 	TargetK8sVersion string `json:"targetK8sVersion"`
 }
 
-type selectedConfig struct {
+type SelectedConfig struct {
 	DrainNodes bool `json:"drainNodes"`
 	// TODO:
 	//  Allow different repo for the same OS
@@ -83,7 +83,7 @@ type selectedConfig struct {
 	K8sVersion         []K8sVersion `json:"k8sVersion"`
 }
 
-type k8sPackageInfo struct {
+type K8sPackageInfo struct {
 	Distro            string   `json:"distro"`
 	DistroVersion     string   `json:"distroVersion"`
 	DistroPrettyName  string   `json:"distroPrettyName"`
@@ -92,27 +92,28 @@ type k8sPackageInfo struct {
 	AvailableVersions []string `json:"availableVersions"`
 }
 
-type nodesStatus struct {
+type NodesStatus struct {
 	NodesUpgraded            []string `json:"nodesUpgraded"`
 	NodesToBeUpgraded        []string `json:"nodesToBeUpgraded"`
 	NodesFailedToBeUpgraded  []string `json:"nodesFailedToBeUpgraded"`
 	NodesSkippedToBeUpgraded []string `json:"nodesSkippedToBeUpgraded"`
 }
 
-type progressDetail struct {
+type ProgressDetail struct {
 	StepCount uint64 `json:"stepCount"`
 	Log       string `json:"log"`
 	Err       string `json:"err"`
 }
 
 type UpgradeState struct {
-	SelectedConfig  *selectedConfig  `json:"selectedConfig"`
-	NodesStatus     *nodesStatus     `json:"nodesStatus"`
-	Nodes           []nodeInfo       `json:"nodes"`
-	K8sPackages     []k8sPackageInfo `json:"k8sPackages"`
-	ProgressDetails []progressDetail `json:"progressDetails"`
+	SelectedConfig  *SelectedConfig  `json:"selectedConfig"`
+	NodesStatus     *NodesStatus     `json:"nodesStatus"`
+	Nodes           []NodeInfo       `json:"nodes"`
+	K8sPackages     []K8sPackageInfo `json:"k8sPackages"`
+	ProgressDetails []ProgressDetail `json:"progressDetails"`
 }
 
+// TODO:
 func readConfig(nefario *Nefario) (UpgradeState, error) {
 
 	configMapName := "kapetanios"
@@ -134,7 +135,7 @@ func readConfig(nefario *Nefario) (UpgradeState, error) {
 	}
 
 	if state.NodesStatus == nil {
-		state.NodesStatus = &nodesStatus{
+		state.NodesStatus = &NodesStatus{
 			NodesToBeUpgraded: []string{},
 		}
 	}

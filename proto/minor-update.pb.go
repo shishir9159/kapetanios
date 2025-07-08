@@ -200,7 +200,7 @@ const file_proto_minor_update_proto_rawDesc = "" +
 	"\x10retryCurrentStep\x18\x02 \x01(\bR\x10retryCurrentStep\x122\n" +
 	"\x14terminateApplication\x18\x03 \x01(\bR\x14terminateApplication2B\n" +
 	"\vMinorUpdate\x123\n" +
-	"\x11PackageInfoUpdate\x12\f.PackageInfo\x1a\x10.UpdateFinalizerB)Z'github.com/shishir9159/kapetanios/protob\x06proto3"
+	"\x11PackageInfoUpdate\x12\f.PackageInfo\x1a\x10.UpdateFinalizerB)Z'kapetanios/protob\x06proto3"
 
 var (
 	file_proto_minor_update_proto_rawDescOnce sync.Once

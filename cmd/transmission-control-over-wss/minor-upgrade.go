@@ -7,9 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	. "github.com/shishir9159/kapetanios/internal/nefario"
-	"github.com/shishir9159/kapetanios/internal/orchestration"
-	"github.com/shishir9159/kapetanios/internal/wss"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
@@ -17,17 +14,20 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/kubectl/pkg/drain"
+	. "kapetanios/internal/model"
+	"kapetanios/internal/orchestration"
+	"kapetanios/internal/wss"
 	"os"
 	"sort"
 	"strconv"
 	"time"
 )
 
-type upgradeConfigSelection struct {
-	K8sPackagesInfo []k8sPackageInfo `json:"k8sPackagesInfo"`
+type UpgradeConfigSelection struct {
+	K8sPackagesInfo []K8sPackageInfo `json:"k8sPackagesInfo"`
 }
 
-func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
+func (u *UpgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
 	upgradeProgression := &UpgradeProgression{
 		StateName: "upgrade config selection",
@@ -50,7 +50,7 @@ func (u *upgradeConfigSelection) SendMessage(upgradeState *UpgradeState, log *za
 				zap.Error(er))
 		}
 
-		selections := selectedConfig{}
+		selections := SelectedConfig{}
 		er = json.Unmarshal([]byte(response), &selections)
 
 		if er != nil || selections.K8sVersion == nil {
@@ -236,7 +236,7 @@ func recovery(namespace string) {
 func (upgrade *MinorUpgrade) MinorUpdate(availableOS map[string]string) {
 	roleName := "minor-upgrade"
 
-	upgrade.upgradeState.K8sPackages = []k8sPackageInfo{}
+	upgrade.upgradeState.K8sPackages = []K8sPackageInfo{}
 
 	ch := make(chan *grpc.Server, 1)
 	go MinorUpdateGrpc(upgrade.nefario.Log, upgrade.pool, upgrade.upgradeState, ch)
@@ -347,7 +347,7 @@ outerLoop:
 
 	(<-ch).Stop()
 
-	selection := &upgradeConfigSelection{
+	selection := &UpgradeConfigSelection{
 		K8sPackagesInfo: upgrade.upgradeState.K8sPackages,
 	}
 
@@ -766,7 +766,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		watcher.Stop()
 		// TODO:
 		//  store progress details against the respective nodes
-		upgrade.upgradeState.ProgressDetails = []progressDetail{}
+		upgrade.upgradeState.ProgressDetails = []ProgressDetail{}
 
 		//	TODO:
 		//   progress completion alert

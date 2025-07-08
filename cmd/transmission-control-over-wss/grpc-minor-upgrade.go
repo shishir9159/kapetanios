@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/shishir9159/kapetanios/internal/wss"
-	pb "github.com/shishir9159/kapetanios/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"kapetanios/internal/wss"
+	pb "kapetanios/proto"
 	"net"
 )
 
@@ -23,13 +23,13 @@ type minorUpgradeServer struct {
 }
 
 type progressionState struct {
-	SelectedConfig  *selectedConfig  `json:"selectedConfig"`
-	NodeStatus      *nodesStatus     `json:"nodesStatus"`
-	ProgressDetails []progressDetail `json:"progressDetails"`
+	SelectedConfig  *SelectedConfig  `json:"selectedConfig"`
+	NodeStatus      *NodesStatus     `json:"nodesStatus"`
+	ProgressDetails []ProgressDetail `json:"progressDetails"`
 }
 
 type upgradeFinalizer struct {
-	NodeStatus *nodesStatus `json:"nodesStatus"`
+	NodeStatus *NodesStatus `json:"nodesStatus"`
 }
 
 func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
@@ -99,7 +99,7 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 	return retryCurrentStep, proceedNextStep, terminateApplication
 }
 
-func appendUniqueStep(progressDetails []progressDetail, stepDetail progressDetail) []progressDetail {
+func appendUniqueStep(progressDetails []ProgressDetail, stepDetail ProgressDetail) []ProgressDetail {
 	for _, progress := range progressDetails {
 		if progress.StepCount == stepDetail.StepCount {
 			progress = stepDetail
@@ -115,7 +115,7 @@ func (s *minorUpgradeServer) ClusterHealthChecking(_ context.Context, in *pb.Pre
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var stepDetail progressDetail
+	var stepDetail ProgressDetail
 	stepDetail.StepCount = 1
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
@@ -150,7 +150,7 @@ func (s *minorUpgradeServer) PackageAvailabilityCheck(_ context.Context, in *pb.
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var stepDetail progressDetail
+	var stepDetail ProgressDetail
 	stepDetail.StepCount = 2
 	stepDetail.Log = ""
 	stepDetail.Err = in.GetErr()
@@ -191,7 +191,7 @@ func (s *minorUpgradeServer) ClusterCompatibility(_ context.Context, in *pb.Upgr
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var stepDetail progressDetail
+	var stepDetail ProgressDetail
 	stepDetail.StepCount = 3
 	stepDetail.Log = in.GetDiff()
 	stepDetail.Err = in.GetErr()
@@ -228,7 +228,7 @@ func (s *minorUpgradeServer) ClusterComponentUpgrade(_ context.Context, in *pb.C
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var stepDetail progressDetail
+	var stepDetail ProgressDetail
 	stepDetail.StepCount = 4
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
@@ -265,7 +265,7 @@ func (s *minorUpgradeServer) ClusterUpgradePlan(_ context.Context, in *pb.Upgrad
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var stepDetail progressDetail
+	var stepDetail ProgressDetail
 	stepDetail.StepCount = 5
 	stepDetail.Log = in.GetPlan()
 	stepDetail.Err = in.GetErr()
@@ -295,7 +295,7 @@ func (s *minorUpgradeServer) ClusterUpgrade(_ context.Context, in *pb.UpgradeSta
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var stepDetail progressDetail
+	var stepDetail ProgressDetail
 	stepDetail.StepCount = 6
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()
@@ -332,7 +332,7 @@ func (s *minorUpgradeServer) ClusterComponentRestart(_ context.Context, in *pb.C
 
 	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
 
-	var stepDetail progressDetail
+	var stepDetail ProgressDetail
 	stepDetail.StepCount = 7
 	stepDetail.Log = in.GetLog()
 	stepDetail.Err = in.GetErr()

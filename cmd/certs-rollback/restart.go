@@ -1,9 +1,9 @@
 package main
 
 import (
-	pb "github.com/shishir9159/kapetanios/proto"
-	"github.com/shishir9159/kapetanios/utils"
 	"go.uber.org/zap"
+	pb "kapetanios/proto"
+	"kapetanios/utils"
 	"os/exec"
 	"time"
 )

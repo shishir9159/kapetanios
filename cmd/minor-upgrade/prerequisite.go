@@ -3,9 +3,9 @@ package main
 import (
 	"bufio"
 	"errors"
-	pb "github.com/shishir9159/kapetanios/proto"
-	"github.com/shishir9159/kapetanios/utils"
 	"google.golang.org/grpc"
+	pb "kapetanios/proto"
+	"kapetanios/utils"
 	"os"
 	"strings"
 )

@@ -647,7 +647,7 @@ const file_proto_minor_upgrade_proto_rawDesc = "" +
 	"\x17ClusterComponentUpgrade\x12\x17.ComponentUpgradeStatus\x1a\x10.UpgradeResponse\x124\n" +
 	"\x12ClusterUpgradePlan\x12\f.UpgradePlan\x1a\x10.UpgradeResponse\x122\n" +
 	"\x0eClusterUpgrade\x12\x0e.UpgradeStatus\x1a\x10.UpgradeResponse\x12D\n" +
-	"\x17ClusterComponentRestart\x12\x17.ComponentRestartStatus\x1a\x10.UpgradeResponseB)Z'github.com/shishir9159/kapetanios/protob\x06proto3"
+	"\x17ClusterComponentRestart\x12\x17.ComponentRestartStatus\x1a\x10.UpgradeResponseB)Z'kapetanios/protob\x06proto3"
 
 var (
 	file_proto_minor_upgrade_proto_rawDescOnce sync.Once
