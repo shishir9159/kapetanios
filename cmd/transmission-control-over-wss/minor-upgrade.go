@@ -302,11 +302,17 @@ outerLoop:
 
 	selection.SendMessage(upgrade.upgradeState, upgrade.nefario.Log, upgrade.pool)
 
-	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
+	err = upgrade.nefario.DBMS.WriteConfig(*upgrade.upgradeState)
 	if err != nil {
 		upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
 		upgrade.nefario.Log.Fatal("configMap update failed " + err.Error())
 	}
+	// TODO:
+	//err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
+	//if err != nil {
+	//	upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
+	//	upgrade.nefario.Log.Fatal("configMap update failed " + err.Error())
+	//}
 
 	//	TODO:
 	//   cleanup
@@ -502,10 +508,18 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 				zap.Strings("nodes upgraded", upgrade.upgradeState.NodesStatus.NodesUpgraded))
 		}
 
-		err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
+		//TODO:
+		//err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
+		//if err != nil {
+		//	upgrade.nefario.Log.Error("error writing reporting",
+		//		zap.Error(err))
+		//}
+		err = upgrade.nefario.DBMS.WriteConfig(*upgrade.upgradeState)
 		if err != nil {
 			upgrade.nefario.Log.Error("error writing reporting",
 				zap.Error(err))
+			upgrade.pool.BroadcastMessage([]byte("configMap update failed " + err.Error()))
+			//upgrade.nefario.Log.Fatal("configMap update failed " + err.Error())
 		}
 
 		descriptor.Spec.Tolerations = []corev1.Toleration{
@@ -737,7 +751,13 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 	upgrade.upgradeState.NodesStatus.NodesUpgraded = []string{}
 	upgrade.upgradeState.NodesStatus.NodesToBeUpgraded = []string{}
 
-	err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
+	// TODO:
+	//err = writeConfig(upgrade.nefario, *upgrade.upgradeState)
+	//if err != nil {
+	//	upgrade.nefario.Log.Error("error writing reporting",
+	//		zap.Error(err))
+	//}
+	err = upgrade.nefario.DBMS.WriteConfig(*upgrade.upgradeState)
 	if err != nil {
 		upgrade.nefario.Log.Error("error writing reporting",
 			zap.Error(err))

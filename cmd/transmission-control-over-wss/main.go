@@ -200,11 +200,17 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 		// TODO: race condition - readCtx can be cancelled
 
-		config, er := readConfig(upgrade.nefario)
+		config, er := upgrade.nefario.DBMS.ReadConfig()
 		if er != nil {
-			upgrade.nefario.Log.Info("error reading config",
+			upgrade.nefario.Log.Info("failed to read mongo collection: ",
 				zap.Error(er))
 		}
+		// TODO:
+		//config, er := readConfig(upgrade.nefario)
+		//if er != nil {
+		//	upgrade.nefario.Log.Info("error reading config",
+		//		zap.Error(er))
+		//}
 
 		upgrade.upgradeState = &config
 		upgrade.finalizer = make(chan bool, 1)
@@ -250,7 +256,10 @@ func main() {
 	// TODO:
 	if os.Getenv("MONGO") == "true" {
 		m := Mongo{
-			DSN: os.Getenv("MONGO_URI"),
+			DSN:        os.Getenv("MONGO_URI"),
+			DB:         "lighthouse",
+			Collection: "minor-upgrade",
+			Log:        nefario.Log,
 		}
 
 		m.DSN = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
@@ -262,13 +271,18 @@ func main() {
 		nefario.DBMS = &m
 	}
 
-	config, err := m.db.readConfig(&nefario)
-
-	config, err := readConfig(nefario)
+	config, err := nefario.DBMS.ReadConfig()
 	if err != nil {
-		nefario.Log.Info("failed to read config map: ",
+		nefario.Log.Info("failed to read mongo collection: ",
 			zap.Error(err))
 	}
+
+	// TODO:
+	//config, err := readConfig(nefario)
+	//if err != nil {
+	//	nefario.Log.Info("failed to read config map: ",
+	//		zap.Error(err))
+	//}
 
 	pool := wss.NewPool()
 	pool.Log = nefario.Log

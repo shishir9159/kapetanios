@@ -131,6 +131,8 @@ type UpgradeState struct {
 
 type DBMS interface {
 	InitConnection() error
+	ReadConfig() (UpgradeState, error)
+	WriteConfig(UpgradeState) error
 	//	ReadConfig
 }
 

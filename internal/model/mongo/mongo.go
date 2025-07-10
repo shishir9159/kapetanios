@@ -60,6 +60,7 @@ func (m *Mongo) InitConnection() error {
 	}
 
 	if len(collections) != 1 {
+
 		//panic(fmt.Errorf("collections not found"))
 
 		err = m.Client.Database(m.DB).CreateCollection(ctx, m.Collection)
@@ -83,7 +84,7 @@ func (m *Mongo) CloseConnection() error {
 	return nil
 }
 
-func (m *Mongo) readConfig() (UpgradeState, error) {
+func (m *Mongo) ReadConfig() (UpgradeState, error) {
 
 	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
 
@@ -101,7 +102,7 @@ func (m *Mongo) readConfig() (UpgradeState, error) {
 	return state, nil
 }
 
-func (m *Mongo) writeConfig(state UpgradeState) error {
+func (m *Mongo) WriteConfig(state UpgradeState) error {
 
 	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
 
