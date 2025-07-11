@@ -35,7 +35,7 @@ type upgradeFinalizer struct {
 
 func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log *zap.Logger, pool *wss.ConnectionPool) (bool, bool, bool) {
 
-	var retryCurrentStep, proceedNextStep, terminateApplication = false, false, false
+	var retryCurrentStep, proceedNextStep, abortMinorUpgrade, terminateApplication = false, false, false, false
 
 	progression.SelectedConfig = upgradeState.SelectedConfig
 	progression.NodeStatus = upgradeState.NodesStatus
@@ -76,6 +76,12 @@ func (progression *progressionState) SendMessage(upgradeState *UpgradeState, log
 		break
 	case "proceedNextStep":
 		proceedNextStep = true
+		break
+	case "abortMinorUpgrade":
+		abortMinorUpgrade = true
+		// TODO:
+		// CLean the running pods
+		// cancel the main context
 		break
 	case "terminateApplication":
 		upgradeState.NodesStatus.NodesFailedToBeUpgraded =

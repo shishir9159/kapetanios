@@ -205,6 +205,11 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 			upgrade.nefario.Log.Info("failed to read mongo collection: ",
 				zap.Error(er))
 		}
+
+		// TODO:
+		//  derive from main context
+		// r.WithContext(context.WithValue(r.Context(), "upgradeState", upgrade.upgradeState))
+
 		// TODO:
 		//config, er := readConfig(upgrade.nefario)
 		//if er != nil {
