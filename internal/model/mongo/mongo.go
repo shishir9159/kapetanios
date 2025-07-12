@@ -35,8 +35,10 @@ func (m *Mongo) InitConnection() error {
 	m.Client = client
 
 	dbs, err := m.Client.ListDatabaseNames(ctx, nil)
+	// TODO:
+	//  if error equals to document is nil
 	if err != nil {
-		panic(err)
+		m.Log.Error("mongodb list database names", zap.Error(err))
 	}
 
 	exists := false
@@ -55,8 +57,10 @@ func (m *Mongo) InitConnection() error {
 	}
 
 	collections, err := m.Client.Database(m.DB).ListCollectionNames(ctx, bson.M{"name": m.Collection})
+	// TODO:
+	//  if error equals to collection is nil
 	if err != nil {
-		panic(err)
+		m.Log.Error("mongodb list collection names", zap.Error(err))
 	}
 
 	if len(collections) != 1 {
