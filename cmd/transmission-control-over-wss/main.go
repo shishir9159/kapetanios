@@ -299,12 +299,12 @@ func main() {
 		nefario:      nefario,
 	}
 
-	upgrade.nefario.Log.Info("debug ---- ",
-		zap.Any("config", config))
-
 	if upgrade.upgradeState.NodesStatus == nil {
 		upgrade.upgradeState.NodesStatus = &NodesStatus{
-			NodesToBeUpgraded: []string{},
+			NodesUpgraded:            []string{},
+			NodesToBeUpgraded:        []string{},
+			NodesFailedToBeUpgraded:  []string{},
+			NodesSkippedToBeUpgraded: []string{},
 		}
 	}
 
