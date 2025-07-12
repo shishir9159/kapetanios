@@ -218,7 +218,17 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		//}
 
 		upgrade.upgradeState = &config
+		if upgrade.upgradeState.NodesStatus == nil {
+			upgrade.upgradeState.NodesStatus = &NodesStatus{
+				NodesUpgraded:            []string{},
+				NodesToBeUpgraded:        []string{},
+				NodesFailedToBeUpgraded:  []string{},
+				NodesSkippedToBeUpgraded: []string{},
+			}
+		}
+
 		upgrade.finalizer = make(chan bool, 1)
+
 		upgrade.MinorUpgrade()
 
 		return
@@ -246,11 +256,6 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 	for client = range upgrade.pool.Clients {
 		upgrade.pool.RemoveClient(client)
 	}
-
-}
-
-// MongoTest refactor
-func (upgrade *MinorUpgrade) MongoTest() {
 
 }
 
