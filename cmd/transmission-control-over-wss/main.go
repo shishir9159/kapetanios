@@ -298,8 +298,6 @@ func main() {
 		upgradeState: &config,
 		nefario:      nefario,
 	}
-	nefario.Log.Debug("nodes to be upgraded",
-		zap.Strings("nodesToBeUpgraded", upgrade.upgradeState.NodesStatus.NodesToBeUpgraded))
 
 	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
 		er := continueMinorUpgrade(&upgrade)
