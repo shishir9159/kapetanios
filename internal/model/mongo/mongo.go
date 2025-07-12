@@ -38,7 +38,8 @@ func (m *Mongo) InitConnection() error {
 	// TODO:
 	//  if error equals to document is nil
 	if err != nil {
-		m.Log.Error("mongodb list database names", zap.Error(err))
+		m.Log.Error("mongodb list database names",
+			zap.Error(err))
 	}
 
 	exists := false
@@ -52,7 +53,11 @@ func (m *Mongo) InitConnection() error {
 	if !exists {
 		err = m.Client.Database(m.DB).CreateCollection(ctx, m.Collection)
 		if err != nil {
-			panic(err)
+			//TODO:
+			// Collection already exists
+			//panic(err)
+			m.Log.Error("mongodb list database names",
+				zap.Error(err))
 		}
 	}
 
@@ -64,8 +69,8 @@ func (m *Mongo) InitConnection() error {
 	}
 
 	if len(collections) != 1 {
-
-		//panic(fmt.Errorf("collections not found"))
+		// TODO:
+		// panic(fmt.Errorf("collections not found"))
 
 		err = m.Client.Database(m.DB).CreateCollection(ctx, m.Collection)
 		if err != nil {
