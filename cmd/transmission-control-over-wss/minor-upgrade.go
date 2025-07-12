@@ -360,6 +360,9 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 
 	// Caution: will fail in the scenario of one master node
 	// and kapetanios started in that master node
+	upgrade.nefario.Log.Info("debugging",
+		zap.Any("any", upgrade.upgradeState.NodesStatus))
+
 	if len(upgrade.upgradeState.NodesStatus.NodesUpgraded) != 0 && len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
 		nodeNames = upgrade.upgradeState.NodesStatus.NodesToBeUpgraded
 		nodesUpgraded = upgrade.upgradeState.NodesStatus.NodesUpgraded
