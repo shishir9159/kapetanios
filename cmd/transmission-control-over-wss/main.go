@@ -299,6 +299,15 @@ func main() {
 		nefario:      nefario,
 	}
 
+	upgrade.nefario.Log.Info("debug ---- ",
+		zap.Any("config", config))
+
+	if upgrade.upgradeState.NodesStatus == nil {
+		upgrade.upgradeState.NodesStatus = &NodesStatus{
+			NodesToBeUpgraded: []string{},
+		}
+	}
+
 	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
 		er := continueMinorUpgrade(&upgrade)
 		if er != nil {
