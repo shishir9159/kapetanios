@@ -288,11 +288,11 @@ func main() {
 	}
 
 	// TODO:
-	//config, err := readConfig(nefario)
-	//if err != nil {
-	//	nefario.Log.Info("failed to read config map: ",
-	//		zap.Error(err))
-	//}
+	//  config, err := readConfig(nefario)
+	//  if err != nil {
+	//	  nefario.Log.Info("failed to read config map: ",
+	//  		zap.Error(err))
+	//  }
 
 	pool := wss.NewPool()
 	pool.Log = nefario.Log

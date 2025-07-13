@@ -732,6 +732,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		watcher.Stop()
 		// TODO:
 		//  store progress details against the respective nodes
+
 		upgrade.upgradeState.ProgressDetails = []ProgressDetail{}
 
 		//	TODO:

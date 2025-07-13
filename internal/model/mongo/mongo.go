@@ -22,7 +22,11 @@ func (m *Mongo) InitConnection() error {
 
 	client, err := mongo.Connect(options.Client().ApplyURI(m.DSN))
 	if err != nil {
-		panic(err)
+		// TODO:
+		//  look for the error when mongo is containerCreating
+		//  panic(err)
+		m.Log.Error("MongoDB connection error",
+			zap.Error(err))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -93,6 +97,9 @@ func (m *Mongo) CloseConnection() error {
 	return nil
 }
 
+// TODO:
+//  refactor logic
+
 func (m *Mongo) ReadConfig() (UpgradeState, error) {
 
 	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
@@ -112,6 +119,25 @@ func (m *Mongo) ReadConfig() (UpgradeState, error) {
 }
 
 func (m *Mongo) WriteConfig(state UpgradeState) error {
+
+	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result, err := collection.InsertOne(ctx, state)
+	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
+		return err
+	}
+
+	// TODO:
+	m.Log.Info("updated config", zap.Any("result", result))
+
+	return nil
+}
+
+func (m *Mongo) MinorUpgradeReport(state UpgradeState) error {
 
 	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
 
