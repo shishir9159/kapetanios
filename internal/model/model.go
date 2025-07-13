@@ -121,6 +121,16 @@ type ProgressDetail struct {
 	Err       string `json:"err" bson:"err"`
 }
 
+type Report struct {
+	ID          string    `bson:"_id"`
+	LastUpdated time.Time `bson:"lastUpdated"`
+	Nodes       struct {
+		Name           string         `bson:"name"`
+		UpdatedVersion string         `bson:"updatedVersion"`
+		ProgressDetail ProgressDetail `bson:"progressDetail"`
+	} `bson:"nodes"`
+}
+
 type UpgradeState struct {
 	SelectedConfig  *SelectedConfig  `json:"selectedConfig" bson:"selectedConfig"`
 	NodesStatus     *NodesStatus     `json:"nodesStatus" bson:"nodesStatus"`
@@ -133,7 +143,8 @@ type DBMS interface {
 	InitConnection() error
 	ReadConfig() (UpgradeState, error)
 	WriteConfig(UpgradeState) error
-	//	ReadConfig
+	MinorUpgradeReport() error
+	MinorUpgradeReportUpdate(UpgradeState) error
 }
 
 type HandlerLock struct {

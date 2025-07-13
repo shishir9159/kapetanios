@@ -2,6 +2,8 @@ package mongo
 
 import (
 	"context"
+	"crypto/rand"
+	"github.com/oklog/ulid/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -11,6 +13,7 @@ import (
 )
 
 type Mongo struct {
+	reportID   string
 	DSN        string
 	DB         string
 	Collection string
@@ -56,6 +59,25 @@ func (m *Mongo) InitConnection() error {
 
 	if !exists {
 		err = m.Client.Database(m.DB).CreateCollection(ctx, m.Collection)
+		if err != nil {
+			//TODO:
+			// Collection already exists
+			//panic(err)
+			m.Log.Error("mongodb list database names",
+				zap.Error(err))
+		}
+	}
+
+	exists = false
+	for _, db := range dbs {
+		if db == "report" {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		err = m.Client.Database(m.DB).CreateCollection(ctx, "report")
 		if err != nil {
 			//TODO:
 			// Collection already exists
@@ -137,14 +159,40 @@ func (m *Mongo) WriteConfig(state UpgradeState) error {
 	return nil
 }
 
-func (m *Mongo) MinorUpgradeReport(state UpgradeState) error {
+func (m *Mongo) MinorUpgradeReport() error {
 
-	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
+	entropy := ulid.Monotonic(rand.Reader, 0)
+	id := ulid.MustNew(ulid.Timestamp(time.Now()), entropy)
+	m.reportID = id.String()
+
+	collection := m.Client.Database("lighthouse").Collection("report")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := collection.InsertOne(ctx, state)
+	result, err := collection.InsertOne(ctx, Report{
+		ID: m.reportID,
+	})
+	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
+		return err
+	}
+
+	// TODO:
+	m.Log.Info("updated config", zap.Any("result", result))
+
+	return nil
+}
+
+func (m *Mongo) MinorUpgradeReportUpdate(report Report) error {
+
+	collection := m.Client.Database("lighthouse").Collection("report")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	report.ID = m.reportID
+	result, err := collection.InsertOne(ctx, report)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
 		return err
