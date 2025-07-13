@@ -196,6 +196,9 @@ func continueMinorUpgrade(upgrade *MinorUpgrade) error {
 	upgrade.finalizer = make(chan bool, 1)
 
 	upgrade.mu.Lock()
+	// TODO:
+	//  err := upgrade.nefario.DBMS.MinorUpgradeReport()
+
 	go upgrade.MinorUpgrade()
 
 	return nil

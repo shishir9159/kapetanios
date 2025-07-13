@@ -229,6 +229,14 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 
 		upgrade.finalizer = make(chan bool, 1)
 
+		err := upgrade.nefario.DBMS.MinorUpgradeReport()
+		if err != nil {
+			upgrade.nefario.Log.Info("failed to report minor upgrade",
+				zap.Error(err))
+			//TODO:
+			// handle gracefully
+			// return
+		}
 		upgrade.MinorUpgrade()
 
 		return

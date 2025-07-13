@@ -733,18 +733,16 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		// TODO:
 		//  store progress details against the respective nodes
 
-		nodeReport := &Node{
+		err = upgrade.nefario.DBMS.MinorUpgradeReportUpdate(NodeReport{
 			Name:           node,
 			LastUpdated:    time.Now(),
 			UpdatedVersion: "",
 			ProgressDetail: upgrade.upgradeState.ProgressDetails,
-		}
-
-		err = upgrade.nefario.DBMS.MinorUpgradeReportUpdate(Report{
-			Nodes: nodeReport,
 		})
 		if err != nil {
-
+			// TODO:
+			upgrade.nefario.Log.Error("minor upgrade report update failed: ",
+				zap.Error(err))
 			return
 		}
 

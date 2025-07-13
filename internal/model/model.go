@@ -121,7 +121,7 @@ type ProgressDetail struct {
 	Err       string `json:"err" bson:"err"`
 }
 
-type Node struct {
+type NodeReport struct {
 	Name           string           `bson:"name"`
 	LastUpdated    time.Time        `bson:"lastUpdated"`
 	UpdatedVersion string           `bson:"updatedVersion"`
@@ -129,8 +129,8 @@ type Node struct {
 }
 
 type Report struct {
-	ID    string `bson:"_id"`
-	Nodes []Node `bson:"nodes"`
+	ID          string       `bson:"_id"`
+	NodesReport []NodeReport `bson:"nodesReport"`
 }
 
 type UpgradeState struct {
@@ -146,7 +146,7 @@ type DBMS interface {
 	ReadConfig() (UpgradeState, error)
 	WriteConfig(UpgradeState) error
 	MinorUpgradeReport() error
-	MinorUpgradeReportUpdate(Report) error
+	MinorUpgradeReportUpdate(NodeReport) error
 }
 
 type HandlerLock struct {
