@@ -225,7 +225,7 @@ func (m *Mongo) GetMinorUpgradeReport() error {
 		m.Log.Warn("failed to read config", zap.Error(err))
 	}
 
-	report.NodesReport = append(report.NodesReport, nodeReport)
+	//report.NodesReport = append(report.NodesReport, nodeReport)
 	result, err := collection.UpdateOne(ctx, entry, report)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
