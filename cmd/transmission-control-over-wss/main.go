@@ -132,6 +132,10 @@ type MinorUpgrade struct {
 	pool         *wss.ConnectionPool
 }
 
+func (upgrade *MinorUpgrade) report(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	if len(upgrade.pool.Clients) > 5 {
@@ -336,6 +340,7 @@ func main() {
 	}
 
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
+	http.HandleFunc("/report", upgrade.minorUpgrade)
 	http.HandleFunc("/livez", livez)
 
 	upgrade.nefario.Log.Info("starting kapetanios server on :80")

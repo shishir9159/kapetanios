@@ -147,6 +147,7 @@ type DBMS interface {
 	WriteConfig(UpgradeState) error
 	MinorUpgradeReport() error
 	MinorUpgradeReportUpdate(NodeReport) error
+	GetMinorUpgradeReport() error
 }
 
 type HandlerLock struct {

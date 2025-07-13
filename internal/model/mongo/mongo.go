@@ -199,6 +199,33 @@ func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeReport) error {
 	}
 
 	report.NodesReport = append(report.NodesReport, nodeReport)
+	result, err := collection.ReplaceOne(ctx, entry, report)
+	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
+		return err
+	}
+
+	// TODO:
+	m.Log.Info("updated config", zap.Any("result", result))
+
+	return nil
+}
+
+func (m *Mongo) GetMinorUpgradeReport() error {
+
+	collection := m.Client.Database("lighthouse").Collection("report")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var report Report
+	entry := bson.M{"_id": m.reportID}
+	err := collection.FindOne(ctx, entry).Decode(&report)
+	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
+	}
+
+	report.NodesReport = append(report.NodesReport, nodeReport)
 	result, err := collection.UpdateOne(ctx, entry, report)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
