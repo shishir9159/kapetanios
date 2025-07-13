@@ -133,7 +133,15 @@ type MinorUpgrade struct {
 }
 
 func (upgrade *MinorUpgrade) report(w http.ResponseWriter, r *http.Request) {
+	report, err := upgrade.nefario.DBMS.LastMinorUpgradeReport()
+	if err != nil {
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if err = json.NewEncoder(w).Encode(report.NodesReport); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {

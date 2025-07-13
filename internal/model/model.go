@@ -130,7 +130,7 @@ type NodeReport struct {
 
 type Report struct {
 	ID          string       `bson:"_id"`
-	NodesReport []NodeReport `bson:"nodesReport"`
+	NodesReport []NodeReport `json:"nodesReport" bson:"nodesReport"`
 }
 
 type UpgradeState struct {
@@ -147,7 +147,7 @@ type DBMS interface {
 	WriteConfig(UpgradeState) error
 	MinorUpgradeReport() error
 	MinorUpgradeReportUpdate(NodeReport) error
-	GetMinorUpgradeReport() error
+	LastMinorUpgradeReport() (Report, error)
 }
 
 type HandlerLock struct {
