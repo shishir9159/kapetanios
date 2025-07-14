@@ -2,8 +2,7 @@ package mongo
 
 import (
 	"context"
-	"crypto/rand"
-	"github.com/oklog/ulid/v2"
+	"errors"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -13,7 +12,7 @@ import (
 )
 
 type Mongo struct {
-	reportID   string
+	reportID   bson.ObjectID
 	DSN        string
 	DB         string
 	Collection string
@@ -164,9 +163,13 @@ func (m *Mongo) WriteConfig(state UpgradeState) error {
 
 func (m *Mongo) MinorUpgradeReport() error {
 
-	entropy := ulid.Monotonic(rand.Reader, 0)
-	id := ulid.MustNew(ulid.Timestamp(time.Now()), entropy)
-	m.reportID = id.String()
+	//entropy := ulid.Monotonic(rand.Reader, 0)
+	//id := ulid.MustNew(ulid.Timestamp(time.Now()), entropy).Bytes()
+	//
+	//var byteArray [12]byte
+	//copy(id, byteArray[:])
+	//
+	//m.reportID = bson.ObjectID{byteArray}
 
 	collection := m.Client.Database("lighthouse").Collection("report")
 
@@ -174,17 +177,19 @@ func (m *Mongo) MinorUpgradeReport() error {
 	defer cancel()
 
 	result, err := collection.InsertOne(ctx, Report{
-		ID: m.reportID,
+		// ID: m.reportID,
 	})
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
 		return err
 	}
 
-	// TODO:
-	m.Log.Info("updated config", zap.Any("result", result))
-
-	return nil
+	if oid, ok := result.InsertedID.(bson.ObjectID); ok {
+		m.reportID = oid
+		return nil
+	} else {
+		return errors.New("failed to read object id")
+	}
 }
 
 func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeReport) error {
@@ -224,8 +229,14 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	var report Report
 	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
 	err := collection.FindOne(ctx, Report{}, opts).Decode(&report)
-	if err != nil {
-		m.Log.Warn("failed to read report", zap.Error(err))
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		m.Log.Warn("mongo.ErrNoDocuments",
+			zap.Error(err))
+		return Report{}, err
+	} else if err != nil {
+		m.Log.Warn("failed to read report",
+			zap.Error(err))
 		return Report{}, err
 	}
 

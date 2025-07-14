@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"encoding/json"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	v1 "k8s.io/api/core/v1"
@@ -129,8 +130,8 @@ type NodeReport struct {
 }
 
 type Report struct {
-	ID          string       `bson:"_id"`
-	NodesReport []NodeReport `json:"nodesReport" bson:"nodesReport"`
+	ID          bson.ObjectID `bson:"_id"`
+	NodesReport []NodeReport  `json:"nodesReport" bson:"nodesReport"`
 }
 
 type UpgradeState struct {
