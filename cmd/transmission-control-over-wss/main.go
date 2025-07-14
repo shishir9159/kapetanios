@@ -132,7 +132,7 @@ type MinorUpgrade struct {
 	pool         *wss.ConnectionPool
 }
 
-func (upgrade *MinorUpgrade) report(w http.ResponseWriter, r *http.Request) {
+func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
 	report, err := upgrade.nefario.DBMS.LastMinorUpgradeReport()
 	if err != nil {
 		return
@@ -348,7 +348,7 @@ func main() {
 	}
 
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
-	http.HandleFunc("/report", upgrade.minorUpgrade)
+	http.HandleFunc("/report", upgrade.report)
 	http.HandleFunc("/livez", livez)
 
 	upgrade.nefario.Log.Info("starting kapetanios server on :80")

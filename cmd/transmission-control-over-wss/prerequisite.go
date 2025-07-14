@@ -70,14 +70,14 @@ func removeTabsAndShiftWhitespaces(s string) string {
 
 func validatingNodesState(nefario *Nefario, label string) error {
 
-	//roleName := label
+	// roleName := label
 
-	//matchLabels := map[string]string{"assigned-node-role-" + label + "certs.kubernetes.io": roleName}
+	// matchLabels := map[string]string{"assigned-node-role-" + label + "certs.kubernetes.io": roleName}
 	//
-	//labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	//listOptions := metav1.ListOptions{
-	//	LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	//}
+	// labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
+	// listOptions := metav1.ListOptions{
+	//	 LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	// }
 
 	// TODO:
 
