@@ -122,6 +122,9 @@ func (m *Mongo) CloseConnection() error {
 // TODO:
 //  refactor logic
 
+// Last Config is not useful for mongo,
+// but configMap is good
+
 func (m *Mongo) ReadConfig() (UpgradeState, error) {
 
 	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
@@ -223,8 +226,8 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	err := collection.FindOne(ctx, Report{}, opts).Decode(&report)
 	if err != nil {
 		m.Log.Warn("failed to read report", zap.Error(err))
-		return report, err
+		return Report{}, err
 	}
 
-	return Report{}, nil
+	return report, nil
 }
