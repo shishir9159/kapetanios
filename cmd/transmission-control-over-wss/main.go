@@ -135,6 +135,8 @@ type MinorUpgrade struct {
 func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
 	report, err := upgrade.nefario.DBMS.LastMinorUpgradeReport()
 	if err != nil {
+		upgrade.nefario.Log.Error("could not fetch last upgrade report",
+			zap.Error(err))
 		return
 	}
 

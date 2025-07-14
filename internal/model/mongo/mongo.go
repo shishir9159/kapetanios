@@ -218,11 +218,11 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
 	var report Report
-	err := collection.FindOne(ctx, UpgradeState{}, opts).Decode(&report)
+	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
+	err := collection.FindOne(ctx, Report{}, opts).Decode(&report)
 	if err != nil {
-		m.Log.Warn("failed to read config", zap.Error(err))
+		m.Log.Warn("failed to read report", zap.Error(err))
 		return report, err
 	}
 
