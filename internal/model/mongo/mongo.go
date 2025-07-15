@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 	. "kapetanios/internal/model"
+	"reflect"
 	"time"
 )
 
@@ -262,7 +263,36 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	}
 
 	return report, nil
-	//return reportList[0], nil
+}
+
+func (m *Mongo) RecentMinorUpgradeReport() (Report, error) {
+
+	collection := m.Client.Database("lighthouse").Collection("report")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	findOne := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
+	curr, err := collection.Find(ctx, bson.D{}, findOne)
+
+	var reportList []Report
+	for curr.Next(ctx) {
+		elem := reflect.New(reflect.TypeOf(Report{})).Interface()
+		err = curr.Decode(elem)
+
+		if err != nil {
+			m.Log.Warn("failed to read config", zap.Error(err))
+		}
+
+		elem3 := elem.(*Report)
+		m.Log.Info("updated config", zap.Any("result", elem3))
+		reportList = append(reportList, *elem3)
+	}
+
+	m.Log.Info("length of report",
+		zap.Int("result", len(reportList)))
+
+	return reportList[0], nil
 }
 
 //	result := collection.FindOne(ctx, opts)
