@@ -164,8 +164,10 @@ func Cert(namespace string) {
 						c.log.Info("certs expiration pod has failed!",
 							zap.String("pod name", pod.Name),
 							zap.String("pod namespace", pod.Namespace))
+
 						// TODO:
 						//  handle pod failure
+						//  possibly send the event with error about the pod
 						break outerLoop
 
 					}

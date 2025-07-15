@@ -143,14 +143,15 @@ type UpgradeState struct {
 }
 
 type KubernetesCertificatesExpiration struct {
-	lastUpdated          time.Time
-	nodesCertsExpiration []NodeCertsExpiration
+	LastUpdated          time.Time
+	NodesCertsExpiration []NodeCertsExpiration
 }
+
 type NodeCertsExpiration struct {
-	nodeName              string
-	missingCertificate    []string
-	certificateExpiration []CertsExpiration
-	certificatesAuthority []CertsAuthority
+	NodeName              string
+	MissingCertificate    []string
+	CertificateExpiration []CertsExpiration
+	CertificatesAuthority []CertsAuthority
 }
 
 type CertsExpiration struct {

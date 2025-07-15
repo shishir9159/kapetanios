@@ -8,31 +8,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
+	. "kapetanios/internal/model"
 	"kapetanios/internal/orchestration"
 	"time"
 )
-
-type NodeCertsExpiration struct {
-	nodeName              string
-	missingCertificate    []string
-	certificateExpiration []CertsExpiration
-	certificatesAuthority []CertsAuthority
-}
-
-type CertsExpiration struct {
-	Name                 string
-	Expires              string
-	ResidualTime         string
-	CertificateAuthority string
-	ExternallyManaged    string
-}
-
-type CertsAuthority struct {
-	Name              string
-	Expires           string
-	ResidualTime      string
-	ExternallyManaged string
-}
 
 func Expiration(namespace string) {
 
@@ -176,10 +155,10 @@ func Expiration(namespace string) {
 	for _, nodeCertsExpiration := range nodesCertsExpiration {
 
 		c.log.Info("certs expiration info for node:",
-			zap.String("node name", nodeCertsExpiration.nodeName),
-			zap.Strings("missing certificate list", nodeCertsExpiration.missingCertificate))
+			zap.String("node name", nodeCertsExpiration.NodeName),
+			zap.Strings("missing certificate list", nodeCertsExpiration.MissingCertificate))
 
-		for _, certificate := range nodeCertsExpiration.certificateExpiration {
+		for _, certificate := range nodeCertsExpiration.CertificateExpiration {
 			c.log.Info("Certs Expiration Info",
 				zap.String("name", certificate.Name),
 				zap.String("expires", certificate.Expires),
@@ -188,12 +167,13 @@ func Expiration(namespace string) {
 				zap.String("externally managed", certificate.ExternallyManaged))
 		}
 
-		for _, caAuthority := range nodeCertsExpiration.certificatesAuthority {
+		for _, caAuthority := range nodeCertsExpiration.CertificatesAuthority {
 			c.log.Info("Certs Authority Info",
 				zap.String("name", caAuthority.Name),
 				zap.String("expires", caAuthority.Expires),
 				zap.String("residual time", caAuthority.ResidualTime),
 				zap.String("externally managed", caAuthority.ExternallyManaged))
+
 		}
 	}
 }

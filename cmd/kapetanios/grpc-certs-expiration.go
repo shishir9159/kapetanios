@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	. "kapetanios/internal/model"
 	pb "kapetanios/proto"
 	"net"
 )
@@ -40,10 +41,10 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 
 	}
 
-	nodeCertsExpiration.nodeName = in.GetNodeName()
-	nodeCertsExpiration.certificateExpiration = []CertsExpiration{}
+	nodeCertsExpiration.NodeName = in.GetNodeName()
+	nodeCertsExpiration.CertificateExpiration = []CertsExpiration{}
 
-	s.log.Info("node name: " + nodeCertsExpiration.nodeName)
+	s.log.Info("node name: " + nodeCertsExpiration.NodeName)
 	for _, certificate := range in.GetCertificates() {
 
 		// todo: sanity checking
@@ -66,7 +67,7 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 			zap.String("certificate authority", certificate.CertificateAuthority),
 			zap.String("externally managed", certificate.ExternallyManaged))
 
-		nodeCertsExpiration.certificateExpiration = append(nodeCertsExpiration.certificateExpiration, certificateExpiration)
+		nodeCertsExpiration.CertificateExpiration = append(nodeCertsExpiration.CertificateExpiration, certificateExpiration)
 	}
 
 	for _, caAuthority := range in.GetCertificateAuthorities() {
@@ -84,15 +85,15 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 			zap.String("certificate authority residual time", caAuthority.ResidualTime),
 			zap.String("certificate authority externally managed", caAuthority.ExternallyManaged))
 
-		nodeCertsExpiration.certificatesAuthority = append(nodeCertsExpiration.certificatesAuthority, certificateAuthority)
+		nodeCertsExpiration.CertificatesAuthority = append(nodeCertsExpiration.CertificatesAuthority, certificateAuthority)
 	}
 
 	if len(in.GetMissingCertificates()) != 0 {
 
-		nodeCertsExpiration.missingCertificate = in.GetMissingCertificates()
+		nodeCertsExpiration.MissingCertificate = in.GetMissingCertificates()
 
 		s.log.Info("following certificates are missing",
-			zap.Strings("missing certificates", nodeCertsExpiration.missingCertificate))
+			zap.Strings("missing certificates", nodeCertsExpiration.MissingCertificate))
 	}
 
 	if len(externallyManagedCerts) != 0 {
