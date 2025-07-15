@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 	. "kapetanios/internal/model"
+	"reflect"
 	"time"
 )
 
@@ -230,6 +231,7 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	defer cancel()
 
 	var report Report
+
 	//findOne := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
 	//curr, err := collection.Find(ctx, bson.D{}, findOne)
 	//
@@ -249,18 +251,26 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	//
 	//m.Log.Info("length of report",
 	//	zap.Int("result", len(reportList)))
-	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
-	err := collection.FindOne(ctx, Report{}, opts).Decode(&report)
 
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		m.Log.Warn("mongo.ErrNoDocuments",
-			zap.Error(err))
-		return Report{}, err
-	} else if err != nil {
-		m.Log.Warn("failed to read report",
-			zap.Error(err))
-		return Report{}, err
+	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
+	result := collection.FindOne(ctx, opts)
+
+	obj := reflect.New(reflect.TypeOf(Report{})).Interface()
+	err := result.Decode(obj)
+	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
 	}
+	report = *obj.(*Report)
+
+	//if errors.Is(err, mongo.ErrNoDocuments) {
+	//	m.Log.Warn("mongo.ErrNoDocuments",
+	//		zap.Error(err))
+	//	return Report{}, err
+	//} else if err != nil {
+	//	m.Log.Warn("failed to read report",
+	//		zap.Error(err))
+	//	return Report{}, err
+	//}
 
 	return report, nil
 	//return reportList[0], nil
