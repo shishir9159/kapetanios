@@ -161,6 +161,9 @@ func (m *Mongo) WriteConfig(state UpgradeState) error {
 	return nil
 }
 
+// TODO:
+//  update the _id value after a restart
+
 func (m *Mongo) MinorUpgradeReport() error {
 
 	//entropy := ulid.Monotonic(rand.Reader, 0)
