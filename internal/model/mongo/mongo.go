@@ -210,14 +210,11 @@ func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeReport) error {
 	}
 
 	report.NodesReport = append(report.NodesReport, nodeReport)
-	result, err := collection.ReplaceOne(ctx, entry, report)
+	_, err = collection.ReplaceOne(ctx, entry, report)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
 		return err
 	}
-
-	// TODO:
-	m.Log.Info("updated config", zap.Any("result", result))
 
 	return nil
 }
@@ -252,10 +249,7 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	//	zap.Int("result", len(reportList)))
 
 	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
-	m.Log.Debug("options",
-		zap.Any("options", opts))
-
-	err := collection.FindOne(ctx, bson.M{"_id": "01K01GJ489E1PVNJ5TAA18K7ZS"}, opts).Decode(&report)
+	err := collection.FindOne(ctx, bson.M{}, opts).Decode(&report)
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		m.Log.Warn("mongo.ErrNoDocuments",
