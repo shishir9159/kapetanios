@@ -252,7 +252,7 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	//m.Log.Info("length of report",
 	//	zap.Int("result", len(reportList)))
 
-	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
+	opts := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
 	result := collection.FindOne(ctx, opts)
 
 	obj := reflect.New(reflect.TypeOf(Report{})).Interface()
