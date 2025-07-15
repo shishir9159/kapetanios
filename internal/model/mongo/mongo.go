@@ -255,7 +255,7 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	m.Log.Debug("options",
 		zap.Any("options", opts))
 
-	err := collection.FindOne(ctx, Report{}, opts).Decode(&report)
+	err := collection.FindOne(ctx, bson.M{"_id": "01K01GJ489E1PVNJ5TAA18K7ZS"}, opts).Decode(&report)
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		m.Log.Warn("mongo.ErrNoDocuments",
