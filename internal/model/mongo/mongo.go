@@ -243,9 +243,9 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 			m.Log.Warn("failed to read config", zap.Error(err))
 		}
 
-		elem3 := elem.(Report)
+		elem3 := elem.(*Report)
 		m.Log.Info("updated config", zap.Any("result", elem3))
-		reportList = append(reportList, elem3)
+		reportList = append(reportList, *elem3)
 	}
 
 	m.Log.Info("length of report",
