@@ -142,6 +142,32 @@ type UpgradeState struct {
 	ProgressDetails []ProgressDetail `json:"progressDetails" bson:"progressDetails"`
 }
 
+type KubernetesCertificatesExpiration struct {
+	lastUpdated          time.Time
+	nodesCertsExpiration []NodeCertsExpiration
+}
+type NodeCertsExpiration struct {
+	nodeName              string
+	missingCertificate    []string
+	certificateExpiration []CertsExpiration
+	certificatesAuthority []CertsAuthority
+}
+
+type CertsExpiration struct {
+	Name                 string
+	Expires              string
+	ResidualTime         string
+	CertificateAuthority string
+	ExternallyManaged    string
+}
+
+type CertsAuthority struct {
+	Name              string
+	Expires           string
+	ResidualTime      string
+	ExternallyManaged string
+}
+
 type DBMS interface {
 	InitConnection() error
 	ReadConfig() (UpgradeState, error)

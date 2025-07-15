@@ -68,9 +68,6 @@ func Cert(namespace string) {
 			zap.Error(err))
 	}
 
-	c.log.Info("nodes",
-		zap.Any("nodes", nodes))
-
 	if nodes == nil || len(nodes.Items) == 0 {
 		c.log.Error("no master nodes found",
 			zap.Error(err))
