@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 	. "kapetanios/internal/model"
-	"reflect"
 	"time"
 )
 
@@ -230,38 +229,39 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	//var report Report
-	findOne := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
-	curr, err := collection.Find(ctx, bson.D{}, findOne)
+	var report Report
+	//findOne := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
+	//curr, err := collection.Find(ctx, bson.D{}, findOne)
+	//
+	//var reportList []Report
+	//for curr.Next(ctx) {
+	//	elem := reflect.New(reflect.TypeOf(Report{})).Interface()
+	//	err = curr.Decode(elem)
+	//
+	//	if err != nil {
+	//		m.Log.Warn("failed to read config", zap.Error(err))
+	//	}
+	//
+	//	elem3 := elem.(*Report)
+	//	m.Log.Info("updated config", zap.Any("result", elem3))
+	//	reportList = append(reportList, *elem3)
+	//}
+	//
+	//m.Log.Info("length of report",
+	//	zap.Int("result", len(reportList)))
+	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
+	err := collection.FindOne(ctx, Report{}, opts).Decode(&report)
 
-	var reportList []Report
-	for curr.Next(ctx) {
-		elem := reflect.New(reflect.TypeOf(Report{})).Interface()
-		err = curr.Decode(elem)
-
-		if err != nil {
-			m.Log.Warn("failed to read config", zap.Error(err))
-		}
-
-		elem3 := elem.(*Report)
-		m.Log.Info("updated config", zap.Any("result", elem3))
-		reportList = append(reportList, *elem3)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		m.Log.Warn("mongo.ErrNoDocuments",
+			zap.Error(err))
+		return Report{}, err
+	} else if err != nil {
+		m.Log.Warn("failed to read report",
+			zap.Error(err))
+		return Report{}, err
 	}
 
-	m.Log.Info("length of report",
-		zap.Int("result", len(reportList)))
-	//opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
-	//err := collection.FindOne(ctx, Report{}, opts).Decode(&report)
-	//
-	//if errors.Is(err, mongo.ErrNoDocuments) {
-	//	m.Log.Warn("mongo.ErrNoDocuments",
-	//		zap.Error(err))
-	//	return Report{}, err
-	//} else if err != nil {
-	//	m.Log.Warn("failed to read report",
-	//		zap.Error(err))
-	//	return Report{}, err
-	//}
-
-	return reportList[0], nil
+	return report, nil
+	//return reportList[0], nil
 }
