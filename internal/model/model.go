@@ -176,7 +176,6 @@ type DBMS interface {
 	MinorUpgradeReport() error
 	MinorUpgradeReportUpdate(NodeReport) error
 	LastMinorUpgradeReport() (Report, error)
-	CertificateReport() error
 	CertificateReportUpdate(expiration KubernetesCertificatesExpiration) error
 	LastCertificateReport() (KubernetesCertificatesExpiration, error)
 }

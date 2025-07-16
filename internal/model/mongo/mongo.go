@@ -314,13 +314,14 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 //}
 
 //	result := collection.FindOne(ctx, opts)
-//obj := reflect.New(reflect.TypeOf(Report{})).Interface()
-//err := result.Decode(obj)
-//if err != nil {
-//m.Log.Warn("failed to read config",
-//zap.Error(err))
-//}
-//report = *obj.(*Report)
+//  obj := reflect.New(reflect.TypeOf(Report{})).Interface()
+//  err := result.Decode(obj)
+//  if err != nil {
+//    m.Log.Warn("failed to read config",
+//    zap.Error(err))
+//  }
+//
+//  report = *obj.(*Report)
 
 // TODO:
 //  abstract under common behavior pattern
