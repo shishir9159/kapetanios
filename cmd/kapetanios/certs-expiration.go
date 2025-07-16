@@ -152,6 +152,11 @@ func Expiration(namespace string) {
 
 	(<-ch).GracefulStop()
 
+	KubernetesCertificatesExpiration{
+		LastUpdated:          time.Now(),
+		NodesCertsExpiration: nodesCertsExpiration,
+	}
+
 	for _, nodeCertsExpiration := range nodesCertsExpiration {
 
 		c.log.Info("certs expiration info for node:",

@@ -176,6 +176,9 @@ type DBMS interface {
 	MinorUpgradeReport() error
 	MinorUpgradeReportUpdate(NodeReport) error
 	LastMinorUpgradeReport() (Report, error)
+	CertificateReport()
+	CertificateReportUpdate(expiration KubernetesCertificatesExpiration) error
+	LastCertificateReport() (KubernetesCertificatesExpiration, error)
 }
 
 type HandlerLock struct {

@@ -8,17 +8,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 	. "kapetanios/internal/model"
-	"reflect"
 	"time"
 )
 
 type Mongo struct {
-	reportID   bson.ObjectID
-	DSN        string
-	DB         string
-	Collection string
-	Log        *zap.Logger
-	Client     *mongo.Client
+	reportID      bson.ObjectID
+	certificateID bson.ObjectID
+	DSN           string
+	DB            string
+	Collection    string
+	Log           *zap.Logger
+	Client        *mongo.Client
 }
 
 func (m *Mongo) InitConnection() error {
@@ -265,35 +265,35 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	return report, nil
 }
 
-func (m *Mongo) RecentMinorUpgradeReport() (Report, error) {
-
-	collection := m.Client.Database("lighthouse").Collection("report")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	findOne := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
-	curr, err := collection.Find(ctx, bson.D{}, findOne)
-
-	var reportList []Report
-	for curr.Next(ctx) {
-		elem := reflect.New(reflect.TypeOf(Report{})).Interface()
-		err = curr.Decode(elem)
-
-		if err != nil {
-			m.Log.Warn("failed to read config", zap.Error(err))
-		}
-
-		elem3 := elem.(*Report)
-		m.Log.Info("updated config", zap.Any("result", elem3))
-		reportList = append(reportList, *elem3)
-	}
-
-	m.Log.Info("length of report",
-		zap.Int("result", len(reportList)))
-
-	return reportList[0], nil
-}
+//func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
+//
+//	collection := m.Client.Database("lighthouse").Collection("report")
+//
+//	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+//	defer cancel()
+//
+//	findOne := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
+//	curr, err := collection.Find(ctx, bson.D{}, findOne)
+//
+//	var reportList []Report
+//	for curr.Next(ctx) {
+//		elem := reflect.New(reflect.TypeOf(Report{})).Interface()
+//		err = curr.Decode(elem)
+//
+//		if err != nil {
+//			m.Log.Warn("failed to read config", zap.Error(err))
+//		}
+//
+//		elem3 := elem.(*Report)
+//		m.Log.Info("updated config", zap.Any("result", elem3))
+//		reportList = append(reportList, *elem3)
+//	}
+//
+//	m.Log.Info("length of report",
+//		zap.Int("result", len(reportList)))
+//
+//	return reportList[0], nil
+//}
 
 //	result := collection.FindOne(ctx, opts)
 //obj := reflect.New(reflect.TypeOf(Report{})).Interface()
@@ -303,3 +303,70 @@ func (m *Mongo) RecentMinorUpgradeReport() (Report, error) {
 //zap.Error(err))
 //}
 //report = *obj.(*Report)
+
+// TODO:
+//  abstract under common behavior pattern
+
+func (m *Mongo) CertificateReport() error {
+
+	collection := m.Client.Database("lighthouse").Collection("cert-expiration-report")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result, err := collection.InsertOne(ctx, Report{
+		ID: m.certificateID,
+	})
+	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
+		return err
+	}
+
+	if oid, ok := result.InsertedID.(bson.ObjectID); ok {
+		m.certificateID = oid
+		return nil
+	} else {
+		return errors.New("failed to read object id")
+	}
+}
+
+func (m *Mongo) CertificateReportUpdate(k8sCertsExpiration KubernetesCertificatesExpiration) error {
+
+	collection := m.Client.Database("lighthouse").Collection("cert-expiration-report")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := collection.InsertOne(ctx, k8sCertsExpiration)
+	if err != nil {
+		m.Log.Warn("failed to read config", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (m *Mongo) LastCertificateReport() (KubernetesCertificatesExpiration, error) {
+
+	collection := m.Client.Database("lighthouse").Collection("cert-expiration-report")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var report KubernetesCertificatesExpiration
+
+	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
+	err := collection.FindOne(ctx, bson.M{}, opts).Decode(&report)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		m.Log.Warn("mongo.ErrNoDocuments",
+			zap.Error(err))
+		return KubernetesCertificatesExpiration{}, err
+	} else if err != nil {
+		m.Log.Warn("failed to read report",
+			zap.Error(err))
+		return KubernetesCertificatesExpiration{}, err
+	}
+
+	return report, nil
+}
