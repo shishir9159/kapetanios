@@ -12,13 +12,12 @@ import (
 )
 
 type Mongo struct {
-	reportID      bson.ObjectID
-	certificateID bson.ObjectID
-	DSN           string
-	DB            string
-	Collection    string
-	Log           *zap.Logger
-	Client        *mongo.Client
+	reportID   bson.ObjectID
+	DSN        string
+	DB         string
+	Collection string
+	Log        *zap.Logger
+	Client     *mongo.Client
 }
 
 func (m *Mongo) InitConnection() error {
@@ -82,6 +81,25 @@ func (m *Mongo) InitConnection() error {
 			//TODO:
 			// Collection already exists
 			//panic(err)
+			m.Log.Error("mongodb list database names",
+				zap.Error(err))
+		}
+	}
+
+	exists = false
+	for _, db := range dbs {
+		if db == "cert-expiration-report" {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		err = m.Client.Database(m.DB).CreateCollection(ctx, "cert-expiration-report")
+		if err != nil {
+			//TODO:
+			// Collection already exists
+			// panic(err)
 			m.Log.Error("mongodb list database names",
 				zap.Error(err))
 		}
@@ -306,29 +324,6 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 
 // TODO:
 //  abstract under common behavior pattern
-
-func (m *Mongo) CertificateReport() error {
-
-	collection := m.Client.Database("lighthouse").Collection("cert-expiration-report")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	result, err := collection.InsertOne(ctx, Report{
-		ID: m.certificateID,
-	})
-	if err != nil {
-		m.Log.Warn("failed to read config", zap.Error(err))
-		return err
-	}
-
-	if oid, ok := result.InsertedID.(bson.ObjectID); ok {
-		m.certificateID = oid
-		return nil
-	} else {
-		return errors.New("failed to read object id")
-	}
-}
 
 func (m *Mongo) CertificateReportUpdate(k8sCertsExpiration KubernetesCertificatesExpiration) error {
 

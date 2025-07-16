@@ -9,7 +9,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
 	. "kapetanios/internal/model"
+	. "kapetanios/internal/model/mongo"
 	"kapetanios/internal/orchestration"
+	"os"
 	"time"
 )
 
@@ -152,9 +154,35 @@ func Expiration(namespace string) {
 
 	(<-ch).GracefulStop()
 
-	KubernetesCertificatesExpiration{
+	// TODO:
+	//  refactor
+	m := Mongo{
+		DSN:        os.Getenv("MONGO_URI"),
+		DB:         "lighthouse",
+		Collection: "minor-upgrade",
+		Log:        c.log,
+	}
+	m.DSN = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
+	err = m.InitConnection()
+	if err != nil {
+		return
+	}
+
+	defer func(m *Mongo) {
+		er := m.CloseConnection()
+		if er != nil {
+
+		}
+	}(&m)
+
+	err = m.CertificateReportUpdate(KubernetesCertificatesExpiration{
 		LastUpdated:          time.Now(),
 		NodesCertsExpiration: nodesCertsExpiration,
+	})
+	if err != nil {
+		c.log.Error("error creating kubernetes certificates expiration report",
+			zap.Error(err))
+		return
 	}
 
 	for _, nodeCertsExpiration := range nodesCertsExpiration {
