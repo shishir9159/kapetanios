@@ -129,9 +129,9 @@ type NodeReport struct {
 	ProgressDetail []ProgressDetail `bson:"progressDetail"`
 }
 
-type Report struct {
-	ID          bson.ObjectID `bson:"_id"`
-	NodesReport []NodeReport  `json:"nodesReport" bson:"nodesReport"`
+type ClusterMinorUpgradeHistory struct {
+	ID                       bson.ObjectID `bson:"_id"`
+	NodesMinorUpgradeHistory []NodeReport  `json:"nodesMinorUpgradeHistory" bson:"nodesMinorUpgradeHistory"`
 }
 
 type UpgradeState struct {
@@ -175,7 +175,7 @@ type DBMS interface {
 	WriteConfig(UpgradeState) error
 	MinorUpgradeReport() error
 	MinorUpgradeReportUpdate(NodeReport) error
-	LastMinorUpgradeReport() (Report, error)
+	LastMinorUpgradeReport() (ClusterMinorUpgradeHistory, error)
 	CertificateReportUpdate(KubernetesCertificatesExpiration) error
 	LastCertificateReport() (KubernetesCertificatesExpiration, error)
 }

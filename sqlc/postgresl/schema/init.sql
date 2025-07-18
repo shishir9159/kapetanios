@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users(
+CREATE TABLE IF NOT EXISTS history(
                                     id text not null,
                                     username text not null unique,
                                     email text not null unique,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users(
     PRIMARY KEY (id)
     );
 
-CREATE TABLE IF NOT EXISTS follows (
+CREATE TABLE IF NOT EXISTS certExpirationReport (
                                        follower_id text not null,
                                        following_id text not null,
 

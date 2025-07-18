@@ -141,7 +141,7 @@ func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if err = json.NewEncoder(w).Encode(report.NodesReport); err != nil {
+	if err = json.NewEncoder(w).Encode(report.NodesMinorUpgradeHistory); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -290,7 +290,7 @@ func main() {
 		m := Mongo{
 			DSN:        os.Getenv("MONGO_URI"),
 			DB:         "lighthouse",
-			Collection: "minor-upgrade",
+			Collection: "minorUpgrade",
 			Log:        nefario.Log,
 		}
 

@@ -12,12 +12,12 @@ import (
 )
 
 type Mongo struct {
-	reportID   bson.ObjectID
-	DSN        string
-	DB         string
-	Collection string
-	Log        *zap.Logger
-	Client     *mongo.Client
+	minorUpgradeID bson.ObjectID
+	DSN            string
+	DB             string
+	Collection     string
+	Log            *zap.Logger
+	Client         *mongo.Client
 }
 
 func (m *Mongo) InitConnection() error {
@@ -61,7 +61,7 @@ func (m *Mongo) InitConnection() error {
 		if err != nil {
 			//TODO:
 			// Collection already exists
-			//panic(err)
+			// panic(err)
 			m.Log.Error("mongodb list database names",
 				zap.Error(err))
 		}
@@ -69,14 +69,14 @@ func (m *Mongo) InitConnection() error {
 
 	exists = false
 	for _, db := range dbs {
-		if db == "report" {
+		if db == "history" {
 			exists = true
 			break
 		}
 	}
 
 	if !exists {
-		err = m.Client.Database(m.DB).CreateCollection(ctx, "report")
+		err = m.Client.Database(m.DB).CreateCollection(ctx, "history")
 		if err != nil {
 			//TODO:
 			// Collection already exists
@@ -88,14 +88,14 @@ func (m *Mongo) InitConnection() error {
 
 	exists = false
 	for _, db := range dbs {
-		if db == "cert-expiration-report" {
+		if db == "certExpirationReport" {
 			exists = true
 			break
 		}
 	}
 
 	if !exists {
-		err = m.Client.Database(m.DB).CreateCollection(ctx, "cert-expiration-report")
+		err = m.Client.Database(m.DB).CreateCollection(ctx, "certExpirationReport")
 		if err != nil {
 			//TODO:
 			// Collection already exists
@@ -114,7 +114,7 @@ func (m *Mongo) InitConnection() error {
 
 	if len(collections) != 1 {
 		// TODO:
-		// panic(fmt.Errorf("collections not found"))
+		//  panic(fmt.Errorf("collections not found"))
 
 		err = m.Client.Database(m.DB).CreateCollection(ctx, m.Collection)
 		if err != nil {
@@ -145,7 +145,7 @@ func (m *Mongo) CloseConnection() error {
 
 func (m *Mongo) ReadConfig() (UpgradeState, error) {
 
-	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
+	collection := m.Client.Database("lighthouse").Collection("minorUpgrade")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -163,7 +163,7 @@ func (m *Mongo) ReadConfig() (UpgradeState, error) {
 
 func (m *Mongo) WriteConfig(state UpgradeState) error {
 
-	collection := m.Client.Database("lighthouse").Collection("minor-upgrade")
+	collection := m.Client.Database("lighthouse").Collection("minorUpgrade")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -193,7 +193,7 @@ func (m *Mongo) MinorUpgradeReport() error {
 	//
 	//m.reportID = bson.ObjectID{byteArray}
 
-	collection := m.Client.Database("lighthouse").Collection("report")
+	collection := m.Client.Database("lighthouse").Collection("history")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -207,7 +207,7 @@ func (m *Mongo) MinorUpgradeReport() error {
 	}
 
 	if oid, ok := result.InsertedID.(bson.ObjectID); ok {
-		m.reportID = oid
+		m.minorUpgradeID = oid
 		return nil
 	} else {
 		return errors.New("failed to read object id")
@@ -216,13 +216,13 @@ func (m *Mongo) MinorUpgradeReport() error {
 
 func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeReport) error {
 
-	collection := m.Client.Database("lighthouse").Collection("report")
+	collection := m.Client.Database("lighthouse").Collection("history")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	var report Report
-	entry := bson.M{"_id": m.reportID}
+	entry := bson.M{"_id": m.minorUpgradeID}
 	err := collection.FindOne(ctx, entry).Decode(&report)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
@@ -240,7 +240,7 @@ func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeReport) error {
 
 func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 
-	collection := m.Client.Database("lighthouse").Collection("report")
+	collection := m.Client.Database("lighthouse").Collection("history")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -285,7 +285,7 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 
 //func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 //
-//	collection := m.Client.Database("lighthouse").Collection("report")
+//	collection := m.Client.Database("lighthouse").Collection("history")
 //
 //	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 //	defer cancel()
@@ -328,7 +328,7 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 
 func (m *Mongo) CertificateReportUpdate(k8sCertsExpiration KubernetesCertificatesExpiration) error {
 
-	collection := m.Client.Database("lighthouse").Collection("cert-expiration-report")
+	collection := m.Client.Database("lighthouse").Collection("certExpirationReport")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -344,7 +344,7 @@ func (m *Mongo) CertificateReportUpdate(k8sCertsExpiration KubernetesCertificate
 
 func (m *Mongo) LastCertificateReport() (KubernetesCertificatesExpiration, error) {
 
-	collection := m.Client.Database("lighthouse").Collection("cert-expiration-report")
+	collection := m.Client.Database("lighthouse").Collection("certExpirationReport")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -159,7 +159,7 @@ func Expiration(namespace string) {
 	m := Mongo{
 		DSN:        os.Getenv("MONGO_URI"),
 		DB:         "lighthouse",
-		Collection: "minor-upgrade",
+		Collection: "minorUpgrade",
 		Log:        c.log,
 	}
 	m.DSN = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
