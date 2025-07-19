@@ -1,4 +1,11 @@
-CREATE TABLE IF NOT EXISTS history(
+CREATE TABLE IF NOT EXISTS ProgressDetail(
+                    step_count int not null,
+                    log text,
+                    err text
+
+);
+
+CREATE TABLE IF NOT EXISTS NodeMinorUpgradeHistory(
                                     id text not null,
                                     username text not null unique,
                                     email text not null unique,
@@ -11,7 +18,7 @@ CREATE TABLE IF NOT EXISTS history(
     PRIMARY KEY (id)
     );
 
-CREATE TABLE IF NOT EXISTS certExpirationReport (
+CREATE TABLE IF NOT EXISTS ClusterMinorUpgradeHistory(
                                        follower_id text not null,
                                        following_id text not null,
 

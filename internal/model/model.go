@@ -122,7 +122,7 @@ type ProgressDetail struct {
 	Err       string `json:"err" bson:"err"`
 }
 
-type NodeReport struct {
+type NodeMinorUpgradeHistory struct {
 	Name           string           `bson:"name"`
 	LastUpdated    time.Time        `bson:"lastUpdated"`
 	UpdatedVersion string           `bson:"updatedVersion"`
@@ -130,8 +130,8 @@ type NodeReport struct {
 }
 
 type ClusterMinorUpgradeHistory struct {
-	ID                       bson.ObjectID `bson:"_id"`
-	NodesMinorUpgradeHistory []NodeReport  `json:"nodesMinorUpgradeHistory" bson:"nodesMinorUpgradeHistory"`
+	ID                       bson.ObjectID             `bson:"_id"`
+	NodesMinorUpgradeHistory []NodeMinorUpgradeHistory `json:"nodeMinorUpgradeHistory" bson:"nodesMinorUpgradeHistory"`
 }
 
 type UpgradeState struct {
@@ -174,7 +174,7 @@ type DBMS interface {
 	ReadConfig() (UpgradeState, error)
 	WriteConfig(UpgradeState) error
 	MinorUpgradeReport() error
-	MinorUpgradeReportUpdate(NodeReport) error
+	MinorUpgradeReportUpdate(NodeMinorUpgradeHistory) error
 	LastMinorUpgradeReport() (ClusterMinorUpgradeHistory, error)
 	CertificateReportUpdate(KubernetesCertificatesExpiration) error
 	LastCertificateReport() (KubernetesCertificatesExpiration, error)

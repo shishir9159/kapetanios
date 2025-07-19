@@ -214,7 +214,7 @@ func (m *Mongo) MinorUpgradeReport() error {
 	}
 }
 
-func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeReport) error {
+func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeMinorUpgradeHistory) error {
 
 	collection := m.Client.Database("lighthouse").Collection("history")
 
