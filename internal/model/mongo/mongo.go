@@ -198,7 +198,7 @@ func (m *Mongo) MinorUpgradeReport() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := collection.InsertOne(ctx, Report{
+	result, err := collection.InsertOne(ctx, ClusterMinorUpgradeHistory{
 		// ID: m.reportID,
 	})
 	if err != nil {
@@ -221,14 +221,14 @@ func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeMinorUpgradeHistory) err
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var report Report
+	var report ClusterMinorUpgradeHistory
 	entry := bson.M{"_id": m.minorUpgradeID}
 	err := collection.FindOne(ctx, entry).Decode(&report)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
 	}
 
-	report.NodesReport = append(report.NodesReport, nodeReport)
+	report.NodesMinorUpgradeHistory = append(report.NodesMinorUpgradeHistory, nodeReport)
 	_, err = collection.ReplaceOne(ctx, entry, report)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
@@ -238,14 +238,14 @@ func (m *Mongo) MinorUpgradeReportUpdate(nodeReport NodeMinorUpgradeHistory) err
 	return nil
 }
 
-func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
+func (m *Mongo) LastMinorUpgradeReport() (ClusterMinorUpgradeHistory, error) {
 
 	collection := m.Client.Database("lighthouse").Collection("history")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var report Report
+	var report ClusterMinorUpgradeHistory
 
 	//findOne := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
 	//curr, err := collection.Find(ctx, bson.D{}, findOne)
@@ -273,11 +273,11 @@ func (m *Mongo) LastMinorUpgradeReport() (Report, error) {
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		m.Log.Warn("mongo.ErrNoDocuments",
 			zap.Error(err))
-		return Report{}, err
+		return ClusterMinorUpgradeHistory{}, err
 	} else if err != nil {
 		m.Log.Warn("failed to read report",
 			zap.Error(err))
-		return Report{}, err
+		return ClusterMinorUpgradeHistory{}, err
 	}
 
 	return report, nil
