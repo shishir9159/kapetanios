@@ -146,6 +146,153 @@ func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func (upgrade *MinorUpgrade) minorUpgradev2(w http.ResponseWriter, r *http.Request) {
+
+	if len(upgrade.pool.Clients) > 5 {
+
+		_, err := io.WriteString(w, "maximum number of concurrent connection exceeded!")
+		if err != nil {
+			upgrade.nefario.Log.Error("error writing max connection exceeding error",
+				zap.Error(err))
+		}
+
+		upgrade.nefario.Log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
+		// TODO: -- wrap it in one of the error state(possible other: certificate renewal) --
+		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
+		if er != nil {
+			upgrade.nefario.Log.Info("error writing concurrent connections warning:",
+				zap.Error(er))
+		}
+
+		return
+	}
+
+	query := r.URL.Query()
+	id, exists := query["upgrade"]
+
+	if id == "initialize" && upgrade.nefario.HandlerLock.Mu {
+
+		if exists && len(id) > 0 {
+			fmt.Fprintf(w, "Query param 'id' exists with value: %s\n", id[0])
+		} else {
+			fmt.Fprintln(w, "Query param 'id' does not exist.")
+		}
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		// TODO: wrap it in error state
+		upgrade.nefario.Log.Info("connection upgrade error:",
+			zap.Error(err))
+
+		return
+	}
+
+	client := &wss.Client{
+		Conn: conn,
+	}
+
+	for c := range upgrade.pool.Clients {
+		if client.Conn == c.Conn {
+			upgrade.nefario.Log.Info("removing old connections",
+				zap.String("client", client.Conn.RemoteAddr().String()))
+			closeMessage := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closing connection")
+			if er := c.Conn.WriteMessage(websocket.CloseMessage, closeMessage); er != nil {
+				// handle error
+			}
+
+			er := c.Conn.Close()
+			if er != nil {
+				upgrade.nefario.Log.Info("error closing connection",
+					zap.Error(er))
+				return
+			}
+			upgrade.pool.RemoveClient(c)
+		}
+	}
+
+	upgrade.pool.AddClient(client)
+	upgrade.nefario.Log.Info("registered client: ",
+		zap.String("client address: ", client.Conn.RemoteAddr().String()))
+
+	// todo: add on prerequisite
+	//  if upgrade.nefario.mu.TryLock() {
+	//	 // only allow one api would run at a time
+	//	 defer upgrade.nefario.mu.Unlock()
+	//}
+
+	if upgrade.mu.TryLock() {
+		//defer upgrade.mu.Unlock()
+
+		// TODO: race condition - readCtx can be cancelled
+
+		config, er := upgrade.nefario.DBMS.ReadConfig()
+		if er != nil {
+			upgrade.nefario.Log.Info("failed to read mongo collection: ",
+				zap.Error(er))
+		}
+
+		// TODO:
+		//  derive from main context
+		// r.WithContext(context.WithValue(r.Context(), "upgradeState", upgrade.upgradeState))
+
+		// TODO:
+		//config, er := readConfig(upgrade.nefario)
+		//if er != nil {
+		//	upgrade.nefario.Log.Info("error reading config",
+		//		zap.Error(er))
+		//}
+
+		upgrade.upgradeState = &config
+		if upgrade.upgradeState.NodesStatus == nil {
+			upgrade.upgradeState.NodesStatus = &NodesStatus{
+				NodesUpgraded:            []string{},
+				NodesToBeUpgraded:        []string{},
+				NodesFailedToBeUpgraded:  []string{},
+				NodesSkippedToBeUpgraded: []string{},
+			}
+		}
+
+		upgrade.finalizer = make(chan bool, 1)
+
+		err := upgrade.nefario.DBMS.MinorUpgradeReport()
+		if err != nil {
+			upgrade.nefario.Log.Info("failed to report minor upgrade",
+				zap.Error(err))
+			//TODO:
+			// handle gracefully
+			// return
+		}
+		upgrade.MinorUpgrade()
+
+		return
+	}
+
+	ctx, _ := context.WithCancel(upgrade.pool.ReadCtx)
+	go func() {
+
+		upgrade.nefario.Log.Info("reading message from connection",
+			zap.String("client address: ", client.Conn.RemoteAddr().String()))
+
+		er := upgrade.pool.ReadMessageFromConn(ctx, client)
+		if er != nil {
+			upgrade.nefario.Log.Info("error reading message from connection",
+				zap.Error(er))
+		}
+	}()
+
+	<-upgrade.finalizer
+
+	// can fail
+	upgrade.pool.CancelReadContext()
+
+	// TODO: should there be any mutex for removing clients?
+	for client = range upgrade.pool.Clients {
+		upgrade.pool.RemoveClient(client)
+	}
+
+}
+
 func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request) {
 
 	if len(upgrade.pool.Clients) > 5 {
@@ -349,6 +496,7 @@ func main() {
 			zap.Error(err))
 	}
 
+	http.HandleFunc("/minor-upgrade-v2", upgrade.minorUpgradev2)
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
 	http.HandleFunc("/report", upgrade.report)
 	http.HandleFunc("/livez", livez)

@@ -17,10 +17,6 @@ type ConfigMap struct {
 	Log       *zap.Logger
 }
 
-//TODO:
-// Should not implement DBMS
-// can it be redis???
-
 func (cm *ConfigMap) InitConnection() error {
 	_, err := cm.Client.Clientset().CoreV1().ConfigMaps(cm.Namespace).Get(context.Background(), cm.Name, metav1.GetOptions{})
 	if err != nil {
