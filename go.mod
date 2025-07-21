@@ -5,12 +5,11 @@ go 1.24.2
 require (
 	github.com/chzyer/readline v1.5.1
 	github.com/fatih/color v1.18.0
-	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/swagger v1.1.1
 	github.com/gorilla/websocket v1.5.3
-	github.com/jackc/pgconn v1.9.1-0.20210724152538-d89c8390a530
-	github.com/jackc/pgx/v4 v4.12.1-0.20210724153913-640aa07df17c
-	github.com/oklog/ulid/v2 v2.1.1
+	github.com/jackc/pgconn v1.14.3
+	github.com/jackc/pgx/v4 v4.18.3
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.9.1
