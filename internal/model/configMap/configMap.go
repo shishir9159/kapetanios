@@ -6,20 +6,34 @@ import (
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	. "kapetanios/internal/model"
+	"kapetanios/internal/orchestration"
 )
 
 type ConfigMap struct {
-	//Client     *
-	//logger
 	Name      string
-	NameSpace string
+	Namespace string
+	Client    *orchestration.Client
+	Ctx       context.Context
+	Log       *zap.Logger
 }
 
-func (cm *ConfigMap) InitConnection() {
-	// TODO: check if configMap exists
+//TODO:
+// Should not implement DBMS
+// can it be redis???
+
+func (cm *ConfigMap) InitConnection() error {
+	_, err := cm.Client.Clientset().CoreV1().ConfigMaps(cm.Namespace).Get(context.Background(), cm.Name, metav1.GetOptions{})
+	if err != nil {
+		cm.Log.Error("error fetching the configMap",
+			zap.Error(err))
+
+		return err
+	}
+
+	return nil
 }
 
-func (cm *ConfigMap) readConfig(nefario *Nefario) (UpgradeState, error) {
+func (cm *ConfigMap) ReadMinorUpdateProgression(nefario *Nefario) (UpgradeState, error) {
 	configMap, err := nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).
 		Get(nefario.Ctx, cm.Name, metav1.GetOptions{})
 	if err != nil {
@@ -45,7 +59,7 @@ func (cm *ConfigMap) readConfig(nefario *Nefario) (UpgradeState, error) {
 	return state, nil
 }
 
-func (cm *ConfigMap) writeConfig(nefario *Nefario, state UpgradeState) error {
+func (cm *ConfigMap) WriteMinorUpdateProgression(nefario *Nefario, state UpgradeState) error {
 	configMap, er := nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).
 		Get(context.Background(), cm.Name, metav1.GetOptions{})
 	if er != nil {

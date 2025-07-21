@@ -185,22 +185,12 @@ func (m *Mongo) WriteConfig(state UpgradeState) error {
 
 func (m *Mongo) MinorUpgradeReport() error {
 
-	//entropy := ulid.Monotonic(rand.Reader, 0)
-	//id := ulid.MustNew(ulid.Timestamp(time.Now()), entropy).Bytes()
-	//
-	//var byteArray [12]byte
-	//copy(id, byteArray[:])
-	//
-	//m.reportID = bson.ObjectID{byteArray}
-
 	collection := m.Client.Database("lighthouse").Collection("history")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := collection.InsertOne(ctx, ClusterMinorUpgradeHistory{
-		// ID: m.reportID,
-	})
+	result, err := collection.InsertOne(ctx, ClusterMinorUpgradeHistory{})
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
 		return err
