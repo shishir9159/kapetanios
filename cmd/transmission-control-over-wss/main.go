@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 )
 
 var (
@@ -152,29 +153,42 @@ func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
 
 func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
+		upgrade.nefario.HandlerLock.HandlerName = "test lock"
+		time.Sleep(30 * time.Second)
 		defer upgrade.nefario.HandlerLock.Mu.Unlock()
 	} else {
-		// TODO:
-		//  error struct
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		errorMessage := requestError{
-			error: "handler lock is locked",
+			error: "handler lock is locked for " + upgrade.nefario.HandlerLock.HandlerName,
 		}
-
-		write, err := w.Write([]byte(`{"error" : "lock unavailable"}`))
+		err := json.NewEncoder(w).Encode(errorMessage)
 		if err != nil {
 			upgrade.nefario.Log.Error("error writing response",
-				// what's the value of writing???
-				zap.Int("write", write),
 				zap.Error(err))
-
 			return
 		}
 	}
 }
 
-func (upgrade *MinorUpgrade) minorUpgradev2(w http.ResponseWriter, r *http.Request) {
+func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Request) {
+
+	if upgrade.nefario.HandlerLock.Mu.TryLock() {
+		upgrade.nefario.HandlerLock.HandlerName = "minor-upgrade"
+		defer upgrade.nefario.HandlerLock.Mu.Unlock()
+	} else if upgrade.nefario.HandlerLock.HandlerName != "minor-upgrade" {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		errorMessage := requestError{
+			error: "handler lock is locked for " + upgrade.nefario.HandlerLock.HandlerName,
+		}
+		err := json.NewEncoder(w).Encode(errorMessage)
+		if err != nil {
+			upgrade.nefario.Log.Error("error writing response",
+				zap.Error(err))
+			return
+		}
+	}
 
 	if len(upgrade.pool.Clients) > 5 {
 
@@ -524,7 +538,7 @@ func main() {
 			zap.Error(err))
 	}
 
-	http.HandleFunc("/minor-upgrade-v2", upgrade.minorUpgradev2)
+	http.HandleFunc("/minor-upgrade-v2", upgrade.minorUpgradeV2)
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
 	http.HandleFunc("/report", upgrade.report)
 	http.HandleFunc("/livez", livez)
