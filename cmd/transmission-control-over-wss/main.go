@@ -41,6 +41,10 @@ var upgrader = websocket.Upgrader{
 	EnableCompression: false,
 }
 
+type requestError struct {
+	error string
+}
+
 // todo: should I keep track record if nodes were already
 //  tainted before draining
 // TODO: set a specific label
@@ -146,6 +150,30 @@ func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
+	if upgrade.nefario.HandlerLock.Mu.TryLock() {
+		defer upgrade.nefario.HandlerLock.Mu.Unlock()
+	} else {
+		// TODO:
+		//  error struct
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		errorMessage := requestError{
+			error: "handler lock is locked",
+		}
+
+		write, err := w.Write([]byte(`{"error" : "lock unavailable"}`))
+		if err != nil {
+			upgrade.nefario.Log.Error("error writing response",
+				// what's the value of writing???
+				zap.Int("write", write),
+				zap.Error(err))
+
+			return
+		}
+	}
+}
+
 func (upgrade *MinorUpgrade) minorUpgradev2(w http.ResponseWriter, r *http.Request) {
 
 	if len(upgrade.pool.Clients) > 5 {
@@ -170,7 +198,7 @@ func (upgrade *MinorUpgrade) minorUpgradev2(w http.ResponseWriter, r *http.Reque
 	query := r.URL.Query()
 	id, exists := query["upgrade"]
 
-	if id == "initialize" && upgrade.nefario.HandlerLock.Mu {
+	if id[0] == "initialize" && upgrade.nefario.HandlerLock.Mu {
 
 		if exists && len(id) > 0 {
 			fmt.Fprintf(w, "Query param 'id' exists with value: %s\n", id[0])
