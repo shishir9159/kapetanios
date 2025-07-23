@@ -128,10 +128,14 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //	}
 //}
 
+type CertRenewal struct {
+	mu      sync.Mutex
+	nefario *Nefario
+}
+
 type MinorUpgrade struct {
-	mu        sync.Mutex
-	finalizer chan bool
-	// reverse the dependency
+	mu           sync.Mutex
+	finalizer    chan bool
 	nefario      *Nefario
 	upgradeState *UpgradeState
 	pool         *wss.ConnectionPool
@@ -173,59 +177,58 @@ func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
 
 func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Request) {
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
+
 		upgrade.nefario.HandlerLock.HandlerName = "minor-upgrade"
 		defer upgrade.nefario.HandlerLock.Mu.Unlock()
+
 	} else if upgrade.nefario.HandlerLock.HandlerName != "minor-upgrade" {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
 		w.WriteHeader(http.StatusServiceUnavailable)
-		errorMessage := requestError{
-			error: "handler lock is locked for " + upgrade.nefario.HandlerLock.HandlerName,
-		}
-		err := json.NewEncoder(w).Encode(errorMessage)
+
+		err := json.NewEncoder(w).Encode(requestError{
+			error: "handler lock is locked for " +
+				upgrade.nefario.HandlerLock.HandlerName,
+		})
 		if err != nil {
 			upgrade.nefario.Log.Error("error writing response",
 				zap.Error(err))
-			return
 		}
+
+		return
 	}
 
 	if len(upgrade.pool.Clients) > 5 {
 
-		_, err := io.WriteString(w, "maximum number of concurrent connection exceeded!")
+		err := json.NewEncoder(w).Encode(requestError{error: "maximum number of concurrent connection exceeded!"})
 		if err != nil {
 			upgrade.nefario.Log.Error("error writing max connection exceeding error",
 				zap.Error(err))
 		}
 
 		upgrade.nefario.Log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
-		// TODO: -- wrap it in one of the error state(possible other: certificate renewal) --
-		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
-		if er != nil {
+		err = json.NewEncoder(w).Encode(requestError{error: "exceeds maximum number of concurrent connections!\nQuit older running tabs"})
+		if err != nil {
 			upgrade.nefario.Log.Info("error writing concurrent connections warning:",
-				zap.Error(er))
+				zap.Error(err))
 		}
 
 		return
 	}
 
-	query := r.URL.Query()
-	id, exists := query["upgrade"]
-
-	if id[0] == "initialize" && upgrade.nefario.HandlerLock.Mu {
-
-		if exists && len(id) > 0 {
-			fmt.Fprintf(w, "Query param 'id' exists with value: %s\n", id[0])
-		} else {
-			fmt.Fprintln(w, "Query param 'id' does not exist.")
-		}
-	}
-
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// TODO: wrap it in error state
 		upgrade.nefario.Log.Info("connection upgrade error:",
 			zap.Error(err))
+
+		err = json.NewEncoder(w).Encode(requestError{error: "connection upgrade error" +
+			err.Error()})
+		if err != nil {
+			upgrade.nefario.Log.Info("error writing concurrent connections warning:",
+				zap.Error(err))
+		}
 
 		return
 	}
@@ -263,7 +266,7 @@ func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Reque
 	//	 defer upgrade.nefario.mu.Unlock()
 	//}
 
-	if upgrade.mu.TryLock() {
+	if upgrade.mu.TryLock() && r.URL.Query().Get("request") == "initialize" {
 		//defer upgrade.mu.Unlock()
 
 		// TODO: race condition - readCtx can be cancelled
@@ -346,11 +349,10 @@ func (upgrade *MinorUpgrade) minorUpgrade(w http.ResponseWriter, r *http.Request
 		}
 
 		upgrade.nefario.Log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
-		// TODO: -- wrap it in one of the error state(possible other: certificate renewal) --
-		_, er := w.Write([]byte("exceeds maximum number of concurrent connections!\n quit older running tabs\n"))
-		if er != nil {
+		err = json.NewEncoder(w).Encode(requestError{error: "exceeds maximum number of concurrent connections!\n quit older running tabs"})
+		if err != nil {
 			upgrade.nefario.Log.Info("error writing concurrent connections warning:",
-				zap.Error(er))
+				zap.Error(err))
 		}
 
 		return
