@@ -191,9 +191,8 @@ type Nefario struct {
 	Cancel      context.CancelFunc
 	Log         *zap.Logger
 	HandlerLock HandlerLock
-	// configMap as DBMS is a conspiracy theory!!!
-	DBMS      DBMS
-	Namespace string
+	DBMS        DBMS
+	Namespace   string
 }
 
 // TODO:

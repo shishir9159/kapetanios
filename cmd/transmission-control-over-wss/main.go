@@ -129,7 +129,6 @@ func livez(w http.ResponseWriter, _ *http.Request) {
 //}
 
 type CertRenewal struct {
-	mu      sync.Mutex
 	nefario *Nefario
 }
 
@@ -161,8 +160,10 @@ func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
 		time.Sleep(30 * time.Second)
 		defer upgrade.nefario.HandlerLock.Mu.Unlock()
 	} else {
+
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusServiceUnavailable)
+
 		errorMessage := requestError{
 			error: "handler lock is locked for " + upgrade.nefario.HandlerLock.HandlerName,
 		}
@@ -300,7 +301,7 @@ func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Reque
 
 		upgrade.finalizer = make(chan bool, 1)
 
-		err := upgrade.nefario.DBMS.MinorUpgradeReport()
+		err = upgrade.nefario.DBMS.MinorUpgradeReport()
 		if err != nil {
 			upgrade.nefario.Log.Info("failed to report minor upgrade",
 				zap.Error(err))
@@ -542,8 +543,15 @@ func main() {
 
 	http.HandleFunc("/minor-upgrade-v2", upgrade.minorUpgradeV2)
 	http.HandleFunc("/minor-upgrade", upgrade.minorUpgrade)
+	http.HandleFunc("/testLock", upgrade.testLock)
 	http.HandleFunc("/report", upgrade.report)
 	http.HandleFunc("/livez", livez)
+
+	//certRenewal := CertRenewal{
+	//	nefario: nefario,
+	//}
+	//
+	//http.HandleFunc("/")
 
 	upgrade.nefario.Log.Info("starting kapetanios server on :80")
 	defer handlePanic()
