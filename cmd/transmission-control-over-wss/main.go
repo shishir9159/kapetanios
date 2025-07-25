@@ -43,7 +43,7 @@ var upgrader = websocket.Upgrader{
 }
 
 type requestError struct {
-	error string
+	error string `json:"error"`
 }
 
 // todo: should I keep track record if nodes were already
@@ -140,20 +140,6 @@ type MinorUpgrade struct {
 	pool         *wss.ConnectionPool
 }
 
-func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
-	report, err := upgrade.nefario.DBMS.LastMinorUpgradeReport()
-	if err != nil {
-		upgrade.nefario.Log.Error("could not fetch last upgrade report",
-			zap.Error(err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if err = json.NewEncoder(w).Encode(report.NodesMinorUpgradeHistory); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
 func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
 		upgrade.nefario.HandlerLock.HandlerName = "test lock"
@@ -176,12 +162,26 @@ func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
+	report, err := upgrade.nefario.DBMS.LastMinorUpgradeReport()
+	if err != nil {
+		upgrade.nefario.Log.Error("could not fetch last upgrade report",
+			zap.Error(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if err = json.NewEncoder(w).Encode(report.NodesMinorUpgradeHistory); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
 func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
-
+		upgrade.nefario.Log.Debug("minor upgrade lock is held")
 		upgrade.nefario.HandlerLock.HandlerName = "minor-upgrade"
 		defer upgrade.nefario.HandlerLock.Mu.Unlock()
 
@@ -189,11 +189,9 @@ func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Reque
 
 		w.WriteHeader(http.StatusServiceUnavailable)
 
-		err := json.NewEncoder(w).Encode(requestError{
-			error: "handler lock is locked for " +
-				upgrade.nefario.HandlerLock.HandlerName,
-		})
-		if err != nil {
+		if err := json.NewEncoder(w).Encode(requestError{
+			error: "handler lock is locked for " + upgrade.nefario.HandlerLock.HandlerName,
+		}); err != nil {
 			upgrade.nefario.Log.Error("error writing response",
 				zap.Error(err))
 		}
@@ -203,16 +201,16 @@ func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Reque
 
 	if len(upgrade.pool.Clients) > 5 {
 
-		err := json.NewEncoder(w).Encode(requestError{error: "maximum number of concurrent connection exceeded!"})
-		if err != nil {
+		if err := json.NewEncoder(w).Encode(requestError{
+			error: "maximum number of concurrent connection exceeded!"}); err != nil {
 			upgrade.nefario.Log.Error("error writing max connection exceeding error",
 				zap.Error(err))
 		}
 
 		upgrade.nefario.Log.Info("exceeds maximum number of concurrent connections!\n quit older running tabs\n")
-		err = json.NewEncoder(w).Encode(requestError{error: "exceeds maximum number of concurrent connections!\nQuit older running tabs"})
-		if err != nil {
-			upgrade.nefario.Log.Info("error writing concurrent connections warning:",
+		if err := json.NewEncoder(w).Encode(requestError{
+			error: "exceeds maximum number of concurrent connections!\nQuit older running tabs"}); err != nil {
+			upgrade.nefario.Log.Error("error writing concurrent connections warning:",
 				zap.Error(err))
 		}
 
@@ -221,13 +219,13 @@ func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Reque
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		upgrade.nefario.Log.Info("connection upgrade error:",
+		upgrade.nefario.Log.Error("connection upgrade error:",
 			zap.Error(err))
 
 		err = json.NewEncoder(w).Encode(requestError{error: "connection upgrade error" +
 			err.Error()})
 		if err != nil {
-			upgrade.nefario.Log.Info("error writing concurrent connections warning:",
+			upgrade.nefario.Log.Error("error writing concurrent connections warning:",
 				zap.Error(err))
 		}
 
