@@ -13,6 +13,7 @@ import (
 // if the nodes match with the expectations
 
 func Prerequisites(namespace string) {
+
 	// if cm shows updated nodes to a certain value
 	// and a desired kubernetes version exists on the cm,
 	// then, call the minor upgrade

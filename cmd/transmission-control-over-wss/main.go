@@ -42,7 +42,7 @@ var upgrader = websocket.Upgrader{
 }
 
 type requestError struct {
-	error string `json:"error"`
+	error string
 }
 
 // todo: should I keep track record if nodes were already
@@ -98,7 +98,6 @@ func writeConfig(nefario *Nefario, state UpgradeState) error {
 	}
 
 	configMap.Data["UPGRADE_STATE"] = string(payload)
-
 	_, er = nefario.Client.Clientset().CoreV1().ConfigMaps(nefario.Namespace).
 		Update(context.TODO(), configMap, metav1.UpdateOptions{})
 	if er != nil {
