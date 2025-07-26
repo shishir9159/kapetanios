@@ -158,11 +158,11 @@ func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
-		upgrade.nefario.Log.Debug("---------------------------------------minor upgrade lock is held---------------------------------------",
-			zap.String("handler", upgrade.nefario.HandlerLock.HandlerName))
+		defer func() {
+			upgrade.nefario.HandlerLock.Mu.Unlock()
+			upgrade.nefario.HandlerLock.HandlerName = ""
+		}()
 		upgrade.nefario.HandlerLock.HandlerName = "minor-upgrade"
-		defer upgrade.nefario.HandlerLock.Mu.Unlock()
-
 	} else if upgrade.nefario.HandlerLock.HandlerName != "minor-upgrade" {
 
 		upgrade.nefario.Log.Debug("---------------------------------------return---------------------------------------",
