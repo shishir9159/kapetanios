@@ -140,10 +140,25 @@ type MinorUpgrade struct {
 	pool         *wss.ConnectionPool
 }
 
+func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
+	report, err := upgrade.nefario.DBMS.LastMinorUpgradeReport()
+	if err != nil {
+		upgrade.nefario.Log.Error("could not fetch last upgrade report",
+			zap.Error(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if err = json.NewEncoder(w).Encode(report.NodesMinorUpgradeHistory); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
 func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
 		upgrade.nefario.HandlerLock.HandlerName = "test lock"
 		time.Sleep(30 * time.Second)
+		upgrade.nefario.HandlerLock.HandlerName = ""
 		defer upgrade.nefario.HandlerLock.Mu.Unlock()
 	} else {
 
@@ -162,31 +177,20 @@ func (upgrade *MinorUpgrade) testLock(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
-	report, err := upgrade.nefario.DBMS.LastMinorUpgradeReport()
-	if err != nil {
-		upgrade.nefario.Log.Error("could not fetch last upgrade report",
-			zap.Error(err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if err = json.NewEncoder(w).Encode(report.NodesMinorUpgradeHistory); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
 func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
-		upgrade.nefario.Log.Debug("minor upgrade lock is held")
+		upgrade.nefario.Log.Debug("---------------------------------------minor upgrade lock is held---------------------------------------",
+			zap.String("handler", upgrade.nefario.HandlerLock.HandlerName))
 		upgrade.nefario.HandlerLock.HandlerName = "minor-upgrade"
 		defer upgrade.nefario.HandlerLock.Mu.Unlock()
 
 	} else if upgrade.nefario.HandlerLock.HandlerName != "minor-upgrade" {
 
+		upgrade.nefario.Log.Debug("---------------------------------------return---------------------------------------",
+			zap.String("handler", upgrade.nefario.HandlerLock.HandlerName))
 		w.WriteHeader(http.StatusServiceUnavailable)
 
 		if err := json.NewEncoder(w).Encode(requestError{
