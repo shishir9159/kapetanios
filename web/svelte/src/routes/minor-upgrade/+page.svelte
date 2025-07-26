@@ -167,7 +167,7 @@
         }
     }
 
-    const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade');
+    const wsClient = new WebSocketClient('ws://kapetanios.com/minor-upgrade-v2');
     function onsubmit() {
         let k8sVersion = new Array<K8sVersion>();
         selected.forEach((value:string, key: string) => {
