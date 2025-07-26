@@ -42,6 +42,7 @@ func main() {
 
 	logger := zerolog.New(zerolog.ConsoleWriter{
 		Out:        os.Stdout,
+		NoColor:    false,
 		TimeFormat: time.RFC3339Nano,
 		FormatLevel: func(i interface{}) string {
 			return strings.ToUpper(fmt.Sprintf("[%s]", i))

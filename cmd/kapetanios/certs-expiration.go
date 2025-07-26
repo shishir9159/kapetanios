@@ -2,18 +2,53 @@ package main
 
 import (
 	"context"
+	"crypto/x509"
+	"fmt"
+	. "kapetanios/internal/model"
+	. "kapetanios/internal/model/mongo"
+	"kapetanios/internal/orchestration"
+	"log"
+	"os"
+	"sync"
+	"time"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
-	. "kapetanios/internal/model"
-	. "kapetanios/internal/model/mongo"
-	"kapetanios/internal/orchestration"
-	"os"
-	"time"
 )
+
+var (
+	certPeriodValidationMutex  sync.Mutex
+	certPeriodValidationCached = map[string]struct{}{}
+)
+
+func validateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
+	period := fmt.Sprintf("NotBefore: %v, NotAfter: %v", cert.NotBefore, cert.NotAfter)
+	now := time.Now().Add(offset)
+	if now.Before(cert.NotBefore) {
+		return fmt.Errorf("the certificate is not valid yet: %s", period)
+	}
+	if now.After(cert.NotAfter) {
+		return fmt.Errorf("the certificate has expired: %s", period)
+	}
+	return nil
+}
+
+func checkCertificateValidity(baseName string, cert *x509.Certificate) {
+	certPeriodValidationMutex.Lock()
+	defer certPeriodValidationMutex.Unlock()
+	if _, exists := certPeriodValidationCached[baseName]; exists {
+		return
+	}
+	certPeriodValidationCached[baseName] = struct{}{}
+
+	if err := validateCertPeriod(cert, 0); err != nil {
+		log.Println(fmt.Errorf("WARNING: could not validate bounds for certificate %s: %v", baseName, err))
+	}
+}
 
 func Expiration(namespace string) {
 

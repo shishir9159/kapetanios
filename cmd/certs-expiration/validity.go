@@ -2,24 +2,13 @@ package main
 
 import (
 	"bytes"
-	"crypto/x509"
-	"fmt"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
-)
-
-// TODO: validity check only pods
-
-var (
-	certPeriodValidationMutex  sync.Mutex
-	certPeriodValidationCached = map[string]struct{}{}
 )
 
 func replaceConsecutiveSpaces(s string) string {
@@ -47,18 +36,6 @@ func indexTillLineWithWordsInOrder(text string, words []string) int {
 	return -1
 }
 
-func validateCertPeriod(cert *x509.Certificate, offset time.Duration) error {
-	period := fmt.Sprintf("NotBefore: %v, NotAfter: %v", cert.NotBefore, cert.NotAfter)
-	now := time.Now().Add(offset)
-	if now.Before(cert.NotBefore) {
-		return fmt.Errorf("the certificate is not valid yet: %s", period)
-	}
-	if now.After(cert.NotAfter) {
-		return fmt.Errorf("the certificate has expired: %s", period)
-	}
-	return nil
-}
-
 func missingCertificate(s string) []string {
 
 	re := regexp.MustCompile(`!MISSING!\s+([^\s]+)`)
@@ -72,19 +49,6 @@ func missingCertificate(s string) []string {
 	}
 
 	return missingCerts
-}
-
-func checkCertificateValidity(baseName string, cert *x509.Certificate) {
-	certPeriodValidationMutex.Lock()
-	defer certPeriodValidationMutex.Unlock()
-	if _, exists := certPeriodValidationCached[baseName]; exists {
-		return
-	}
-	certPeriodValidationCached[baseName] = struct{}{}
-
-	if err := validateCertPeriod(cert, 0); err != nil {
-		log.Println(fmt.Errorf("WARNING: could not validate bounds for certificate %s: %v", baseName, err))
-	}
 }
 
 func certExpiration(c Controller, connection pb.ValidityClient) (time.Time, time.Time, error) {
