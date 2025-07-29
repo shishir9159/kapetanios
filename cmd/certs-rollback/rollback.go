@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
@@ -12,6 +11,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // TODO: REFACTOR REFACTOR REFACTOR

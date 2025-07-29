@@ -4,12 +4,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	pb "kapetanios/proto"
 	"log"
 	"net"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var (

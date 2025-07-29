@@ -3,11 +3,12 @@ package main
 import (
 	"bufio"
 	"errors"
-	"google.golang.org/grpc"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
 	"os"
 	"strings"
+
+	"google.golang.org/grpc"
 )
 
 func getDistro(c Controller) (string, string) {

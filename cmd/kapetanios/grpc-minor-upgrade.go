@@ -4,11 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	pb "kapetanios/proto"
+	"net"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	pb "kapetanios/proto"
-	"net"
 )
 
 // minorUpgradeServer is used to implement proto.MinorUpgradeServer.

@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"kapetanios/internal/orchestration"
+
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kapetanios/internal/orchestration"
 )
 
 // if the label exists

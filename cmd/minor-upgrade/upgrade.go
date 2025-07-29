@@ -2,13 +2,14 @@ package main
 
 import (
 	"bytes"
-	"google.golang.org/grpc"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"google.golang.org/grpc"
 )
 
 func tillHyphen(s string) string {

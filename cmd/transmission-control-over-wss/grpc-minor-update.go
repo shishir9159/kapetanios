@@ -4,15 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	. "kapetanios/internal/model"
 	"kapetanios/internal/wss"
 	pb "kapetanios/proto"
 	"net"
 	"os"
 	"sync"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 // TODO:

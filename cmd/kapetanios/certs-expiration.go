@@ -144,45 +144,40 @@ func Expiration(namespace string) {
 			zap.Int("index", index),
 			zap.String("pod_name", minion.Name))
 
-		if watcher == nil {
-			c.log.Info("watcher is nil, sleeping for 10 seconds")
-			time.Sleep(10 * time.Second)
-		} else {
-		outerLoop:
-			for event := range watcher.ResultChan() {
-				pod, ok := event.Object.(*corev1.Pod)
-				if !ok {
-					c.log.Error("watcher returned unexpected type",
-						zap.Reflect("event", event),
-						zap.Reflect("object", event.Object))
-					continue
-				}
+	outerLoop:
+		for event := range watcher.ResultChan() {
+			pod, ok := event.Object.(*corev1.Pod)
+			if !ok {
+				c.log.Error("watcher returned unexpected type",
+					zap.Reflect("event", event),
+					zap.Reflect("object", event.Object))
+				continue
+			}
 
-				// TODO:
-				//  evicted
+			// TODO:
+			//  evicted
 
-				switch event.Type {
-				case watch.Modified:
-					if pod.Status.Phase == corev1.PodSucceeded {
-						c.log.Info("certs expiration pod has completed successfully!",
-							zap.String("pod name", pod.Name),
-							zap.String("pod namespace", pod.Namespace))
-						break outerLoop
-					} else if pod.Status.Phase == corev1.PodFailed {
-						c.log.Info("certs expiration pod has failed!",
-							zap.String("pod name", pod.Name),
-							zap.String("pod namespace", pod.Namespace))
-						// TODO:
-						//  handle pod failure
-						break outerLoop
-
-					}
-				case watch.Deleted:
-					c.log.Info("certs expiration pod was deleted!",
+			switch event.Type {
+			case watch.Modified:
+				if pod.Status.Phase == corev1.PodSucceeded {
+					c.log.Info("certs expiration pod has completed successfully!",
 						zap.String("pod name", pod.Name),
 						zap.String("pod namespace", pod.Namespace))
 					break outerLoop
+				} else if pod.Status.Phase == corev1.PodFailed {
+					c.log.Info("certs expiration pod has failed!",
+						zap.String("pod name", pod.Name),
+						zap.String("pod namespace", pod.Namespace))
+					// TODO:
+					//  handle pod failure
+					break outerLoop
+
 				}
+			case watch.Deleted:
+				c.log.Info("certs expiration pod was deleted!",
+					zap.String("pod name", pod.Name),
+					zap.String("pod namespace", pod.Namespace))
+				break outerLoop
 			}
 		}
 	}

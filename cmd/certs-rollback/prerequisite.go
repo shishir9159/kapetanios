@@ -1,8 +1,9 @@
 package main
 
 import (
-	"go.uber.org/zap"
 	pb "kapetanios/proto"
+
+	"go.uber.org/zap"
 )
 
 func prerequisites(c Controller, connection pb.RollbackClient) error {

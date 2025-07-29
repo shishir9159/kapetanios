@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
 )
 
 // TODO:

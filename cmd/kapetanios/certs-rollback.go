@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"kapetanios/internal/orchestration"
+	"time"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
-	"kapetanios/internal/orchestration"
-	"time"
 )
 
 func Rollback(namespace string) {

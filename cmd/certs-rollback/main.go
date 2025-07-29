@@ -4,13 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	pb "kapetanios/proto"
+	"os"
+	"time"
+
 	"github.com/gofiber/fiber/v2/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "kapetanios/proto"
-	"os"
-	"time"
 )
 
 var (

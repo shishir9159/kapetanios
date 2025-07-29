@@ -3,13 +3,14 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
 	"os"
 	"os/exec"
 	"strconv"
+
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
 )
 
 // TODO: remove the previous version packages

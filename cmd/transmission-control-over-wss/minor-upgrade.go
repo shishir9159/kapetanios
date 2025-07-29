@@ -7,13 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/kubectl/pkg/drain"
 	. "kapetanios/internal/model"
 	"kapetanios/internal/orchestration"
 	"kapetanios/internal/wss"
@@ -21,6 +14,14 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/kubectl/pkg/drain"
 )
 
 // todo: move to utils, add node interface

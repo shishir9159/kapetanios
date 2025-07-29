@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	. "kapetanios/internal/model"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // if the labels exist

@@ -3,17 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
 	"go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // TODO: use the definitions from internal

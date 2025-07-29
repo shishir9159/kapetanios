@@ -2,11 +2,12 @@ package main
 
 import (
 	"bytes"
-	"google.golang.org/grpc"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
 	"os"
 	"os/exec"
+
+	"google.golang.org/grpc"
 )
 
 func compatibility(c Controller, version string, conn *grpc.ClientConn) (bool, error) {

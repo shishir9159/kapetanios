@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
-	"google.golang.org/grpc"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
 	"os"
 	"os/exec"
 	"strings"
+
+	"google.golang.org/grpc"
 )
 
 func availableVersions(c Controller, conn *grpc.ClientConn) (bool, string, error) {

@@ -1,11 +1,12 @@
 package main
 
 import (
-	"go.uber.org/zap"
 	pb "kapetanios/proto"
 	"kapetanios/utils"
 	"os/exec"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // Refactor to new internal library Restart

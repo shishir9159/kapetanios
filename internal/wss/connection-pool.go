@@ -2,12 +2,13 @@ package wss
 
 import (
 	"context"
-	"github.com/gorilla/websocket"
-	"go.uber.org/zap"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 type Client struct {

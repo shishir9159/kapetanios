@@ -6,17 +6,18 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/gorilla/websocket"
-	_ "go.uber.org/automaxprocs"
-	"go.uber.org/zap"
 	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	. "kapetanios/internal/model"
 	. "kapetanios/internal/model/mongo"
 	"kapetanios/internal/wss"
 	"net/http"
 	"os"
 	"sync"
+
+	"github.com/gorilla/websocket"
+	_ "go.uber.org/automaxprocs"
+	"go.uber.org/zap"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (

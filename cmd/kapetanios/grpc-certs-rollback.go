@@ -4,10 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	pb "kapetanios/proto"
 	"net"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 // rollbackServer is used to implement proto.RollbackServer.
