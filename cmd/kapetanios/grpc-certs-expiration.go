@@ -90,7 +90,6 @@ func (s *expirationServer) ExpirationInfo(_ context.Context, in *pb.Expiration) 
 	}
 
 	if len(in.GetMissingCertificates()) != 0 {
-
 		nodeCertsExpiration.MissingCertificate = in.GetMissingCertificates()
 
 		s.log.Info("following certificates are missing",
