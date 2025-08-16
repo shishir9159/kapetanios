@@ -3,21 +3,22 @@ package mongo
 import (
 	"context"
 	"errors"
+	. "kapetanios/internal/model"
+	"time"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
-	. "kapetanios/internal/model"
-	"time"
 )
 
 type Mongo struct {
-	minorUpgradeID bson.ObjectID
-	DSN            string
 	DB             string
+	DSN            string
 	Collection     string
 	Log            *zap.Logger
 	Client         *mongo.Client
+	minorUpgradeID bson.ObjectID
 }
 
 func (m *Mongo) InitConnection() error {
@@ -168,14 +169,11 @@ func (m *Mongo) WriteConfig(state UpgradeState) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := collection.InsertOne(ctx, state)
+	_, err := collection.InsertOne(ctx, state)
 	if err != nil {
 		m.Log.Warn("failed to read config", zap.Error(err))
 		return err
 	}
-
-	// TODO:
-	m.Log.Info("updated config", zap.Any("result", result))
 
 	return nil
 }

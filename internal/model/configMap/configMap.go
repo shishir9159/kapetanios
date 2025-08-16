@@ -3,10 +3,11 @@ package configMap
 import (
 	"context"
 	"encoding/json"
-	"go.uber.org/zap"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	. "kapetanios/internal/model"
 	"kapetanios/internal/orchestration"
+
+	"go.uber.org/zap"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ConfigMap struct {
@@ -16,10 +17,6 @@ type ConfigMap struct {
 	Ctx       context.Context
 	Log       *zap.Logger
 }
-
-//TODO:
-// Should not implement DBMS
-// can it be redis???
 
 func (cm *ConfigMap) InitConnection() error {
 	_, err := cm.Client.Clientset().CoreV1().ConfigMaps(cm.Namespace).Get(context.Background(), cm.Name, metav1.GetOptions{})

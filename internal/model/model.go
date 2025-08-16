@@ -3,15 +3,16 @@ package model
 import (
 	"context"
 	"encoding/json"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	v1 "k8s.io/api/core/v1"
 	"kapetanios/internal/orchestration"
 	"kapetanios/internal/wss"
 	"os"
 	"sync"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	v1 "k8s.io/api/core/v1"
 )
 
 type Cluster struct {

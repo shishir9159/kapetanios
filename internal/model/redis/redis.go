@@ -3,10 +3,11 @@ package redis
 import (
 	"context"
 	"encoding/json"
-	"go.uber.org/zap"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	. "kapetanios/internal/model"
 	"kapetanios/internal/orchestration"
+
+	"go.uber.org/zap"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ConfigMap struct {
