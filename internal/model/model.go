@@ -142,8 +142,8 @@ type UpgradeState struct {
 }
 
 type KubernetesCertificatesExpiration struct {
-	LastUpdated          time.Time
-	NodesCertsExpiration []NodeCertsExpiration
+	LastUpdated          time.Time             `bson:"lastUpdated"`
+	NodesCertsExpiration []NodeCertsExpiration `bson:"nodesCertsExpiration"`
 }
 
 type NodeCertsExpiration struct {
