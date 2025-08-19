@@ -25,7 +25,7 @@ type Controller struct {
 
 func main() {
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
 	logger, err := zap.NewProduction()
