@@ -753,6 +753,7 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		//   progress completion alert
 		//   with the information all nodes had been updated
 	}
+
 	(<-ch).Stop()
 
 	if len(upgrade.upgradeState.NodesStatus.NodesToBeUpgraded) != 0 {
