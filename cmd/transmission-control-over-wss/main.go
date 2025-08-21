@@ -154,18 +154,6 @@ func (upgrade *MinorUpgrade) report(w http.ResponseWriter, _ *http.Request) {
 
 func (upgrade *MinorUpgrade) minorUpgradeV2(w http.ResponseWriter, r *http.Request) {
 
-	if handlerLock, ok := ctrl.manager.ClusterLock[ctx.Query("cluster_id")]; ok {
-		if !handlerLock.Mu.TryLock() && handlerLock.HandlerName != "Kubernetes Minor Upgrade" {
-			api.SendErrorResponse(ctx, ctrl.manager.ClusterLock[ctx.Query("cluster_id")].HandlerName+" task is running")
-			return
-		}
-	} else {
-		ctrl.manager.ClusterLock[ctx.Query("cluster_id")] = &manager.HandlerLock{Mu: sync.Mutex{}}
-		ctrl.manager.ClusterLock[ctx.Query("cluster_id")].Mu.Lock()
-	}
-
-	ctrl.manager.ClusterLock[ctx.Query("cluster_id")].HandlerName = "Kubernetes Minor Upgrade"
-	
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	if upgrade.nefario.HandlerLock.Mu.TryLock() {
