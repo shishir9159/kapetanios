@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.7-labs
+#syntax=docker/dockerfile:1.17.0
 FROM debian:bookworm-slim
 # TODO:
 #   redirect errors and run the command from CMD
