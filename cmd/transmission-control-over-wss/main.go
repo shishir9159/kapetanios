@@ -454,22 +454,22 @@ func main() {
 	nefario := NewNefario()
 
 	// TODO:
-	if os.Getenv("MONGO") == "true" {
-		m := Mongo{
-			DSN:        os.Getenv("MONGO_URI"),
-			DB:         "lighthouse",
-			Collection: "minorUpgrade",
-			Log:        nefario.Log,
-		}
-
-		m.DSN = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
-		err := m.InitConnection()
-		if err != nil {
-			return
-		}
-
-		nefario.DBMS = &m
+	//if os.Getenv("MONGO") == "true" {
+	m := Mongo{
+		DSN:        os.Getenv("MONGO_URI"),
+		DB:         "lighthouse",
+		Collection: "minorUpgrade",
+		Log:        nefario.Log,
 	}
+
+	m.DSN = "mongodb://root:5uZLvWUrvJ@kcprod-mongodb-svc.lighthouse.svc.cluster.local:27017"
+	err := m.InitConnection()
+	if err != nil {
+		return
+	}
+
+	nefario.DBMS = &m
+	//}
 
 	config, err := nefario.DBMS.ReadConfig()
 	if err != nil {
