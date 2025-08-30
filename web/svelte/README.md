@@ -1,5 +1,7 @@
 # sv
 
+bun version 1.2.23
+
 ```bash
 bunx sv create svelte
 ```

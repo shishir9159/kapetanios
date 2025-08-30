@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.7-labs
+# syntax=docker/dockerfile:1.7-labs
 FROM oven/bun:1.2.9 AS base
 WORKDIR /usr/src/app
 
