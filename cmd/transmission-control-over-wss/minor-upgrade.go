@@ -578,8 +578,6 @@ func (upgrade *MinorUpgrade) MinorUpgrade() {
 		}
 
 		nodeRole := "WORKER"
-		// TODO:
-		//  test
 		if _, controlPlane := no.Labels["node-role.kubernetes.io/control-plane"]; controlPlane {
 			nodeRole = "CONTROL-PLANE"
 			upgrade.nefario.Log.Info("control plane node",
