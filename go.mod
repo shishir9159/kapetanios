@@ -14,7 +14,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.10.1
 	go.etcd.io/etcd/client/v3 v3.6.5
-	go.mongodb.org/mongo-driver/v2 v2.3.0
+	go.mongodb.org/mongo-driver/v2 v2.3.1
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.75.1
 	google.golang.org/protobuf v1.36.9
