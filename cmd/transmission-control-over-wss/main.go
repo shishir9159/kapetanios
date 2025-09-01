@@ -529,7 +529,7 @@ func main() {
 	//http.HandleFunc("/")
 
 	upgrade.nefario.Log.Info("starting kapetanios server on :80")
-	defer handlePanic()
+	defer handlePanic(upgrade.nefario.Log)
 	err = http.ListenAndServe(":80", nil)
 	if err != nil {
 		upgrade.nefario.Log.Error("error starting kapetanios server",
@@ -538,11 +538,12 @@ func main() {
 	}
 }
 
-func handlePanic() {
+func handlePanic(log *zap.Logger) {
 	fmt.Println("handling panic")
 	if r := recover(); r != nil {
 		// TODO:
 		//  store timestamp in a configMap list
-		fmt.Println("Recovered from panic:", r)
+		log.Error("panic recovered",
+			zap.Any("stacktrace", r))
 	}
 }
