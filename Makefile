@@ -85,6 +85,7 @@ etcd-restart:
 	docker build . -t laplaciandemon/etcd-restart:latest -f etcd-restart.Dockerfile
 	docker push laplaciandemon/etcd-restart:latest
 
+.PHONY: kapetanios
 kapetanios:
 	@printf $(COLOR) "Building docker image for kapetanios and pushing it to the registry..."
 	#docker build . -t laplaciandemon/kapetanios:latest
